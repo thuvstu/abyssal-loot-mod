@@ -22,7 +22,7 @@ MOD 側の数値・規則はこの文書の対応表に従い、純粋な計算�
 ## 検証状況
 
 - 原作 TypeScript: `node --test tests/abyss-regression.cjs` 26件すべて通過 (変更なし)。
-- MOD (Java): Gradle / NeoForge / Maven に接続できない実行環境のため、**ビルドと JUnit は未実行**。
+- MOD (Java): サンドボックスから Maven に届かないため、ローカルでは未実行。**GitHub Actions (`./gradlew build test`) で実ビルドとユニットテストが通ることを確認済み** (最新は 1966865 以降)。
   代わりに tree-sitter-java で全 Java ファイルの構文を検査し、追加した式は `GameDataTest` の期待値を手計算で照合した。
   実機では `./gradlew test build` (デーモンを残さない場合は `--no-daemon`) で必ず確認すること。
 
