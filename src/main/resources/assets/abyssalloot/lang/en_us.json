@@ -1,0 +1,20 @@
+{
+  "itemGroup.abyssalloot": "Abyssal Loot",
+  "item.abyssalloot.abyss_sword": "Abyss Sword",
+  "item.abyssalloot.abyss_axe": "Abyss Axe",
+  "item.abyssalloot.abyss_spear": "Abyss Spear",
+  "item.abyssalloot.abyss_staff": "Abyss Staff",
+  "item.abyssalloot.abyss_bow": "Abyss Bow",
+  "item.abyssalloot.abyss_dagger": "Abyss Dagger",
+  "item.abyssalloot.abyss_hammer": "Abyss Hammer",
+  "item.abyssalloot.abyss_katana": "Abyss Katana",
+  "item.abyssalloot.abyss_scythe": "Abyss Scythe",
+  "item.abyssalloot.abyss_gauntlet": "Abyss Gauntlet",
+  "item.abyssalloot.abyss_chakram": "Abyss Chakram",
+  "item.abyssalloot.abyss_tome": "Abyss Tome",
+  "item.abyssalloot.soul_shard": "Soul Shard",
+  "key.categories.abyssalloot": "Abyssal Loot",
+  "key.abyssalloot.art": "Weapon Art",
+  "key.abyssalloot.skill": "Class Skill",
+  "key.abyssalloot.dash": "Dodge Dash"
+}

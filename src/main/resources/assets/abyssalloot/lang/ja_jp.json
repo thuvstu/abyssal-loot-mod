@@ -1,0 +1,20 @@
+{
+  "itemGroup.abyssalloot": "Abyssal Loot",
+  "item.abyssalloot.abyss_sword": "深淵の剣",
+  "item.abyssalloot.abyss_axe": "深淵の斧",
+  "item.abyssalloot.abyss_spear": "深淵の槍",
+  "item.abyssalloot.abyss_staff": "深淵の杖",
+  "item.abyssalloot.abyss_bow": "深淵の弓",
+  "item.abyssalloot.abyss_dagger": "深淵の短剣",
+  "item.abyssalloot.abyss_hammer": "深淵の槌",
+  "item.abyssalloot.abyss_katana": "深淵の刀",
+  "item.abyssalloot.abyss_scythe": "深淵の鎌",
+  "item.abyssalloot.abyss_gauntlet": "深淵の拳套",
+  "item.abyssalloot.abyss_chakram": "深淵の輪刃",
+  "item.abyssalloot.abyss_tome": "深淵の魔導書",
+  "item.abyssalloot.soul_shard": "魂の欠片",
+  "key.categories.abyssalloot": "Abyssal Loot",
+  "key.abyssalloot.art": "武器奥義",
+  "key.abyssalloot.skill": "必殺技",
+  "key.abyssalloot.dash": "回避ダッシュ"
+}
