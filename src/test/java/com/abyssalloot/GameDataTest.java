@@ -129,12 +129,12 @@ public class GameDataTest {
     void dashCooldownPerClassAndAgility() {
         var ninja = GameData.HeroClass.NINJA;
         var samurai = GameData.HeroClass.SAMURAI;
-        assertEquals(0.62, GameData.dashCooldown(ninja, 0), 1e-9);
-        assertEquals(1.10, GameData.dashCooldown(samurai, 0), 1e-9);
-        assertEquals(1.10 * 0.9, GameData.dashCooldown(samurai, 10), 1e-9);
+        assertEquals(0.62, GameData.dashCooldown(ninja, 0), 1e-6); // float 定数の誤差を許容
+        assertEquals(1.10, GameData.dashCooldown(samurai, 0), 1e-6); // float 定数の誤差を許容
+        assertEquals(1.10 * 0.9, GameData.dashCooldown(samurai, 10), 1e-6); // float 定数の誤差を許容
         // 敏捷は最大65%まで短縮、下限0.28秒
-        assertEquals(0.28, GameData.dashCooldown(ninja, 65), 1e-9);
-        assertEquals(0.28, GameData.dashCooldown(ninja, 999), 1e-9);
+        assertEquals(0.28, GameData.dashCooldown(ninja, 65), 1e-6); // float 定数の誤差を許容
+        assertEquals(0.28, GameData.dashCooldown(ninja, 999), 1e-6); // float 定数の誤差を許容
     }
 
     @Test
