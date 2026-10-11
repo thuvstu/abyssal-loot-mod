@@ -22,6 +22,27 @@ import java.util.List;
 public final class WeaponArts {
     private WeaponArts() {}
 
+    /** 奥義・罠・二次反応によるダメージ中は >0. 武器命中処理がこれを見て威力上書き・ゲージ蓄積を止める */
+    private static int artHitDepth = 0;
+
+    /** 奥義系の命中か (原作: 奥義自身・環境罠・二次反応はゲージを増やさない) */
+    public static boolean inArtHit() {
+        return artHitDepth > 0;
+    }
+
+    /**
+     * 奥義/二次反応の直接ダメージ. 威力は呼び出し側の値をそのまま使い、
+     * 武器命中の威力上書き・奥義ゲージ蓄積の対象から外す.
+     */
+    public static void artHurt(ServerLevel level, LivingEntity target, net.minecraft.world.damagesource.DamageSource source, float dmg) {
+        artHitDepth++;
+        try {
+            target.hurtServer(level, source, dmg);
+        } finally {
+            artHitDepth--;
+        }
+    }
+
     static ServerLevel slevel(ServerPlayer player) {
         return (ServerLevel) player.level();
     }
@@ -77,7 +98,7 @@ public final class WeaponArts {
                 for (int i = 0; i < 13; i++) {
                     LivingEntity t = nearest(origin, targets);
                     if (t == null) break;
-                    t.hurtServer(level, level.damageSources().playerAttack(player), (float) (0.82 * attackDamage));
+                    artHurt(level, t, level.damageSources().playerAttack(player), (float) (0.82 * attackDamage));
                     level.sendParticles(ParticleTypes.CRIT, t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
                     targets.remove(t);
                 }
@@ -90,7 +111,7 @@ public final class WeaponArts {
                 if (t == null) return false;
                 Vec3 behind = t.position().subtract(t.getLookAngle().scale(2.2));
                 player.teleportTo(behind.x, behind.y, behind.z);
-                t.hurtServer(level, level.damageSources().playerAttack(player), (float) (7.0 * attackDamage));
+                artHurt(level, t, level.damageSources().playerAttack(player), (float) (7.0 * attackDamage));
                 level.sendParticles(ParticleTypes.PORTAL, behind.x, behind.y + 1, behind.z, 40, 1, 1, 1, 0.4);
                 burst(player, "影襲！");
                 return true;
@@ -117,7 +138,7 @@ public final class WeaponArts {
                 for (LivingEntity e : List.copyOf(targets)) {
                     if (e.distanceTo(player) > 10) continue;
                     double mult = (e.getHealth() / Math.max(1, e.getMaxHealth()) < 0.3) ? 3.8 * 1.8 : 3.8;
-                    e.hurtServer(level, level.damageSources().playerAttack(player), (float) (mult * attackDamage / 4.0));
+                    artHurt(level, e, level.damageSources().playerAttack(player), (float) (mult * attackDamage / 4.0));
                 }
                 level.sendParticles(ParticleTypes.SOUL, origin.x, origin.y + 1, origin.z, 50, 4, 2, 4, 0.2);
                 burst(player, "冥府の収穫！");
@@ -210,7 +231,7 @@ public final class WeaponArts {
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {
             if (e.position().distanceTo(at) > radius + 1) continue;
-            e.hurtServer(level, level.damageSources().playerAttack(attacker), (float) dmg);
+            artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
             if (knockback) {
                 Vec3 kb = e.position().subtract(at).normalize().scale(2.2);
                 e.push(kb.x, 0.5, kb.z);
@@ -250,7 +271,7 @@ public final class WeaponArts {
             double ang = Math.atan2(d.z, d.x);
             double diff = Math.abs(normAng(ang - baseAng));
             if (diff < 0.6) {
-                e.hurtServer(level, level.damageSources().playerAttack(attacker), (float) dmg);
+                artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
                 Vec3 kb = d.normalize().scale(1.2);
                 e.push(kb.x, 0.25, kb.z);
             }
@@ -263,7 +284,7 @@ public final class WeaponArts {
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {
             if (e.position().distanceTo(at) > radius + 1) continue;
-            e.hurtServer(level, level.damageSources().playerAttack(attacker), (float) dmg);
+            artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
             if (knockback) {
                 Vec3 kb = e.position().subtract(at).normalize().scale(2.2);
                 e.push(kb.x, 0.5, kb.z);

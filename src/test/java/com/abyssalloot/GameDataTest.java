@@ -84,4 +84,97 @@ public class GameDataTest {
         for (GameData.Sigil s : GameData.Sigil.values()) total += s.reward;
         assertEquals(146, total);
     }
+
+    private static Set<String> allSigils() {
+        Set<String> all = new HashSet<>();
+        for (GameData.Sigil s : GameData.Sigil.values()) all.add(s.id);
+        return all;
+    }
+
+    @Test
+    void trialRulesAllSigilsMatchTrialsTs() {
+        // 原作 trials.ts trialRules() の全選択値
+        var r = GameData.trialRules(allSigils());
+        assertEquals(1.30 * 1.10, r.enemyHp(), 1e-9);
+        assertEquals(1.22 * 1.10, r.enemyDamage(), 1e-9);
+        assertEquals(1.16 * 1.10, r.enemySpeed(), 1e-9);   // 深淵は移動にも効く
+        assertEquals(1.9, r.eliteRate(), 1e-9);
+        assertEquals(0.58, r.healing(), 1e-9);
+        assertEquals(0.70, r.energy(), 1e-9);
+        assertEquals(1.45 * 1.10, r.detection(), 1e-9);    // 注視・深淵は索敵にも効く
+        assertEquals(2.46, r.soulMultiplier(), 1e-9);
+    }
+
+    @Test
+    void neutralTrialRulesAreIdentity() {
+        var r = GameData.trialRules(new HashSet<>());
+        assertEquals(1.0, r.enemySpeed(), 1e-9);
+        assertEquals(1.0, r.eliteRate(), 1e-9);
+        assertEquals(1.0, r.healing(), 1e-9);
+        assertEquals(1.0, r.energy(), 1e-9);
+        assertEquals(1.0, r.detection(), 1e-9);
+    }
+
+    @Test
+    void eliteChanceFollowsFloorAndFrenzyWithCap() {
+        // 原作: clamp((0.05 + floor*0.014) * eliteRate, 0, 0.9)
+        assertEquals(0.05, GameData.eliteChance(0, new HashSet<>()), 1e-9);
+        assertEquals(0.05 + 10 * 0.014, GameData.eliteChance(10, new HashSet<>()), 1e-9);
+        assertEquals((0.05 + 10 * 0.014) * 1.9,
+                GameData.eliteChance(10, Set.of("frenzy")), 1e-9);
+        assertEquals(0.9, GameData.eliteChance(50, Set.of("frenzy")), 1e-9);
+    }
+
+    @Test
+    void dashCooldownPerClassAndAgility() {
+        var ninja = GameData.HeroClass.NINJA;
+        var samurai = GameData.HeroClass.SAMURAI;
+        assertEquals(0.62, GameData.dashCooldown(ninja, 0), 1e-9);
+        assertEquals(1.10, GameData.dashCooldown(samurai, 0), 1e-9);
+        assertEquals(1.10 * 0.9, GameData.dashCooldown(samurai, 10), 1e-9);
+        // 敏捷は最大65%まで短縮、下限0.28秒
+        assertEquals(0.28, GameData.dashCooldown(ninja, 65), 1e-9);
+        assertEquals(0.28, GameData.dashCooldown(ninja, 999), 1e-9);
+    }
+
+    @Test
+    void moveSpeedUsesClassBaseFromCore() {
+        // 原作 moveSpeed 250 (剣聖) を MC既定 0.1 に換算
+        assertEquals(0.1, GameData.HeroClass.SAMURAI.mcMoveSpeed(), 1e-9);
+        assertTrue(GameData.HeroClass.NINJA.mcMoveSpeed() > GameData.HeroClass.PALADIN.mcMoveSpeed());
+    }
+
+    @Test
+    void artChargeFollowsDamageWithoutOverkillOrSelfCharge() {
+        // 原作 artChargeGain: min(7, 実ダメ / max(10, 攻撃) * 3). 奥義自身は0
+        assertEquals(0.0, GameData.artChargeGain(100, 20, true), 1e-9);
+        assertEquals(0.0, GameData.artChargeGain(0, 20, false), 1e-9);
+        assertEquals(1.5, GameData.artChargeGain(10, 20, false), 1e-9);
+        assertEquals(7.0, GameData.artChargeGain(1000, 20, false), 1e-9);
+        // 攻撃力が10未満でも分母は10
+        assertEquals(3.0, GameData.artChargeGain(10, 1, false), 1e-9);
+    }
+
+    @Test
+    void damageTakenChargeIsProportionalToMaxHp() {
+        // 原作: suffered / maxHp * 35
+        assertEquals(17.5, GameData.damageTakenCharge(50, 100), 1e-9);
+        assertEquals(0.0, GameData.damageTakenCharge(0, 100), 1e-9);
+    }
+
+    @Test
+    void materialAmountKeepsFortuneBonusViaStochasticRounding() {
+        // 幸運1点=+4%. 端数は確率丸めで期待値が一致する
+        assertEquals(2, GameData.materialAmount(1, 25, () -> 0.99)); // exact=2.0
+        assertEquals(2, GameData.materialAmount(1, 1, () -> 0.0));   // exact=1.04 -> 0.04の確率で+1 -> 当たり
+        assertEquals(1, GameData.materialAmount(1, 1, () -> 0.5));
+        assertEquals(0, GameData.materialAmount(0, 25, () -> 0.0));
+    }
+
+    @Test
+    void fortuneIsLuckAndDropBonus() {
+        assertEquals(21, GameData.luckOf(3));
+        assertEquals(0.0, GameData.luckDropBonus(0), 1e-9);
+        assertEquals(0.07, GameData.luckDropBonus(100), 1e-9);
+    }
 }

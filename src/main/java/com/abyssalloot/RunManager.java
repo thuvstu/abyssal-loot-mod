@@ -100,6 +100,49 @@ public final class RunManager {
         player.setData(ModAttachments.SIGILS.get(), String.join(",", sigils));
     }
 
+    /* ---------------- 回復・ゲージ・報酬 (呪印の効果を一箇所で適用) ---------------- */
+
+    /**
+     * 戦闘回復・回復アイテム・休息・層移動の回復. 飢餓の呪印で回復量×0.58 (原作 healPlayer).
+     * 初期HP・蘇生HPは対象外なので、この関数を通さない.
+     */
+    public static void heal(ServerPlayer player, double amount) {
+        if (amount <= 0 || !player.isAlive()) return;
+        double rate = GameData.trialRules(sigilsOf(player)).healing();
+        player.heal((float) (amount * rate));
+    }
+
+    /**
+     * 奥義ゲージの獲得 (原作 gainEnergy / weaponArtGauge). 鈍痛の呪印で×0.70.
+     * 魂の報酬倍率(呪印・難易度など)は関係しない.
+     */
+    public static void addGauge(ServerPlayer player, double raw) {
+        if (raw <= 0 || !player.isAlive()) return;
+        double rate = GameData.trialRules(sigilsOf(player)).energy();
+        float cur = player.getData(ModAttachments.SOUL.get());
+        float next = (float) Math.min(100.0, cur + raw * rate);
+        player.setData(ModAttachments.SOUL.get(), next);
+        if (cur < 100f && next >= 100f) {
+            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！右クリックで武器奥義！"), true);
+        }
+    }
+
+    /** 魂の報酬倍率 (呪印 146% 上限 × 難易度 × 契約×3 × 日替わり × 血月). 原作 calculateRunReward 相当 */
+    public static double rewardMult(ServerPlayer player) {
+        double m = GameData.soulMult(sigilsOf(player)) * diffSoulMult(player);
+        if (isCovenant(player)) m *= 3.0;
+        if (isDaily(player)) m *= 1.5;
+        if (hasMutation(player, "blood")) m *= 1.25;
+        return m;
+    }
+
+    /** 素材個数: 報酬倍率と幸運(+4%/点)を掛け、端数は確率丸め (1個でも無駄にならない) */
+    public static int materialCount(ServerPlayer player, double base) {
+        int fortune = attrsOf(player)[4];
+        var rand = player.getRandom();
+        return GameData.materialAmount(base * rewardMult(player), fortune, rand::nextDouble);
+    }
+
     /* ---------------- 属性・祝福 ---------------- */
 
     /** 剛力,韻律,敏捷,忍耐,幸運 */
@@ -169,11 +212,7 @@ public final class RunManager {
         if (atk != null) atk.setBaseValue(GameData.heroDamage(cls, level));
         var spd = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (spd != null) {
-            double base = switch (cls) {
-                case NINJA -> 0.13;
-                case PALADIN -> 0.095;
-                default -> 0.105;
-            };
+            double base = cls.mcMoveSpeed();
             spd.setBaseValue(base * (1 + a[2] * 0.015) * (1 + boons.getOrDefault("speed", 0) * 0.06));
         }
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
@@ -297,8 +336,8 @@ public final class RunManager {
     /** 会心率 (原作crit + 幸運0.5%/点 + 心眼+5%/Lv) */
     public static double critOf(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        int[] a = attrsOf(player);
-        return Math.min(0.95, cls.crit + a[4] * 0.005 + boonLv(player, "crit") * 0.05);
+        // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ
+        return Math.min(0.95, cls.crit + boonLv(player, "crit") * 0.05);
     }
 
     /** 奥義・必殺の威力倍率 (武の祝福+12%/Lv) */
@@ -334,8 +373,7 @@ public final class RunManager {
         applyClass(player, cls, level);
         buildArena(player);
         spawnWave(player, floor);
-        Set<String> sigils = sigilsOf(player);
-        double soul = GameData.soulMult(sigils) * diffSoulMult(player) * ("covenant".equals(mode) ? 3.0 : 1.0);
+        double soul = rewardMult(player);
         player.displayClientMessage(Component.literal(
                 "§5深淵潜行開始 — 第1層 [" + mode + "/" + player.getData(ModAttachments.DIFF.get())
                         + "] 魂倍率×" + String.format("%.2f", soul)), false);
@@ -350,7 +388,9 @@ public final class RunManager {
         }
         player.sendSystemMessage(Component.literal("§e報酬: 魂の欠片×16 / Abyss武器 / 手持ち武器1点を /abyss keep で継承可能"));
         player.sendSystemMessage(Component.literal("§5真の深淵が開いた… /abyss true で《ニヒル・ゼロ》に挑め"));
-        player.getInventory().add(new net.minecraft.world.item.ItemStack(ModItems.SOUL_SHARD.get(), 16));
+        int shards = materialCount(player, 16);
+        player.getInventory().add(new net.minecraft.world.item.ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        player.sendSystemMessage(Component.literal("§e魂の欠片 ×" + shards + " (呪印・難易度・幸運の倍率込み)"));
         var styles = GameData.WeaponStyle.values();
         player.getInventory().add(makeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom()));
@@ -517,9 +557,7 @@ public final class RunManager {
         player.setData(ModAttachments.TRAPS.get(), "");
         player.setData(ModAttachments.DESTRUCT.get(), "");
         // 層移動回復 (飢餓の呪印で減衰)
-        Set<String> sigils = sigilsOf(player);
-        float heal = (float) (player.getMaxHealth() * 0.25 * (sigils.contains("famine") ? 0.58 : 1.0));
-        player.heal(heal);
+        heal(player, player.getMaxHealth() * 0.25);
         player.teleportTo(player.getX(), player.getY(), player.getZ());
         spawnWave(player, floor);
         if (floor % 5 == 0) {
@@ -563,6 +601,9 @@ public final class RunManager {
         if (hasMutation(player, "rich")) hpMult *= 1.1;
         if (hasMutation(player, "blood")) dmgMult *= 1.2;
         boolean bossFloor = floor % 5 == 0 || isBossrush(player);
+        var trial = GameData.trialRules(sigils);
+        double eliteChance = GameData.eliteChance(floor, sigils);
+        var rand = player.getRandom();
 
         int count = bossFloor ? 4 + floor / 2 : Math.min(24, 5 + (int) (floor * 1.6));
         player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
@@ -582,13 +623,16 @@ public final class RunManager {
             if (atk != null) atk.setBaseValue(atk.getBaseValue() * dmgMult);
             var spd = mob.getAttribute(Attributes.MOVEMENT_SPEED);
             if (spd != null) {
-                double base = spd.getBaseValue();
-                if (sigils.contains("gale")) base *= 1.16;
+                // 疾風 ×1.16 / 深淵 ×1.10 (trialRules に集約)
+                double base = spd.getBaseValue() * trial.enemySpeed();
                 if (hasMutation(player, "swift")) base *= 1.2;
                 spd.setBaseValue(base);
             }
-            // 乱舞: 一定割合でエリート化 (発光+体力2倍)
-            if (sigils.contains("frenzy") && i % 3 == 0) {
+            // 注視 ×1.45 / 深淵 ×1.10 の索敵距離
+            var fol = mob.getAttribute(Attributes.FOLLOW_RANGE);
+            if (fol != null) fol.setBaseValue(GameData.BASE_FOLLOW_RANGE * trial.detection());
+            // 乱舞を含む原作式のエリート抽選 (発光+体力2倍)
+            if (rand.nextDouble() < eliteChance) {
                 var h2 = mob.getAttribute(Attributes.MAX_HEALTH);
                 if (h2 != null) {
                     h2.setBaseValue(Math.min(2048, h2.getValue() * 2));
@@ -765,7 +809,7 @@ public final class RunManager {
         switch (kind) {
             case "rest" -> {
                 player.setData(ModAttachments.EVENT_DONE.get(), 1);
-                player.heal(player.getMaxHealth() * 0.5f);
+                heal(player, player.getMaxHealth() * 0.5);
                 player.sendSystemMessage(Component.literal("§a休息した。HP50%回復。"));
             }
             case "oath" -> {

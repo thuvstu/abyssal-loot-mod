@@ -43,32 +43,25 @@ public final class CombatHandler {
     public static void onKill(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        var sigils = RunManager.sigilsOf(player);
-        float mult = (float) (GameData.soulMult(sigils) * RunManager.diffSoulMult(player));
-        if (sigils.contains("pain")) mult *= 0.7f;
-        if (RunManager.isCovenant(player)) mult *= 3f;
-        if (RunManager.isDaily(player)) mult *= 1.5f;
-        if (RunManager.hasMutation(player, "blood")) mult *= 1.25f;
-        float gain = Math.min(12f, 3f + event.getEntity().getMaxHealth() * 0.06f) * mult;
-        float soul = Math.min(100f, player.getData(ModAttachments.SOUL.get()) + gain);
-        player.setData(ModAttachments.SOUL.get(), soul);
+        // 奥義ゲージは撃破では増えない (原作: 与ダメ・被ダメで蓄積, onDamage 側で処理)
         player.setData(ModAttachments.KILLS.get(), player.getData(ModAttachments.KILLS.get()) + 1);
         player.setData(ModAttachments.COMBO.get(), player.getData(ModAttachments.COMBO.get()) + 1);
-        if (soul >= 100f) {
-            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！右クリックで武器奥義！"), true);
-        }
-        // ドロップ: 6%で深淵武器 / 20%で魂の欠片 (富鉱は2倍)
+        // ドロップ: 6%で深淵武器 / 20%で魂の欠片. 幸運の運(+7/点)で武器率が上がり、
+        // 魂の欠片は報酬倍率(呪印・難易度・契約)と幸運の素材倍率(+4%/点)を受ける
         var rand = player.getRandom();
         boolean rich = RunManager.hasMutation(player, "rich");
-        if (rand.nextFloat() < (rich ? 0.12f : 0.06f)) {
+        int luck = GameData.luckOf(RunManager.attrsOf(player)[4]);
+        double weaponChance = (rich ? 0.12 : 0.06) + GameData.luckDropBonus(luck);
+        if (rand.nextDouble() < weaponChance) {
             var styles = GameData.WeaponStyle.values();
             var style = styles[rand.nextInt(styles.length)];
             var drop = RunManager.makeWeapon(style, rand);
             giveOrDrop(player, drop);
             player.sendSystemMessage(Component.literal(
                     "§b戦利品: " + drop.getHoverName().getString() + " (持ち替えで奥義が変わる)"));
-        } else if (rand.nextFloat() < (rich ? 0.40f : 0.20f)) {
-            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
+        } else if (rand.nextDouble() < (rich ? 0.40 : 0.20)) {
+            int shards = RunManager.materialCount(player, 1.0);
+            if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         }
         // レベルアップ: LvL→L+1 に (L-1)(L+4) 撃破
         int kills = player.getData(ModAttachments.KILLS.get());
@@ -77,7 +70,7 @@ public final class CombatHandler {
             lv++;
             var cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
             RunManager.applyClass(player, cls, lv);
-            player.heal(player.getMaxHealth() * 0.25f);
+            RunManager.heal(player, player.getMaxHealth() * 0.25);
             player.sendSystemMessage(Component.literal("§e◆ レベルアップ！ Lv" + lv + " (HP25%回復)"));
             if (RunManager.isCovenant(player)) {
                 player.sendSystemMessage(Component.literal("§5不幸の盟約: 祝福は得られない (魂×3.0で償う)"));
@@ -94,13 +87,12 @@ public final class CombatHandler {
             String rec = player.getData(ModAttachments.BOSSES.get());
             player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
             player.sendSystemMessage(Component.literal("§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
-            float soul2 = Math.min(100f, player.getData(ModAttachments.SOUL.get()) + 30f);
-            player.setData(ModAttachments.SOUL.get(), soul2);
+            RunManager.addGauge(player, 30);
         }
         // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発)
         String killTrait = RunManager.traitOf(player.getMainHandItem());
         if ("vampiric".equals(killTrait)) {
-            player.heal(player.getMaxHealth() * 0.03f);
+            RunManager.heal(player, player.getMaxHealth() * 0.03);
         }
         if ("explosive".equals(killTrait)) {
             var at = event.getEntity().position();
@@ -171,9 +163,8 @@ public final class CombatHandler {
             }
             case "blue" -> {
                 // 青瓶: HP30%+魂30回復
-                player.heal(player.getMaxHealth() * 0.3f);
-                player.setData(ModAttachments.SOUL.get(),
-                        Math.min(100f, player.getData(ModAttachments.SOUL.get()) + 30f));
+                RunManager.heal(player, player.getMaxHealth() * 0.3);
+                RunManager.addGauge(player, 30);
                 player.sendSystemMessage(Component.literal("§b青の霊薬！ HPと魂が回復した"));
             }
             default -> {
@@ -181,7 +172,7 @@ public final class CombatHandler {
                 int roll = player.getRandom().nextInt(4);
                 switch (roll) {
                     case 0 -> {
-                        player.heal(player.getMaxHealth());
+                        RunManager.heal(player, player.getMaxHealth());
                         player.sendSystemMessage(Component.literal("§6運命の加護【満月】HP全回復！"));
                     }
                     case 1 -> {
@@ -284,8 +275,7 @@ public final class CombatHandler {
             if (iframe > 0) {
                 event.setNewDamage(0f);
                 // 見切り: 無敵中に受けた攻撃は魂+14
-                float soul = Math.min(100f, player.getData(ModAttachments.SOUL.get()) + 14f);
-                player.setData(ModAttachments.SOUL.get(), soul);
+                RunManager.addGauge(player, 14);
                 player.displayClientMessage(Component.literal("§a見切り！"), true);
                 return;
             }
@@ -302,9 +292,14 @@ public final class CombatHandler {
             if (RunManager.hasMutation(player, "heavy")) {
                 event.setNewDamage(event.getNewDamage() * 1.15f);
             }
+            // 被ダメ由来の奥義ゲージ (原作: 残HPまでの被害 / 最大HP * 35)
+            float taken = Math.min(event.getNewDamage(), player.getHealth());
+            RunManager.addGauge(player, GameData.damageTakenCharge(taken, player.getMaxHealth()));
         }
         if (event.getSource().getEntity() instanceof ServerPlayer player
                 && player.level() instanceof ServerLevel level) {
+            // 奥義・罠・二次反応の命中は威力を上書きせず、ゲージも増やさない
+            if (WeaponArts.inArtHit()) return;
             ItemStack held = player.getMainHandItem();
             if (ModItems.styleOf(held.getItem()) != null) {
                 double atk = RunManager.attackDamageOf(player);
@@ -329,9 +324,12 @@ public final class CombatHandler {
                     dmg *= 1.25f;
                 }
                 event.setNewDamage(dmg);
+                // 与ダメ由来の奥義ゲージ (残HPまで=オーバーキル除外)
+                float actual = Math.min(dmg, target.getHealth());
+                RunManager.addGauge(player, GameData.artChargeGain(actual, atk, false));
                 // 吸血の刻印 (祝福)
                 int life = RunManager.boonLv(player, "life");
-                if (life > 0 && dmg > 0) player.heal(dmg * 0.04f * life);
+                if (life > 0 && dmg > 0) RunManager.heal(player, dmg * 0.04 * life);
                 // 不壊の付与
                 if ("fortify".equals(trait)) player.setData(ModAttachments.FORTIFY.get(), 10f);
                 // 状態異常 (業火/猛毒/裂傷)
@@ -366,7 +364,7 @@ public final class CombatHandler {
         int n = 0;
         for (var e : others) {
             if (n++ >= 2) break;
-            e.hurtServer(level, level.damageSources().playerAttack(player), dmg);
+            WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), dmg);
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
                     e.getX(), e.getY() + 1, e.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
         }
@@ -384,8 +382,8 @@ public final class CombatHandler {
         if (!(player.level() instanceof ServerLevel)) return;
         ItemStack stack = event.getItemStack();
         if (stack.is(ModItems.SOUL_SHARD.get())) {
-            float soul = Math.min(100f, player.getData(ModAttachments.SOUL.get()) + 25f);
-            player.setData(ModAttachments.SOUL.get(), soul);
+            RunManager.addGauge(player, 25);
+            float soul = player.getData(ModAttachments.SOUL.get());
             stack.shrink(1);
             player.displayClientMessage(Component.literal(String.format("§d魂+25 (%.0f/100)", soul)), true);
             event.setCanceled(true);
@@ -536,7 +534,7 @@ public final class CombatHandler {
                     .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
                     .orElse(null);
             if (target != null) {
-                target.hurtServer(level, level.damageSources().playerAttack(player),
+                WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
                         (float) (RunManager.attackDamageOf(player) * 0.7));
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
                         target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
@@ -551,7 +549,7 @@ public final class CombatHandler {
                     .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
                     .orElse(null);
             if (target != null) {
-                target.hurtServer(level, level.damageSources().playerAttack(player),
+                WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
                         (float) (RunManager.attackDamageOf(player) * 0.5));
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL,
                         target.getX(), target.getY() + 1, target.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
@@ -582,7 +580,10 @@ public final class CombatHandler {
         Vec3 dest = player.position().add(look.x * 6, 0, look.z * 6);
         player.teleportTo(dest.x, dest.y, dest.z);
         player.setData(ModAttachments.IFRAME.get(), 0.5f);
-        player.setData(ModAttachments.DASH_CD.get(), 1.0f);
+        // 原作: 職業別の回避CT. 敏捷1点につき-1% (下限0.28秒)
+        var cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        player.setData(ModAttachments.DASH_CD.get(),
+                (float) GameData.dashCooldown(cls, RunManager.attrsOf(player)[2]));
         player.setData(ModAttachments.COUNTER.get(), 1.0f);
         player.displayClientMessage(Component.literal("§b回避！"), true);
         ((ServerLevel) player.level()).sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD,
