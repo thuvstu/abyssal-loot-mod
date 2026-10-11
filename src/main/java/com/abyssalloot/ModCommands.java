@@ -51,6 +51,11 @@ public final class ModCommands {
                                                     StringArgumentType.getString(ctx, "weapon"));
                                             return 1;
                                         }))))
+                // 出撃前の設定メニュー (職業・呪印・モード・難易度をクリックで選ぶ)
+                .then(Commands.literal("menu").executes(ctx -> {
+                    showMenu(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 // 操作説明 (クリックで実行できるボタン付き)
                 .then(Commands.literal("help").executes(ctx -> {
                     showHelp(ctx.getSource().getPlayerOrException());
@@ -318,6 +323,7 @@ public final class ModCommands {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
         p.sendSystemMessage(Component.literal("§6◆ Abyssal Loot へようこそ ◆ ")
                 .append(button("§a[はじめる]", "/abyss quick"))
+                .append(button("§e[設定メニュー]", "/abyss menu"))
                 .append(button("§b[操作説明]", "/abyss help")));
     }
 
@@ -344,6 +350,7 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§7")
                 .append(button("§a[一括開始]", "/abyss quick"))
                 .append(button("§e[状態]", "/abyss status"))
+                .append(button("§d[設定メニュー]", "/abyss menu"))
                 .append(button("§b[次の層へ]", "/abyss next")));
     }
 
@@ -351,5 +358,43 @@ public final class ModCommands {
         return Component.literal(label + " ").withStyle(s -> s
                 .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(cmd))
                 .withUnderlined(true));
+    }
+
+    /** 出撃前設定メニュー: 現在値を表示し、クリックで切り替え/出撃する */
+    static void showMenu(ServerPlayer p) {
+        String cls = p.getData(ModAttachments.HERO_CLASS.get());
+        String mode = p.getData(ModAttachments.MODE.get());
+        String diff = p.getData(ModAttachments.DIFF.get());
+        Set<String> sigils = RunManager.sigilsOf(p);
+        p.sendSystemMessage(Component.literal("§6━━━ 出撃前設定 ━━━"));
+        var row = Component.literal("§b職業: ");
+        for (GameData.HeroClass c : GameData.HeroClass.values()) {
+            String mark = c.id.equals(cls) ? "§a" : "§7";
+            row.append(button(mark + "[" + c.name + "]", "/abyss class " + c.id));
+        }
+        p.sendSystemMessage(row);
+        var sig = Component.literal("§d呪印 (" + sigils.size() + "/8, 魂×"
+                + String.format("%.2f", GameData.soulMult(sigils)) + "): ");
+        for (GameData.Sigil g : GameData.Sigil.values()) {
+            String mark = sigils.contains(g.id) ? "§a✔" : "§7";
+            sig.append(button(mark + g.name, "/abyss sigil " + g.id));
+        }
+        p.sendSystemMessage(sig);
+        var md = Component.literal("§5モード: ");
+        for (String m : new String[]{"standard", "bossrush", "endless", "covenant", "daily"}) {
+            String mark = m.equals(mode) ? "§a" : "§7";
+            md.append(button(mark + "[" + m + "]", "/abyss mode " + m));
+        }
+        p.sendSystemMessage(md);
+        var df = Component.literal("§c難易度: ");
+        for (String d : new String[]{"normal", "hard", "inferno"}) {
+            String mark = d.equals(diff) ? "§a" : "§7";
+            df.append(button(mark + "[" + d + "]", "/abyss diff " + d));
+        }
+        p.sendSystemMessage(df);
+        p.sendSystemMessage(Component.literal("§7")
+                .append(button("§a[出撃！]", "/abyss start"))
+                .append(button("§e[メニュー更新]", "/abyss menu"))
+                .append(button("§b[操作説明]", "/abyss help")));
     }
 }
