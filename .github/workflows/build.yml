@@ -22,4 +22,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle
+        run: |
+          set +e
+          ./gradlew build test --stacktrace --console=plain > build.log 2>&1
+          rc=$?
+          echo "gradle exit=$rc"
+          # ログ本体はダウンロードできないため、失敗箇所を注釈として出す
+          grep -E "error:|warning: \[|What went wrong|FAILED|Exception|\.java:[0-9]+|Could not|> " build.log | head -60 | while IFS= read -r l; do echo "::error::$(echo "$l" | tr -d '\r' | cut -c1-400)"; done
+          tail -40 build.log | while IFS= read -r l; do echo "::error::TAIL $(echo "$l" | tr -d '\r' | cut -c1-400)"; done
+          exit $rc
+      - name: Build with Gradle (legacy)
+        if: false
         run: ./gradlew build
