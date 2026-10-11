@@ -199,4 +199,27 @@ public class GameDataTest {
         assertEquals(1 + 10 * 0.22, GameData.floorHpScale(10), 1e-9);
         assertEquals(1 + 10 * 0.08, GameData.floorDmgScale(10), 1e-9);
     }
+
+    @Test
+    void nineFloorMutationsWithUniqueIds() {
+        assertEquals(9, GameData.MUTATIONS.size());
+        var ids = new java.util.HashSet<String>();
+        for (var m : GameData.MUTATIONS) ids.add(m.id());
+        assertEquals(9, ids.size());
+        // 原作の値の抜粋: 血の饗宴 攻撃1.38 / 豊穣の刻 ドロップ1.85
+        assertEquals(1.38, GameData.mutationById("bloodfeast").enemyDmg(), 1e-9);
+        assertEquals(1.85, GameData.mutationById("bounty").loot(), 1e-9);
+    }
+
+    @Test
+    void mutationRollFollowsCoreChances() {
+        // 通常層 62%, 層主の層 14%, 真の決戦層 0%
+        assertNull(GameData.rollMutation(() -> 0.9, 3));            // 0.9 > 0.62
+        assertNotNull(GameData.rollMutation(() -> 0.5, 3));         // 0.5 <= 0.62
+        assertNull(GameData.rollMutation(() -> 0.2, 5));            // 層主: 0.2 > 0.14
+        assertNotNull(GameData.rollMutation(() -> 0.1, 5));         // 層主: 0.1 <= 0.14
+        assertNull(GameData.rollMutation(() -> 0.0, 26));           // 真の決戦層は平穏
+        // 一様乱数 0.5 は index = floor(0.5*9) = 4 (防衛線)
+        assertEquals("fortress", GameData.rollMutation(() -> 0.5, 3).id());
+    }
 }

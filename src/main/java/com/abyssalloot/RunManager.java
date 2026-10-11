@@ -132,7 +132,8 @@ public final class RunManager {
         double m = GameData.soulMult(sigilsOf(player)) * diffSoulMult(player);
         if (isCovenant(player)) m *= 3.0;
         if (isDaily(player)) m *= 1.5;
-        if (hasMutation(player, "blood")) m *= 1.25;
+        var mut = currentMutation(player);
+        if (mut != null) m *= mut.gold();
         return m;
     }
 
@@ -404,42 +405,38 @@ public final class RunManager {
         return player.getData(ModAttachments.FLOOR.get()) == 26;
     }
 
-    /** 層の異変を抽選 (原作FLOOR_MUTATIONS準拠の簡易版) */
+    /**
+     * 層の異変を抽選 (原作 rollFloorMutation). 異変が出なかった層では必ず解除する.
+     * (旧版は解除しなかったため、前の層の異変が次の層まで残っていた)
+     */
     public static String rollMutation(ServerPlayer player, int floor) {
-        if (floor < 3 || isTrueFloor(player)) return "";
-        var rand = player.getRandom();
-        if (rand.nextFloat() > 0.45f) return "";
-        String[] pool = {"blood", "frail", "swift", "rich", "heavy"};
-        String m = pool[rand.nextInt(pool.length)];
-        player.setData(ModAttachments.MUTATION.get(), m);
-        player.sendSystemMessage(Component.literal("§d《異変 — " + mutationName(m) + "》" + mutationDesc(m)));
-        return m;
+        var m = GameData.rollMutation(player.getRandom()::nextDouble, floor);
+        String id = m == null ? "" : m.id();
+        player.setData(ModAttachments.MUTATION.get(), id);
+        if (m != null) {
+            player.sendSystemMessage(Component.literal("§d《異変 — " + m.name() + "》" + m.desc()));
+        }
+        return id;
     }
 
-    public static String mutationName(String m) {
-        return switch (m) {
-            case "blood" -> "血月";
-            case "frail" -> "虚弱の霧";
-            case "swift" -> "疾風の層";
-            case "rich" -> "富鉱の層";
-            case "heavy" -> "重圧の層";
-            default -> "静穏";
-        };
+    /** 現在層の異変 (なければ null) */
+    public static GameData.Mutation currentMutation(ServerPlayer player) {
+        String id = player.getData(ModAttachments.MUTATION.get());
+        return id == null || id.isEmpty() ? null : GameData.mutationById(id);
     }
 
-    public static String mutationDesc(String m) {
-        return switch (m) {
-            case "blood" -> "敵攻撃+20%・魂+25%";
-            case "frail" -> "敵HP-20%";
-            case "swift" -> "敵移動+20%";
-            case "rich" -> "敵HP+10%・ドロップ2倍";
-            case "heavy" -> "被ダメージ+15%";
-            default -> "";
-        };
+    public static String mutationName(String id) {
+        var m = GameData.mutationById(id);
+        return m == null ? "静穏" : m.name();
     }
 
-    public static boolean hasMutation(ServerPlayer player, String m) {
-        return m.equals(player.getData(ModAttachments.MUTATION.get()));
+    public static String mutationDesc(String id) {
+        var m = GameData.mutationById(id);
+        return m == null ? "" : m.desc();
+    }
+
+    public static boolean hasMutation(ServerPlayer player, String id) {
+        return id.equals(player.getData(ModAttachments.MUTATION.get()));
     }
 
     /** 真・最終決戦 (原作TRUE_FLOOR=26) */
@@ -588,15 +585,30 @@ public final class RunManager {
 
     /** ウェーブ湧き: 原作式 waveTotal = 9 + floor*2.4 をMC向けに圧縮. 敵の抽選・能力値は Enemies に委譲 */
     public static void spawnWave(ServerPlayer player, int floor) {
+        spawnWave(player, floor, true);
+    }
+
+    /** rollFloor=true: 層の開始 (異変を抽選). false: 追加の襲来 (同じ層の異変を維持) */
+    public static void spawnWave(ServerPlayer player, int floor, boolean rollFloor) {
         ServerLevel level = (ServerLevel) player.level();
-        rollMutation(player, floor);
+        if (rollFloor) rollMutation(player, floor);
         var sigils = sigilsOf(player);
         var scale = Enemies.scaleFor(player, floor);
         boolean bossFloor = floor % 5 == 0 || isBossrush(player);
         double eliteChance = GameData.eliteChance(floor, sigils);
         var rand = player.getRandom();
 
+        var mut = currentMutation(player);
+        double spawnMul = mut != null ? mut.spawn() : 1.0;
         int count = bossFloor ? 4 + floor / 2 : Math.min(24, 5 + (int) (floor * 1.6));
+        count = Math.min(40, (int) Math.round(count * spawnMul));
+        if (mut != null && mut.eliteRate() != 1.0) {
+            eliteChance = Math.min(0.9, eliteChance * mut.eliteRate());
+        }
+        if (rollFloor && mut != null && mut.darkness()) {
+            // 闇の迷宮: 視界を塞ぐ (盲目は長めに付与し、層の間は持続させる)
+            player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 20 * 60 * 5, 0, false, false));
+        }
         player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
         BlockPos center = player.blockPosition();
 

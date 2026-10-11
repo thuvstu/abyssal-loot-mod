@@ -253,4 +253,53 @@ public final class GameData {
     public static double floorDmgScale(int floor) {
         return 1 + floor * 0.08;
     }
+
+    /**
+     * 原作 core.ts FLOOR_MUTATIONS の写し. 層の異変 (9種).
+     * enemyHp/enemyDmg/enemySpeed/spawn/eliteRate は敵側, gold/loot は報酬側の倍率.
+     * darkness は視界を塞ぐ (MCでは盲目効果で再現).
+     */
+    public record Mutation(String id, String name, String desc, double enemyHp, double enemyDmg,
+                           double enemySpeed, double spawn, double eliteRate, double gold,
+                           double loot, boolean darkness) {}
+
+    public static final java.util.List<Mutation> MUTATIONS = java.util.List.of(
+            new Mutation("darkness", "闇の迷宮", "視界が極度に塞がれる。転移門の光だけが頼り。",
+                    1.00, 1.05, 1.00, 1.00, 1.25, 1.2, 1.4, true),
+            new Mutation("frenzy", "狂乱の檻", "敵の速度と出現数が目に見えて跳ね上がる。",
+                    0.92, 1.08, 1.30, 1.38, 1.30, 1.25, 1.2, false),
+            new Mutation("gilded", "黄金の流砂", "敵が頑丈になるが、ゴールドが降り注ぐ。",
+                    1.24, 1.00, 0.95, 1.05, 1.40, 2.3, 1.2, false),
+            new Mutation("bloodfeast", "血の饗宴", "敵の牙が研がれる。",
+                    1.10, 1.38, 1.08, 1.12, 1.35, 1.3, 1.35, false),
+            new Mutation("fortress", "防衛線", "敵の装甲が異様に固い。",
+                    1.58, 1.00, 0.88, 0.78, 1.50, 1.3, 1.25, false),
+            new Mutation("mire", "毒瘴の構造", "毒沼が増す。",
+                    1.15, 1.12, 1.00, 1.00, 1.20, 1.15, 1.3, false),
+            new Mutation("bounty", "豊穣の刻", "報酬が増えるが、それを狙う者も増える。",
+                    1.05, 1.14, 1.00, 1.18, 1.65, 1.25, 1.85, false),
+            new Mutation("swarm", "群れの層", "敵が数重ねて押し寄せる。",
+                    0.85, 0.95, 1.12, 1.65, 0.90, 1.2, 1.1, false),
+            new Mutation("champion", "強者の巡礼地", "鍛え上げた強敵に出会いやすい。",
+                    1.12, 1.15, 1.04, 0.95, 2.30, 1.3, 1.5, false));
+
+    public static Mutation mutationById(String id) {
+        for (Mutation m : MUTATIONS) {
+            if (m.id().equals(id)) return m;
+        }
+        return null;
+    }
+
+    /**
+     * 原作 rollFloorMutation: 真の決戦層は平穏. 通常層は62%、層主の層は14%で異変.
+     * r は [0,1) の乱数 (2回使用: 発生判定と種類選択)
+     */
+    public static Mutation rollMutation(java.util.function.DoubleSupplier r, int floor) {
+        if (floor >= 26) return null;
+        boolean bossFloor = floor % 5 == 0;
+        double chance = bossFloor ? 0.14 : 0.62;
+        if (r.getAsDouble() > chance) return null;
+        int idx = Math.min(MUTATIONS.size() - 1, (int) (r.getAsDouble() * MUTATIONS.size()));
+        return MUTATIONS.get(idx);
+    }
 }

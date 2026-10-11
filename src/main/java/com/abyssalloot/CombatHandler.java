@@ -50,9 +50,11 @@ public final class CombatHandler {
         // ドロップ: 6%で深淵武器 / 20%で魂の欠片. 幸運の運(+7/点)で武器率が上がり、
         // 魂の欠片は報酬倍率(呪印・難易度・契約)と幸運の素材倍率(+4%/点)を受ける
         var rand = player.getRandom();
-        boolean rich = RunManager.hasMutation(player, "rich");
+        var mut = RunManager.currentMutation(player);
+        double loot = mut != null ? mut.loot() : 1.0;
         int luck = GameData.luckOf(RunManager.attrsOf(player)[4]);
-        double weaponChance = (rich ? 0.12 : 0.06) + GameData.luckDropBonus(luck);
+        // 原作: 敵ドロップ率 × 異変の loot 倍率 (豊穣の刻は1.85倍)
+        double weaponChance = 0.06 * loot + GameData.luckDropBonus(luck);
         if (rand.nextDouble() < weaponChance) {
             var styles = GameData.WeaponStyle.values();
             var style = styles[rand.nextInt(styles.length)];
@@ -60,7 +62,7 @@ public final class CombatHandler {
             giveOrDrop(player, drop);
             player.sendSystemMessage(Component.literal(
                     "§b戦利品: " + drop.getHoverName().getString() + " (持ち替えで奥義が変わる)"));
-        } else if (rand.nextDouble() < (rich ? 0.40 : 0.20)) {
+        } else if (rand.nextDouble() < 0.20) {
             int shards = RunManager.materialCount(player, 1.0);
             if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         }
@@ -194,7 +196,7 @@ public final class CombatHandler {
                         player.sendSystemMessage(Component.literal("§e運命の加護【黄金】欠片×5！"));
                     }
                     default -> {
-                        RunManager.spawnWave(player, player.getData(ModAttachments.FLOOR.get()));
+                        RunManager.spawnWave(player, player.getData(ModAttachments.FLOOR.get()), false);
                         player.sendSystemMessage(Component.literal("§4運命の災厄【蝕】追っ手が来た！"));
                     }
                 }
@@ -318,9 +320,6 @@ public final class CombatHandler {
                 event.setNewDamage(event.getNewDamage() * 0.9f);
             }
             // 重圧の層: 被ダメ+15%
-            if (RunManager.hasMutation(player, "heavy")) {
-                event.setNewDamage(event.getNewDamage() * 1.15f);
-            }
             // 被ダメ由来の奥義ゲージ (原作: 残HPまでの被害 / 最大HP * 35)
             float taken = Math.min(event.getNewDamage(), player.getHealth());
             RunManager.addGauge(player, GameData.damageTakenCharge(taken, player.getMaxHealth()));

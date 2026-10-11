@@ -73,12 +73,14 @@ public final class Enemies {
             hp *= RunManager.dailyHpMult();
             dmg *= RunManager.dailyDmgMult();
         }
-        if (RunManager.hasMutation(player, "frail")) hp *= 0.8;
-        if (RunManager.hasMutation(player, "rich")) hp *= 1.1;
-        if (RunManager.hasMutation(player, "blood")) dmg *= 1.2;
         var trial = GameData.trialRules(sigils);
         double speed = trial.enemySpeed();
-        if (RunManager.hasMutation(player, "swift")) speed *= 1.2;
+        var mut = RunManager.currentMutation(player);
+        if (mut != null) {
+            hp *= mut.enemyHp();
+            dmg *= mut.enemyDmg();
+            speed *= mut.enemySpeed();
+        }
         return new Scale(hp, dmg, speed, trial.detection());
     }
 

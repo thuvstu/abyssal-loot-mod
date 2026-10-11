@@ -95,7 +95,7 @@ public final class ModAttachments {
     /** 実績 "id,..." */
     public static final Supplier<AttachmentType<String>> ACH =
             reg("ach", "", Codec.STRING);
-    /** この層の異変 ""/blood/frail/swift/rich/heavy */
+    /** この層の異変ID (GameData.MUTATIONS の id。空=なし) */
     public static final Supplier<AttachmentType<String>> MUTATION =
             reg("mutation", "", Codec.STRING);
 }
