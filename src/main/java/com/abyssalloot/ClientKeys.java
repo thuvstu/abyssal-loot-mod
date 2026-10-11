@@ -12,7 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * クライアント専用: R=武器奥義 / F=必殺技 / C=回避ダッシュ.
+ * クライアント専用: E=武器奥義 / Q=必殺技 / C=回避ダッシュ (原作docの E/Q 配置に合わせる).
  * サーバー側では決して読み込まれない (Distチェック経由でのみ初期化).
  */
 public final class ClientKeys {
@@ -29,9 +29,9 @@ public final class ClientKeys {
                             AbyssalLootMod.MODID, "main"));
             event.registerCategory(category);
             artKey = new KeyMapping("key.abyssalloot.art", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_E, category);
             skillKey = new KeyMapping("key.abyssalloot.skill", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Q, category);
             dashKey = new KeyMapping("key.abyssalloot.dash", KeyConflictContext.IN_GAME,
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category);
             event.register(artKey);

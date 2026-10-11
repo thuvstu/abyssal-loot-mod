@@ -100,6 +100,50 @@ public final class RunManager {
         player.setData(ModAttachments.SIGILS.get(), String.join(",", sigils));
     }
 
+    /* ---------------- 回復・ゲージ・報酬 (呪印の効果を一箇所で適用) ---------------- */
+
+    /**
+     * 戦闘回復・回復アイテム・休息・層移動の回復. 飢餓の呪印で回復量×0.58 (原作 healPlayer).
+     * 初期HP・蘇生HPは対象外なので、この関数を通さない.
+     */
+    public static void heal(ServerPlayer player, double amount) {
+        if (amount <= 0 || !player.isAlive()) return;
+        double rate = GameData.trialRules(sigilsOf(player)).healing();
+        player.heal((float) (amount * rate));
+    }
+
+    /**
+     * 奥義ゲージの獲得 (原作 gainEnergy / weaponArtGauge). 鈍痛の呪印で×0.70.
+     * 魂の報酬倍率(呪印・難易度など)は関係しない.
+     */
+    public static void addGauge(ServerPlayer player, double raw) {
+        if (raw <= 0 || !player.isAlive()) return;
+        double rate = GameData.trialRules(sigilsOf(player)).energy();
+        float cur = player.getData(ModAttachments.SOUL.get());
+        float next = (float) Math.min(100.0, cur + raw * rate);
+        player.setData(ModAttachments.SOUL.get(), next);
+        if (cur < 100f && next >= 100f) {
+            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！右クリックで武器奥義！"), true);
+        }
+    }
+
+    /** 魂の報酬倍率 (呪印 146% 上限 × 難易度 × 契約×3 × 日替わり × 血月). 原作 calculateRunReward 相当 */
+    public static double rewardMult(ServerPlayer player) {
+        double m = GameData.soulMult(sigilsOf(player)) * diffSoulMult(player);
+        if (isCovenant(player)) m *= 3.0;
+        if (isDaily(player)) m *= 1.5;
+        var mut = currentMutation(player);
+        if (mut != null) m *= mut.gold();
+        return m;
+    }
+
+    /** 素材個数: 報酬倍率と幸運(+4%/点)を掛け、端数は確率丸め (1個でも無駄にならない) */
+    public static int materialCount(ServerPlayer player, double base) {
+        int fortune = attrsOf(player)[4];
+        var rand = player.getRandom();
+        return GameData.materialAmount(base * rewardMult(player), fortune, rand::nextDouble);
+    }
+
     /* ---------------- 属性・祝福 ---------------- */
 
     /** 剛力,韻律,敏捷,忍耐,幸運 */
@@ -169,11 +213,7 @@ public final class RunManager {
         if (atk != null) atk.setBaseValue(GameData.heroDamage(cls, level));
         var spd = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (spd != null) {
-            double base = switch (cls) {
-                case NINJA -> 0.13;
-                case PALADIN -> 0.095;
-                default -> 0.105;
-            };
+            double base = cls.mcMoveSpeed();
             spd.setBaseValue(base * (1 + a[2] * 0.015) * (1 + boons.getOrDefault("speed", 0) * 0.06));
         }
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
@@ -297,8 +337,8 @@ public final class RunManager {
     /** 会心率 (原作crit + 幸運0.5%/点 + 心眼+5%/Lv) */
     public static double critOf(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        int[] a = attrsOf(player);
-        return Math.min(0.95, cls.crit + a[4] * 0.005 + boonLv(player, "crit") * 0.05);
+        // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ
+        return Math.min(0.95, cls.crit + boonLv(player, "crit") * 0.05);
     }
 
     /** 奥義・必殺の威力倍率 (武の祝福+12%/Lv) */
@@ -334,14 +374,24 @@ public final class RunManager {
         applyClass(player, cls, level);
         buildArena(player);
         spawnWave(player, floor);
-        Set<String> sigils = sigilsOf(player);
-        double soul = GameData.soulMult(sigils) * diffSoulMult(player) * ("covenant".equals(mode) ? 3.0 : 1.0);
+        double soul = rewardMult(player);
         player.displayClientMessage(Component.literal(
                 "§5深淵潜行開始 — 第1層 [" + mode + "/" + player.getData(ModAttachments.DIFF.get())
                         + "] 魂倍率×" + String.format("%.2f", soul)), false);
     }
 
     /** 踏破勝利: 報酬 + 継承の案内 */
+    /** 原作の魂の内訳をチャットに出す (勝利時の要約). 報酬の欠片とは別の換算値 */
+    private static void sendSoulSummary(ServerPlayer player, boolean trueCleared) {
+        var sigils = sigilsOf(player);
+        var r = GameData.runReward(25, player.getData(ModAttachments.KILLS.get()),
+                player.getData(ModAttachments.LEVEL.get()), true, trueCleared,
+                1.0, diffSoulMult(player), GameData.soulMult(sigils));
+        player.sendSystemMessage(Component.literal(String.format(
+                "§d原作換算の魂: 基礎%d → 難度・呪印込み%d (呪印ボーナス+%d)",
+                r.baseSouls(), r.beforeTrials(), r.trialBonus())));
+    }
+
     public static void victory(ServerPlayer player) {
         if (isDaily(player)) {
             player.sendSystemMessage(Component.literal("§6★ 日替わり深淵【" + dailyPreset() + "】踏破！ ★"));
@@ -350,10 +400,13 @@ public final class RunManager {
         }
         player.sendSystemMessage(Component.literal("§e報酬: 魂の欠片×16 / Abyss武器 / 手持ち武器1点を /abyss keep で継承可能"));
         player.sendSystemMessage(Component.literal("§5真の深淵が開いた… /abyss true で《ニヒル・ゼロ》に挑め"));
-        player.getInventory().add(new net.minecraft.world.item.ItemStack(ModItems.SOUL_SHARD.get(), 16));
+        int shards = materialCount(player, 16);
+        player.getInventory().add(new net.minecraft.world.item.ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        player.sendSystemMessage(Component.literal("§e魂の欠片 ×" + shards + " (呪印・難易度・幸運の倍率込み)"));
         var styles = GameData.WeaponStyle.values();
         player.getInventory().add(makeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom()));
+        sendSoulSummary(player, false);
         CombatHandler.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -364,42 +417,38 @@ public final class RunManager {
         return player.getData(ModAttachments.FLOOR.get()) == 26;
     }
 
-    /** 層の異変を抽選 (原作FLOOR_MUTATIONS準拠の簡易版) */
+    /**
+     * 層の異変を抽選 (原作 rollFloorMutation). 異変が出なかった層では必ず解除する.
+     * (旧版は解除しなかったため、前の層の異変が次の層まで残っていた)
+     */
     public static String rollMutation(ServerPlayer player, int floor) {
-        if (floor < 3 || isTrueFloor(player)) return "";
-        var rand = player.getRandom();
-        if (rand.nextFloat() > 0.45f) return "";
-        String[] pool = {"blood", "frail", "swift", "rich", "heavy"};
-        String m = pool[rand.nextInt(pool.length)];
-        player.setData(ModAttachments.MUTATION.get(), m);
-        player.sendSystemMessage(Component.literal("§d《異変 — " + mutationName(m) + "》" + mutationDesc(m)));
-        return m;
+        var m = GameData.rollMutation(player.getRandom()::nextDouble, floor);
+        String id = m == null ? "" : m.id();
+        player.setData(ModAttachments.MUTATION.get(), id);
+        if (m != null) {
+            player.sendSystemMessage(Component.literal("§d《異変 — " + m.name() + "》" + m.desc()));
+        }
+        return id;
     }
 
-    public static String mutationName(String m) {
-        return switch (m) {
-            case "blood" -> "血月";
-            case "frail" -> "虚弱の霧";
-            case "swift" -> "疾風の層";
-            case "rich" -> "富鉱の層";
-            case "heavy" -> "重圧の層";
-            default -> "静穏";
-        };
+    /** 現在層の異変 (なければ null) */
+    public static GameData.Mutation currentMutation(ServerPlayer player) {
+        String id = player.getData(ModAttachments.MUTATION.get());
+        return id == null || id.isEmpty() ? null : GameData.mutationById(id);
     }
 
-    public static String mutationDesc(String m) {
-        return switch (m) {
-            case "blood" -> "敵攻撃+20%・魂+25%";
-            case "frail" -> "敵HP-20%";
-            case "swift" -> "敵移動+20%";
-            case "rich" -> "敵HP+10%・ドロップ2倍";
-            case "heavy" -> "被ダメージ+15%";
-            default -> "";
-        };
+    public static String mutationName(String id) {
+        var m = GameData.mutationById(id);
+        return m == null ? "静穏" : m.name();
     }
 
-    public static boolean hasMutation(ServerPlayer player, String m) {
-        return m.equals(player.getData(ModAttachments.MUTATION.get()));
+    public static String mutationDesc(String id) {
+        var m = GameData.mutationById(id);
+        return m == null ? "" : m.desc();
+    }
+
+    public static boolean hasMutation(ServerPlayer player, String id) {
+        return id.equals(player.getData(ModAttachments.MUTATION.get()));
     }
 
     /** 真・最終決戦 (原作TRUE_FLOOR=26) */
@@ -489,6 +538,7 @@ public final class RunManager {
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal("§d神話の" + style.weaponName));
         player.getInventory().add(stack);
+        sendSoulSummary(player, true);
         CombatHandler.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -517,9 +567,7 @@ public final class RunManager {
         player.setData(ModAttachments.TRAPS.get(), "");
         player.setData(ModAttachments.DESTRUCT.get(), "");
         // 層移動回復 (飢餓の呪印で減衰)
-        Set<String> sigils = sigilsOf(player);
-        float heal = (float) (player.getMaxHealth() * 0.25 * (sigils.contains("famine") ? 0.58 : 1.0));
-        player.heal(heal);
+        heal(player, player.getMaxHealth() * 0.25);
         player.teleportTo(player.getX(), player.getY(), player.getZ());
         spawnWave(player, floor);
         if (floor % 5 == 0) {
@@ -548,55 +596,48 @@ public final class RunManager {
         player.displayClientMessage(Component.literal("§7試練のアリーナを展開した"), false);
     }
 
-    /** ウェーブ湧き: 原作式 waveTotal = 9 + floor*2.4 をMC向けに圧縮 */
+    /** ウェーブ湧き: 原作式 waveTotal = 9 + floor*2.4 をMC向けに圧縮. 敵の抽選・能力値は Enemies に委譲 */
     public static void spawnWave(ServerPlayer player, int floor) {
-        ServerLevel level = (ServerLevel) player.level();
-        Set<String> sigils = sigilsOf(player);
-        rollMutation(player, floor);
-        double hpMult = GameData.enemyHpMult(sigils) * diffHpMult(player) * (1 + floor * 0.22);
-        double dmgMult = GameData.enemyDmgMult(sigils) * diffDmgMult(player) * (1 + floor * 0.08);
-        if (isDaily(player)) {
-            hpMult *= dailyHpMult();
-            dmgMult *= dailyDmgMult();
-        }
-        if (hasMutation(player, "frail")) hpMult *= 0.8;
-        if (hasMutation(player, "rich")) hpMult *= 1.1;
-        if (hasMutation(player, "blood")) dmgMult *= 1.2;
-        boolean bossFloor = floor % 5 == 0 || isBossrush(player);
+        spawnWave(player, floor, true);
+    }
 
+    /** rollFloor=true: 層の開始 (異変を抽選). false: 追加の襲来 (同じ層の異変を維持) */
+    public static void spawnWave(ServerPlayer player, int floor, boolean rollFloor) {
+        ServerLevel level = (ServerLevel) player.level();
+        if (rollFloor) rollMutation(player, floor);
+        var sigils = sigilsOf(player);
+        var scale = Enemies.scaleFor(player, floor);
+        boolean bossFloor = floor % 5 == 0 || isBossrush(player);
+        double eliteChance = GameData.eliteChance(floor, sigils);
+        var rand = player.getRandom();
+
+        var mut = currentMutation(player);
+        double spawnMul = mut != null ? mut.spawn() : 1.0;
         int count = bossFloor ? 4 + floor / 2 : Math.min(24, 5 + (int) (floor * 1.6));
+        count = Math.min(40, (int) Math.round(count * spawnMul));
+        if (mut != null && mut.eliteRate() != 1.0) {
+            eliteChance = Math.min(0.9, eliteChance * mut.eliteRate());
+        }
+        if (rollFloor && mut != null && mut.darkness()) {
+            // 闇の迷宮: 視界を塞ぐ (盲目は長めに付与し、層の間は持続させる)
+            player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 20 * 60 * 5, 0, false, false));
+        }
         player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
         BlockPos center = player.blockPosition();
 
         for (int i = 0; i < count; i++) {
             double ang = (Math.PI * 2 * i) / count;
             BlockPos pos = center.offset((int) (Math.cos(ang) * 14), 1, (int) (Math.sin(ang) * 14));
-            Monster mob = pickMob(level, floor, i);
+            var spec = Enemies.pickSpec(floor, i, rand);
+            Monster mob = Enemies.create(level, spec);
             mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-            var hp = mob.getAttribute(Attributes.MAX_HEALTH);
-            if (hp != null) {
-                hp.setBaseValue(Math.min(1024, mob.getMaxHealth() * hpMult));
-                mob.setHealth(mob.getMaxHealth());
+            // 門は耐久が高い (原作の門は壊すまで増援し続ける)
+            double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
+            Enemies.apply(mob, scale, extra);
+            if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < eliteChance) {
+                Enemies.makeElite(mob);
             }
-            var atk = mob.getAttribute(Attributes.ATTACK_DAMAGE);
-            if (atk != null) atk.setBaseValue(atk.getBaseValue() * dmgMult);
-            var spd = mob.getAttribute(Attributes.MOVEMENT_SPEED);
-            if (spd != null) {
-                double base = spd.getBaseValue();
-                if (sigils.contains("gale")) base *= 1.16;
-                if (hasMutation(player, "swift")) base *= 1.2;
-                spd.setBaseValue(base);
-            }
-            // 乱舞: 一定割合でエリート化 (発光+体力2倍)
-            if (sigils.contains("frenzy") && i % 3 == 0) {
-                var h2 = mob.getAttribute(Attributes.MAX_HEALTH);
-                if (h2 != null) {
-                    h2.setBaseValue(Math.min(2048, h2.getValue() * 2));
-                    mob.setHealth(mob.getMaxHealth());
-                }
-                mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 999999, 0, false, false));
-                mob.setCustomName(Component.literal("§6エリート " + mob.getName().getString()));
-            }
+            Enemies.tagByRole(mob, spec);
             mob.setTarget(player);
             level.addFreshEntity(mob);
         }
@@ -607,11 +648,11 @@ public final class RunManager {
             boss.setPos(pos.getX(), pos.getY(), pos.getZ());
             var hp = boss.getAttribute(Attributes.MAX_HEALTH);
             if (hp != null) {
-                hp.setBaseValue(Math.min(4096, (60 + floor * 60) * hpMult));
+                hp.setBaseValue(Math.min(4096, (60 + floor * 60) * scale.hp()));
                 boss.setHealth(boss.getMaxHealth());
             }
             var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
-            if (atk != null) atk.setBaseValue((8 + floor * 1.6) * dmgMult);
+            if (atk != null) atk.setBaseValue((8 + floor * 1.6) * scale.dmg());
             boss.setCustomName(Component.literal("§4層主 第" + floor + "層: " + boss.getType().getDescription().getString()));
             boss.setCustomNameVisible(true);
             boss.setTarget(player);
@@ -684,8 +725,14 @@ public final class RunManager {
                 double z = Double.parseDouble(p[2]) + 0.5;
                 double d = Math.hypot(player.getX() - x, player.getZ() - z);
                 if (d < 2.5 && Math.abs(player.getY() - y) < 3) {
-                    WeaponArts.trapBlast(level, player, new net.minecraft.world.phys.Vec3(x, y + 1, z));
-                    player.sendSystemMessage(Component.literal("§c感圧罠が作動した！ (敵味方共通)"));
+                    // 原作: 作動後に予兆 (約1秒) を経て範囲爆発. 予兆の間は煙を出す
+                    var at = new net.minecraft.world.phys.Vec3(x, y + 1, z);
+                    for (int k = 0; k < 4; k++) {
+                        CombatHandler.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
+                                x, y + 0.2, z, 10, 1.0, 0.1, 1.0, 0.02));
+                    }
+                    CombatHandler.after(20, () -> WeaponArts.trapBlast(level, player, at));
+                    player.sendSystemMessage(Component.literal("§c感圧罠が起動… 1秒後に爆発！"));
                     changed = true;
                 } else {
                     keep.add(t);
@@ -765,7 +812,7 @@ public final class RunManager {
         switch (kind) {
             case "rest" -> {
                 player.setData(ModAttachments.EVENT_DONE.get(), 1);
-                player.heal(player.getMaxHealth() * 0.5f);
+                heal(player, player.getMaxHealth() * 0.5);
                 player.sendSystemMessage(Component.literal("§a休息した。HP50%回復。"));
             }
             case "oath" -> {
@@ -850,25 +897,6 @@ public final class RunManager {
         player.getInventory().add(makeWeapon(st, player.getRandom()));
         player.setData(ModAttachments.EVENT_DONE.get(), 1);
         player.sendSystemMessage(Component.literal("§6購入: " + st.weaponName + " (奥義「" + st.artName + "」)"));
-    }
-
-    private static Monster pickMob(ServerLevel level, int floor, int i) {
-        EntityType<? extends Monster> type;
-        // 層帯で出現表を切替 (原作ENEMIESのminFloor準拠の簡易版)
-        if (floor >= 9 && i % 4 == 0) type = EntityType.BLAZE;
-        else if (floor >= 7 && i % 5 == 0) type = EntityType.HUSK; // 岩塊ゴーレム相当のタンク枠
-        else if (floor >= 6 && i % 3 == 0) type = EntityType.WITCH; // 怨念レイス相当
-        else if (floor >= 4 && i % 4 == 1) type = EntityType.CREEPER; // 自爆ガエル相当
-        else if (floor >= 3 && i % 3 == 1) type = EntityType.CAVE_SPIDER;
-        else if (floor >= 2 && i % 2 == 0) type = EntityType.SKELETON;
-        else type = EntityType.ZOMBIE;
-        Monster mob = (Monster) type.create(level, EntitySpawnReason.EVENT);
-        if (mob == null) {
-            Monster fallback = EntityType.ZOMBIE.create(level, EntitySpawnReason.EVENT);
-            if (fallback == null) throw new IllegalStateException("mob create failed");
-            return fallback;
-        }
-        return mob;
     }
 
     private static Monster pickBoss(ServerLevel level, int floor) {

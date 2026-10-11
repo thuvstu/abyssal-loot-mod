@@ -23,3 +23,14 @@ Additional Resources:
 ==========
 Community Documentation: https://docs.neoforged.net/  
 NeoForged Discord: https://discord.neoforged.net/
+
+## Abyssal Loot: はじめかた (日本語)
+
+1. ゲームに入ると案内が出ます。**[はじめる]** をクリックすると、剣聖＋剣を配備してすぐ出撃します。
+2. 別の職業や武器で始めたい場合は `/abyss quick <職業> <武器>` を入力します。
+   - 職業: `samurai` `mage` `ninja` `paladin` `gunner`
+   - 武器: `sword` `axe` `spear` `staff` `bow` `dagger` `hammer` `katana` `scythe` `gauntlet` `chakram` `tome`
+   - 進行中の冒険は破棄されます。
+3. 操作説明は `/abyss help` です（クリックできるボタン付き）。
+   - 移動 WASD / 攻撃 左クリック / **E** 武器奥義 / **Q** 必殺技 / **C** 回避
+4. 開発者向け: `./gradlew runClient`（または `runServer`）で起動します。
