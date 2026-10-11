@@ -228,6 +228,26 @@ public final class GameData {
         return trialRules(sigils).enemyDamage();
     }
 
+    /** ラン終了時の魂の内訳 (原作 run-rules.ts calculateRunReward の写し). */
+    public record RunReward(int baseSouls, int beforeTrials, int runSouls, int trialBonus) {}
+
+    /**
+     * 原作 calculateRunReward: 基礎魂 = 層×14 + 撃破×0.6 + レベル×8 (+勝利900 +真の深淵6000)。
+     * 何も進めずに離脱した場合は 0 (無限の魂稼ぎ防止)。
+     * 原作の「スコア/40」項は Mod にスコアが無いため省略している。
+     */
+    public static RunReward runReward(int floor, int kills, int level, boolean victory, boolean trueCleared,
+                                      double modeRate, double difficultyRate, double trialMult) {
+        boolean progressed = kills > 0 || floor > 1 || victory;
+        int base = progressed
+                ? (int) Math.round(floor * 14.0 + kills * 0.6 + level * 8.0
+                        + (victory ? 900 : 0) + (trueCleared ? 6000 : 0))
+                : 0;
+        int before = (int) Math.round(base * modeRate * difficultyRate);
+        int run = (int) Math.round(before * trialMult);
+        return new RunReward(base, before, run, run - before);
+    }
+
     /** 魂加算 (報酬用). 原作 soulMultiplier = (100 + Σreward)/100 */
     public static double soulMult(Set<String> sigils) {
         return trialRules(sigils).soulMultiplier();

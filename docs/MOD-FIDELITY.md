@@ -87,6 +87,6 @@ MOD 側の数値・規則はこの文書の対応表に従い、純粋な計算�
 - 通常敵の種類の完全再現 (原作ENEMIESの全種・固有能力)。
 - 破壊物 (赤水晶・青瓶・運命の祭壇) の細部と層間イベントの細部。
 - 奥義の判定形状 (planWeaponArt の角度・射程) の完全一致。
-- 魂の報酬集計 (原作 calculateRunReward) の移植。
+- 魂の報酬集計: `GameData.runReward` で原作 calculateRunReward を移植し、勝利時にチャットへ内訳を表示 (スコア項は Mod に無いため省略)。欠片の報酬とは未連動 (換算方針は要決定)。
 - 呪印の出撃登録 (/api/expeditions 相当) による条件の固定。
-- 層の異変 (FLOOR_MUTATIONS) の全種。
+- 層の異変 (FLOOR_MUTATIONS) の全種: 実装済み (9種)。

@@ -381,6 +381,17 @@ public final class RunManager {
     }
 
     /** 踏破勝利: 報酬 + 継承の案内 */
+    /** 原作の魂の内訳をチャットに出す (勝利時の要約). 報酬の欠片とは別の換算値 */
+    private static void sendSoulSummary(ServerPlayer player, boolean trueCleared) {
+        var sigils = sigilsOf(player);
+        var r = GameData.runReward(25, player.getData(ModAttachments.KILLS.get()),
+                player.getData(ModAttachments.LEVEL.get()), true, trueCleared,
+                1.0, diffSoulMult(player), GameData.soulMult(sigils));
+        player.sendSystemMessage(Component.literal(String.format(
+                "§d原作換算の魂: 基礎%d → 難度・呪印込み%d (呪印ボーナス+%d)",
+                r.baseSouls(), r.beforeTrials(), r.trialBonus())));
+    }
+
     public static void victory(ServerPlayer player) {
         if (isDaily(player)) {
             player.sendSystemMessage(Component.literal("§6★ 日替わり深淵【" + dailyPreset() + "】踏破！ ★"));
@@ -395,6 +406,7 @@ public final class RunManager {
         var styles = GameData.WeaponStyle.values();
         player.getInventory().add(makeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom()));
+        sendSoulSummary(player, false);
         CombatHandler.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -526,6 +538,7 @@ public final class RunManager {
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal("§d神話の" + style.weaponName));
         player.getInventory().add(stack);
+        sendSoulSummary(player, true);
         CombatHandler.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);

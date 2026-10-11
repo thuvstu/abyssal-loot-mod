@@ -222,4 +222,20 @@ public class GameDataTest {
         // 一様乱数 0.5 は index = floor(0.5*9) = 4 (防衛線)
         assertEquals("fortress", GameData.rollMutation(() -> 0.5, 3).id());
     }
+
+    @Test
+    void runRewardMatchesOriginalFormula() {
+        // 勝利: 25*14 + 100*0.6 + 10*8 + 900 = 1390
+        var r = GameData.runReward(25, 100, 10, true, false, 1.0, 1.0, 1.0);
+        assertEquals(1390, r.baseSouls());
+        // 極難 x1.5 -> 2085, 呪印 x2.46 -> 5129.1 -> 5129
+        var h = GameData.runReward(25, 100, 10, true, false, 1.0, 1.5, 2.46);
+        assertEquals(2085, h.beforeTrials());
+        assertEquals(5129, h.runSouls());
+        assertEquals(5129 - 2085, h.trialBonus());
+        // 何も進めずに離脱すると 0
+        assertEquals(0, GameData.runReward(1, 0, 1, false, false, 1.0, 1.0, 2.0).runSouls());
+        // 真の深淵は +6000
+        assertEquals(1390 + 6000, GameData.runReward(25, 100, 10, true, true, 1.0, 1.0, 1.0).baseSouls());
+    }
 }
