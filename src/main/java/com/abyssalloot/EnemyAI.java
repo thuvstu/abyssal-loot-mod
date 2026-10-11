@@ -50,6 +50,34 @@ public final class EnemyAI {
         NEXT_SUMMON.keySet().removeIf(id -> !seen.contains(id));
     }
 
+    /** 護衛兵の回頭速度 (度/tick). 約80度/秒: 側面から回り込む余地を残す */
+    private static final double GUARD_TURN_PER_TICK = 4.0;
+
+    /** 毎tick: 鉄壁の護衛兵は最寄りのプレイヤーへ一定速度でしか向きを変えない */
+    public static void tickGuards(MinecraftServer server) {
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (!(p.level() instanceof ServerLevel level)) continue;
+            var guards = level.getEntitiesOfClass(Monster.class,
+                    p.getBoundingBox().inflate(64),
+                    e -> e.isAlive() && e.getTags().contains(Enemies.GUARD_TAG));
+            for (Monster g : guards) {
+                ServerPlayer t = nearestPlayer(level, g);
+                if (t == null) continue;
+                // MCの向き規約: 方向ベクトル = (-sin(yaw), cos(yaw))
+                double dx = t.getX() - g.getX();
+                double dz = t.getZ() - g.getZ();
+                if (dx * dx + dz * dz < 1e-6) continue;
+                double want = Math.toDegrees(Math.atan2(-dx, dz));
+                float cur = g.getYRot();
+                double diff = ((want - cur) % 360 + 540) % 360 - 180;
+                double step = Math.max(-GUARD_TURN_PER_TICK, Math.min(GUARD_TURN_PER_TICK, diff));
+                float next = (float) (cur + step);
+                g.setYRot(next);
+                g.setYBodyRot(next);
+            }
+        }
+    }
+
     /** 最寄りの生存プレイヤー (48m以内) */
     private static ServerPlayer nearestPlayer(ServerLevel level, Monster m) {
         Player p = level.getNearestPlayer(m.getX(), m.getY(), m.getZ(), SEARCH_RANGE, false);

@@ -700,8 +700,14 @@ public final class RunManager {
                 double z = Double.parseDouble(p[2]) + 0.5;
                 double d = Math.hypot(player.getX() - x, player.getZ() - z);
                 if (d < 2.5 && Math.abs(player.getY() - y) < 3) {
-                    WeaponArts.trapBlast(level, player, new net.minecraft.world.phys.Vec3(x, y + 1, z));
-                    player.sendSystemMessage(Component.literal("§c感圧罠が作動した！ (敵味方共通)"));
+                    // 原作: 作動後に予兆 (約1秒) を経て範囲爆発. 予兆の間は煙を出す
+                    var at = new net.minecraft.world.phys.Vec3(x, y + 1, z);
+                    for (int k = 0; k < 4; k++) {
+                        CombatHandler.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
+                                x, y + 0.2, z, 10, 1.0, 0.1, 1.0, 0.02));
+                    }
+                    CombatHandler.after(20, () -> WeaponArts.trapBlast(level, player, at));
+                    player.sendSystemMessage(Component.literal("§c感圧罠が起動… 1秒後に爆発！"));
                     changed = true;
                 } else {
                     keep.add(t);

@@ -492,6 +492,7 @@ public final class CombatHandler {
                 }
             }
         }
+        EnemyAI.tickGuards(server);
         EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             float iframe = player.getData(ModAttachments.IFRAME.get());
