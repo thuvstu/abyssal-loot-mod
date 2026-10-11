@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -265,6 +266,27 @@ public final class CombatHandler {
         }
         player.setData(ModAttachments.OFFER.get(), String.join(",", ids));
         player.sendSystemMessage(msg);
+    }
+
+    /**
+     * 鉄壁の護衛兵: 前方±60°からの被ダメ30%、側面・背面は135% (原作 guardMultiplier).
+     * 他の補正の後に掛けるため LOW 優先度.
+     */
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onGuardHit(LivingDamageEvent.Pre event) {
+        LivingEntity victim = event.getEntity();
+        if (victim instanceof ServerPlayer || !victim.getTags().contains(RunManager.GUARD_TAG)) return;
+        Vec3 src = event.getSource().getSourcePosition();
+        if (src == null) return;
+        Vec3 toSource = new Vec3(src.x - victim.getX(), 0, src.z - victim.getZ());
+        Vec3 facing = victim.getLookAngle();
+        facing = new Vec3(facing.x, 0, facing.z);
+        double a = toSource.length();
+        double b = facing.length();
+        if (a < 1e-6 || b < 1e-6) return;
+        double cos = (toSource.x * facing.x + toSource.z * facing.z) / (a * b);
+        double mult = cos >= Math.cos(Math.PI / 3) ? 0.30 : 1.35;
+        event.setNewDamage(event.getNewDamage() * (float) mult);
     }
 
     /** 無敵時間の適用 + 武器ダメージの原作式上書き */

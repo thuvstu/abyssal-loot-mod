@@ -641,6 +641,11 @@ public final class RunManager {
                 mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 999999, 0, false, false));
                 mob.setCustomName(Component.literal("§6エリート " + mob.getName().getString()));
             }
+            if (isGuardSlot(floor, i)) {
+                mob.addTag(GUARD_TAG);
+                mob.setCustomName(Component.literal("§7鉄壁の護衛兵"));
+                mob.setCustomNameVisible(true);
+            }
             mob.setTarget(player);
             level.addFreshEntity(mob);
         }
@@ -896,10 +901,19 @@ public final class RunManager {
         player.sendSystemMessage(Component.literal("§6購入: " + st.weaponName + " (奥義「" + st.artName + "」)"));
     }
 
+    /** 鉄壁の護衛兵の識別タグ (向きで被ダメ変化: CombatHandler.onGuardHit) */
+    public static final String GUARD_TAG = "abyss_guard";
+
+    /** 4層〜: ウェーブの5体に1体が護衛兵 */
+    public static boolean isGuardSlot(int floor, int i) {
+        return floor >= 4 && i % 5 == 3;
+    }
+
     private static Monster pickMob(ServerLevel level, int floor, int i) {
         EntityType<? extends Monster> type;
         // 層帯で出現表を切替 (原作ENEMIESのminFloor準拠の簡易版)
-        if (floor >= 9 && i % 4 == 0) type = EntityType.BLAZE;
+        if (isGuardSlot(floor, i)) type = EntityType.ZOMBIE;
+        else if (floor >= 9 && i % 4 == 0) type = EntityType.BLAZE;
         else if (floor >= 7 && i % 5 == 0) type = EntityType.HUSK; // 岩塊ゴーレム相当のタンク枠
         else if (floor >= 6 && i % 3 == 0) type = EntityType.WITCH; // 怨念レイス相当
         else if (floor >= 4 && i % 4 == 1) type = EntityType.CREEPER; // 自爆ガエル相当
