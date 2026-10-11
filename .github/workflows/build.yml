@@ -22,15 +22,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle
-        run: |
-          set +e
-          ./gradlew build test --stacktrace --console=plain > build.log 2>&1
-          rc=$?
-          echo "gradle exit=$rc"
-          # ログ本体はダウンロードできないため、失敗箇所を注釈として出す
-          wc -l build.log
-          grep -E 'FAILED|Test.*>|expected|AssertionFailed|Exception|Caused by' build.log | grep -v 'org.gradle' | head -50 | while IFS= read -r l; do echo "::error::T $(echo "$l" | tr -d '\r' | cut -c1-300)"; done
-          exit $rc
-      - name: Build with Gradle (legacy)
-        if: false
         run: ./gradlew build
