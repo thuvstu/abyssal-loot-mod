@@ -177,4 +177,26 @@ public class GameDataTest {
         assertEquals(0.0, GameData.luckDropBonus(0), 1e-9);
         assertEquals(0.07, GameData.luckDropBonus(100), 1e-9);
     }
+
+    @Test
+    void specialSlotsFollowFloorGates() {
+        // 護衛兵 4層〜 (i%5==3)
+        assertNull(GameData.specialSlotRole(3, 3));
+        assertEquals("guard", GameData.specialSlotRole(4, 3));
+        // 蘇生師 6層〜 (i%7==5)
+        assertEquals("necromancer", GameData.specialSlotRole(6, 5));
+        assertNull(GameData.specialSlotRole(5, 5));
+        // 召喚門 7層〜 (i%9==8). 6層では門は湧かず、8%5==3 なので護衛兵になる
+        assertEquals("gate", GameData.specialSlotRole(7, 8));
+        assertEquals("guard", GameData.specialSlotRole(6, 8));
+        // 門は護衛兵より優先 (17%9==8 かつ 17%5==2 なので門)
+        assertEquals("gate", GameData.specialSlotRole(7, 17));
+    }
+
+    @Test
+    void floorScalingMatchesCoreTs() {
+        assertEquals(1.0, GameData.floorHpScale(0), 1e-9);
+        assertEquals(1 + 10 * 0.22, GameData.floorHpScale(10), 1e-9);
+        assertEquals(1 + 10 * 0.08, GameData.floorDmgScale(10), 1e-9);
+    }
 }

@@ -114,7 +114,14 @@ public final class CombatHandler {
             RunManager.trueVictory(player);
         }
         // 層クリア判定
-        player.setData(ModAttachments.FLOOR_KILLS.get(), player.getData(ModAttachments.FLOOR_KILLS.get()) + 1);
+        // 蘇生師・門の子は層のウェーブに含めない (数えると転移門が早く開いてしまう)
+        if (!event.getEntity().getTags().contains(Enemies.SUMMON_TAG)) {
+            player.setData(ModAttachments.FLOOR_KILLS.get(), player.getData(ModAttachments.FLOOR_KILLS.get()) + 1);
+        }
+        // 呪われた召喚門の破壊 (原作: 戦績に保存され実績「門を断つ者」)
+        if (event.getEntity().getTags().contains(Enemies.GATE_TAG)) {
+            grantAch(player, "gate-breaker", "門を断つ者", 8);
+        }
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0
                 && player.getData(ModAttachments.FLOOR_KILLS.get()) >= total) {
@@ -275,7 +282,7 @@ public final class CombatHandler {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onGuardHit(LivingDamageEvent.Pre event) {
         LivingEntity victim = event.getEntity();
-        if (victim instanceof ServerPlayer || !victim.getTags().contains(RunManager.GUARD_TAG)) return;
+        if (victim instanceof ServerPlayer || !victim.getTags().contains(Enemies.GUARD_TAG)) return;
         Vec3 src = event.getSource().getSourcePosition();
         if (src == null) return;
         Vec3 toSource = new Vec3(src.x - victim.getX(), 0, src.z - victim.getZ());
@@ -485,6 +492,7 @@ public final class CombatHandler {
                 }
             }
         }
+        EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             float iframe = player.getData(ModAttachments.IFRAME.get());
             if (iframe > 0) player.setData(ModAttachments.IFRAME.get(), Math.max(0, iframe - 0.05f));

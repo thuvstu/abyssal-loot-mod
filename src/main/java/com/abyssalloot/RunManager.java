@@ -586,22 +586,13 @@ public final class RunManager {
         player.displayClientMessage(Component.literal("§7試練のアリーナを展開した"), false);
     }
 
-    /** ウェーブ湧き: 原作式 waveTotal = 9 + floor*2.4 をMC向けに圧縮 */
+    /** ウェーブ湧き: 原作式 waveTotal = 9 + floor*2.4 をMC向けに圧縮. 敵の抽選・能力値は Enemies に委譲 */
     public static void spawnWave(ServerPlayer player, int floor) {
         ServerLevel level = (ServerLevel) player.level();
-        Set<String> sigils = sigilsOf(player);
         rollMutation(player, floor);
-        double hpMult = GameData.enemyHpMult(sigils) * diffHpMult(player) * (1 + floor * 0.22);
-        double dmgMult = GameData.enemyDmgMult(sigils) * diffDmgMult(player) * (1 + floor * 0.08);
-        if (isDaily(player)) {
-            hpMult *= dailyHpMult();
-            dmgMult *= dailyDmgMult();
-        }
-        if (hasMutation(player, "frail")) hpMult *= 0.8;
-        if (hasMutation(player, "rich")) hpMult *= 1.1;
-        if (hasMutation(player, "blood")) dmgMult *= 1.2;
+        var sigils = sigilsOf(player);
+        var scale = Enemies.scaleFor(player, floor);
         boolean bossFloor = floor % 5 == 0 || isBossrush(player);
-        var trial = GameData.trialRules(sigils);
         double eliteChance = GameData.eliteChance(floor, sigils);
         var rand = player.getRandom();
 
@@ -612,40 +603,16 @@ public final class RunManager {
         for (int i = 0; i < count; i++) {
             double ang = (Math.PI * 2 * i) / count;
             BlockPos pos = center.offset((int) (Math.cos(ang) * 14), 1, (int) (Math.sin(ang) * 14));
-            Monster mob = pickMob(level, floor, i);
+            var spec = Enemies.pickSpec(floor, i, rand);
+            Monster mob = Enemies.create(level, spec);
             mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-            var hp = mob.getAttribute(Attributes.MAX_HEALTH);
-            if (hp != null) {
-                hp.setBaseValue(Math.min(1024, mob.getMaxHealth() * hpMult));
-                mob.setHealth(mob.getMaxHealth());
+            // 門は耐久が高い (原作の門は壊すまで増援し続ける)
+            double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
+            Enemies.apply(mob, scale, extra);
+            if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < eliteChance) {
+                Enemies.makeElite(mob);
             }
-            var atk = mob.getAttribute(Attributes.ATTACK_DAMAGE);
-            if (atk != null) atk.setBaseValue(atk.getBaseValue() * dmgMult);
-            var spd = mob.getAttribute(Attributes.MOVEMENT_SPEED);
-            if (spd != null) {
-                // 疾風 ×1.16 / 深淵 ×1.10 (trialRules に集約)
-                double base = spd.getBaseValue() * trial.enemySpeed();
-                if (hasMutation(player, "swift")) base *= 1.2;
-                spd.setBaseValue(base);
-            }
-            // 注視 ×1.45 / 深淵 ×1.10 の索敵距離
-            var fol = mob.getAttribute(Attributes.FOLLOW_RANGE);
-            if (fol != null) fol.setBaseValue(GameData.BASE_FOLLOW_RANGE * trial.detection());
-            // 乱舞を含む原作式のエリート抽選 (発光+体力2倍)
-            if (rand.nextDouble() < eliteChance) {
-                var h2 = mob.getAttribute(Attributes.MAX_HEALTH);
-                if (h2 != null) {
-                    h2.setBaseValue(Math.min(2048, h2.getValue() * 2));
-                    mob.setHealth(mob.getMaxHealth());
-                }
-                mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, 999999, 0, false, false));
-                mob.setCustomName(Component.literal("§6エリート " + mob.getName().getString()));
-            }
-            if (isGuardSlot(floor, i)) {
-                mob.addTag(GUARD_TAG);
-                mob.setCustomName(Component.literal("§7鉄壁の護衛兵"));
-                mob.setCustomNameVisible(true);
-            }
+            Enemies.tagByRole(mob, spec);
             mob.setTarget(player);
             level.addFreshEntity(mob);
         }
@@ -656,11 +623,11 @@ public final class RunManager {
             boss.setPos(pos.getX(), pos.getY(), pos.getZ());
             var hp = boss.getAttribute(Attributes.MAX_HEALTH);
             if (hp != null) {
-                hp.setBaseValue(Math.min(4096, (60 + floor * 60) * hpMult));
+                hp.setBaseValue(Math.min(4096, (60 + floor * 60) * scale.hp()));
                 boss.setHealth(boss.getMaxHealth());
             }
             var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
-            if (atk != null) atk.setBaseValue((8 + floor * 1.6) * dmgMult);
+            if (atk != null) atk.setBaseValue((8 + floor * 1.6) * scale.dmg());
             boss.setCustomName(Component.literal("§4層主 第" + floor + "層: " + boss.getType().getDescription().getString()));
             boss.setCustomNameVisible(true);
             boss.setTarget(player);
@@ -899,34 +866,6 @@ public final class RunManager {
         player.getInventory().add(makeWeapon(st, player.getRandom()));
         player.setData(ModAttachments.EVENT_DONE.get(), 1);
         player.sendSystemMessage(Component.literal("§6購入: " + st.weaponName + " (奥義「" + st.artName + "」)"));
-    }
-
-    /** 鉄壁の護衛兵の識別タグ (向きで被ダメ変化: CombatHandler.onGuardHit) */
-    public static final String GUARD_TAG = "abyss_guard";
-
-    /** 4層〜: ウェーブの5体に1体が護衛兵 */
-    public static boolean isGuardSlot(int floor, int i) {
-        return floor >= 4 && i % 5 == 3;
-    }
-
-    private static Monster pickMob(ServerLevel level, int floor, int i) {
-        EntityType<? extends Monster> type;
-        // 層帯で出現表を切替 (原作ENEMIESのminFloor準拠の簡易版)
-        if (isGuardSlot(floor, i)) type = EntityType.ZOMBIE;
-        else if (floor >= 9 && i % 4 == 0) type = EntityType.BLAZE;
-        else if (floor >= 7 && i % 5 == 0) type = EntityType.HUSK; // 岩塊ゴーレム相当のタンク枠
-        else if (floor >= 6 && i % 3 == 0) type = EntityType.WITCH; // 怨念レイス相当
-        else if (floor >= 4 && i % 4 == 1) type = EntityType.CREEPER; // 自爆ガエル相当
-        else if (floor >= 3 && i % 3 == 1) type = EntityType.CAVE_SPIDER;
-        else if (floor >= 2 && i % 2 == 0) type = EntityType.SKELETON;
-        else type = EntityType.ZOMBIE;
-        Monster mob = (Monster) type.create(level, EntitySpawnReason.EVENT);
-        if (mob == null) {
-            Monster fallback = EntityType.ZOMBIE.create(level, EntitySpawnReason.EVENT);
-            if (fallback == null) throw new IllegalStateException("mob create failed");
-            return fallback;
-        }
-        return mob;
     }
 
     private static Monster pickBoss(ServerLevel level, int floor) {

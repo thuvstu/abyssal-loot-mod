@@ -232,4 +232,25 @@ public final class GameData {
     public static double soulMult(Set<String> sigils) {
         return trialRules(sigils).soulMultiplier();
     }
+
+    /**
+     * 特殊敵の出現スロット (原作の固定配置に対応). 該当しなければ null (通常敵の抽選へ).
+     * 護衛兵 4層〜 / 蘇生師 6層〜 / 召喚門 7層〜. 同じ番号は上の役割を優先.
+     */
+    public static String specialSlotRole(int floor, int slot) {
+        if (floor >= 7 && slot % 9 == 8) return "gate";
+        if (floor >= 6 && slot % 7 == 5) return "necromancer";
+        if (floor >= 4 && slot % 5 == 3) return "guard";
+        return null;
+    }
+
+    /** 層による敵HP倍率 (原作 1 + 層*0.22) */
+    public static double floorHpScale(int floor) {
+        return 1 + floor * 0.22;
+    }
+
+    /** 層による敵攻撃倍率 (原作 1 + 層*0.08) */
+    public static double floorDmgScale(int floor) {
+        return 1 + floor * 0.08;
+    }
 }
