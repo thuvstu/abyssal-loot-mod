@@ -49,116 +49,181 @@ def blade_glint(d, pts, color):
     d.line(pts, fill=color, width=1)
 
 
+STEEL_LIGHT = (232, 238, 248, 255)
+WHITE = (255, 255, 255, 255)
+
+
+def _dia_blade(d, x0, y0, x1, y1, accent):
+    """斜め刃の基本形: 幅3の鋼 + 樋 + 切先 + 煌き。握り側(x0,y0)→切先(x1,y1)"""
+    line(d, [(x0, y0), (x1, y1)], STEEL_LIGHT, 3)
+    line(d, [(x0, y0), (x1, y1)], STEEL, 1)
+    d.line([(x0 + 1, y0), (x1, y1 - 1)], fill=STEEL_DARK, width=1)  # 樋
+    tx, ty = x1 + 1, y1 - 1
+    poly(d, [(x1 - 1, y1 + 1), (tx + 1, ty - 1), (x1 + 1, y1 + 3)], STEEL_LIGHT)  # 切先
+    d.point((x0 + (x1 - x0) * 2 // 3, y0 + (y1 - y0) * 2 // 3), fill=WHITE)  # 煌き
+    d.point((x0 + (x1 - x0) // 3 + 1, y0 + (y1 - y0) // 3), fill=accent)
+
+
+def _guard_grip(d, gx, gy, accent):
+    """鍔(金・斜め) + 柄(木) + 柄頭(金・種別色)。(gx,gy)=鍔中心"""
+    line(d, [(gx - 2, gy - 2), (gx + 2, gy + 2)], GOLD, 1)
+    line(d, [(gx + 1, gy + 1), (gx - 2, gy + 4)], WOOD, 2)
+    line(d, [(gx - 1, gy + 3), (gx - 2, gy + 4)], WOOD_DARK, 1)
+    d.rectangle([gx - 3, gy + 3, gx - 1, gy + 5], fill=OUTLINE)
+    d.rectangle([gx - 2, gy + 4, gx - 2, gy + 4], fill=accent)
+    d.point((gx, gy), fill=accent)
+
+
 def sword(accent):
     img, d = canvas()
-    line(d, [(3, 13), (11, 5)], STEEL, 2)
-    line(d, [(2, 9), (6, 13)], GOLD, 1)  # 鍔
-    line(d, [(3, 12), (2, 14)], WOOD, 1)  # 柄
-    d.point((10, 6), fill=accent)
-    d.point((11, 4), fill=(255, 255, 255, 255))
+    _dia_blade(d, 4, 12, 13, 3, accent)
+    _guard_grip(d, 3, 11, accent)
     return img
 
 
 def axe(accent):
     img, d = canvas()
-    line(d, [(4, 14), (9, 7)], WOOD, 1)
-    poly(d, [(8, 3), (13, 2), (14, 7), (9, 9)], STEEL)
-    line(d, [(9, 7), (13, 3)], STEEL_DARK, 1)
-    d.point((11, 5), fill=accent)
+    line(d, [(2, 15), (9, 6)], WOOD, 2)
+    line(d, [(2, 15), (9, 6)], WOOD_DARK, 1)
+    poly(d, [(7, 1), (15, 0), (15, 7), (9, 10)], STEEL_LIGHT)  # 双刃
+    poly(d, [(9, 3), (13, 2), (13, 6), (9, 8)], STEEL)
+    d.line([(9, 3), (13, 2)], fill=WHITE, width=1)  # 刃先の光
+    d.point((12, 4), fill=accent)
+    d.point((11, 5), fill=WHITE)
+    line(d, [(7, 8), (9, 10)], GOLD, 1)  # 柄巻
+    line(d, [(4, 12), (6, 10)], GOLD, 1)
+    d.point((8, 4), fill=OUTLINE)  # 目釘
     return img
 
 
 def spear(accent):
     img, d = canvas()
-    line(d, [(2, 14), (10, 6)], WOOD, 1)
-    poly(d, [(9, 2), (14, 4), (10, 7)], STEEL)
+    line(d, [(1, 15), (10, 6)], WOOD, 1)
+    line(d, [(2, 14), (9, 7)], WOOD_DARK, 1)
+    poly(d, [(9, 1), (14, 4), (10, 8)], STEEL_LIGHT)  # 穂先
+    poly(d, [(10, 3), (12, 5), (10, 7)], STEEL)
+    d.line([(10, 3), (12, 5)], fill=WHITE, width=1)
+    line(d, [(8, 8), (10, 10)], GOLD, 1)  # 鎺
+    d.line([(7, 9), (5, 11)], fill=accent, width=1)  # 房
     d.point((11, 4), fill=accent)
-    line(d, [(10, 6), (12, 8)], GOLD, 1)
     return img
 
 
 def staff(accent):
     img, d = canvas()
-    line(d, [(8, 15), (8, 7)], WOOD, 1)
-    d.ellipse([5, 1, 11, 7], fill=OUTLINE)
-    d.ellipse([6, 2, 10, 6], fill=accent)
-    d.point((7, 3), fill=(255, 255, 255, 255))
-    line(d, [(5, 7), (11, 7)], GOLD, 1)
+    line(d, [(7, 15), (7, 8)], WOOD, 2)
+    line(d, [(7, 15), (7, 8)], WOOD_DARK, 1)
+    line(d, [(4, 8), (10, 8)], GOLD, 1)  # 受け座
+    d.ellipse([4, 0, 11, 7], fill=OUTLINE)
+    d.ellipse([5, 1, 10, 6], fill=accent)  # 宝珠
+    d.ellipse([6, 2, 8, 4], fill=WHITE)
+    d.point((9, 2), fill=WHITE)
+    d.point((3, 3), fill=accent)
+    d.point((11, 5), fill=accent)
     return img
 
 
 def bow(accent):
     img, d = canvas()
-    d.arc([1, 1, 12, 15], start=-70, end=70, fill=OUTLINE, width=3)
-    d.arc([2, 2, 11, 14], start=-70, end=70, fill=WOOD, width=1)
-    d.line([(9, 2), (9, 14)], fill=(230, 230, 230, 255), width=1)
-    d.line([(9, 8), (15, 8)], fill=accent, width=1)  # 矢
-    d.point((15, 8), fill=STEEL)
+    d.arc([0, 0, 11, 15], start=-75, end=75, fill=OUTLINE, width=4)
+    d.arc([1, 1, 10, 14], start=-75, end=75, fill=WOOD, width=2)
+    d.arc([1, 1, 10, 14], start=-30, end=30, fill=accent, width=1)  # 握り巻
+    d.line([(8, 1), (8, 14)], fill=(230, 230, 230, 255), width=1)  # 弦
+    d.line([(8, 8), (14, 8)], fill=WOOD_DARK, width=1)  # 矢柄
+    poly(d, [(13, 7), (15, 8), (13, 9)], STEEL_LIGHT)  # 矢尻
+    d.point((9, 8), fill=accent)
+    d.point((5, 3), fill=accent)
+    d.point((5, 12), fill=accent)
     return img
 
 
 def dagger(accent):
     img, d = canvas()
-    poly(d, [(6, 3), (10, 9), (8, 10), (5, 6)], STEEL)
-    d.point((7, 5), fill=accent)
-    line(d, [(6, 10), (10, 6)], GOLD, 1)  # 鍔
-    line(d, [(8, 11), (4, 14)], WOOD, 1)
+    _dia_blade(d, 7, 9, 13, 3, accent)
+    line(d, [(5, 7), (8, 10)], GOLD, 1)  # S字鍔
+    line(d, [(6, 10), (3, 13)], WOOD, 2)
+    d.point((4, 12), fill=accent)
+    d.point((3, 13), fill=GOLD)
     return img
 
 
 def hammer(accent):
     img, d = canvas()
-    line(d, [(4, 15), (9, 8)], WOOD, 1)
-    poly(d, [(7, 2), (14, 4), (13, 9), (6, 8)], STEEL_DARK)
-    d.rectangle([9, 4, 11, 6], fill=accent)
+    line(d, [(3, 15), (8, 8)], WOOD, 2)
+    line(d, [(3, 15), (8, 8)], WOOD_DARK, 1)
+    poly(d, [(6, 1), (15, 3), (13, 10), (4, 8)], STEEL_DARK)  # 大頭
+    poly(d, [(7, 3), (13, 4), (12, 8), (6, 7)], STEEL_LIGHT)
+    d.rectangle([9, 4, 11, 6], fill=accent)  # 核
+    d.point((8, 5), fill=WHITE)
+    line(d, [(5, 12), (7, 10)], GOLD, 1)  # 柄巻
     return img
 
 
 def katana(accent):
     img, d = canvas()
-    d.arc([2, -2, 16, 12], start=200, end=280, fill=OUTLINE, width=3)
-    d.arc([3, -1, 15, 11], start=200, end=280, fill=STEEL, width=1)
-    line(d, [(2, 13), (5, 11)], WOOD_DARK, 2)  # 柄
-    d.point((12, 4), fill=accent)
+    poly(d, [(2, 10), (7, 6), (12, 2), (14, 1), (13, 4), (8, 8), (3, 12)], STEEL_LIGHT)  # 反り刃
+    poly(d, [(3, 10), (7, 7), (11, 3), (12, 3), (11, 5), (7, 8), (4, 11)], STEEL)
+    d.line([(4, 10), (11, 3)], fill=WHITE, width=1)  # 反りの光
+    d.point((12, 3), fill=accent)
+    d.ellipse([0, 9, 4, 13], fill=OUTLINE)  # 鍔(円)
+    d.ellipse([1, 10, 3, 12], fill=GOLD)
+    d.point((2, 11), fill=accent)
+    line(d, [(1, 12), (0, 15)], WOOD_DARK, 2)  # 柄
+    d.line([(1, 13), (0, 14)], fill=accent, width=1)  # 柄巻
     return img
 
 
 def scythe(accent):
     img, d = canvas()
-    line(d, [(3, 15), (9, 5)], WOOD, 1)
-    d.arc([5, 0, 15, 10], start=180, end=300, fill=OUTLINE, width=3)
-    d.arc([6, 1, 14, 9], start=180, end=300, fill=STEEL, width=1)
-    d.point((12, 3), fill=accent)
+    line(d, [(2, 15), (8, 5)], WOOD, 2)
+    line(d, [(2, 15), (8, 5)], WOOD_DARK, 1)
+    d.arc([4, -1, 16, 11], start=170, end=305, fill=OUTLINE, width=4)
+    d.arc([5, 0, 15, 10], start=170, end=305, fill=STEEL_LIGHT, width=2)
+    d.arc([5, 0, 15, 10], start=180, end=230, fill=WHITE, width=1)
+    d.point((13, 2), fill=accent)
+    line(d, [(7, 6), (9, 4)], GOLD, 1)  # 目釘座
+    d.line([(4, 12), (3, 13)], fill=accent, width=1)
     return img
 
 
 def gauntlet(accent):
     img, d = canvas()
-    d.rectangle([4, 7, 11, 13], fill=OUTLINE)
-    d.rectangle([5, 8, 10, 12], fill=GOLD)
-    for x in (6, 8, 10):
-        d.line([(x, 3), (x, 7)], fill=OUTLINE, width=2)
-        d.line([(x, 3), (x, 7)], fill=GOLD, width=1)
-    d.rectangle([6, 9, 9, 10], fill=accent)
+    d.rectangle([3, 9, 11, 14], fill=OUTLINE)  # 手甲
+    d.rectangle([4, 10, 10, 13], fill=GOLD)
+    d.line([(4, 10), (10, 10)], fill=STEEL_LIGHT, width=1)
+    for i, x in enumerate((4, 6, 8, 10)):
+        d.rectangle([x, 4, x + 1, 9], fill=OUTLINE)  # 指
+        d.rectangle([x, 5, x, 8], fill=STEEL if i % 2 == 0 else STEEL_LIGHT)
+    d.rectangle([5, 11, 8, 12], fill=accent)  # 拳核
+    d.point((6, 11), fill=WHITE)
     return img
 
 
 def chakram(accent):
     img, d = canvas()
-    d.ellipse([1, 1, 15, 15], outline=OUTLINE, width=3)
-    d.ellipse([2, 2, 14, 14], outline=STEEL, width=1)
-    d.ellipse([6, 6, 10, 10], fill=accent, outline=OUTLINE)
+    d.ellipse([0, 0, 15, 15], outline=OUTLINE, width=4)
+    d.ellipse([1, 1, 14, 14], outline=STEEL_LIGHT, width=2)
+    for cx, cy in ((7, 0), (7, 14), (0, 7), (14, 7)):
+        d.ellipse([cx - 1, cy - 1, cx + 1, cy + 1], fill=OUTLINE)  # 外刃
+        d.point((cx, cy), fill=STEEL_LIGHT)
+    d.ellipse([4, 4, 11, 11], outline=OUTLINE, width=2)
+    d.ellipse([5, 5, 10, 10], outline=accent, width=1)  # 内輪
+    d.ellipse([6, 6, 9, 9], fill=accent, outline=OUTLINE)
+    d.point((7, 7), fill=WHITE)
     return img
 
 
 def tome(accent):
     img, d = canvas()
-    d.rectangle([2, 3, 13, 13], fill=OUTLINE)
-    d.rectangle([3, 4, 12, 12], fill=accent)
-    d.line([(4, 5), (4, 11)], fill=GOLD, width=1)  # 背
-    d.line([(7, 6), (11, 6)], fill=(245, 240, 230, 255), width=1)
-    d.line([(7, 8), (11, 8)], fill=(245, 240, 230, 255), width=1)
-    d.point((9, 10), fill=(255, 255, 255, 255))
+    poly(d, [(1, 4), (12, 2), (14, 11), (3, 13)], (46, 28, 70, 255))  # 表紙
+    poly(d, [(2, 5), (11, 3), (12, 10), (3, 12)], accent)
+    d.line([(3, 6), (10, 4)], fill=(245, 240, 230, 255), width=1)  # 本文
+    d.line([(3, 8), (10, 6)], fill=(245, 240, 230, 255), width=1)
+    d.line([(4, 10), (9, 9)], fill=(245, 240, 230, 255), width=1)
+    line(d, [(2, 5), (1, 13)], GOLD, 1)  # 背・留金
+    d.rectangle([5, 6, 8, 9], fill=OUTLINE)  # 紋章枠
+    d.point((6, 7), fill=WHITE)
+    d.point((7, 8), fill=GOLD)
     return img
 
 
@@ -171,18 +236,19 @@ def shard():
 
 
 WEAPONS = {
-    "abyss_sword": (sword, 0xd6e8ff, "handheld"),
-    "abyss_axe": (axe, 0xff9465, "handheld"),
-    "abyss_spear": (spear, 0x86dcf4, "handheld"),
-    "abyss_staff": (staff, 0xbca2ff, "handheld"),
-    "abyss_bow": (bow, 0x92ebbd, "handheld"),
-    "abyss_dagger": (dagger, 0xe4c8ff, "handheld"),
-    "abyss_hammer": (hammer, 0xf3cf75, "handheld"),
-    "abyss_katana": (katana, 0xffb5bf, "handheld"),
-    "abyss_scythe": (scythe, 0xaff097, "handheld"),
-    "abyss_gauntlet": (gauntlet, 0xffd092, "handheld"),
-    "abyss_chakram": (chakram, 0x91f2eb, "generated"),
-    "abyss_tome": (tome, 0xde9df7, "generated"),
+    # accent は原作 WEAPON_CLASSES の color
+    "abyss_sword": (sword, 0xe9e3d5, "handheld"),
+    "abyss_axe": (axe, 0xff8a2b, "handheld"),
+    "abyss_spear": (spear, 0x5cc8ff, "handheld"),
+    "abyss_staff": (staff, 0xc58bff, "handheld"),
+    "abyss_bow": (bow, 0x7cffb2, "handheld"),
+    "abyss_dagger": (dagger, 0xffd23c, "handheld"),
+    "abyss_hammer": (hammer, 0xff6a7d, "handheld"),
+    "abyss_katana": (katana, 0xff4d5e, "handheld"),
+    "abyss_scythe": (scythe, 0xa0e87c, "handheld"),
+    "abyss_gauntlet": (gauntlet, 0xffb84a, "handheld"),
+    "abyss_chakram": (chakram, 0x7ce8ff, "generated"),
+    "abyss_tome": (tome, 0xe34bff, "generated"),
 }
 
 

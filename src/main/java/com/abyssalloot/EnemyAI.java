@@ -75,6 +75,7 @@ public final class EnemyAI {
                 } else if (tags.contains(Enemies.BOMBER_TAG)) {
                     tickBomber(level, m, now);
                 }
+                tickVisuals(level, m, now, tags);
             }
         }
         // 倒れた敵の記録を捨てる
@@ -131,6 +132,48 @@ public final class EnemyAI {
         }
         return false;
     }
+
+    /**
+     * 見た目演出 (原作の発光オーラ・精鋭リング・HPバーに相当)。
+     * 層主: 魂+魔女パーティクル / 精鋭 (abyss_et_*): 金の粉 /
+     * 被弾した通常敵: 名札に HP を表示 (全快で戻す)。
+     */
+    private static void tickVisuals(ServerLevel level, Mob m, int now, Set<String> tags) {
+        boolean boss = RunManager.BOSS_BARS.containsKey(m);
+        boolean elite = false;
+        for (String t : tags) {
+            if (t.startsWith("abyss_et_")) {
+                elite = true;
+                break;
+            }
+        }
+        if (boss && now % 10 == 0) {
+            level.sendParticles(ParticleTypes.SOUL, m.getX(), m.getY() + m.getBbHeight() * 0.6, m.getZ(),
+                    3, m.getBbWidth() * 0.5, m.getBbHeight() * 0.4, m.getBbWidth() * 0.5, 0.02);
+            level.sendParticles(ParticleTypes.WITCH, m.getX(), m.getY() + 0.3, m.getZ(),
+                    2, m.getBbWidth() * 0.6, 0.4, m.getBbWidth() * 0.6, 0.05);
+        } else if (elite && now % 20 == 0) {
+            level.sendParticles(new net.minecraft.core.particles.DustParticleOptions(0xffd700, 1.0f),
+                    m.getX(), m.getY() + m.getBbHeight() + 0.4, m.getZ(), 4, 0.5, 0.3, 0.5, 0.02);
+        }
+        if (!boss && m.getCustomName() != null) {
+            String cur = m.getCustomName().getString();
+            String base = cur.contains(HP_SUFFIX_HEAD)
+                    ? cur.substring(0, cur.indexOf(HP_SUFFIX_HEAD)) : cur;
+            if (m.getHealth() < m.getMaxHealth() - 0.5f) {
+                m.setCustomName(Component.literal(base + HP_SUFFIX_HEAD
+                        + Math.max(0, Math.ceil(m.getHealth())) + "/" + Math.round(m.getMaxHealth()) + "§8]"));
+                m.setCustomNameVisible(true);
+            } else if (cur.contains(HP_SUFFIX_HEAD)) {
+                m.setCustomName(Component.literal(base));
+                m.setCustomNameVisible(m.getTags().contains(Enemies.WARDEN_TAG)
+                        || elite || tags.contains(Enemies.GATE_TAG) || tags.contains(Enemies.NECRO_TAG)
+                        || tags.contains(Enemies.GUARD_TAG));
+            }
+        }
+    }
+
+    private static final String HP_SUFFIX_HEAD = " §8[§c";
 
     /** 回頭速度 (度/tick). 護衛兵は約80度/秒、突進・番人・層主は約120度/秒 */
     private static final double GUARD_TURN_PER_TICK = 4.0;

@@ -1,5 +1,6 @@
 package com.abyssalloot;
 
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -64,22 +65,36 @@ public final class WeaponArts {
                     Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
                     slashCone(level, player, origin, dir, 14, 2.1 * attackDamage, ParticleTypes.SWEEP_ATTACK);
                 }
-                burst(player, "月牙斬！");
+                burst(player, "月牙斬！", style);
                 return true;
             }
             case AXE -> {
                 // 大地砕き: 大範囲爆発+強ノックバック (原作 burst r270px ≒ 半径5)
                 aoe(level, player, origin, 5, 4.2 * attackDamage, true, ParticleTypes.EXPLOSION);
-                burst(player, "大地砕き！");
+                burst(player, "大地砕き！", style);
                 return true;
             }
             case SPEAR -> {
-                // 竜殺し: 前方へ突進 (無敵付与) + 経路ダメージ
+                // 竜殺し: 前方へ突進 (無敵付与) + 経路3点の全員を強襲 (原作 dash)
                 Vec3 dest = origin.add(look.x * 6, 0, look.z * 6);
                 player.teleportTo(dest.x, dest.y, dest.z);
                 player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
-                aoe(level, player, dest, 3, 4.8 * attackDamage, true, ParticleTypes.CRIT);
-                burst(player, "竜殺し！");
+                java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
+                for (double d = 2; d <= 6; d += 2) {
+                    Vec3 at = origin.add(look.x * d, 0, look.z * d);
+                    for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                            new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
+                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        if (hit.add(e)) {
+                            artHurt(level, e, level.damageSources().playerAttack(player),
+                                    (float) (4.8 * attackDamage));
+                            Vec3 kb = e.position().subtract(at).normalize().scale(1.6);
+                            e.push(kb.x, 0.3, kb.z);
+                        }
+                    }
+                    level.sendParticles(ParticleTypes.CRIT, at.x, at.y + 1, at.z, 12, 1, 0.6, 1, 0.1);
+                }
+                burst(player, "竜殺し！", style);
                 return true;
             }
             case STAFF -> {
@@ -90,25 +105,28 @@ public final class WeaponArts {
                 Vec3 target = at;
                 CombatHandler.after(12, () ->
                         aoe(slevel(player), player, target, 5, 6.5 * attackDamage, true, ParticleTypes.EXPLOSION_EMITTER));
-                burst(player, "星辰大爆裂！");
+                burst(player, "星辰大爆裂！", style);
                 return true;
             }
             case BOW -> {
-                // 疾風連雨: 13連矢を自動照準で連射 (原作の 0.075秒刻みを1-2tick刻みで再現)
-                var shots = new java.util.ArrayList<LivingEntity>(targets);
-                shots.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(origin)));
-                for (int i = 0; i < Math.min(13, shots.size()); i++) {
-                    LivingEntity t = shots.get(i);
+                // 疾風連雨: 13連矢を自動照準で連射 (発射ごとに最寄りを再取得。原作 0.075秒刻み)
+                for (int i = 0; i < 13; i++) {
                     int delay = i * 3 / 2;
                     CombatHandler.after(delay, () -> {
-                        if (!t.isAlive() || t.isRemoved()) return;
-                        artHurt(slevel(player), t, slevel(player).damageSources().playerAttack(player),
+                        ServerLevel lv = slevel(player);
+                        if (!player.isAlive()) return;
+                        LivingEntity t = nearest(player.position(), lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(player.getX() - 24, player.getY() - 8, player.getZ() - 24,
+                                        player.getX() + 24, player.getY() + 8, player.getZ() + 24),
+                                e -> e.isAlive() && !(e instanceof ServerPlayer)));
+                        if (t == null) return;
+                        artHurt(lv, t, lv.damageSources().playerAttack(player),
                                 (float) (0.82 * attackDamage));
-                        slevel(player).sendParticles(ParticleTypes.CRIT,
+                        lv.sendParticles(ParticleTypes.CRIT,
                                 t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
                     });
                 }
-                burst(player, "疾風連雨！");
+                burst(player, "疾風連雨！", style);
                 return true;
             }
             case DAGGER -> {
@@ -119,24 +137,43 @@ public final class WeaponArts {
                 player.teleportTo(behind.x, behind.y, behind.z);
                 artHurt(level, t, level.damageSources().playerAttack(player), (float) (7.0 * attackDamage));
                 level.sendParticles(ParticleTypes.PORTAL, behind.x, behind.y + 1, behind.z, 40, 1, 1, 1, 0.4);
-                burst(player, "影襲！");
+                burst(player, "影襲！", style);
                 return true;
             }
             case HAMMER -> {
+                // 崩壊スマッシュ: 単体へ極大打撃。感電とスタンを周囲へ伝播 (原作通り)
                 LivingEntity t = nearest(origin, targets);
                 Vec3 at = t != null ? t.position() : origin.add(look.scale(5));
                 aoe(level, player, at, 3.5, 8.0 * attackDamage, false, ParticleTypes.ELECTRIC_SPARK);
-                if (t != null) {
-                    t.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 3));
-                    t.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0));
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 3.5, at.y - 4, at.z - 3.5, at.x + 3.5, at.y + 4, at.z + 3.5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 3));
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
+                            e.getX(), e.getY() + 1, e.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
                 }
-                burst(player, "崩壊スマッシュ！");
+                if (t != null) t.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0));
+                burst(player, "崩壊スマッシュ！", style);
                 return true;
             }
             case KATANA -> {
-                // 心無一刀: 周囲一閃 (原作 cut r370px ≒ 半径7)
+                // 心無一刀: 周囲一閃 (原作 cut r370px ≒ 半径7)。敵弾も斬り払う
                 aoe(level, player, origin, 7, 5.6 * attackDamage, false, ParticleTypes.SWEEP_ATTACK);
-                burst(player, "心無一刀！");
+                int cleared = 0;
+                for (var p : level.getEntitiesOfClass(
+                        net.minecraft.world.entity.projectile.Projectile.class,
+                        new AABB(origin.x - 7, origin.y - 4, origin.z - 7,
+                                origin.x + 7, origin.y + 4, origin.z + 7),
+                        x -> !x.isRemoved())) {
+                    if (p.getOwner() instanceof ServerPlayer) continue;
+                    p.discard();
+                    cleared++;
+                }
+                if (cleared > 0) {
+                    level.sendParticles(ParticleTypes.END_ROD,
+                            origin.x, origin.y + 1.5, origin.z, cleared * 4, 3, 1.5, 3, 0.15);
+                }
+                burst(player, "心無一刀！", style);
                 return true;
             }
             case SCYTHE -> {
@@ -147,17 +184,39 @@ public final class WeaponArts {
                     artHurt(level, e, level.damageSources().playerAttack(player), (float) (mult * attackDamage));
                 }
                 level.sendParticles(ParticleTypes.SOUL, origin.x, origin.y + 1, origin.z, 50, 4, 2, 4, 0.2);
-                burst(player, "冥府の収穫！");
+                burst(player, "冥府の収穫！", style);
                 return true;
             }
             case GAUNTLET -> {
-                // 六連震掌: 前方6連 (原作 fist r115/170px ≒ 2/3)
+                // 六連震掌: 前方6連 (原作 fist r115/170px ≒ 2/3、0.1秒刻み)。最終撃は吹き飛ばし
                 Vec3 dir = look;
                 for (int i = 0; i < 6; i++) {
                     double mult = (i == 5) ? 2.7 : 0.65;
-                    slashCone(level, player, origin.add(dir.scale(2 + i)), dir, 3.5, mult * attackDamage, ParticleTypes.CRIT);
+                    Vec3 at = origin.add(dir.scale(2 + i));
+                    boolean last = (i == 5);
+                    CombatHandler.after(i * 2, () -> {
+                        ServerLevel lv = slevel(player);
+                        if (!player.isAlive()) return;
+                        double range = (last ? 3.0 : 3.5) * RunManager.areaMult(player);
+                        for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(at.x - range, at.y - 5, at.z - range,
+                                        at.x + range, at.y + 5, at.z + range),
+                                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            Vec3 d = e.position().subtract(at);
+                            if (d.length() > range + 1) continue;
+                            double ang = Math.atan2(d.z, d.x) - Math.atan2(dir.z, dir.x);
+                            while (ang > Math.PI) ang -= Math.PI * 2;
+                            while (ang < -Math.PI) ang += Math.PI * 2;
+                            if (Math.abs(ang) > 0.7) continue;
+                            artHurt(lv, e, lv.damageSources().playerAttack(player),
+                                    (float) (mult * attackDamage));
+                            Vec3 kb = d.normalize().scale(last ? 3.0 : 1.0);
+                            e.push(kb.x, last ? 0.6 : 0.2, kb.z);
+                        }
+                        lv.sendParticles(ParticleTypes.CRIT, at.x, at.y + 1.2, at.z, 10, 1, 0.5, 1, 0.1);
+                    });
                 }
-                burst(player, "六連震掌！");
+                burst(player, "六連震掌！", style);
                 return true;
             }
             case CHAKRAM -> {
@@ -167,7 +226,7 @@ public final class WeaponArts {
                     if (!player.isAlive()) return;
                     aoe(slevel(player), player, origin, 7, 1.35 * attackDamage * 2, false, ParticleTypes.END_ROD);
                 });
-                burst(player, "輪廻乱舞！");
+                burst(player, "輪廻乱舞！", style);
                 return true;
             }
             case TOME -> {
@@ -184,7 +243,7 @@ public final class WeaponArts {
                         e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 1));
                     }
                 });
-                burst(player, "禁書・虚空葬！");
+                burst(player, "禁書・虚空葬！", style);
                 return true;
             }
         }
@@ -316,9 +375,18 @@ public final class WeaponArts {
     }
 
     private static void burst(ServerPlayer player, String text) {
+        burst(player, text, null);
+    }
+
+    /** 奥義発動の告知+効果音+武器種色の粉パーティクル */
+    private static void burst(ServerPlayer player, String text, GameData.WeaponStyle style) {
         announce(player, text);
         slevel(player).playSound(null, player.blockPosition(),
                 SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 0.8f);
+        if (style != null) {
+            slevel(player).sendParticles(new DustParticleOptions(style.color, 1.2f),
+                    player.getX(), player.getY() + 1.2, player.getZ(), 24, 1.2, 1.0, 1.2, 0.08);
+        }
     }
 
     private static void announce(ServerPlayer player, String text) {

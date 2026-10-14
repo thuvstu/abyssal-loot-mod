@@ -539,6 +539,57 @@ public final class RunManager {
         };
     }
 
+    /** 原作 STAT_META.worth (威力計算用)。鍛造費・商店価格の基礎値 */
+    private static final java.util.Map<String, Double> WORTH = java.util.Map.ofEntries(
+            java.util.Map.entry("damageFlat", 1.0), java.util.Map.entry("damagePct", 3.4),
+            java.util.Map.entry("attackSpeedPct", 3.2), java.util.Map.entry("moveSpeedPct", 2.4),
+            java.util.Map.entry("critPct", 2.8), java.util.Map.entry("critDmgPct", 1.5),
+            java.util.Map.entry("areaPct", 1.8), java.util.Map.entry("projectiles", 26.0),
+            java.util.Map.entry("pierce", 14.0), java.util.Map.entry("lifestealPct", 6.0),
+            java.util.Map.entry("armorPct", 5.0), java.util.Map.entry("regenFlat", 16.0),
+            java.util.Map.entry("luckFlat", 1.1), java.util.Map.entry("energyPct", 1.6),
+            java.util.Map.entry("maxHpFlat", 0.1), java.util.Map.entry("maxHpPct", 2.6),
+            java.util.Map.entry("chain", 20.0), java.util.Map.entry("explodePct", 3.0),
+            java.util.Map.entry("freezePct", 2.6));
+
+    /** 武器の接辞マップ (key→value)。原作 mods に相当 */
+    public static java.util.Map<String, Double> affixMap(net.minecraft.world.item.ItemStack stack) {
+        var out = new java.util.LinkedHashMap<String, Double>();
+        if (stack == null || stack.isEmpty()) return out;
+        var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY);
+        String raw = data.copyTag().getString("abyss_affixes").orElse("");
+        if (raw.isEmpty()) return out;
+        for (String e : raw.split(";")) {
+            String[] kv = e.split(":");
+            if (kv.length == 2) {
+                try {
+                    out.put(kv[0], Double.parseDouble(kv[1]));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * 武器の威力 (原作 power 式の MC 版)。
+     * Σ|接辞|×worth × 希少度倍率 × (1+鍛造Lv×0.08)。鍛造費・商店価格に使用。
+     */
+    public static int powerOf(net.minecraft.world.item.ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0;
+        if (ModItems.styleOf(stack.getItem()) == null) return 0;
+        double p = 0;
+        for (var e : affixMap(stack).entrySet()) {
+            p += Math.abs(e.getValue()) * WORTH.getOrDefault(e.getKey(), 1.0);
+        }
+        String rarity = rarityOf(stack);
+        p *= rarityMult(rarity) * (1 + forgeLv(stack) * 0.08);
+        if (traitOf(stack) != null) p *= 1.1;
+        if (curseOf(stack) != null) p *= 1.08;
+        return Math.max(1, (int) Math.round(p));
+    }
+
     /** ランダム武器生成 (レアリティ抽選+特性付与)。運・層・ボーナスなしの簡易版 */
     public static net.minecraft.world.item.ItemStack makeWeapon(
             GameData.WeaponStyle style, net.minecraft.util.RandomSource rand) {
@@ -1565,13 +1616,14 @@ public final class RunManager {
     /** 層クリア時に選択肢を提示 (原作の rest/forge/oath/merchant) */
     public static void offerEvent(ServerPlayer player) {
         if (player.getData(ModAttachments.EVENT_DONE.get()) != 0) return;
-        // 商店の品揃えを生成
+        // 商店の品揃えを生成。価格は原作 merchant (power比例) の欠片版: 見本の威力から算出
         var styles = GameData.WeaponStyle.values();
         var rand = player.getRandom();
+        int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
         var shop = new java.util.ArrayList<String>();
         for (int i = 0; i < 3; i++) {
             var st = styles[rand.nextInt(styles.length)];
-            int price = 2 + rand.nextInt(5);
+            int price = Math.max(2, (powerOf(makeWeapon(st, rand, luckOf(player), floor, 0)) + 7) / 15);
             shop.add(st.id + ":" + price);
         }
         player.setData(ModAttachments.SHOP.get(), String.join(",", shop));
@@ -1659,8 +1711,9 @@ public final class RunManager {
 
     /**
      * 武器合成マージ (原作 forgeItems の MC 対応版)。
-     * 2点の同武器種を合成し、鍛造+1 (最大5)。費用は欠片 3+Lv×2
+     * 2点の同武器種を合成し、鍛造+1 (最大5)。費用は欠片 3+鍛造Lv×2+威力/25
      * (+原作の素材種別: レア以上=古代石×1 / レジェンド以上=混沌×1 / 神話絡み=虚空×2)。
+     * 接辞は両者の最善値を ×1.05 で統合 (原作のモジュラー合成)、特性は本体優先・無ければ継承。
      * Lv3以上は「神錬・」、Lv5は「覚醒・」の銘が付く (原作の forgedCount 命名に対応)。
      * 鍛造画面のスロットからも呼べるよう、任意の2スタックで動作する。
      */
@@ -1680,7 +1733,7 @@ public final class RunManager {
             player.sendSystemMessage(Component.literal("§cこの武器は鍛造MAX (覚醒)"));
             return;
         }
-        int cost = 3 + lv * 2;
+        int cost = 3 + lv * 2 + (powerOf(main) + powerOf(sub) + 12) / 25;
         if (countShards(player) < cost) {
             player.sendSystemMessage(Component.literal("§c欠片" + cost + "個が足りない (所持" + countShards(player) + ")"));
             return;
@@ -1712,24 +1765,56 @@ public final class RunManager {
         takeShards(player, cost);
         if (matItem != null) takeMats(player, matItem, matCount);
         sub.shrink(1);
-        setForgeLv(main, lv + 1);
-        // 原作の高ランク採用: 素材側の希少度が高ければ引き継ぐ
+        // 原作のモジュラー合成: 両方の接辞から最善値を採用し ×1.05 (上位8件まで)
+        var merged = new java.util.LinkedHashMap<String, Double>();
+        var ma = affixMap(main);
+        var sa = affixMap(sub);
+        var keys = new java.util.LinkedHashSet<String>();
+        keys.addAll(ma.keySet());
+        keys.addAll(sa.keySet());
+        for (String k : keys) {
+            double best = Math.max(ma.getOrDefault(k, 0.0), sa.getOrDefault(k, 0.0));
+            if (best > 0) merged.put(k, Math.round(best * 1.05 * 10) / 10.0);
+        }
+        var ordered = new java.util.ArrayList<>(merged.entrySet());
+        ordered.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        var tag = main.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
+        if (!ordered.isEmpty()) {
+            var sb = new StringBuilder();
+            int n = 0;
+            for (var e : ordered) {
+                if (n >= 8) break;
+                if (!sb.isEmpty()) sb.append(";");
+                sb.append(e.getKey()).append(":").append(e.getValue());
+                n++;
+            }
+            tag.putString("abyss_affixes", sb.toString());
+        }
+        // 原作の高ランク採用: 素材側の希少度が高ければ引き継ぐ。特性も本体優先・無ければ継承
         String mr = rarityOf(main);
         String or = rarityOf(sub);
-        if (order.indexOf(or) > order.indexOf(mr)) {
-            var tag = main.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                    net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
-            tag.putString("abyss_rarity", or);
-            main.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                    net.minecraft.world.item.component.CustomData.of(tag));
-        }
+        if (order.indexOf(or) > order.indexOf(mr)) tag.putString("abyss_rarity", or);
+        String subTrait = traitOf(sub);
+        if (traitOf(main) == null && subTrait != null) tag.putString("abyss_trait", subTrait);
+        main.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(tag));
+        setForgeLv(main, lv + 1);
+        String nowTrait = traitOf(main);
+        String hover = main.getHoverName().getString().replaceAll("^[§0-9a-f]+(覚醒|神錬)・", "");
+        String lead = "";
+        var leadM = java.util.regex.Pattern.compile("^(§[0-9a-f])+").matcher(hover);
+        if (leadM.find()) lead = leadM.group();
+        String body = hover.substring(lead.length());
+        if (nowTrait != null && !body.contains("〔")) body += "〔" + traitName(nowTrait) + "〕";
         String prefix = lv + 1 >= 5 ? "§d覚醒・" : lv + 1 >= 3 ? "§b神錬・" : "";
-        if (!prefix.isEmpty()) {
-            main.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
-                    Component.literal(prefix + main.getHoverName().getString().replaceAll("^[§0-9a-f]+(覚醒|神錬)・", "")));
+        String newName = (prefix.isEmpty() ? lead : prefix) + body;
+        if (!newName.equals(main.getHoverName().getString())) {
+            main.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(newName));
         }
         player.sendSystemMessage(Component.literal(
-                "§b合成！ " + main.getHoverName().getString() + " 鍛造+" + (lv + 1) + " (攻撃+8%/Lv・欠片-" + cost + ")"));
+                "§b合成！ " + main.getHoverName().getString() + " 鍛造+" + (lv + 1)
+                        + " 威力" + powerOf(main) + " (欠片-" + cost + ")"));
     }
 
     /** 層間イベントの完了記録 (実績「祭壇の巡礼者」は5回で) */

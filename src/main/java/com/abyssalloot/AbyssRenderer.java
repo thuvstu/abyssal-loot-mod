@@ -33,6 +33,18 @@ public class AbyssRenderer<T extends Mob> extends MobRenderer<T, LivingEntityRen
     }
 
     @Override
+    public void extractRenderState(T entity, LivingEntityRenderState state, float partialTick) {
+        super.extractRenderState(entity, state, partialTick);
+        // 精鋭 (abyss_et_*) は原作通り一回り大きく表示
+        for (String tag : entity.getTags()) {
+            if (tag.startsWith("abyss_et_")) {
+                state.scale *= 1.15f;
+                break;
+            }
+        }
+    }
+
+    @Override
     protected void scale(LivingEntityRenderState state, PoseStack pose) {
         super.scale(state, pose);
         pose.scale(modelScale, modelScale, modelScale);
