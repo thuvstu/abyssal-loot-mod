@@ -225,17 +225,313 @@ public class GameDataTest {
 
     @Test
     void runRewardMatchesOriginalFormula() {
-        // 勝利: 25*14 + 100*0.6 + 10*8 + 900 = 1390
-        var r = GameData.runReward(25, 100, 10, true, false, 1.0, 1.0, 1.0);
+        // 勝利: 25*14 + 100*0.6 + 10*8 + 0/40 + 900 = 1390
+        var r = GameData.runReward(25, 100, 10, 0, true, false, 1.0, 1.0, 1.0);
         assertEquals(1390, r.baseSouls());
         // 極難 x1.5 -> 2085, 呪印 x2.46 -> 5129.1 -> 5129
-        var h = GameData.runReward(25, 100, 10, true, false, 1.0, 1.5, 2.46);
+        var h = GameData.runReward(25, 100, 10, 0, true, false, 1.0, 1.5, 2.46);
         assertEquals(2085, h.beforeTrials());
         assertEquals(5129, h.runSouls());
         assertEquals(5129 - 2085, h.trialBonus());
         // 何も進めずに離脱すると 0
-        assertEquals(0, GameData.runReward(1, 0, 1, false, false, 1.0, 1.0, 2.0).runSouls());
+        assertEquals(0, GameData.runReward(1, 0, 1, 0, false, false, 1.0, 1.0, 2.0).runSouls());
         // 真の深淵は +6000
-        assertEquals(1390 + 6000, GameData.runReward(25, 100, 10, true, true, 1.0, 1.0, 1.0).baseSouls());
+        assertEquals(1390 + 6000, GameData.runReward(25, 100, 10, 0, true, true, 1.0, 1.0, 1.0).baseSouls());
+        // スコア項: スコア4000 → +100
+        assertEquals(1390 + 100, GameData.runReward(25, 100, 10, 4000, true, false, 1.0, 1.0, 1.0).baseSouls());
+    }
+
+    @Test
+    void scoreFormulaMatchesSummarize() {
+        // 層1・撃破0・Lv1・欠片0・与ダメ0・非勝利・コンボ0 → 620+0+110 = 730
+        assertEquals(730, GameData.baseScore(1, 0, 1, 0, 0, false, 0, 0, false));
+        // 勝利 +12000、コンボ50 → +100
+        assertEquals(730 + 12000 + 100, GameData.baseScore(1, 0, 1, 0, 0, true, 50, 0, false));
+        // 弾幕の見切り10 → +120
+        assertEquals(730 + 120, GameData.baseScore(1, 0, 1, 0, 0, false, 0, 10, true));
+        // 非弾幕では見切りは加算されない
+        assertEquals(730, GameData.baseScore(1, 0, 1, 0, 0, false, 0, 10, false));
+        // 倍率: 通常×1、極難×1.6、主の巡礼×2.2
+        assertEquals(730, GameData.finalScore(730, 1.0, "standard", "normal"));
+        assertEquals((int) Math.round(730 * 1.6), GameData.finalScore(730, 1.0, "standard", "hard"));
+        assertEquals((int) Math.round(730 * 2.2), GameData.finalScore(730, 1.0, "bossrush", "normal"));
+        // daily は standard 扱い
+        assertEquals((int) Math.round(730 * 1.55), GameData.finalScore(730, 1.55, "daily", "normal"));
+        assertEquals(8, GameData.RUN_MODES.size());
+    }
+
+    @Test
+    void rarityEliteAndCurseMatchCoreTs() {        // rollRarity: l=0 → 原作の基礎重み (normal 46 / mythic 0.875)
+        assertEquals("normal", GameData.rollRarity(() -> 0.0, 0, 0, 1));
+        assertEquals("mythic", GameData.rollRarity(() -> 0.9999, 0, 0, 1));
+        // 運が高いと上位が出やすい (l=200: normal max(4, 46-110)=4)
+        assertEquals("rare", GameData.rollRarity(() -> 0.5, 200, 0, 1));
+        assertEquals(6, GameData.ELITE_PREFIX.size());
+        assertEquals("狂乱の", GameData.elitePrefix(() -> 0.0).name());
+        assertEquals("太古の", GameData.elitePrefix(() -> 0.9999).name());
+        assertEquals(6, GameData.ELITE_TRAITS.size());
+        assertNotNull(GameData.eliteTraitById("burst"));
+        // 特性は60%で付く
+        assertNull(GameData.rollEliteTrait(() -> 0.9));
+        assertNotNull(GameData.rollEliteTrait(() -> 0.1));
+        assertEquals(6, GameData.CURSED_MODS.size());
+        // normal は呪われない、レア以上は12%
+        assertFalse(GameData.rollCursed(() -> 0.0, "normal"));
+        assertTrue(GameData.rollCursed(() -> 0.05, "rare"));
+        assertFalse(GameData.rollCursed(() -> 0.5, "mythic"));
+        assertEquals("maxHpPct", GameData.rollCursedMod(() -> 0.0).key());
+        assertEquals(-18.0, GameData.rollCursedValue(() -> 0.0, GameData.CURSED_MODS.get(0)), 1e-9);
+    }
+
+    @Test
+    void fiveDifficultiesMatchCoreTs() {
+        assertEquals(5, GameData.DIFFICULTIES.size());
+        assertEquals(1.0, GameData.difficultyById("normal").soulMul(), 1e-9);
+        assertEquals(1.35, GameData.difficultyById("hard").hpMul(), 1e-9);
+        assertEquals(1.8, GameData.difficultyById("hell").hpMul(), 1e-9);
+        assertEquals(2.5, GameData.difficultyById("inferno").hpMul(), 1e-9);
+        assertEquals(3.2, GameData.difficultyById("inferno").soulMul(), 1e-9);
+        assertEquals(7.56, GameData.difficultyById("omega").soulMul(), 1e-9);
+        assertEquals("normal", GameData.difficultyById("nope").id());
+    }
+
+    @Test
+    void eightRunModesWithOriginalSoulRates() {
+        assertEquals(8, GameData.RUN_MODES.size());
+        assertEquals(1.0, GameData.modeSoulMult("standard"), 1e-9);
+        assertEquals(2.0, GameData.modeSoulMult("bossrush"), 1e-9);
+        assertEquals(1.6, GameData.modeSoulMult("endless"), 1e-9);
+        assertEquals(3.0, GameData.modeSoulMult("covenant"), 1e-9);
+        assertEquals(4.5, GameData.modeSoulMult("pinnacle"), 1e-9);
+        assertEquals(7.56, GameData.modeSoulMult("omega"), 1e-9);
+        assertEquals(1.0, GameData.modeSoulMult("nope"), 1e-9);
+    }
+
+    @Test
+    void sevenDailyModifiersRotate() {
+        assertEquals(7, GameData.DAILY_MODS.size());
+        assertEquals(GameData.DAILY_MODS.get(0), GameData.dailyModForDay(0));
+        assertEquals(GameData.DAILY_MODS.get(0), GameData.dailyModForDay(7));
+        assertEquals("blood-moon", GameData.dailyModForDay(0).id());
+        assertNotNull(GameData.dailyModById("drought"));
+        assertTrue(GameData.dailyModById("drought").noFloorHeal());
+    }
+
+    @Test
+    void wardenFloorsAreThreeAndEight() {
+        assertTrue(GameData.isWardenFloor(3));
+        assertTrue(GameData.isWardenFloor(8));
+        assertTrue(GameData.isWardenFloor(13));
+        assertTrue(GameData.isWardenFloor(18));
+        assertFalse(GameData.isWardenFloor(5));
+        assertFalse(GameData.isWardenFloor(10));
+        assertFalse(GameData.isWardenFloor(2));
+        assertFalse(GameData.isWardenFloor(26));
+        assertEquals(5, GameData.WARDENS.size());
+    }
+
+    @Test
+    void sixZonesCoverAllFloors() {
+        assertEquals(6, GameData.ZONES.size());
+        assertEquals("ash", GameData.zoneForFloor(1).id());
+        assertEquals("ossuary", GameData.zoneForFloor(6).id());
+        assertEquals("forge", GameData.zoneForFloor(11).id());
+        assertEquals("glacier", GameData.zoneForFloor(16).id());
+        assertEquals("voidheart", GameData.zoneForFloor(21).id());
+        assertEquals("nihil", GameData.zoneForFloor(26).id());
+        assertTrue(GameData.zoneForFloor(11).emberRain());
+        assertTrue(GameData.zoneForFloor(21).voidPull() > 0);
+    }
+
+    @Test
+    void eightRelicsWithMaxTwo() {
+        assertEquals(8, GameData.RELICS.size());
+        var roll = GameData.rollRelics(new java.util.Random(42), java.util.List.of(), 3);
+        assertEquals(3, roll.size());
+        var owned = java.util.List.of("soulfang", "mirror");
+        var roll2 = GameData.rollRelics(new java.util.Random(42), owned, 3);
+        for (var r : roll2) assertFalse(owned.contains(r.id()));
+        assertTrue(GameData.relicFlags(java.util.List.of("soulfang", "coin")).contains("soulfang"));
+    }
+
+    @Test
+    void twentyPassivesWithCursedLimit() {
+        assertEquals(20, GameData.PASSIVES.size());
+        var roll = GameData.rollPassives(new java.util.Random(7), java.util.List.of(), 3);
+        assertEquals(3, roll.size());
+        // 呪い所持時は呪いが出ない
+        var owned = java.util.List.of("momentum");
+        var roll2 = GameData.rollPassives(new java.util.Random(7), owned, 10);
+        for (var p : roll2) {
+            assertFalse(owned.contains(p.id()));
+            assertNotEquals("cursed", p.grade());
+        }
+        assertEquals(25.0, GameData.passiveDamagePct(java.util.List.of("iron_oath")), 1e-9);
+        assertEquals(-20.0, GameData.passiveMaxHpPct(java.util.List.of("undying")), 1e-9);
+        assertTrue(GameData.passiveFlags(java.util.List.of("giant_slayer")).contains("giant_slayer"));
+    }
+
+    @Test
+    void twentyFourAchievementsWithShardConversion() {
+        assertEquals(24, GameData.ACHIEVEMENTS.size());
+        assertNotNull(GameData.achievementById("pinnacle-god"));
+        assertEquals(1, GameData.shardsForReward(25));
+        assertEquals(60, GameData.shardsForReward(1500));
+    }
+
+    @Test
+    void eightBossesWithFloors() {
+        assertEquals(8, GameData.BOSSES.size());
+        assertEquals(25, GameData.FINAL_FLOOR);
+        assertEquals(26, GameData.TRUE_FLOOR);
+        assertEquals(27, GameData.PINNACLE_FLOOR);
+        assertEquals("ゴブリン王 グルザ", GameData.bossForFloor(5).name());
+        assertEquals("超越者", GameData.bossForFloor(28).name());
+        assertNull(GameData.bossForFloor(7));
+    }
+
+    @Test
+    void trueAndPinnaclePhasesFollowHpRatio() {
+        assertEquals(3, GameData.TRUE_PHASES.size());
+        assertEquals("虚無の胎動", GameData.truePhaseFor(0.9).label());
+        assertEquals("深淵の咆哮", GameData.truePhaseFor(0.5).label());
+        assertEquals("終焉・万物の帰無", GameData.truePhaseFor(0.1).label());
+        assertEquals(4, GameData.PINNACLE_PHASES.size());
+        assertEquals("天墜の審判", GameData.pinnaclePhaseFor(0.9).label());
+        assertEquals("次元断絶", GameData.pinnaclePhaseFor(0.6).label());
+        assertEquals("終末の咆哮", GameData.pinnaclePhaseFor(0.4).label());
+        assertEquals("原初崩壊・星辰帰無", GameData.pinnaclePhaseFor(0.1).label());
+    }
+
+    @Test
+    void sevenRandomEventsWithKinds() {
+        assertEquals(7, GameData.RANDOM_EVENTS.size());
+        assertEquals("loot", GameData.randomEventById("treasure").kind());
+        assertEquals("mist", GameData.randomEventById("curse_mist").fate());
+        assertEquals("timewarp", GameData.randomEventById("timewarp").fate());
+    }
+
+    @Test
+    void curseEaterNullifiesDrawbacksAndDoublesBonuses() {
+        // curseEaterBonus* はベース式への加算分を返す (合計 = ベース + 補正)。
+        // 鉄の律儀: 攻撃+25%/最大HP-12% → 合計は攻撃+50%/最大HP±0%
+        assertEquals(25.0,
+                GameData.curseEaterBonusDamage(java.util.List.of("iron_oath")), 1e-9);
+        assertEquals(25.0 + 25.0,
+                GameData.passiveDamagePct(java.util.List.of("iron_oath"))
+                        + GameData.curseEaterBonusDamage(java.util.List.of("iron_oath")), 1e-9);
+        assertEquals(12.0,
+                GameData.curseEaterBonusMaxHp(java.util.List.of("iron_oath")), 1e-9);
+        assertEquals(-12.0 + 12.0,
+                GameData.passiveMaxHpPct(java.util.List.of("iron_oath"))
+                        + GameData.curseEaterBonusMaxHp(java.util.List.of("iron_oath")), 1e-9);
+        // 硝子の大砲: 攻撃+55%/最大HP-35%/軽減-10% → 合計は攻撃+110%/最大HP±0%/軽減±0%
+        assertEquals(55.0,
+                GameData.curseEaterBonusDamage(java.util.List.of("glass_cannon")), 1e-9);
+        assertEquals(35.0,
+                GameData.curseEaterBonusMaxHp(java.util.List.of("glass_cannon")), 1e-9);
+        assertEquals(10.0,
+                GameData.curseEaterBonusArmor(java.util.List.of("glass_cannon")), 1e-9);
+        // 未取得なら補正0
+        assertEquals(0.0, GameData.curseEaterBonusDamage(java.util.List.of()), 1e-9);
+    }
+
+    @Test
+    void ascensionFloorIsAfterPinnacle() {
+        assertEquals(28, GameData.ASCENSION_FLOOR);
+        assertNotNull(GameData.bossForFloor(GameData.ASCENSION_FLOOR));
+        assertEquals(8, GameData.BOSSES.size());
+    }
+
+    /** 祝福プール (Boons.BOON_POOL) が原作39種+互換2種で ID 一意 */
+    @Test
+    void boonPoolCoversOriginal39PlusLegacy2() {
+        var pool = Boons.BOON_POOL;
+        assertEquals(41, pool.length);
+        var ids = new java.util.HashSet<String>();
+        for (var b : pool) {
+            assertFalse(b.desc().isBlank() || b.name().isBlank());
+            assertTrue(ids.add(b.id()), "重複した祝福ID: " + b.id());
+            assertNotNull(Boons.boonById(b.id()));
+        }
+        // 原作 core.ts BOONS の全ID (b_ 接頭語を除去したもの) が含まれること
+        var original = java.util.List.of(
+                "dmg1", "dmg2", "as", "crit", "critdmg", "hp", "armor", "speed", "area",
+                "life", "proj", "pierce", "explode", "freeze", "thorns", "energy", "xp",
+                "orbit", "aura", "chain", "missile", "nova", "familiar", "execute", "blood",
+                "magnet", "quake", "bladespin", "vengeance", "thunderfury", "echo", "greed",
+                "warden", "harvest", "overflow", "curse_eater", "lastlaugh", "perfect",
+                "absolute_domain");
+        assertEquals(39, original.size());
+        for (String id : original) {
+            assertTrue(ids.contains(id), "原作祝福が未移植: " + id);
+        }
+    }
+
+    @Test
+    void rollBoonsPicksThreeUniqueWithGradeWeights() {
+        // 固定乱数 (常に0.0): 重みの先頭から選ばれる。3択・重複なしを確認
+        var pick = Boons.rollBoons(() -> 0.0, 3);
+        assertEquals(3, pick.size());
+        var ids = new java.util.HashSet<String>();
+        for (var b : pick) {
+            assertTrue(ids.add(b.id()), "祝福3択に重複: " + b.id());
+            assertNotNull(Boons.boonById(b.id()));
+        }
+        // 等級の重みは原作通り
+        assertEquals(4.2, Boons.weightOf("common"), 1e-9);
+        assertEquals(2.4, Boons.weightOf("rare"), 1e-9);
+        assertEquals(1.1, Boons.weightOf("epic"), 1e-9);
+    }
+
+    @Test
+    void weaponClassBonusMatchesCoreTs() {
+        assertEquals(12, GameData.WEAPON_BONUS.size());
+        assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
+        assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
+        assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);
+        assertEquals(35.0, GameData.weaponBonus("staff").energyPct(), 1e-9);
+        assertEquals(1, GameData.weaponBonus("bow").projectiles());
+        assertEquals(12.0, GameData.weaponBonus("dagger").critPct(), 1e-9);
+        assertEquals(30.0, GameData.weaponBonus("dagger").critDmgPct(), 1e-9);
+        assertEquals(22.0, GameData.weaponBonus("hammer").explodePct(), 1e-9);
+        assertEquals(0.0, GameData.weaponBonus("nope").damagePct(), 1e-9);
+    }
+
+    @Test
+    void weaponNamesMatchCoreTs() {
+        assertEquals(16, GameData.PREFIXES.size());
+        assertEquals(16, GameData.SUFFIXES.size());
+        assertEquals(12, GameData.LEGEND_NAMES.size());
+        assertEquals(10, GameData.MYTHIC_NAMES.size());
+        assertEquals("焔の", GameData.prefixFor(() -> 0.0));
+        assertEquals("エクスカリバー", GameData.legendFor(() -> 0.0));
+        assertEquals("虚無神の残光", GameData.mythicFor(() -> 0.0));
+    }
+
+    @Test
+    void affixRollMatchesGenItem() {
+        assertEquals(19, GameData.WEAPON_AFFIXES.size());
+        assertArrayEquals(new int[]{0, 1}, GameData.affixCountRange("normal"));
+        assertArrayEquals(new int[]{1, 2}, GameData.affixCountRange("magic"));
+        assertArrayEquals(new int[]{3, 4}, GameData.affixCountRange("rare"));
+        assertArrayEquals(new int[]{4, 5}, GameData.affixCountRange("legendary"));
+        assertArrayEquals(new int[]{5, 6}, GameData.affixCountRange("mythic"));
+        // 件数・重複なし・範囲内
+        var rolled = GameData.rollAffixes(() -> 0.5, "rare", 3);
+        assertEquals(3, rolled.size());
+        var keys = new java.util.HashSet<String>();
+        for (var af : rolled) {
+            assertTrue(keys.add(af.key()), "接辞に重複: " + af.key());
+            boolean known = false;
+            for (var def : GameData.WEAPON_AFFIXES) {
+                if (def.key().equals(af.key())) {
+                    known = true;
+                    assertTrue(af.value() >= def.min() && af.value() <= def.max(),
+                            af.key() + "=" + af.value());
+                }
+            }
+            assertTrue(known, "未知の接辞: " + af.key());
+        }
     }
 }

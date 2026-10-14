@@ -1,0 +1,104 @@
+package com.abyssalloot;
+
+/**
+ * 恩寵 (原作 core.ts BOONS / BOON_GRADE) の定義表.
+ * Minecraft のクラスに依存しない純粋データのため、GameDataTest から直接検証できる.
+ * 効果の実装箇所: 攻撃=RunManager.attackDamageOf / HP・速度・攻速=applyClass /
+ * 被ダメ=CombatHandler.onDamage / 撃破=onKill / 定期=tickAbilityBoons / 奥義=tryArt / 跳躍=dash
+ */
+public final class Boons {
+    private Boons() {}
+
+    public record BoonDef(String id, String name, String desc, String grade) {}
+
+    /**
+     * 祝福プール 41 種 = 原作 BOONS 39 種 (ID から b_ 接頭語を除去) + 旧セーブ互換の簡易 2 種 (dmg/art)。
+     * ID は一意。重みは原作 rollBoons と同じ (common 4.2 / rare 2.4 / epic 1.1)。
+     */
+    public static final BoonDef[] BOON_POOL = {
+            // --- 原作 BOONS (core.ts の順) ---
+            new BoonDef("dmg1", "剛力の刻印", "攻撃力 +18%", "common"),
+            new BoonDef("dmg2", "破壊の刻印", "攻撃力 +12 / 攻撃力 +8%", "common"),
+            new BoonDef("as", "迅風の刻印", "攻撃速度 +16%", "common"),
+            new BoonDef("crit", "心眼の刻印", "クリティカル率 +5%/Lv", "common"),
+            new BoonDef("critdmg", "致命の刻印", "クリティカル威力 +45%", "rare"),
+            new BoonDef("hp", "巨躯の刻印", "最大HP +18% / HP回復 +0.6/秒", "common"),
+            new BoonDef("armor", "鉄壁の刻印", "ダメージ軽減 +6%/Lv", "common"),
+            new BoonDef("speed", "疾走の刻印", "移動速度 +12% / 回避短縮 12%", "common"),
+            new BoonDef("area", "拡大の刻印", "攻撃範囲 +22%", "common"),
+            new BoonDef("life", "吸血の刻印", "生命吸収 +4%", "rare"),
+            new BoonDef("proj", "分裂の刻印", "追尾魔弾の弾数 +1", "epic"),
+            new BoonDef("pierce", "貫通の刻印", "連鎖雷撃の飛移り +2", "rare"),
+            new BoonDef("explode", "爆砕の刻印", "撃破時に18%で爆裂", "rare"),
+            new BoonDef("freeze", "凍牙の刻印", "命中時に20%で氷結鈍足", "rare"),
+            new BoonDef("thorns", "棘甲の刻印", "棘ダメージ +25", "common"),
+            new BoonDef("energy", "魂の高揚", "魂ゲージ増加 +35%", "common"),
+            new BoonDef("xp", "知識の渇望", "運 +20", "common"),
+            new BoonDef("orbit", "回転刃", "周囲を刃が周回する", "rare"),
+            new BoonDef("aura", "聖なる領域", "常時、周囲の敵を焼く", "rare"),
+            new BoonDef("chain", "連鎖雷撃", "命中時に雷が連鎖する", "epic"),
+            new BoonDef("missile", "追尾魔弾", "自動で魔弾を発射する", "rare"),
+            new BoonDef("nova", "氷霜新星", "定期 Nova で敵を凍結", "epic"),
+            new BoonDef("familiar", "影の眷属", "使い魔が共に戦う", "epic"),
+            new BoonDef("execute", "処刑人", "瀕死の敵へ +90% ダメージ", "rare"),
+            new BoonDef("blood", "血の契約", "撃破時にHP回復", "common"),
+            new BoonDef("magnet", "貪欲なる磁場", "回収範囲 大幅拡大", "common"),
+            new BoonDef("quake", "大地の怒り", "回避着地時に爆発", "rare"),
+            new BoonDef("bladespin", "渦刃", "攻撃のたびに刃の渦が飛ぶ", "rare"),
+            new BoonDef("vengeance", "復讐の刻印", "被弾時に周囲へ爆発", "rare"),
+            new BoonDef("thunderfury", "天雷の刻印", "命中時に確率で落雷", "epic"),
+            new BoonDef("echo", "残響の刻印", "奥義後に25%で魂ゲージが半分残る", "epic"),
+            new BoonDef("greed", "強欲の刻印", "素材+55% / 被ダメ+10%", "common"),
+            new BoonDef("warden", "障壁の刻印", "立ち止まると軽減が上がる", "common"),
+            new BoonDef("harvest", "刈り取り", "強敵撃破で全ステータス強化", "epic"),
+            new BoonDef("overflow", "過剰修復", "余ったHPを攻撃力へ変換", "epic"),
+            new BoonDef("curse_eater", "呪喰らい", "技能の欠点を無効化し効果を2倍", "epic"),
+            new BoonDef("lastlaugh", "最後の笑い", "HP30%以下で攻撃+70%", "rare"),
+            new BoonDef("perfect", "完全主義", "見切り後3秒間、攻撃+90%", "epic"),
+            new BoonDef("absolute_domain", "絶対領域", "魂ゲージ100%で発動。3秒間の無敵バリアを展開する", "epic"),
+            // --- 旧セーブ互換 (簡易版のまま) ---
+            new BoonDef("dmg", "剛力の刻印・旧", "攻撃+12%/Lv (互換)", "common"),
+            new BoonDef("art", "武の刻印", "奥義・必殺+12%/Lv", "rare"),
+    };
+
+    public static BoonDef boonById(String id) {
+        for (var b : BOON_POOL) {
+            if (b.id().equals(id)) return b;
+        }
+        return null;
+    }
+
+    /** 原作 rollBoons の等級重み */
+    public static double weightOf(String grade) {
+        return switch (grade) {
+            case "epic" -> 1.1;
+            case "rare" -> 2.4;
+            default -> 4.2;
+        };
+    }
+
+    /**
+     * 原作 rollBoons の写し: 等級重みで n 択を引く (重複なし).
+     * r は [0,1) を返す乱数.
+     */
+    public static java.util.List<BoonDef> rollBoons(java.util.function.DoubleSupplier r, int n) {
+        var pool = new java.util.ArrayList<>(java.util.List.of(BOON_POOL));
+        var pick = new java.util.ArrayList<BoonDef>();
+        while (pick.size() < Math.min(n, pool.size()) && !pool.isEmpty()) {
+            double total = 0;
+            for (var b : pool) total += weightOf(b.grade());
+            double x = r.getAsDouble() * total;
+            BoonDef sel = pool.get(pool.size() - 1);
+            for (var b : pool) {
+                x -= weightOf(b.grade());
+                if (x <= 0) {
+                    sel = b;
+                    break;
+                }
+            }
+            pool.remove(sel);
+            pick.add(sel);
+        }
+        return pick;
+    }
+}

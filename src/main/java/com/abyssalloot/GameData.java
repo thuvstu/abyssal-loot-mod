@@ -232,20 +232,38 @@ public final class GameData {
     public record RunReward(int baseSouls, int beforeTrials, int runSouls, int trialBonus) {}
 
     /**
-     * 原作 calculateRunReward: 基礎魂 = 層×14 + 撃破×0.6 + レベル×8 (+勝利900 +真の深淵6000)。
+     * 原作 calculateRunReward: 基礎魂 = 層×14 + 撃破×0.6 + レベル×8 + スコア/40 (+勝利900 +真の深淵6000)。
      * 何も進めずに離脱した場合は 0 (無限の魂稼ぎ防止)。
-     * 原作の「スコア/40」項は Mod にスコアが無いため省略している。
      */
-    public static RunReward runReward(int floor, int kills, int level, boolean victory, boolean trueCleared,
+    public static RunReward runReward(int floor, int kills, int level, int score, boolean victory, boolean trueCleared,
                                       double modeRate, double difficultyRate, double trialMult) {
         boolean progressed = kills > 0 || floor > 1 || victory;
         int base = progressed
-                ? (int) Math.round(floor * 14.0 + kills * 0.6 + level * 8.0
+                ? (int) Math.round(floor * 14.0 + kills * 0.6 + level * 8.0 + score / 40.0
                         + (victory ? 900 : 0) + (trueCleared ? 6000 : 0))
                 : 0;
         int before = (int) Math.round(base * modeRate * difficultyRate);
         int run = (int) Math.round(before * trialMult);
         return new RunReward(base, before, run, run - before);
+    }
+
+    /**
+     * 原作 summarize の基礎スコア.
+     * 層×620 + 撃破×14 + レベル×110 + 欠片×1.6 + 与ダメ×0.06 (+勝利12000 +最大コンボ×2 +弾幕の見切り×12)。
+     * gold は原作の蓄積ゴールドに対応 (Mod では所持欠片で近似)。
+     * 見切り (PERFECT) は原作の graze/bulletsReflected の代替。
+     */
+    public static int baseScore(int floor, int kills, int level, int shards, int damage,
+                                boolean victory, int bestCombo, int perfect, boolean danmaku) {
+        double s = floor * 620.0 + kills * 14.0 + level * 110.0 + shards * 1.6 + damage * 0.06
+                + (victory ? 12000 : 0) + bestCombo * 2.0 + (danmaku ? perfect * 12.0 : 0);
+        return (int) Math.round(s);
+    }
+
+    /** 原作 summarize: 基礎スコアに日替わり・モード・難易度の倍率 */
+    public static int finalScore(int base, double dailyScoreRate, String mode, String difficulty) {
+        return (int) Math.round(base * dailyScoreRate * modeScoreMult(mode)
+                * difficultyById(difficulty).scoreMul());
     }
 
     /** 魂加算 (報酬用). 原作 soulMultiplier = (100 + Σreward)/100 */
@@ -321,5 +339,656 @@ public final class GameData {
         if (r.getAsDouble() > chance) return null;
         int idx = Math.min(MUTATIONS.size() - 1, (int) (r.getAsDouble() * MUTATIONS.size()));
         return MUTATIONS.get(idx);
+    }
+
+    /* ---------------- 原作 core.ts DIFFICULTIES (5段階) ---------------- */
+
+    public record Difficulty(String id, String name, double hpMul, double dmgMul, double soulMul, double scoreMul) {}
+
+    public static final java.util.List<Difficulty> DIFFICULTIES = java.util.List.of(
+            new Difficulty("normal", "通常", 1.0, 1.0, 1.0, 1.0),
+            new Difficulty("hard", "極難", 1.35, 1.25, 1.5, 1.6),
+            new Difficulty("hell", "地獄", 1.8, 1.55, 2.1, 2.4),
+            new Difficulty("inferno", "阿鼻叫喚", 2.5, 2.1, 3.2, 3.8),
+            new Difficulty("omega", "終焉の契約", 3.5, 2.8, 7.56, 5.0));
+
+    public static Difficulty difficultyById(String id) {
+        for (Difficulty d : DIFFICULTIES) {
+            if (d.id().equals(id)) return d;
+        }
+        return DIFFICULTIES.get(0);
+    }
+
+    /* ---------------- 原作 progression.ts RUN_MODES (8種) ---------------- */
+
+    public record RunMode(String id, String name, double soulMul, double scoreMul) {}
+
+    public static final java.util.List<RunMode> RUN_MODES = java.util.List.of(
+            new RunMode("standard", "通常潜行", 1.0, 1.0),
+            new RunMode("bossrush", "主の巡礼", 2.0, 2.2),
+            new RunMode("endless", "無限深淵", 1.6, 1.8),
+            new RunMode("covenant", "不幸の盟約", 3.0, 3.4),
+            new RunMode("pinnacle", "終焉の座", 4.5, 5.0),
+            new RunMode("danmaku", "弾幕の獄", 3.5, 4.0),
+            new RunMode("omega", "終焉の契約", 7.56, 5.0),
+            new RunMode("daily", "日替わり深淵", 1.0, 1.0));
+
+    public static double modeSoulMult(String mode) {
+        for (RunMode m : RUN_MODES) {
+            if (m.id().equals(mode)) return m.soulMul();
+        }
+        return 1.0;
+    }
+
+    /** 原作 summarize のモード倍率 (daily は standard 扱い) */
+    public static double modeScoreMult(String mode) {
+        String key = "daily".equals(mode) ? "standard" : mode;
+        for (RunMode m : RUN_MODES) {
+            if (m.id().equals(key)) return m.scoreMul();
+        }
+        return 1.0;
+    }
+
+    /* ---------------- 原作 DAILY_MODIFIERS (7種) ---------------- */
+
+    public record DailyMod(String id, String title, double enemyHp, double enemyDmg,
+                           double enemySpeed, double spawn, double elite, double gold,
+                           double xp, double soul, double score, boolean noFloorHeal) {}
+
+    public static final java.util.List<DailyMod> DAILY_MODS = java.util.List.of(
+            new DailyMod("blood-moon", "血月の狩猟", 1.42, 1.18, 1.08, 1.30, 1.50, 1.15, 1.10, 1.50, 1.55, false),
+            new DailyMod("glass-oath", "硝子の誓約", 1.05, 1.18, 1.12, 1.08, 1.20, 1.10, 1.05, 1.35, 1.65, false),
+            new DailyMod("endless-hunt", "終わらぬ追跡", 1.12, 1.06, 1.34, 1.55, 1.35, 1.20, 1.15, 1.35, 1.60, false),
+            new DailyMod("drought", "乾ききった迷宮", 1.14, 1.12, 1.04, 1.12, 1.20, 1.22, 1.45, 1.45, 1.50, true),
+            new DailyMod("treasure-tide", "黄金の潮流", 1.32, 1.06, 1.00, 1.15, 1.70, 2.05, 1.12, 1.40, 1.50, false),
+            new DailyMod("void-storm", "虚空嵐", 1.18, 1.22, 1.12, 1.22, 2.10, 1.25, 1.18, 1.55, 1.75, false),
+            new DailyMod("starfall", "星墜ちの夜", 1.25, 1.10, 1.05, 1.10, 1.40, 1.25, 1.80, 1.55, 1.65, false));
+
+    public static DailyMod dailyModById(String id) {
+        for (DailyMod m : DAILY_MODS) {
+            if (m.id().equals(id)) return m;
+        }
+        return null;
+    }
+
+    /** 原作 getDailyRun と同じく UTC 日で 7種ローテ */
+    public static DailyMod dailyModForDay(long epochDay) {
+        int i = (int) (Math.abs(epochDay) % DAILY_MODS.size());
+        return DAILY_MODS.get(i);
+    }
+
+    /* ---------------- 原作 WARDENS (5種)・isWardenFloor ---------------- */
+
+    public record Warden(String name, String flavor, double hpMul, double dmgMul) {}
+
+    public static final java.util.List<Warden> WARDENS = java.util.List.of(
+            new Warden("石憑の番人・ガルグ", "層を護り続ける朽ちぬ石像。", 5.2, 1.7),
+            new Warden("幽玄の番人・ルファ", "迷い込んだ者を静かに刈り取る。", 4.6, 1.9),
+            new Warden("窮獄の番人・メズ", "深淵の責め苦が仇成す者。", 5.8, 2.0),
+            new Warden("永劫の番人・ノヴォ", "何人かの冒険者の記憶が人の形を模した。", 6.2, 2.2),
+            new Warden("戸惑の番人・ツイマ", "あらゆる扉の先にその知識が宿る。", 6.8, 2.4));
+
+    /** 原作 isWardenFloor: ボス層・真層を除く 3/8 層 */
+    public static boolean isWardenFloor(int floor) {
+        return floor % 5 != 0 && floor < 26 && floor >= 3 && (floor % 10 == 3 || floor % 10 == 8);
+    }
+
+    /* ---------------- 原作 ZONES (6種) ---------------- */
+
+    public record Zone(String id, String name, String desc, int minFloor, int maxFloor,
+                       int hazards, double enemySpeed, double projSpeed,
+                       boolean emberRain, double voidPull, double slip) {}
+
+    public static final java.util.List<Zone> ZONES = java.util.List.of(
+            new Zone("ash", "灰の回廊", "静かで、まだ死んでいない入口。", 1, 5, 0, 1.0, 1.0, false, 0, 0),
+            new Zone("ossuary", "骸骨の墓所", "壁が骨で出来ている。何かが這い回る。", 6, 10, 1, 1.05, 1.0, false, 0, 0),
+            new Zone("forge", "溶鉄の炉", "天井から火花が降る。熱で視界が歪む。", 11, 15, 3, 1.0, 1.12, true, 0, 0),
+            new Zone("glacier", "氷結の深層", "床が氷だ。足が言うことを聞かない。", 16, 20, 2, 1.1, 1.0, false, 0, 1.85),
+            new Zone("voidheart", "虚無の心臓", "空間が軋み、全てが内側へ引き込まれる。", 21, 25, 3, 1.14, 1.28, false, 46, 0),
+            new Zone("nihil", "真の深淵", "ここには何もない。帰る場所も。", 26, 28, 0, 1.0, 1.0, false, 0, 0));
+
+    public static Zone zoneForFloor(int floor) {
+        for (Zone z : ZONES) {
+            if (floor >= z.minFloor() && floor <= z.maxFloor()) return z;
+        }
+        return ZONES.get(0);
+    }
+
+    /* ---------------- 原作 RELICS (8種・ラン中最大2つ) ---------------- */
+
+    public record Relic(String id, String name, String desc, String flag) {}
+
+    public static final java.util.List<Relic> RELICS = java.util.List.of(
+            new Relic("soulfang", "魂喰いの爪", "撃破ごとに魂ゲージ +8", "soulfang"),
+            new Relic("mirror", "呪われた鏡", "死の瞬間に40%でHP50%蘇生 (1ラン1回)", "mirror"),
+            new Relic("coin", "盗賊の金貨", "敵が落とす素材の量が2倍", "coin"),
+            new Relic("chalice", "呪杯", "攻撃力 +40%。常にHPが削れ続ける", "chalice"),
+            new Relic("twin", "双魂の盃", "10レベルごとに弾数+1・攻撃+10%", "twin"),
+            new Relic("storm", "嵐召喚者の冠", "見切り成立のたび落雷が3体を焼く", "storm"),
+            new Relic("greed", "巨人の欲", "45秒ごとに所持欠片の半分がHPに変わる", "greed"),
+            new Relic("compass", "深羅針盤", "地上の最強装備へ光の道を示す", "compass"));
+
+    public static Relic relicById(String id) {
+        for (Relic r : RELICS) {
+            if (r.id().equals(id)) return r;
+        }
+        return null;
+    }
+
+    /** 未所持から n 件引く (原作 rollRelics) */
+    public static java.util.List<Relic> rollRelics(java.util.Random r, java.util.List<String> owned, int n) {
+        var pool = new java.util.ArrayList<Relic>();
+        for (Relic re : RELICS) {
+            if (!owned.contains(re.id())) pool.add(re);
+        }
+        java.util.Collections.shuffle(pool, r);
+        return pool.subList(0, Math.min(n, pool.size()));
+    }
+
+    public static java.util.Set<String> relicFlags(java.util.Collection<String> owned) {
+        var s = new java.util.HashSet<String>();
+        for (String id : owned) {
+            Relic re = relicById(id);
+            if (re != null) s.add(re.flag());
+        }
+        return s;
+    }
+
+    /* ---------------- 原作 PASSIVES (20種) ---------------- */
+
+    public record Passive(String id, String name, String desc, String grade, String flag) {}
+
+    public static final java.util.List<Passive> PASSIVES = java.util.List.of(
+            new Passive("iron_oath", "鉄の律儀", "攻撃力 +25% / 最大HP -12%", "minor", null),
+            new Passive("clear_mind", "清心", "被ダメ軽減 +14% / 攻撃速度 -10%", "minor", null),
+            new Passive("abyss_eye", "深淵の目", "会心 +12% / 運 +40 / 最大HP -25", "minor", null),
+            new Passive("glass_cannon", "硝子の大砲", "攻撃力 +55% / 最大HP -35% / 被ダメ +10%", "major", null),
+            new Passive("blood_pact", "血の盟約", "生命吸収 +6% / 自然回復を喪失", "minor", null),
+            new Passive("slow_burn", "業火の刻", "炎上付与 +35% / 移動速度 -12%", "minor", null),
+            new Passive("twin_soul", "双魂", "追加弾数 +1 / 攻撃力 -18%", "major", null),
+            new Passive("giant_slayer", "巨人殺し", "エリート・層主へ +45% / 雑魚へ -15%", "major", "giant_slayer"),
+            new Passive("swarm_bane", "群れの克星", "同時に3体以上ヒットで +35%", "major", "swarm_bane"),
+            new Passive("last_stand", "最後の砦", "HP30%以下で攻撃 +50% / 軽減 +25%", "major", "last_stand"),
+            new Passive("momentum", "勢い", "コンボ20以上で攻速 +35% / 切れると被ダメ +15%", "cursed", "momentum"),
+            new Passive("greedy", "強欲の契", "ゴールド +60% / 被ダメ +12%", "minor", null),
+            new Passive("scholar", "学者の飢え", "経験値 +45% / 最大HP -15%", "minor", null),
+            new Passive("swift", "疾影", "移動 +25% / 回避短縮 20% / 攻撃力 -10%", "minor", null),
+            new Passive("thorn_lord", "棘の王", "棘 +80 / 最大HP -10%", "minor", null),
+            new Passive("no_mercy", "無慈悲", "攻撃力 +20% / ダメージ軽減 -8%", "minor", null),
+            new Passive("undying", "不滅の誓い", "一度だけ HP50% で復活 / 最大HP -20%", "cursed", "undying"),
+            new Passive("echo_strike", "残響の型", "フィニッシャーが再放される / 攻速 -15%", "cursed", "echo_strike"),
+            new Passive("perfection", "完全主義", "見切り後3秒間、攻撃 +90%", "major", "last_stand"),
+            new Passive("frostbound", "氷縛の理", "氷結 +40% / 攻撃速度 -12%", "minor", null));
+
+    public static Passive passiveById(String id) {
+        for (Passive p : PASSIVES) {
+            if (p.id().equals(id)) return p;
+        }
+        return null;
+    }
+
+    /** 主撃破後の3候補 (原作 rollPassives: 既取得除外・呪は1つまで) */
+    public static java.util.List<Passive> rollPassives(java.util.Random r, java.util.List<String> owned, int n) {
+        long cursed = 0;
+        for (String id : owned) {
+            Passive p = passiveById(id);
+            if (p != null && "cursed".equals(p.grade())) cursed++;
+        }
+        var pool = new java.util.ArrayList<Passive>();
+        for (Passive p : PASSIVES) {
+            if (owned.contains(p.id())) continue;
+            if ("cursed".equals(p.grade()) && cursed >= 1) continue;
+            pool.add(p);
+        }
+        java.util.Collections.shuffle(pool, r);
+        return pool.subList(0, Math.min(n, pool.size()));
+    }
+
+    public static java.util.Set<String> passiveFlags(java.util.Collection<String> owned) {
+        var s = new java.util.HashSet<String>();
+        for (String id : owned) {
+            Passive p = passiveById(id);
+            if (p != null && p.flag() != null) s.add(p.flag());
+        }
+        return s;
+    }
+
+    /** 技能の数値効果の合計 (原作 passiveMods の MC 対応分). 攻撃倍率の加算項を返す */
+    public static double passiveDamagePct(java.util.Collection<String> owned) {
+        double v = 0;
+        for (String id : owned) {
+            v += switch (id) {
+                case "iron_oath" -> 25;
+                case "glass_cannon" -> 55;
+                case "twin_soul" -> -18;
+                case "no_mercy" -> 20;
+                case "swift" -> -10;
+                default -> 0;
+            };
+        }
+        return v;
+    }
+
+    public static double passiveMaxHpPct(java.util.Collection<String> owned) {
+        double v = 0;
+        for (String id : owned) {
+            v += switch (id) {
+                case "iron_oath" -> -12;
+                case "glass_cannon" -> -35;
+                case "scholar" -> -15;
+                case "thorn_lord" -> -10;
+                case "undying" -> -20;
+                default -> 0;
+            };
+        }
+        return v;
+    }
+
+    /** 被ダメ軽減の加算項 (%). 正=軽減、負=被ダメ増 */
+    public static double passiveArmorPct(java.util.Collection<String> owned) {
+        double v = 0;
+        for (String id : owned) {
+            v += switch (id) {
+                case "clear_mind" -> 14;
+                case "glass_cannon" -> -10;
+                case "greedy" -> -12;
+                case "no_mercy" -> -8;
+                default -> 0;
+            };
+        }
+        return v;
+    }
+
+    /**
+     * 恩寵「呪喰らい」: 技能の欠点 (負の効果) を無効化し、正の効果を2倍にする.
+     * 各ヘルパーの結果に足す補正値を返す (補正後 = base + bonus).
+     */
+    public static double curseEaterBonusDamage(java.util.Collection<String> owned) {
+        double neg = 0, pos = 0;
+        for (String id : owned) {
+            double v = switch (id) {
+                case "iron_oath" -> 25;
+                case "glass_cannon" -> 55;
+                case "twin_soul" -> -18;
+                case "no_mercy" -> 20;
+                case "swift" -> -10;
+                default -> 0;
+            };
+            if (v < 0) neg += v; else pos += v;
+        }
+        return -neg + pos;
+    }
+
+    public static double curseEaterBonusMaxHp(java.util.Collection<String> owned) {
+        double neg = 0, pos = 0;
+        for (String id : owned) {
+            double v = switch (id) {
+                case "iron_oath" -> -12;
+                case "glass_cannon" -> -35;
+                case "scholar" -> -15;
+                case "thorn_lord" -> -10;
+                case "undying" -> -20;
+                default -> 0;
+            };
+            if (v < 0) neg += v; else pos += v;
+        }
+        return -neg + pos;
+    }
+
+    public static double curseEaterBonusArmor(java.util.Collection<String> owned) {
+        double neg = 0, pos = 0;
+        for (String id : owned) {
+            double v = switch (id) {
+                case "clear_mind" -> 14;
+                case "glass_cannon" -> -10;
+                case "greedy" -> -12;
+                case "no_mercy" -> -8;
+                default -> 0;
+            };
+            if (v < 0) neg += v; else pos += v;
+        }
+        return -neg + pos;
+    }
+
+    /* ---------------- 原作 ACHIEVEMENTS (24種) ---------------- */
+
+    public record Achievement(String id, String title, String desc, int reward, String tier) {}
+
+    public static final java.util.List<Achievement> ACHIEVEMENTS = java.util.List.of(
+            new Achievement("gate-breaker", "門を断つ者", "呪われた召喚門を1つ破壊する", 180, "silver"),
+            new Achievement("eight-sigils", "八重の試練", "呪印8枚で第10層へ到達する", 800, "mythic"),
+            new Achievement("art-master", "武の極致", "1回の冒険で武器奥義を10回使う", 300, "gold"),
+            new Achievement("first-blood", "深淵への第一歩", "初めて敵を倒す", 25, "bronze"),
+            new Achievement("hundred-kills", "百鬼夜行", "1回の冒険で100体撃破", 100, "silver"),
+            new Achievement("thousand-kills", "一騎当千", "1回の冒険で1,000体撃破", 500, "gold"),
+            new Achievement("floor-five", "門番を越えて", "第5層の主を撃破", 100, "silver"),
+            new Achievement("floor-ten", "深層探査者", "第10層の主を撃破", 250, "gold"),
+            new Achievement("floor-twenty", "虚無の手前", "第20層の主を撃破", 600, "mythic"),
+            new Achievement("full-clear", "深淵を終わらせた者", "第25層を踏破する", 1500, "mythic"),
+            new Achievement("true-clear", "虚無を_zeroに還した者", "原初虚無《ニヒル・ゼロ》を討伐する", 4000, "mythic"),
+            new Achievement("heirloom-keep", "血脈の守り人", "装備を継承して次の冒険へ持ち帰る", 400, "gold"),
+            new Achievement("mythic-hunter", "神話を掴む手", "神話級装備を発見する", 300, "gold"),
+            new Achievement("combo-fifty", "無間連撃", "1回の冒険で50コンボ達成", 250, "gold"),
+            new Achievement("perfect-ten", "刹那の見切り", "1回の冒険で10回見切る", 300, "gold"),
+            new Achievement("event-five", "祭壇の巡礼者", "層間イベントを5回完了", 220, "silver"),
+            new Achievement("daily-depth", "日替わり踏破者", "日替わり深淵で第10層へ到達", 450, "gold"),
+            new Achievement("level-twenty", "刻まれた成長", "1回の冒険でLv20到達", 250, "silver"),
+            new Achievement("boss-three", "層主狩り", "1回の冒険で3体の層主を撃破", 450, "gold"),
+            new Achievement("covenant-kept", "盟約を全うした者", "不幸の盟約で深淵を踏破する", 5000, "mythic"),
+            new Achievement("rush-master", "巡礼の果て", "主の巡礼で8体の層主を撃破", 1800, "mythic"),
+            new Achievement("endless-diver", "限界の先", "無限深淵で第35層へ到達", 2200, "mythic"),
+            new Achievement("pinnacle-god", "終焉を穿つ者", "終焉の座でタルタロス・オメガを討ち果たす", 10000, "mythic"),
+            new Achievement("inferno-slayer", "阿鼻叫喚を制す", "難易度【阿鼻叫喚】で第15層へ到達する", 4000, "mythic"));
+
+    public static Achievement achievementById(String id) {
+        for (Achievement a : ACHIEVEMENTS) {
+            if (a.id().equals(id)) return a;
+        }
+        return null;
+    }
+
+    /** 原作の魂報酬を欠片に換算 (魂25=欠片1、最低1) */
+    public static int shardsForReward(int souls) {
+        return Math.max(1, (int) Math.round(souls / 25.0));
+    }
+
+    /* ---------------- 層主・ボス (原作 BOSSES 8) ---------------- */
+
+    public static final int FINAL_FLOOR = 25;
+    public static final int TRUE_FLOOR = 26;
+    public static final int PINNACLE_FLOOR = 27;
+    public static final int ASCENSION_FLOOR = 28;
+
+    public record BossDef(int floor, String id, String name, double hp, double dmg, double speed) {}
+
+    public static final java.util.List<BossDef> BOSSES = java.util.List.of(
+            new BossDef(5, "b_goblin", "ゴブリン王 グルザ", 900, 20, 82),
+            new BossDef(10, "b_wyrm", "屍竜 ヴァイト", 2100, 28, 96),
+            new BossDef(15, "b_knight", "深淵騎士アビス", 4200, 36, 112),
+            new BossDef(20, "b_eye", "万象の邪眼", 7600, 44, 92),
+            new BossDef(25, "b_god", "虚無神 ニヒル", 15000, 56, 108),
+            new BossDef(26, "b_true", "原初虚無 《ニヒル・ゼロ》", 34000, 74, 118),
+            new BossDef(27, "b_pinnacle", "終焉神 《タルタロス・オメガ》", 380000, 280, 132),
+            new BossDef(28, "b_ascension", "超越者", 850000, 380, 165));
+
+    public static BossDef bossForFloor(int floor) {
+        for (BossDef b : BOSSES) {
+            if (b.floor() == floor) return b;
+        }
+        return null;
+    }
+
+    /* ---------------- 真・最終決戦フェーズ (原作 TRUE_BOSS_PHASES) ---------------- */
+
+    public record TruePhase(double hpAbove, String label, double fireRate, int bullets,
+                            double projSpeed, double speed, boolean spiral,
+                            boolean radial, boolean charge, int summon) {}
+
+    public static final java.util.List<TruePhase> TRUE_PHASES = java.util.List.of(
+            new TruePhase(0.66, "虚無の胎動", 0.9, 9, 300, 1.0, true, false, false, 0),
+            new TruePhase(0.33, "深淵の咆哮", 0.62, 14, 340, 1.22, true, true, true, 0),
+            new TruePhase(0.0, "終焉・万物の帰無", 0.42, 20, 390, 1.45, true, true, true, 3));
+
+    public static TruePhase truePhaseFor(double hpRatio) {
+        for (TruePhase p : TRUE_PHASES) {
+            if (hpRatio > p.hpAbove()) return p;
+        }
+        return TRUE_PHASES.get(TRUE_PHASES.size() - 1);
+    }
+
+    /* ---------------- 終焉の座フェーズ (原作 PINNACLE_PHASES) ---------------- */
+
+    public record PinnaclePhase(double hpAbove, String label, double fireRate, int bullets,
+                                double projSpeed, double speed, boolean crossBeams,
+                                boolean cataclysm, boolean dimensionalSlash, boolean shieldGuards) {}
+
+    public static final java.util.List<PinnaclePhase> PINNACLE_PHASES = java.util.List.of(
+            new PinnaclePhase(0.75, "天墜の審判", 0.50, 16, 380, 1.10, true, false, false, false),
+            new PinnaclePhase(0.50, "次元断絶", 0.38, 22, 420, 1.25, true, false, true, true),
+            new PinnaclePhase(0.25, "終末の咆哮", 0.30, 28, 460, 1.40, true, false, true, false),
+            new PinnaclePhase(0.0, "原初崩壊・星辰帰無", 0.22, 36, 520, 1.55, true, true, false, false));
+
+    public static PinnaclePhase pinnaclePhaseFor(double hpRatio) {
+        for (PinnaclePhase p : PINNACLE_PHASES) {
+            if (hpRatio > p.hpAbove()) return p;
+        }
+        return PINNACLE_PHASES.get(PINNACLE_PHASES.size() - 1);
+    }
+
+    /* ---------------- ランダムイベント (原作 RANDOM_EVENTS 7種) ---------------- */
+
+    public record RandomEvent(String id, String name, String desc, String kind, String fate) {}
+
+    public static final java.util.List<RandomEvent> RANDOM_EVENTS = java.util.List.of(
+            new RandomEvent("treasure", "宝の間", "隠し扉が開いた。装備が3点、転がり落ちてくる。", "loot", null),
+            new RandomEvent("gamble", "賭博の祭壇", "欠片の半分を賭ける。当たれば倍、外れれば無。", "gamble", null),
+            new RandomEvent("elite_ambush", "精鋭の襲撃", "鍛え抜かれた強敵が3体。", "elite", null),
+            new RandomEvent("spring", "加護の泉", "全回復し、素材も得る。", "heal", null),
+            new RandomEvent("curse_mist", "呪いの霧", "20秒間 被ダメ+30%。だが戦利品は2倍。", "fate", "mist"),
+            new RandomEvent("timewarp", "時の歪み", "15秒間 敵が半分の速さ。魂ゲージ2倍。", "fate", "timewarp"),
+            new RandomEvent("swarm_call", "群れの呼び声", "大量の敵が押し寄せる。", "swarm", null));
+
+    public static RandomEvent randomEventById(String id) {
+        for (RandomEvent e : RANDOM_EVENTS) {
+            if (e.id().equals(id)) return e;
+        }
+        return null;
+    }
+
+    /* ---------------- 原作 RARITY_META (希少度の重み) ---------------- */
+
+    /** 原作 rollRarity の写し. l = 運 + 層×1.6 + ボーナス (鍛冶場65・層主130) */
+    public static String rollRarity(java.util.function.DoubleSupplier r, int luck, double bonus, int floor) {
+        double l = luck + floor * 1.6 + bonus;
+        double wNormal = Math.max(4, 46 - l * 0.55);
+        double wMagic = 29 + l * 0.05;
+        double wRare = 15 + l * 0.32;
+        double wLeg = Math.max(0.4, 7.5 + l * 0.20);
+        double wMyth = Math.max(0.05, 2.5 * 0.35 + l * 0.075);
+        double total = wNormal + wMagic + wRare + wLeg + wMyth;
+        double x = r.getAsDouble() * total;
+        if ((x -= wNormal) <= 0) return "normal";
+        if ((x -= wMagic) <= 0) return "magic";
+        if ((x -= wRare) <= 0) return "rare";
+        if ((x -= wLeg) <= 0) return "legendary";
+        return "mythic";
+    }
+
+    /* ---------------- 原作 ELITE_PREFIX (精鋭の冠詞6種) ---------------- */
+
+    public record ElitePrefix(String name, double speed, double hp, double dmg) {}
+
+    public static final java.util.List<ElitePrefix> ELITE_PREFIX = java.util.List.of(
+            new ElitePrefix("狂乱の", 1.45, 0.9, 1.1),
+            new ElitePrefix("重厚な", 0.72, 2.6, 1.3),
+            new ElitePrefix("灼熱の", 1.1, 1.3, 1.35),
+            new ElitePrefix("凍てつく", 0.95, 1.5, 1.2),
+            new ElitePrefix("雷光の", 1.25, 1.2, 1.45),
+            new ElitePrefix("太古の", 0.9, 3.2, 1.6));
+
+    public static ElitePrefix elitePrefix(java.util.function.DoubleSupplier r) {
+        int idx = Math.min(ELITE_PREFIX.size() - 1, (int) (r.getAsDouble() * ELITE_PREFIX.size()));
+        return ELITE_PREFIX.get(idx);
+    }
+
+    /* ---------------- 原作 ELITE_TRAITS (精鋭の特殊行動6種) ---------------- */
+
+    public record EliteTrait(String id, String name, String desc) {}
+
+    public static final java.util.List<EliteTrait> ELITE_TRAITS = java.util.List.of(
+            new EliteTrait("regen", "再生", "絶え間なくHPが再生する"),
+            new EliteTrait("shield", "魔盾", "通常の倍のHPを盾で受け持つ"),
+            new EliteTrait("splitter", "分裂者", "撃破した瞬間に2体の小敵へ分裂"),
+            new EliteTrait("burst", "爆砕", "死の間際、周囲を炸裂させる"),
+            new EliteTrait("warp", "跳躍者", "間合いを詰めるたびにテレポートする"),
+            new EliteTrait("vampire", "吸魂", "攻撃が命中するたびHPを吸収する"));
+
+    public static EliteTrait eliteTraitById(String id) {
+        for (EliteTrait t : ELITE_TRAITS) {
+            if (t.id().equals(id)) return t;
+        }
+        return null;
+    }
+
+    /** 原作: 精鋭の60%が特性を1つ持つ */
+    public static EliteTrait rollEliteTrait(java.util.function.DoubleSupplier r) {
+        if (r.getAsDouble() >= 0.6) return null;
+        int idx = Math.min(ELITE_TRAITS.size() - 1, (int) (r.getAsDouble() * ELITE_TRAITS.size()));
+        return ELITE_TRAITS.get(idx);
+    }
+
+    /* ---------------- 原作 CURSED_MODS (呪い装備の弱点6種) ---------------- */
+
+    public record CursedMod(String key, double min, double max) {}
+
+    public static final java.util.List<CursedMod> CURSED_MODS = java.util.List.of(
+            new CursedMod("maxHpPct", -18, -9),
+            new CursedMod("moveSpeedPct", -12, -6),
+            new CursedMod("armorPct", -9, -4),
+            new CursedMod("attackSpeedPct", -14, -8),
+            new CursedMod("luckFlat", -30, -12),
+            new CursedMod("xpPct", -20, -10));
+
+    /** 原作: レア以上で12%が呪い */
+    public static boolean rollCursed(java.util.function.DoubleSupplier r, String rarity) {
+        if (!rarity.equals("rare") && !rarity.equals("legendary") && !rarity.equals("mythic")) return false;
+        return r.getAsDouble() < 0.12;
+    }
+
+    public static CursedMod rollCursedMod(java.util.function.DoubleSupplier r) {
+        int idx = Math.min(CURSED_MODS.size() - 1, (int) (r.getAsDouble() * CURSED_MODS.size()));
+        return CURSED_MODS.get(idx);
+    }
+
+    /** 呪い値の抽選 (min〜max の一様乱数、小数1桁) */
+    public static double rollCursedValue(java.util.function.DoubleSupplier r, CursedMod mod) {
+        return Math.round((mod.min() + r.getAsDouble() * (mod.max() - mod.min())) * 10) / 10.0;
+    }
+
+    /* ---------------- 原作 WEAPON_CLASSES (12種の装備ボーナス) ---------------- */
+
+    public record WeaponBonus(double damagePct, double attackSpeedPct, double areaPct, double energyPct,
+                              int projectiles, int pierce, double critPct, double critDmgPct,
+                              double explodePct, double moveSpeedPct, double maxHpPct) {}
+
+    private static WeaponBonus wb(double dmg, double aspd, double area, double energy,
+                                  int proj, int pierce, double crit, double critDmg,
+                                  double explode, double move, double maxHp) {
+        return new WeaponBonus(dmg, aspd, area, energy, proj, pierce, crit, critDmg, explode, move, maxHp);
+    }
+
+    public static final java.util.Map<String, WeaponBonus> WEAPON_BONUS = java.util.Map.ofEntries(
+            java.util.Map.entry("sword", wb(0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("axe", wb(18, -12, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("spear", wb(0, 0, 28, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("staff", wb(-8, 0, 0, 35, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("bow", wb(0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("dagger", wb(0, 0, 0, 0, 0, 0, 12, 30, 0, 0, 0)),
+            java.util.Map.entry("hammer", wb(0, -20, 0, 0, 0, 0, 0, 0, 22, 0, 0)),
+            java.util.Map.entry("katana", wb(10, 8, 0, 0, 0, 0, 6, 0, 0, 0, 0)),
+            java.util.Map.entry("scythe", wb(14, 0, 18, 0, 0, 0, 0, 0, 0, 0, -6)),
+            java.util.Map.entry("gauntlet", wb(-14, 28, 0, 0, 0, 0, 0, 0, 0, 8, 0)),
+            java.util.Map.entry("chakram", wb(0, -8, 20, 0, 0, 3, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("tome", wb(22, -26, 0, 0, 0, 0, 0, 0, 35, 0, 0)));
+
+    public static WeaponBonus weaponBonus(String styleId) {
+        return WEAPON_BONUS.getOrDefault(styleId,
+                new WeaponBonus(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+    }
+
+    /* ---------------- 原作の武器名 (接頭・接尾・伝説・神話) ---------------- */
+
+    public static final java.util.List<String> PREFIXES = java.util.List.of(
+            "焔の", "氷結の", "雷光の", "血塗れの", "古代の", "呪われし", "聖なる", "虚空の",
+            "竜王の", "修羅の", "月影の", "太陽の", "深淵の", "嵐の", "骸の", "星辰の");
+    public static final java.util.List<String> SUFFIXES = java.util.List.of(
+            "破滅", "暴食", "疾風怒涛", "永劫", "慟哭", "天罰", "輪廻", "絶望",
+            "王の栄光", "神殺し", "黄昏", "無明", "竜鱗", "殺意", "祝福", "終焉");
+    public static final java.util.List<String> LEGEND_NAMES = java.util.List.of(
+            "エクスカリバー", "グラム", "天羽々斬", "ミョルニル", "ガーンディーヴァ", "デュランダル",
+            "ヘルメスの杖", "レーヴァテイン", "アスカロン", "ゲイ・ボルグ", "草薙剣", "ヴァジュラ");
+    public static final java.util.List<String> MYTHIC_NAMES = java.util.List.of(
+            "虚無神の残光", "創世の楔", "運命を断つ者", "無限の歯車", "神々の黄昏", "原初の炎",
+            "時を喰らう顎", "万象の終焉", "アビス・コア", "天上の戒律");
+
+    private static String pickName(java.util.function.DoubleSupplier r, java.util.List<String> pool) {
+        return pool.get(Math.min(pool.size() - 1, (int) (r.getAsDouble() * pool.size())));
+    }
+
+    public static String prefixFor(java.util.function.DoubleSupplier r) { return pickName(r, PREFIXES); }
+    public static String suffixFor(java.util.function.DoubleSupplier r) { return pickName(r, SUFFIXES); }
+    public static String legendFor(java.util.function.DoubleSupplier r) { return pickName(r, LEGEND_NAMES); }
+    public static String mythicFor(java.util.function.DoubleSupplier r) { return pickName(r, MYTHIC_NAMES); }
+
+    /* ---------------- 原作 AFFIXES (武器に付く接辞・抜粋19種) ---------------- */
+
+    public record AffixKey(String key, double min, double max, int tier) {}
+
+    /** 原作 AFFIXES のうち武器に付くもの (slots 制限を反映)。値は min〜max (小数1桁、個数は丸め) */
+    public static final java.util.List<AffixKey> WEAPON_AFFIXES = java.util.List.of(
+            new AffixKey("damageFlat", 3, 7, 1),
+            new AffixKey("damagePct", 4, 9, 1),
+            new AffixKey("maxHpFlat", 10, 24, 1),
+            new AffixKey("attackSpeedPct", 4, 9, 1),
+            new AffixKey("critPct", 1.5, 3.5, 1),
+            new AffixKey("moveSpeedPct", 3, 7, 1),
+            new AffixKey("armorPct", 2, 5, 1),
+            new AffixKey("areaPct", 4, 10, 1),
+            new AffixKey("maxHpPct", 4, 9, 2),
+            new AffixKey("critDmgPct", 8, 20, 2),
+            new AffixKey("lifestealPct", 1, 2.4, 2),
+            new AffixKey("regenFlat", 0.4, 1.1, 2),
+            new AffixKey("luckFlat", 6, 16, 2),
+            new AffixKey("energyPct", 8, 18, 2),
+            new AffixKey("pierce", 1, 1, 3),
+            new AffixKey("projectiles", 1, 1, 3),
+            new AffixKey("chain", 1, 2, 3),
+            new AffixKey("explodePct", 4, 10, 3),
+            new AffixKey("freezePct", 5, 12, 3));
+
+    /** 原作 RARITY_META の接辞数 [min, max] */
+    public static int[] affixCountRange(String rarity) {
+        return switch (rarity) {
+            case "mythic" -> new int[]{5, 6};
+            case "legendary" -> new int[]{4, 5};
+            case "rare" -> new int[]{3, 4};
+            case "magic" -> new int[]{1, 2};
+            default -> new int[]{0, 1};
+        };
+    }
+
+    public record RolledAffix(String key, double value) {}
+
+    /**
+     * 接辞を n 件引く (原作 genItem: 重複なし・tierBoost で重み付け・値は小数1桁)。
+     * r は [0,1) の乱数 (キー選択と値に各1回ずつ使用)。
+     */
+    public static java.util.List<RolledAffix> rollAffixes(java.util.function.DoubleSupplier r,
+                                                          String rarity, int n) {
+        int tierBoost = rarity.equals("mythic") ? 3 : rarity.equals("legendary") ? 2 : 1;
+        var pool = new java.util.ArrayList<>(WEAPON_AFFIXES);
+        var out = new java.util.ArrayList<RolledAffix>();
+        for (int i = 0; i < n && !pool.isEmpty(); i++) {
+            double total = 0;
+            for (var a : pool) total += a.tier() <= tierBoost ? 6 - a.tier() : 0.6;
+            double x = r.getAsDouble() * total;
+            AffixKey sel = pool.get(pool.size() - 1);
+            for (var a : pool) {
+                x -= a.tier() <= tierBoost ? 6 - a.tier() : 0.6;
+                if (x <= 0) {
+                    sel = a;
+                    break;
+                }
+            }
+            pool.remove(sel);
+            double v;
+            if (sel.key().equals("pierce") || sel.key().equals("projectiles") || sel.key().equals("chain")) {
+                v = Math.max(1, Math.round(sel.min() + r.getAsDouble() * (sel.max() - sel.min())));
+            } else {
+                v = Math.round((sel.min() + r.getAsDouble() * (sel.max() - sel.min())) * 10) / 10.0;
+            }
+            out.add(new RolledAffix(sel.key(), v));
+        }
+        return out;
     }
 }

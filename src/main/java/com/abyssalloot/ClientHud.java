@@ -20,13 +20,17 @@ public final class ClientHud {
     private static volatile int level;
     private static volatile int kills;
     private static volatile int combo;
+    private static volatile int attrPoints;
+    private static volatile int portalOpen;
 
-    public static void update(float s, int f, int lv, int k, int c) {
+    public static void update(float s, int f, int lv, int k, int c, int ap, int po) {
         soul = s;
         floor = f;
         level = lv;
         kills = k;
         combo = c;
+        attrPoints = ap;
+        portalOpen = po;
     }
 
     public static void init(IEventBus modBus) {
@@ -57,5 +61,12 @@ public final class ClientHud {
             g.drawString(font, combo + "連撃！", x0 + bw + 6, y0 - 2, 0xFFFFD23C);
         }
         g.drawString(font, "撃破" + kills, x0, y0 + 12, 0xFF9FB0C9);
+        // 未配分の属性点と転移門の開放を見逃さないよう表示
+        if (attrPoints > 0) {
+            g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0 + bw + 6, y0 + 12, 0xFF7CFFB2);
+        }
+        if (portalOpen != 0) {
+            g.drawString(font, "◆転移門OPEN (G→次の層へ)", x0, y0 - 22, 0xFF7CFFB2);
+        }
     }
 }

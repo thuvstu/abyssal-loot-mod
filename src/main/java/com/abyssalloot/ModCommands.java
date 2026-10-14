@@ -15,7 +15,9 @@ import java.util.Set;
 
 /**
  * /abyss 系コマンド.
- *  class / weapon / sigil / level / mode / diff / start / next / art / skill / dash / status / boon / attr / keep
+ *  quick / menu / help / class / weapon / sigil / level / start / next / daily / true / pinnacle /
+ *  zone / relic / passive / compass / ach / art / skill / boon / attr / mode / diff / keep /
+ *  event / buy / merge / forge / shop / compare / statusgui / dash / status
  */
 public final class ModCommands {
     private ModCommands() {}
@@ -54,6 +56,13 @@ public final class ModCommands {
                 // 出撃前の設定メニュー (職業・呪印・モード・難易度をクリックで選ぶ)
                 .then(Commands.literal("menu").executes(ctx -> {
                     showMenu(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
+                // 操作ハブ (GUIボタン集約。Gキーからも開ける)
+                .then(Commands.literal("hub").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p,
+                            new ModPackets.HubSync());
                     return 1;
                 }))
                 // 操作説明 (クリックで実行できるボタン付き)
@@ -105,6 +114,10 @@ public final class ModCommands {
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
+                                    if (RunManager.isRunLocked(p)) {
+                                        p.sendSystemMessage(Component.literal("§c出撃中は条件を変更できません (原作 /api/expeditions の条件固定と同様)"));
+                                        return 0;
+                                    }
                                     String id = StringArgumentType.getString(ctx, "id");
                                     if (GameData.Sigil.byId(id) == null) {
                                         p.sendSystemMessage(Component.literal("§c不明な呪印: " + id));
@@ -140,10 +153,11 @@ public final class ModCommands {
                 .then(Commands.literal("daily").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     p.setData(ModAttachments.MODE.get(), "daily");
+                    var dm = RunManager.dailyMod();
                     p.sendSystemMessage(Component.literal(
-                            "§6日替わり深淵【" + RunManager.dailyPreset() + "】 (敵HP×"
-                                    + RunManager.dailyHpMult() + " 攻撃×" + RunManager.dailyDmgMult()
-                                    + " 魂×1.5) /abyss start で出撃"));
+                            "§6日替わり深淵【" + dm.title() + "】 (敵HP×"
+                                    + dm.enemyHp() + " 攻撃×" + dm.enemyDmg()
+                                    + " 魂×" + dm.soul() + ") /abyss start で出撃"));
                     return 1;
                 }))
                 .then(Commands.literal("true").executes(ctx -> {
@@ -151,11 +165,51 @@ public final class ModCommands {
                     RunManager.startTrue(p);
                     return 1;
                 }))
+                .then(Commands.literal("pinnacle").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    RunManager.startPinnacle(p);
+                    return 1;
+                }))
+                .then(Commands.literal("zone").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    var z = GameData.zoneForFloor(p.getData(ModAttachments.FLOOR.get()));
+                    p.sendSystemMessage(Component.literal(
+                            "§7区域: " + z.name() + " — " + z.desc()));
+                    return 1;
+                }))
+                .then(Commands.literal("relic")
+                        .then(Commands.argument("id", StringArgumentType.word())
+                                .suggests((ctx, b) -> {
+                                    for (var r : GameData.RELICS) b.suggest(r.id());
+                                    return b.buildFuture();
+                                })
+                                .executes(ctx -> {
+                                    RunManager.doRelic(ctx.getSource().getPlayerOrException(),
+                                            StringArgumentType.getString(ctx, "id"));
+                                    return 1;
+                                })))
+                .then(Commands.literal("passive")
+                        .then(Commands.argument("id", StringArgumentType.word())
+                                .suggests((ctx, b) -> {
+                                    for (var p : GameData.PASSIVES) b.suggest(p.id());
+                                    return b.buildFuture();
+                                })
+                                .executes(ctx -> {
+                                    RunManager.doPassive(ctx.getSource().getPlayerOrException(),
+                                            StringArgumentType.getString(ctx, "id"));
+                                    return 1;
+                                })))
+                .then(Commands.literal("compass").executes(ctx -> {
+                    RunManager.compass(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 .then(Commands.literal("ach").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     String raw = p.getData(ModAttachments.ACH.get());
+                    int n = (raw == null || raw.isBlank()) ? 0 : raw.split(",").length;
                     p.sendSystemMessage(Component.literal(
-                            "§e実績: " + ((raw == null || raw.isBlank()) ? "(なし)" : raw)));
+                            "§e実績: " + ((raw == null || raw.isBlank()) ? "(なし)" : raw)
+                                    + " (" + n + "/" + GameData.ACHIEVEMENTS.size() + ")"));
                     return 1;
                 }))
                 .then(Commands.literal("art").executes(ctx -> {
@@ -169,13 +223,13 @@ public final class ModCommands {
                 .then(Commands.literal("boon")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    for (var boon : CombatHandler.BOON_POOL) b.suggest(boon.id());
+                                    for (var boon : Boons.BOON_POOL) b.suggest(boon.id());
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                                     String id = StringArgumentType.getString(ctx, "id");
-                                    var def = CombatHandler.boonById(id);
+                                    var def = Boons.boonById(id);
                                     if (def == null) {
                                         p.sendSystemMessage(Component.literal("§c不明な祝福: " + id));
                                         return 0;
@@ -197,83 +251,69 @@ public final class ModCommands {
                 .then(Commands.literal("attr")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    b.suggest("got"); b.suggest("rin"); b.suggest("bin");
-                                    b.suggest("nin"); b.suggest("un");
+                                    b.suggest("剛力"); b.suggest("韻律"); b.suggest("敏捷");
+                                    b.suggest("忍耐"); b.suggest("幸運");
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                                    String id = StringArgumentType.getString(ctx, "id");
-                                    int idx = switch (id) {
-                                        case "got" -> 0; case "rin" -> 1; case "bin" -> 2;
-                                        case "nin" -> 3; case "un" -> 4;
-                                        default -> -1;
-                                    };
-                                    if (idx < 0) {
-                                        p.sendSystemMessage(Component.literal("§cgot/rin/bin/nin/un で指定 (剛力/韻律/敏捷/忍耐/幸運)"));
-                                        return 0;
-                                    }
-                                    int level = p.getData(ModAttachments.LEVEL.get());
-                                    int spent = RunManager.attrSpent(p);
-                                    if (spent >= level - 1) {
-                                        p.sendSystemMessage(Component.literal(
-                                                "§c属性ポイント不足 (Lv" + level + "で" + (level - 1) + "点、配分済" + spent + "点)"));
-                                        return 0;
-                                    }
-                                    int[] a = RunManager.attrsOf(p);
-                                    a[idx]++;
-                                    RunManager.setAttrs(p, a);
-                                    GameData.HeroClass cls = GameData.HeroClass.byId(
-                                            p.getData(ModAttachments.HERO_CLASS.get()));
-                                    RunManager.applyClass(p, cls, level);
-                                    p.sendSystemMessage(Component.literal(
-                                            "§a属性配分: 剛" + a[0] + " 韻" + a[1] + " 敏" + a[2] + " 忍" + a[3] + " 幸" + a[4]
-                                                    + " (残" + (level - 1 - spent - 1) + "点)"));
-                                    return 1;
+                                    return RunManager.addAttrPoint(p,
+                                            attrIndex(StringArgumentType.getString(ctx, "id"))) ? 1 : 0;
                                 })))
                 .then(Commands.literal("mode")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
                                     b.suggest("standard"); b.suggest("bossrush");
                                     b.suggest("endless"); b.suggest("covenant");
-                                    b.suggest("daily");
+                                    b.suggest("daily"); b.suggest("pinnacle");
+                                    b.suggest("danmaku"); b.suggest("omega");
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
+                                    if (RunManager.isRunLocked(p)) {
+                                        p.sendSystemMessage(Component.literal("§c出撃中はモードを変更できません"));
+                                        return 0;
+                                    }
                                     String id = StringArgumentType.getString(ctx, "id");
-                                    if (!id.equals("standard") && !id.equals("bossrush")
-                                            && !id.equals("endless") && !id.equals("covenant")
-                                            && !id.equals("daily")) {
-                                        p.sendSystemMessage(Component.literal("§cstandard/bossrush/endless/covenant/daily で指定"));
+                                    if (GameData.modeSoulMult(id) == 1.0
+                                            && !id.equals("standard") && !id.equals("daily")) {
+                                        p.sendSystemMessage(Component.literal("§cstandard/bossrush/endless/covenant/daily/pinnacle/danmaku/omega で指定"));
                                         return 0;
                                     }
                                     p.setData(ModAttachments.MODE.get(), id);
                                     p.sendSystemMessage(Component.literal("§5進行モード: " + id
-                                            + (id.equals("bossrush") ? " (Lv10開始・毎層ボス・8層主で踏破)"
-                                            : id.equals("covenant") ? " (祝福なし・魂×3.0)"
-                                            : id.equals("endless") ? " (25層以降も無限)"
-                                            : " (全25層・虚無神を討て)")));
+                                            + " (魂×" + GameData.modeSoulMult(id) + ")"
+                                            + (id.equals("bossrush") ? " Lv10開始・毎層ボス・8層主で踏破"
+                                            : id.equals("covenant") ? " 祝福なし"
+                                            : id.equals("endless") ? " 25層以降も無限"
+                                            : id.equals("pinnacle") ? " /abyss pinnacle で終焉の座へ"
+                                            : " 全25層・虚無神を討て)")));
                                     return 1;
                                 })))
                 .then(Commands.literal("diff")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    b.suggest("normal"); b.suggest("hard"); b.suggest("inferno");
+                                    b.suggest("normal"); b.suggest("hard"); b.suggest("hell");
+                                    b.suggest("inferno"); b.suggest("omega");
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
+                                    if (RunManager.isRunLocked(p)) {
+                                        p.sendSystemMessage(Component.literal("§c出撃中は難易度を変更できません"));
+                                        return 0;
+                                    }
                                     String id = StringArgumentType.getString(ctx, "id");
-                                    if (!id.equals("normal") && !id.equals("hard") && !id.equals("inferno")) {
-                                        p.sendSystemMessage(Component.literal("§cnormal/hard/inferno で指定"));
+                                    var diff = GameData.difficultyById(id);
+                                    if (!diff.id().equals(id)) {
+                                        p.sendSystemMessage(Component.literal("§cnormal/hard/hell/inferno/omega で指定"));
                                         return 0;
                                     }
                                     p.setData(ModAttachments.DIFF.get(), id);
-                                    p.sendSystemMessage(Component.literal("§c難易度: " + id
-                                            + (id.equals("hard") ? " (敵HP×1.4 攻撃×1.25 魂×1.5)"
-                                            : id.equals("inferno") ? " (敵HP×2.0 攻撃×1.6 魂×2.2)"
-                                            : " (等倍)")));
+                                    p.sendSystemMessage(Component.literal("§c難易度: " + diff.name()
+                                            + " (敵HP×" + diff.hpMul() + " 攻撃×" + diff.dmgMul()
+                                            + " 魂×" + diff.soulMul() + ")"));
                                     return 1;
                                 })))
                 .then(Commands.literal("keep").executes(ctx -> {
@@ -307,6 +347,42 @@ public final class ModCommands {
                                             IntegerArgumentType.getInteger(ctx, "n"));
                                     return 1;
                                 })))
+                .then(Commands.literal("merge").executes(ctx -> {
+                    RunManager.doMerge(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
+                .then(Commands.literal("forge").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                            (id, inv, pl) -> new ForgeMenu(id, inv),
+                            Component.literal("鍛造")));
+                    return 1;
+                }))
+                .then(Commands.literal("shop").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    String raw = p.getData(ModAttachments.SHOP.get());
+                    if (raw == null || raw.isBlank()) {
+                        p.sendSystemMessage(Component.literal("§c商店は開いていない (/abyss event shop)"));
+                        return 0;
+                    }
+                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                            (id, inv, pl) -> new ShopMenu(id, inv),
+                            Component.literal("商店")));
+                    return 1;
+                }))
+                .then(Commands.literal("compare").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                            (id, inv, pl) -> new CompareMenu(id, inv),
+                            Component.literal("装備比較")));
+                    return 1;
+                }))
+                .then(Commands.literal("statusgui").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p,
+                            new ModPackets.StatusSync(RunManager.statusLines(p)));
+                    return 1;
+                }))
                 .then(Commands.literal("dash").executes(ctx -> {
                     CombatHandler.dash(ctx.getSource().getPlayerOrException());
                     return 1;
@@ -317,13 +393,32 @@ public final class ModCommands {
                 })));
     }
 
+    /** 属性名→index (日本語・英語・旧ローマ字を受け付ける) */
+    static int attrIndex(String id) {
+        if (id == null) return -1;
+        String s = id.toLowerCase(java.util.Locale.ROOT);
+        return switch (s) {
+            case "剛力", "ごうりき", "ゴウリキ", "power", "str", "got" -> 0;
+            case "韻律", "いんりつ", "インリツ", "rhythm", "rin" -> 1;
+            case "敏捷", "びんしょう", "ビンショウ", "agility", "speed", "bin" -> 2;
+            case "忍耐", "にんたい", "ニンタイ", "endurance", "vit", "nin" -> 3;
+            case "幸運", "こううん", "コウウン", "luck", "un" -> 4;
+            default -> -1;
+        };
+    }
+
     /** 参加時の案内 (はじめる / 操作説明 ボタン) */
     @SubscribeEvent
     public static void onJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
-        p.sendSystemMessage(Component.literal("§6◆ Abyssal Loot へようこそ ◆ ")
-                .append(button("§a[はじめる]", "/abyss quick"))
-                .append(button("§e[設定メニュー]", "/abyss menu"))
+        boolean first = p.getData(ModAttachments.TUTOR.get()) == 0;
+        p.sendSystemMessage(Component.literal(first
+                        ? "§6◆ Abyssal Loot へようこそ！まずはワンタップで潜ろう ◆ "
+                        : "§6◆ Abyssal Loot ◆ "));
+        p.sendSystemMessage(Component.literal("§7")
+                .append(button("§a[おすすめ: すぐ潜る]", "/abyss quick"))
+                .append(button("§e[職業・条件を選ぶ]", "/abyss menu"))
+                .append(button("§d[操作ハブ]", "/abyss hub"))
                 .append(button("§b[操作説明]", "/abyss help")));
     }
 
@@ -342,16 +437,25 @@ public final class ModCommands {
     static void showHelp(ServerPlayer p) {
         p.sendSystemMessage(Component.literal("§6━━━ Abyssal Loot 操作説明 ━━━"));
         p.sendSystemMessage(Component.literal("§f移動 WASD / 攻撃 左クリック / 照準 マウス"));
-        p.sendSystemMessage(Component.literal("§bE 武器奥義（右クリックでも可） / §dQ 職業の必殺技 / §aC 回避ダッシュ"));
-        p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでEの奥義。"));
+        p.sendSystemMessage(Component.literal("§bR 武器奥義（右クリックでも可） / §dV 職業の必殺技 / §aX 回避ダッシュ"));
+        p.sendSystemMessage(Component.literal("§eG 操作ハブ（出撃・次層・各GUIへのボタン集）"));
+        p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでRの奥義。"));
         p.sendSystemMessage(Component.literal("§7倒すと武器や魂の欠片が出る。全滅で転移門が開く → /abyss next"));
-        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr got|rin|bin|nin|un（レベルアップで1点）"));
+        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運（レベルアップで1点）"));
         p.sendSystemMessage(Component.literal("§7呪印（難易度）/abyss sigil <id>　モード /abyss mode <id>"));
+        p.sendSystemMessage(Component.literal("§7武器合成は鍛造画面で")
+                .append(button("§b[鍛造画面を開く]", "/abyss forge")));
+        p.sendSystemMessage(Component.literal("§7")
+                .append(button("§6[商店]", "/abyss shop"))
+                .append(button("§b[装備比較]", "/abyss compare"))
+                .append(button("§e[ステータス]", "/abyss statusgui")));
         p.sendSystemMessage(Component.literal("§7")
                 .append(button("§a[一括開始]", "/abyss quick"))
                 .append(button("§e[状態]", "/abyss status"))
                 .append(button("§d[設定メニュー]", "/abyss menu"))
                 .append(button("§b[次の層へ]", "/abyss next")));
+        p.sendSystemMessage(Component.literal("§7")
+                .append(button("§e[操作ハブを開く]", "/abyss hub")));
     }
 
     static net.minecraft.network.chat.MutableComponent button(String label, String cmd) {
@@ -381,17 +485,22 @@ public final class ModCommands {
         }
         p.sendSystemMessage(sig);
         var md = Component.literal("§5モード: ");
-        for (String m : new String[]{"standard", "bossrush", "endless", "covenant", "daily"}) {
+        for (String m : new String[]{"standard", "bossrush", "endless", "covenant", "daily", "pinnacle", "danmaku", "omega"}) {
             String mark = m.equals(mode) ? "§a" : "§7";
             md.append(button(mark + "[" + m + "]", "/abyss mode " + m));
         }
         p.sendSystemMessage(md);
         var df = Component.literal("§c難易度: ");
-        for (String d : new String[]{"normal", "hard", "inferno"}) {
+        for (String d : new String[]{"normal", "hard", "hell", "inferno", "omega"}) {
             String mark = d.equals(diff) ? "§a" : "§7";
             df.append(button(mark + "[" + d + "]", "/abyss diff " + d));
         }
         p.sendSystemMessage(df);
+        p.sendSystemMessage(Component.literal("§7GUI: ")
+                .append(button("§b[鍛造]", "/abyss forge"))
+                .append(button("§6[商店]", "/abyss shop"))
+                .append(button("§b[装備比較]", "/abyss compare"))
+                .append(button("§e[ステータス]", "/abyss statusgui")));
         p.sendSystemMessage(Component.literal("§7")
                 .append(button("§a[出撃！]", "/abyss start"))
                 .append(button("§e[メニュー更新]", "/abyss menu"))

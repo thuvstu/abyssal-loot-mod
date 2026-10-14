@@ -46,6 +46,14 @@ public final class ModItems {
     public static final DeferredItem<Item> SOUL_SHARD = ITEMS.registerSimpleItem("soul_shard",
             () -> new Item.Properties().rarity(Rarity.UNCOMMON));
 
+    /** 素材 (原作 MATERIALS のうち鍛造に使う3種)。ドロップ・鍛造コスト用 */
+    public static final DeferredItem<Item> ANCIENT_STONE = ITEMS.registerSimpleItem("ancient_stone",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CHAOS_GEM = ITEMS.registerSimpleItem("chaos_gem",
+            () -> new Item.Properties().rarity(Rarity.EPIC));
+    public static final DeferredItem<Item> VOID_ESSENCE = ITEMS.registerSimpleItem("void_essence",
+            () -> new Item.Properties().rarity(Rarity.EPIC));
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ABYSS_TAB =
             CREATIVE_TABS.register("abyss_tab", () -> CreativeModeTab.builder()
                     .title(Component.literal("Abyssal Loot"))
@@ -65,6 +73,9 @@ public final class ModItems {
                         output.accept(ABYSS_CHAKRAM.get());
                         output.accept(ABYSS_TOME.get());
                         output.accept(SOUL_SHARD.get());
+                        output.accept(ANCIENT_STONE.get());
+                        output.accept(CHAOS_GEM.get());
+                        output.accept(VOID_ESSENCE.get());
                     }).build());
 
     /** 手持ちItem -> 武器種 の逆引き */

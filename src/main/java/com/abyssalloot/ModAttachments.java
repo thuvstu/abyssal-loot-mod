@@ -98,4 +98,66 @@ public final class ModAttachments {
     /** この層の異変ID (GameData.MUTATIONS の id。空=なし) */
     public static final Supplier<AttachmentType<String>> MUTATION =
             reg("mutation", "", Codec.STRING);
+    /** アリーナ中心 "x,y,z" (MOBの脱走収容用。buildArenaで保存) */
+    public static final Supplier<AttachmentType<String>> ARENA =
+            reg("arena", "", Codec.STRING);
+    /** 実行遺物 (原作 RELICS・ラン中最大2つ・"id,...") */
+    public static final Supplier<AttachmentType<String>> RELICS =
+            reg("relics", "", Codec.STRING);
+    /** 技能 (原作 PASSIVES・"id,...") */
+    public static final Supplier<AttachmentType<String>> PASSIVES =
+            reg("passives", "", Codec.STRING);
+    /** 提示中の遺物3択 "id,id,id" */
+    public static final Supplier<AttachmentType<String>> RELIC_OFFER =
+            reg("relic_offer", "", Codec.STRING);
+    /** 提示中の技能3択 "id,id,id" */
+    public static final Supplier<AttachmentType<String>> PASSIVE_OFFER =
+            reg("passive_offer", "", Codec.STRING);
+    /** fate効果の終了tick (呪いの霧・時の歪み). ワールド時間ではなくサーバtick基準 */
+    public static final Supplier<AttachmentType<Long>> FATE_MIST =
+            reg("fate_mist", 0L, Codec.LONG);
+    public static final Supplier<AttachmentType<Long>> FATE_TIME =
+            reg("fate_time", 0L, Codec.LONG);
+    /** 武器奥義の使用回数 (実績「武の極致」) */
+    public static final Supplier<AttachmentType<Integer>> ART_USES =
+            reg("art_uses", 0, Codec.INT);
+    /** 見切り回数 (実績「刹那の見切り」) */
+    public static final Supplier<AttachmentType<Integer>> PERFECT =
+            reg("perfect", 0, Codec.INT);
+    /** 層間イベントの完了回数 (実績「祭壇の巡礼者」) */
+    public static final Supplier<AttachmentType<Integer>> EVENT_TOTAL =
+            reg("event_total", 0, Codec.INT);
+    /** 呪われた鏡の使用済み (0/1) */
+    public static final Supplier<AttachmentType<Integer>> MIRROR_USED =
+            reg("mirror_used", 0, Codec.INT);
+    /** 技能「刈り取り」の蓄積 (強敵撃破ごとに+1) */
+    public static final Supplier<AttachmentType<Integer>> HARVEST =
+            reg("harvest", 0, Codec.INT);
+    /** 見切りの最終成立時刻 (gameTime。技能「完全主義」用) */
+    public static final Supplier<AttachmentType<Long>> PARRY_TICK =
+            reg("parry_tick", -1000L, Codec.LONG);
+    /** 出撃中の条件固定 (0/1。呪印・モード・難易度の変更禁止) */
+    public static final Supplier<AttachmentType<Integer>> RUN_LOCK =
+            reg("run_lock", 0, Codec.INT);
+    /** ラン中の最大コンボ (スコア用) */
+    public static final Supplier<AttachmentType<Integer>> BEST_COMBO =
+            reg("best_combo", 0, Codec.INT);
+    /** ラン中の累積与ダメ (スコア用。切り捨ての合計) */
+    public static final Supplier<AttachmentType<Integer>> DMG_DEALT =
+            reg("dmg_dealt", 0, Codec.INT);
+    /** チュートリアル表示済み (0/1)。初出撃時に操作案内を出す */
+    public static final Supplier<AttachmentType<Integer>> TUTOR =
+            reg("tutor", 0, Codec.INT);
+    /** 鎌の収穫スタック (撃破ごとに+1・最大10・攻速+6%/枚) */
+    public static final Supplier<AttachmentType<Integer>> SCYTHE =
+            reg("scythe", 0, Codec.INT);
+    /** 拳套の連撃数 (3連撃ごとに衝撃波) */
+    public static final Supplier<AttachmentType<Integer>> GCNT =
+            reg("gcnt", 0, Codec.INT);
+    /** 運命の祭壇の効果ID (rage/gold/haste/armor/scourge・空=なし) */
+    public static final Supplier<AttachmentType<String>> SHRINE_FATE =
+            reg("shrine_fate", "", Codec.STRING);
+    /** 運命の祭壇の効果終了時刻 (gameTime) */
+    public static final Supplier<AttachmentType<Long>> SHRINE_UNTIL =
+            reg("shrine_until", 0L, Codec.LONG);
 }

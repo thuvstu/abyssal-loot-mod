@@ -23,6 +23,9 @@ public class AbyssalLootMod {
         ModItems.ITEMS.register(modEventBus);
         ModItems.CREATIVE_TABS.register(modEventBus);
         ModAttachments.ATTACHMENTS.register(modEventBus);
+        ModMenus.MENUS.register(modEventBus);
+        ModEntities.TYPES.register(modEventBus);
+        ModEntities.attributes(modEventBus);
         modEventBus.addListener(ModPackets::register);
 
         NeoForge.EVENT_BUS.register(ModCommands.class);
@@ -31,6 +34,7 @@ public class AbyssalLootMod {
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientKeys.init(modEventBus);
             ClientHud.init(modEventBus);
+            ClientGui.init(modEventBus);
         }
     }
 }

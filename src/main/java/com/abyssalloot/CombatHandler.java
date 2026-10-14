@@ -35,6 +35,29 @@ public final class CombatHandler {
     private static final java.util.Map<java.util.UUID, Long> LAST_KILL_TICK =
             new java.util.HashMap<>();
 
+    /**
+     * 深淵MOBのバニラドロップを消す (骨・矢・火薬などのゴミ拾い防止).
+     * Mod の報酬 (武器・欠片) は直接配布のため影響なし。経験値オーブは残る.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onMobDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event) {
+        LivingEntity e = event.getEntity();
+        if (e instanceof ServerPlayer) return;
+        boolean ours = RunManager.BOSS_BARS.containsKey(e);
+        if (!ours) {
+            for (String t : e.getTags()) {
+                if (t.startsWith("abyss_")) {
+                    ours = true;
+                    break;
+                }
+            }
+        }
+        if (ours) {
+            event.getDrops().clear();
+            event.setCanceled(true);
+        }
+    }
+
     public static void after(int ticks, Runnable task) {
         PENDING.add(new DelayTask(ticks, task));
     }
@@ -47,24 +70,56 @@ public final class CombatHandler {
         // 奥義ゲージは撃破では増えない (原作: 与ダメ・被ダメで蓄積, onDamage 側で処理)
         player.setData(ModAttachments.KILLS.get(), player.getData(ModAttachments.KILLS.get()) + 1);
         player.setData(ModAttachments.COMBO.get(), player.getData(ModAttachments.COMBO.get()) + 1);
+        // スコア用: 最大コンボを記録
+        if (player.getData(ModAttachments.COMBO.get()) > player.getData(ModAttachments.BEST_COMBO.get())) {
+            player.setData(ModAttachments.BEST_COMBO.get(), player.getData(ModAttachments.COMBO.get()));
+        }
+        // 遺物「魂喰いの爪」: 撃破ごとに魂+8
+        if (RunManager.relicFlagsOf(player).contains("soulfang")) {
+            RunManager.addGauge(player, 8);
+        }
         // ドロップ: 6%で深淵武器 / 20%で魂の欠片. 幸運の運(+7/点)で武器率が上がり、
         // 魂の欠片は報酬倍率(呪印・難易度・契約)と幸運の素材倍率(+4%/点)を受ける
         var rand = player.getRandom();
         var mut = RunManager.currentMutation(player);
         double loot = mut != null ? mut.loot() : 1.0;
-        int luck = GameData.luckOf(RunManager.attrsOf(player)[4]);
+        // fate「呪いの霧」: 戦利品2倍
+        if (RunManager.hasFate(player, "mist")) loot *= 2;
+        int luck = RunManager.luckOf(player);
         // 原作: 敵ドロップ率 × 異変の loot 倍率 (豊穣の刻は1.85倍)
         double weaponChance = 0.06 * loot + GameData.luckDropBonus(luck);
         if (rand.nextDouble() < weaponChance) {
             var styles = GameData.WeaponStyle.values();
             var style = styles[rand.nextInt(styles.length)];
-            var drop = RunManager.makeWeapon(style, rand);
+            // 原作 rollRarity: 運・層で上位が出やすい
+            var drop = RunManager.makeWeapon(style, rand, luck,
+                    Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0);
             giveOrDrop(player, drop);
             player.sendSystemMessage(Component.literal(
                     "§b戦利品: " + drop.getHoverName().getString() + " (持ち替えで奥義が変わる)"));
+            if ("mythic".equals(RunManager.rarityOf(drop))) {
+                var a = GameData.achievementById("mythic-hunter");
+                grantAch(player, "mythic-hunter", a.title(), GameData.shardsForReward(a.reward()));
+            }
         } else if (rand.nextDouble() < 0.20) {
             int shards = RunManager.materialCount(player, 1.0);
             if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        }
+        // 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加
+        var deadTags = event.getEntity().getTags();
+        var deadNm = event.getEntity().getCustomName();
+        boolean isElite = deadNm != null && deadNm.getString().contains("エリート");
+        boolean isWarden = deadTags.contains(Enemies.WARDEN_TAG);
+        boolean isBoss = RunManager.BOSS_BARS.containsKey(event.getEntity());
+        if (isBoss) {
+            giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
+            if (rand.nextFloat() < 0.5) giveOrDrop(player, randomMaterial(rand));
+            player.sendSystemMessage(Component.literal("§5素材: 虚空のエッセンス×1 を得た"));
+        } else if (isWarden && rand.nextFloat() < 0.8) {
+            giveOrDrop(player, randomMaterial(rand));
+            player.sendSystemMessage(Component.literal("§5素材: 番人の落とし物を得た"));
+        } else if (isElite && rand.nextFloat() < 0.3) {
+            giveOrDrop(player, randomMaterial(rand));
         }
         // レベルアップ: LvL→L+1 に (L-1)(L+4) 撃破
         int kills = player.getData(ModAttachments.KILLS.get());
@@ -75,6 +130,10 @@ public final class CombatHandler {
             RunManager.applyClass(player, cls, lv);
             RunManager.heal(player, player.getMaxHealth() * 0.25);
             player.sendSystemMessage(Component.literal("§e◆ レベルアップ！ Lv" + lv + " (HP25%回復)"));
+            if (lv >= 20) {
+                var a = GameData.achievementById("level-twenty");
+                grantAch(player, "level-twenty", a.title(), GameData.shardsForReward(a.reward()));
+            }
             if (RunManager.isCovenant(player)) {
                 player.sendSystemMessage(Component.literal("§5不幸の盟約: 祝福は得られない (魂×3.0で償う)"));
             } else {
@@ -91,11 +150,58 @@ public final class CombatHandler {
             player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
             player.sendSystemMessage(Component.literal("§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
             RunManager.addGauge(player, 30);
+            // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ)
+            if (floor == 5) {
+                var a = GameData.achievementById("floor-five");
+                grantAch(player, "floor-five", a.title(), GameData.shardsForReward(a.reward()));
+            }
+            if (floor == 20) {
+                var a = GameData.achievementById("floor-twenty");
+                grantAch(player, "floor-twenty", a.title(), GameData.shardsForReward(a.reward()));
+            }
+            int bossCount = player.getData(ModAttachments.BOSSES.get()).split(",").length;
+            if (bossCount >= 3) {
+                var a = GameData.achievementById("boss-three");
+                grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
+            }
+            RunManager.offerPassives(player);
         }
-        // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発)
+        // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発) / 血の契約 (祝福・撃破回復)
         String killTrait = RunManager.traitOf(player.getMainHandItem());
         if ("vampiric".equals(killTrait)) {
             RunManager.heal(player, player.getMaxHealth() * 0.03);
+        }
+        if (RunManager.boonLv(player, "blood") > 0) {
+            RunManager.heal(player, player.getMaxHealth() * 0.05 * RunManager.boonLv(player, "blood"));
+        }
+        // 恩寵「爆砕の刻印」・槌・魔導書・接辞: 撃破時に爆裂
+        double explodeChance = RunManager.boonLv(player, "explode") * 0.18
+                + RunManager.wbonusOf(player).explodePct() / 100.0
+                + RunManager.affixOf(player, "explodePct") / 100.0;
+        if (explodeChance > 0 && rand.nextFloat() < explodeChance) {
+            WeaponArts.pulse(level, player, event.getEntity().position(), 4, 1.0, true,
+                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+        }
+        // 恩寵「刈り取り」: 強敵 (精鋭・番人・層主) の撃破で全ステータス強化 (+2%攻撃/+1%HP・上限20)
+        var deadName0 = event.getEntity().getCustomName();
+        boolean strong = (deadName0 != null && deadName0.getString().contains("エリート"))
+                || event.getEntity().getTags().contains(Enemies.WARDEN_TAG)
+                || RunManager.BOSS_BARS.containsKey(event.getEntity());
+        if (strong && RunManager.boonLv(player, "harvest") > 0
+                && player.getData(ModAttachments.HARVEST.get()) < 20) {
+            player.setData(ModAttachments.HARVEST.get(), player.getData(ModAttachments.HARVEST.get()) + 1);
+            var clsH = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+            RunManager.applyClass(player, clsH, player.getData(ModAttachments.LEVEL.get()));
+            player.displayClientMessage(Component.literal("§a刈り取り！ 全ステータス強化 ("
+                    + player.getData(ModAttachments.HARVEST.get()) + ")"), true);
+        }
+        // 鎌の収穫スタック: 鎌で撃破ごとに攻速+6% (最大10)。原作 scythe の収穫型ボーナス
+        if (ModItems.styleOf(player.getMainHandItem().getItem()) == GameData.WeaponStyle.SCYTHE
+                && player.getData(ModAttachments.SCYTHE.get()) < 10) {
+            player.setData(ModAttachments.SCYTHE.get(), player.getData(ModAttachments.SCYTHE.get()) + 1);
+            RunManager.refreshAttackSpeed(player);
+            player.displayClientMessage(Component.literal("§a収穫 +" +
+                    player.getData(ModAttachments.SCYTHE.get()) + " (攻速上昇)"), true);
         }
         if ("explosive".equals(killTrait)) {
             var at = event.getEntity().position();
@@ -108,12 +214,44 @@ public final class CombatHandler {
         if (player.getData(ModAttachments.KILLS.get()) >= 100) {
             grantAch(player, "hundred-kills", "百鬼夜行", 8);
         }
+        if (player.getData(ModAttachments.KILLS.get()) >= 1000) {
+            var a = GameData.achievementById("thousand-kills");
+            grantAch(player, "thousand-kills", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (player.getData(ModAttachments.COMBO.get()) >= 50) {
+            var a = GameData.achievementById("combo-fifty");
+            grantAch(player, "combo-fifty", a.title(), GameData.shardsForReward(a.reward()));
+        }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
         if (bossRec.contains("10")) grantAch(player, "floor-ten", "深層探査者", 10);
-        // 真ボス撃破判定
+        // 真ボス・頂点ボス撃破判定
         var deadName = event.getEntity().getCustomName();
         if (deadName != null && deadName.getString().contains("ニヒル")) {
             RunManager.trueVictory(player);
+        }
+        if (deadName != null && deadName.getString().contains("タルタロス")) {
+            RunManager.pinnacleVictory(player);
+        }
+        if (deadName != null && deadName.getString().contains("超越者")) {
+            RunManager.ascensionVictory(player);
+        }
+        // 分裂スライム母: 死亡時に子を2体残す (原作 split)
+        if (event.getEntity().getTags().contains(Enemies.SPLIT_TAG)
+                && event.getEntity() instanceof net.minecraft.world.entity.Mob dead) {
+            Enemies.handleSplit(level, dead, player);
+        }
+        // 精鋭「爆砕」: 死の間際、周囲を炸裂させる (原作 burst)
+        if (event.getEntity().getTags().contains(Enemies.ET_BURST)) {
+            var atk = event.getEntity().getAttribute(
+                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+            double boom = atk != null ? atk.getValue() * 2 : 20;
+            WeaponArts.enemyPulse(level, event.getEntity().position(), 5, boom,
+                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+        }
+        // 精鋭撃破の10%で遺物の3択 (原作の遺物拾いに対応)
+        if (deadName != null && deadName.getString().contains("エリート")
+                && player.getRandom().nextFloat() < 0.10) {
+            RunManager.offerRelics(player);
         }
         // 層クリア判定
         // 蘇生師・門の子は層のウェーブに含めない (数えると転移門が早く開いてしまう)
@@ -128,7 +266,10 @@ public final class CombatHandler {
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0
                 && player.getData(ModAttachments.FLOOR_KILLS.get()) >= total) {
             player.setData(ModAttachments.PORTAL_OPEN.get(), 1);
-            player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ /abyss next で次の層へ進め"));
+            player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ ")
+                    .append(Component.literal("§b[次の層へ進む]").withStyle(s -> s
+                            .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss next"))
+                            .withUnderlined(true))));
             level.playSound(null, player.blockPosition(),
                     net.minecraft.sounds.SoundEvents.PORTAL_TRIGGER, net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.2f);
             RunManager.offerEvent(player);
@@ -167,41 +308,48 @@ public final class CombatHandler {
         var at = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         switch (kind) {
             case "red" -> {
-                // 赤水晶: 周囲の敵を爆破 (自分にも当たる)
-                WeaponArts.trapBlast(level, player, at);
+                // 赤水晶: 原作通り 攻撃×4.2 の爆発 (220px ≒ 半径4)。自分にも当たる
+                WeaponArts.pulse(level, player, at, 4, 4.2, true,
+                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
                 player.sendSystemMessage(Component.literal("§c赤水晶が爆発した！"));
             }
             case "blue" -> {
-                // 青瓶: HP30%+魂30回復
-                RunManager.heal(player, player.getMaxHealth() * 0.3);
-                RunManager.addGauge(player, 30);
-                player.sendSystemMessage(Component.literal("§b青の霊薬！ HPと魂が回復した"));
+                // 青瓶: 原作通り 周囲の敵を凍結 (250px ≒ 半径5)。回復はしない
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
+                        at.x, at.y + 1, at.z, 30, 2, 1.5, 2, 0.1);
+                for (var e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(at.x - 5, at.y - 4, at.z - 5,
+                                at.x + 5, at.y + 4, at.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
+                    e.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 100, 1));
+                }
+                player.sendSystemMessage(Component.literal("§b青の霊薬！ 周囲の敵が凍結した"));
             }
             default -> {
-                // 運命の祭壇: 賭け
-                int roll = player.getRandom().nextInt(4);
-                switch (roll) {
-                    case 0 -> {
-                        RunManager.heal(player, player.getMaxHealth());
-                        player.sendSystemMessage(Component.literal("§6運命の加護【満月】HP全回復！"));
-                    }
-                    case 1 -> {
-                        player.setData(ModAttachments.SOUL.get(), 100f);
-                        player.sendSystemMessage(Component.literal("§d運命の加護【新月】魂MAX！"));
-                    }
-                    case 2 -> {
-                        for (int i = 0; i < 5; i++) {
-                            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
-                        }
-                        player.sendSystemMessage(Component.literal("§e運命の加護【黄金】欠片×5！"));
-                    }
-                    default -> {
-                        RunManager.spawnWave(player, player.getData(ModAttachments.FLOOR.get()), false);
-                        player.sendSystemMessage(Component.literal("§4運命の災厄【蝕】追っ手が来た！"));
-                    }
-                }
+                // 運命の祭壇: 原作の5 fate から1つ (rage/gold/haste/armor/scourge)
+                String[] fates = {"rage", "gold", "haste", "armor", "scourge"};
+                String fate = fates[player.getRandom().nextInt(fates.length)];
+                int dur = fate.equals("scourge") ? 400 : fate.equals("gold") || fate.equals("haste") ? 600 : 500;
+                RunManager.setShrine(player, fate, dur);
+                String label = switch (fate) {
+                    case "rage" -> "§c怒りの加護: 与ダメ+60%・被ダメ+20% (25秒)";
+                    case "gold" -> "§6黄金の祝福: 素材+150%・最大HP-20 (30秒)";
+                    case "haste" -> "§a風の加護: 攻速・移動が上昇 (30秒)";
+                    case "armor" -> "§7大地の加護: 被ダメ-50%・回避不可 (25秒)";
+                    default -> "§5深淵の試練: 毎秒2損耗・運+100 (20秒)";
+                };
+                player.sendSystemMessage(Component.literal("§e【運命の祭壇】" + label));
             }
         }
+    }
+
+    /** 素材の抽選 (古代50/混沌30/虚空20。原作 MATERIALS の重みに対応) */
+    private static ItemStack randomMaterial(net.minecraft.util.RandomSource rand) {
+        float r = rand.nextFloat();
+        if (r < 0.2f) return new ItemStack(ModItems.VOID_ESSENCE.get());
+        if (r < 0.5f) return new ItemStack(ModItems.CHAOS_GEM.get());
+        return new ItemStack(ModItems.ANCIENT_STONE.get());
     }
 
     private static int needFor(int level) {
@@ -233,37 +381,33 @@ public final class CombatHandler {
 
     /* ---------------- 祝福3択 ---------------- */
 
-    public record BoonDef(String id, String name, String desc) {}
+    /** 祝福定義は {@link Boons} (MC非依存・テスト可能)。ここは互換の別名 */
+    public record BoonDef(String id, String name, String desc, String grade) {}
 
-    public static final BoonDef[] BOON_POOL = {
-            new BoonDef("dmg", "剛力の刻印", "攻撃+12%"),
-            new BoonDef("as", "迅風の刻印", "攻速+10%"),
-            new BoonDef("crit", "心眼の刻印", "会心+5%"),
-            new BoonDef("hp", "巨躯の刻印", "最大HP+10%"),
-            new BoonDef("armor", "鉄壁の刻印", "被ダメ-6%"),
-            new BoonDef("speed", "疾走の刻印", "移動+6%"),
-            new BoonDef("art", "武の刻印", "奥義・必殺+12%"),
-            new BoonDef("life", "吸血の刻印", "与ダメの4%回復"),
-            new BoonDef("orbit", "回転刃", "周囲を刃が周回する"),
-            new BoonDef("aura", "聖なる領域", "周囲の敵を焼く"),
-            new BoonDef("chain", "連鎖雷撃", "命中時に雷が連鎖"),
-            new BoonDef("missile", "追尾魔弾", "自動で魔弾を発射"),
-            new BoonDef("nova", "氷霜新星", "6秒ごとに氷結波"),
-            new BoonDef("familiar", "影の眷属", "使い魔が援護射撃"),
-            new BoonDef("quake", "大地の怒り", "回避着地で爆発"),
-    };
+    /** @deprecated {@link Boons#BOON_POOL} を使うこと */
+    @Deprecated
+    public static final BoonDef[] BOON_POOL = toLegacyPool();
 
-    public static BoonDef boonById(String id) {
-        for (var b : BOON_POOL) {
-            if (b.id().equals(id)) return b;
+    private static BoonDef[] toLegacyPool() {
+        var src = Boons.BOON_POOL;
+        var out = new BoonDef[src.length];
+        for (int i = 0; i < src.length; i++) {
+            out[i] = new BoonDef(src[i].id(), src[i].name(), src[i].desc(), src[i].grade());
         }
-        return null;
+        return out;
+    }
+
+    /** @deprecated {@link Boons#boonById(String)} を使うこと */
+    @Deprecated
+    public static BoonDef boonById(String id) {
+        var b = Boons.boonById(id);
+        return b == null ? null : new BoonDef(b.id(), b.name(), b.desc(), b.grade());
     }
 
     public static void offerBoons(ServerPlayer player) {
-        var pool = new java.util.ArrayList<>(java.util.List.of(BOON_POOL));
-        java.util.Collections.shuffle(pool, new java.util.Random(player.getRandom().nextLong()));
-        var pick = pool.subList(0, Math.min(3, pool.size()));
+        // 原作 rollBoons と同じ重み (common 4.2 / rare 2.4 / epic 1.1) で3択
+        var rand = player.getRandom();
+        var pick = Boons.rollBoons(rand::nextDouble, 3);
         var ids = new java.util.ArrayList<String>();
         var msg = Component.literal("§e祝福を選べ: ");
         for (var b : pick) {
@@ -301,12 +445,24 @@ public final class CombatHandler {
     /** 無敵時間の適用 + 武器ダメージの原作式上書き */
     @SubscribeEvent
     public static void onDamage(LivingDamageEvent.Pre event) {
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel) {
+        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             float iframe = player.getData(ModAttachments.IFRAME.get());
             if (iframe > 0) {
                 event.setNewDamage(0f);
                 // 見切り: 無敵中に受けた攻撃は魂+14
                 RunManager.addGauge(player, 14);
+                int perfect = player.getData(ModAttachments.PERFECT.get()) + 1;
+                player.setData(ModAttachments.PERFECT.get(), perfect);
+                if (perfect >= 10) {
+                    var a = GameData.achievementById("perfect-ten");
+                    grantAch(player, "perfect-ten", a.title(), GameData.shardsForReward(a.reward()));
+                }
+                // 見切りの成立時刻 (恩寵「完全主義」の3秒窓)
+                player.setData(ModAttachments.PARRY_TICK.get(), player.level().getGameTime());
+                // 遺物「嵐召喚者の冠」: 見切りのたび落雷が3体を焼く
+                if (RunManager.relicFlagsOf(player).contains("storm")) {
+                    stormStrike(level, player);
+                }
                 player.displayClientMessage(Component.literal("§a見切り！"), true);
                 return;
             }
@@ -315,9 +471,94 @@ public final class CombatHandler {
             if (armor > 0) {
                 event.setNewDamage(event.getNewDamage() * (float) Math.max(0.5, 1 - 0.06 * armor));
             }
+            // 呪い武器 (armorPct): 防御低下 (呪喰らいで無効化)
+            var heldDef = player.getMainHandItem();
+            if (RunManager.curseActive(player, heldDef) && "armorPct".equals(RunManager.curseOf(heldDef))) {
+                event.setNewDamage(event.getNewDamage()
+                        * (float) (1 - RunManager.curseValueOf(heldDef) / 100.0));
+            }
+            // 接辞 (armorPct): 被ダメ軽減
+            double affixArmor = RunManager.affixOf(player, "armorPct");
+            if (affixArmor != 0) {
+                event.setNewDamage(event.getNewDamage()
+                        * (float) Math.max(0.3, 1 - affixArmor / 100.0));
+            }
+            // 恩寵「障壁の刻印」: 立ち止まると軽減が上がる (動いていなければ +8%/Lv)
+            if (RunManager.boonLv(player, "warden") > 0
+                    && player.getDeltaMovement().horizontalDistanceSqr() < 0.0015) {
+                event.setNewDamage(event.getNewDamage()
+                        * (float) Math.max(0.4, 1 - 0.08 * RunManager.boonLv(player, "warden")));
+            }
+            // 恩寵「強欲の刻印」: 被ダメ+10%/Lv
+            int greedLv = RunManager.boonLv(player, "greed");
+            if (greedLv > 0) {
+                event.setNewDamage(event.getNewDamage() * (float) (1 + 0.10 * greedLv));
+            }
+            // 弾幕の獄: 被弾は軽い (敵の弾が濃いかわりに)
+            if ("danmaku".equals(player.getData(ModAttachments.MODE.get()))) {
+                event.setNewDamage(event.getNewDamage() * 0.6f);
+            }
+            // 技能の被ダメ補正 (原作 passiveMods 対応分)
+            var passives = RunManager.passivesOf(player);
+            double armorPct = GameData.passiveArmorPct(passives);
+            if (passives.contains("last_stand")
+                    && player.getHealth() / Math.max(1, player.getMaxHealth()) < 0.3) {
+                armorPct += 25;
+            }
+            if (armorPct != 0) {
+                event.setNewDamage(event.getNewDamage() * (float) Math.max(0.3, 1 - armorPct / 100.0));
+            }
+            // 技能「勢い」: コンボが切れると被ダメ+15%
+            if (passives.contains("momentum") && player.getData(ModAttachments.COMBO.get()) <= 0) {
+                event.setNewDamage(event.getNewDamage() * 1.15f);
+            }
             // 不壊: 命中から10秒は被ダメ-10%
             if (player.getData(ModAttachments.FORTIFY.get()) > 0) {
                 event.setNewDamage(event.getNewDamage() * 0.9f);
+            }
+            // fate「呪いの霧」: 被ダメ+30%
+            if (RunManager.hasFate(player, "mist")) {
+                event.setNewDamage(event.getNewDamage() * 1.3f);
+            }
+            // 祭壇「怒り」: 被ダメ+20% / 「大地」: 被ダメ-50%
+            String shrine = RunManager.activeShrine(player);
+            if ("rage".equals(shrine)) event.setNewDamage(event.getNewDamage() * 1.2f);
+            if ("armor".equals(shrine)) event.setNewDamage(event.getNewDamage() * 0.5f);
+            // 致死回避: 不滅の誓い (確定・1ラン1回) / 呪われた鏡 (40%・1ラン1回)
+            if (event.getNewDamage() >= player.getHealth() && player.getHealth() > 0
+                    && player.getData(ModAttachments.MIRROR_USED.get()) == 0) {
+                boolean undying = passives.contains("undying");
+                boolean mirror = RunManager.relicFlagsOf(player).contains("mirror");
+                if (undying || (mirror && player.getRandom().nextFloat() < 0.40)) {
+                    player.setData(ModAttachments.MIRROR_USED.get(), 1);
+                    event.setNewDamage(0f);
+                    player.setHealth(player.getMaxHealth() * 0.5f);
+                    player.displayClientMessage(Component.literal(
+                            undying ? "§f不滅の誓いが発動！ HP50%で復活" : "§b呪われた鏡が身代わりになった！"), false);
+                    return;
+                }
+            }
+            // 技能「棘の王」: 棘+80を反射
+            if (passives.contains("thorn_lord") && event.getSource().getEntity() instanceof LivingEntity atk) {
+                WeaponArts.artHurt((ServerLevel) player.level(), atk,
+                        player.level().damageSources().playerAttack(player), 80f);
+            }
+            // 精鋭「吸魂」: 攻撃命中で自身のHPを吸収する
+            if (event.getSource().getEntity() instanceof LivingEntity leech
+                    && leech.getTags().contains(Enemies.ET_VAMPIRE)) {
+                leech.heal(Math.min(event.getNewDamage() * 0.5f, leech.getMaxHealth() * 0.1f));
+            }
+            // 恩寵「復讐の刻印」: 被弾時に周囲へ爆発
+            int vengeance = RunManager.boonLv(player, "vengeance");
+            if (vengeance > 0 && event.getNewDamage() > 0) {
+                WeaponArts.pulse(level, player, player.position(), 4, 0.5 * vengeance, true,
+                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+            }
+            // 恩寵「棘甲の刻印」: 棘ダメージ+25/Lv (攻撃者へ反射)
+            int thorns = RunManager.boonLv(player, "thorns");
+            if (thorns > 0 && event.getSource().getEntity() instanceof LivingEntity atk) {
+                WeaponArts.artHurt(level, atk,
+                        level.damageSources().playerAttack(player), 25f * thorns);
             }
             // 重圧の層: 被ダメ+15%
             // 被ダメ由来の奥義ゲージ (原作: 残HPまでの被害 / 最大HP * 35)
@@ -327,18 +568,25 @@ public final class CombatHandler {
         if (event.getSource().getEntity() instanceof ServerPlayer player
                 && player.level() instanceof ServerLevel level) {
             // 奥義・罠・二次反応の命中は威力を上書きせず、ゲージも増やさない
-            if (WeaponArts.inArtHit()) return;
+            if (WeaponArts.inArtHit()) {
+                // スコア用: 奥義等の与ダメも累積する
+                player.setData(ModAttachments.DMG_DEALT.get(),
+                        player.getData(ModAttachments.DMG_DEALT.get()) + (int) event.getNewDamage());
+                return;
+            }
             ItemStack held = player.getMainHandItem();
             if (ModItems.styleOf(held.getItem()) != null) {
                 double atk = RunManager.attackDamageOf(player);
                 boolean crit = player.getRandom().nextFloat() < RunManager.critOf(player);
-                float dmg = (float) (atk * (crit ? 2.0 : 1.0));
+                // 致命の刻印: 会心威力 +45%/Lv
+                float dmg = (float) (atk * (crit ? RunManager.critDamageMult(player) : 1.0));
                 // レアリティ倍率
                 dmg *= (float) RunManager.rarityMult(RunManager.rarityOf(held));
                 String trait = RunManager.traitOf(held);
-                // 反撃窓: 回避直後の初撃×1.5 (原作カウンター)
+                // 反撃窓: 回避直後の初撃×1.5 (技能「完全主義」は×1.9・原作カウンター)
                 if (player.getData(ModAttachments.COUNTER.get()) > 0) {
-                    dmg *= 1.5f;
+                    boolean perfection = RunManager.passivesOf(player).contains("perfection");
+                    dmg *= perfection ? 1.9f : 1.5f;
                     player.setData(ModAttachments.COUNTER.get(), 0f);
                     player.displayClientMessage(Component.literal("§e反撃！"), true);
                 }
@@ -348,22 +596,68 @@ public final class CombatHandler {
                         && target.getHealth() / Math.max(1, target.getMaxHealth()) < 0.3f) {
                     dmg *= 1.5f;
                 }
+                // 祝福「処刑人」: 瀕死の敵へ+90%
+                if (RunManager.boonLv(player, "execute") > 0
+                        && target.getHealth() / Math.max(1, target.getMaxHealth()) < 0.3f) {
+                    dmg *= 1.9f;
+                }
                 if ("frenzy".equals(trait) && player.getData(ModAttachments.COMBO.get()) >= 30) {
                     dmg *= 1.25f;
                 }
+                // 技能「巨人殺し」: エリート・層主へ+45%、雑魚へ-15%
+                var pflags = RunManager.passiveFlagsOf(player);
+                if (pflags.contains("giant_slayer")) {
+                    boolean big = target.getTags().contains(Enemies.WARDEN_TAG)
+                            || RunManager.BOSS_BARS.containsKey(target)
+                            || (target.getCustomName() != null
+                                    && target.getCustomName().getString().contains("エリート"));
+                    dmg *= big ? 1.45f : 0.85f;
+                }
+                // 技能「群れの克星」: 標的の周囲8mに3体以上いれば+35%
+                if (pflags.contains("swarm_bane")) {
+                    var tp = target.position();
+                    long near = level.getEntitiesOfClass(LivingEntity.class,
+                            new net.minecraft.world.phys.AABB(tp.x - 8, tp.y - 4, tp.z - 8,
+                                    tp.x + 8, tp.y + 4, tp.z + 8),
+                            e -> e.isAlive() && !(e instanceof ServerPlayer)).size();
+                    if (near >= 3) dmg *= 1.35f;
+                }
                 event.setNewDamage(dmg);
+                // スコア用: 累積与ダメ (切り捨て)
+                player.setData(ModAttachments.DMG_DEALT.get(),
+                        player.getData(ModAttachments.DMG_DEALT.get()) + (int) dmg);
                 // 与ダメ由来の奥義ゲージ (残HPまで=オーバーキル除外)
                 float actual = Math.min(dmg, target.getHealth());
                 RunManager.addGauge(player, GameData.artChargeGain(actual, atk, false));
-                // 吸血の刻印 (祝福)
+                // 吸血の刻印 (祝福) / 血の盟約 (技能・+6%/自然回復喪失は回復量で近似) / 接辞
                 int life = RunManager.boonLv(player, "life");
                 if (life > 0 && dmg > 0) RunManager.heal(player, dmg * 0.04 * life);
+                double affixLeech = RunManager.affixOf(player, "lifestealPct");
+                if (affixLeech > 0 && dmg > 0) RunManager.heal(player, dmg * affixLeech / 100.0);
+                if (RunManager.passivesOf(player).contains("blood_pact") && dmg > 0) {
+                    RunManager.heal(player, dmg * 0.06);
+                }
                 // 不壊の付与
                 if ("fortify".equals(trait)) player.setData(ModAttachments.FORTIFY.get(), 10f);
-                // 状態異常 (業火/猛毒/裂傷)
+                // 状態異常 (業火/猛毒/裂傷/業火の刻/氷縛の理)
                 var rand = player.getRandom();
                 if ("infernus".equals(trait) && rand.nextFloat() < 0.15f) {
                     target.setRemainingFireTicks(60);
+                }
+                if (RunManager.passivesOf(player).contains("slow_burn") && rand.nextFloat() < 0.35f) {
+                    target.setRemainingFireTicks(40);
+                }
+                // 恩寵「凍牙の刻印」・接辞: 命中時に氷結鈍足
+                double freezeChance = RunManager.boonLv(player, "freeze") * 0.20
+                        + RunManager.affixOf(player, "freezePct") / 100.0;
+                if (freezeChance > 0 && rand.nextFloat() < freezeChance) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                    target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 40, 0));
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
+                            target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.05);
+                }
+                if (RunManager.passivesOf(player).contains("frostbound") && rand.nextFloat() < 0.40f) {
+                    target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
                 }
                 if ("venomous".equals(trait) && rand.nextFloat() < 0.12f) {
                     target.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
@@ -373,30 +667,94 @@ public final class CombatHandler {
                 }
                 // 連鎖雷 (武器特性 / 祝福): 他の敵へ飛び移る
                 int chainLv = RunManager.boonLv(player, "chain");
-                boolean weaponChain = "chain_l".equals(trait);
+                boolean weaponChain = "chain_l".equals(trait) || RunManager.affixOf(player, "chain") > 0;
                 if ((weaponChain || chainLv > 0) && rand.nextFloat() < (weaponChain ? 1f : 0.25f)) {
                     float chainDmg = (float) (atk * (weaponChain ? 0.5 : 0.6));
-                    chainStrike(level, player, target, chainDmg);
+                    // 貫通の刻印・弓・輪刃: 飛移り +2/個
+                    int jumps = 2 + RunManager.boonLv(player, "pierce") * 2
+                            + RunManager.wbonusOf(player).pierce() * 2
+                            + (int) RunManager.affixOf(player, "pierce") * 2;
+                    chainStrike(level, player, target, chainDmg, jumps);
+                }
+                // 恩寵「渦刃」: 命中のたびに刃の渦が飛ぶ (周囲に小斬撃)
+                if (RunManager.boonLv(player, "bladespin") > 0) {
+                    WeaponArts.pulse(level, player, target.position(), 3, 0.35, false,
+                            net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK);
+                }
+                // 恩寵「天雷の刻印」: 命中時に8%/Lvで落雷
+                int thunder = RunManager.boonLv(player, "thunderfury");
+                if (thunder > 0 && rand.nextFloat() < 0.08 * thunder) {
+                    thunderStrike(level, player, target);
+                }
+                // 技能「残響の型」: 15%でフィニッシャーが再放される
+                if (RunManager.passiveFlagsOf(player).contains("echo_strike")
+                        && rand.nextFloat() < 0.15f) {
+                    WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player), dmg);
+                }
+                // 拳套: 3連撃ごとに衝撃波 (原作 gauntlet の連打型ボーナス)
+                if (ModItems.styleOf(player.getMainHandItem().getItem()) == GameData.WeaponStyle.GAUNTLET) {
+                    int hits = player.getData(ModAttachments.GCNT.get()) + 1;
+                    player.setData(ModAttachments.GCNT.get(), hits);
+                    if (hits % 3 == 0) {
+                        WeaponArts.pulse(level, player, target.position(), 3, 1.0, true,
+                                net.minecraft.core.particles.ParticleTypes.CRIT);
+                    }
                 }
             }
         }
     }
 
-    /** 連鎖雷撃: 目標以外の最寄り2体へ飛び移る */
-    private static void chainStrike(ServerLevel level, ServerPlayer player, LivingEntity from, float dmg) {
+    /** 遺物「嵐召喚者の冠」: 見切りのたび、空から落雷が3体の敵を焼く */
+    private static void stormStrike(ServerLevel level, ServerPlayer player) {
+        var pos = player.position();
+        var targets = level.getEntitiesOfClass(LivingEntity.class,
+                new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,
+                        pos.x + 16, pos.y + 6, pos.z + 16),
+                e -> e.isAlive() && !(e instanceof ServerPlayer));
+        targets.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
+        int n = 0;
+        for (var e : targets) {
+            if (n++ >= 3) break;
+            WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player),
+                    (float) RunManager.attackDamageOf(player));
+            level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
+                    e.getX(), e.getY() + 1, e.getZ(), 16, 0.4, 0.8, 0.4, 0.1);
+        }
+        if (n > 0) {
+            level.playSound(null, player.blockPosition(),
+                    net.minecraft.sounds.SoundEvents.LIGHTNING_BOLT_THUNDER,
+                    net.minecraft.sounds.SoundSource.PLAYERS, 0.5f, 1.4f);
+        }
+    }
+
+    /** 恩寵「天雷の刻印」: 1体に強めの落雷 */
+    private static void thunderStrike(ServerLevel level, ServerPlayer player, LivingEntity target) {
+        var pos = target.position();
+        level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
+                pos.x, pos.y + 1, pos.z, 24, 0.4, 1, 0.4, 0.15);
+        WeaponArts.artHurt(level, target,
+                level.damageSources().playerAttack(player),
+                (float) (RunManager.attackDamageOf(player) * 1.5));
+        level.playSound(null, target.blockPosition(),
+                net.minecraft.sounds.SoundEvents.LIGHTNING_BOLT_THUNDER,
+                net.minecraft.sounds.SoundSource.PLAYERS, 0.4f, 1.0f);
+    }
+
+    /** 連鎖雷撃: 目標以外の最寄り n 体へ飛び移る */
+    private static void chainStrike(ServerLevel level, ServerPlayer player, LivingEntity from, float dmg, int n) {
         var pos = from.position();
         var others = level.getEntitiesOfClass(LivingEntity.class,
                 new net.minecraft.world.phys.AABB(pos.x - 8, pos.y - 4, pos.z - 8, pos.x + 8, pos.y + 4, pos.z + 8),
                 e -> e.isAlive() && e != from && !(e instanceof ServerPlayer));
         others.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
-        int n = 0;
+        int count = 0;
         for (var e : others) {
-            if (n++ >= 2) break;
+            if (count++ >= Math.max(1, n)) break;
             WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), dmg);
             level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
                     e.getX(), e.getY() + 1, e.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
         }
-        if (n > 0) {
+        if (count > 0) {
             level.playSound(null, from.blockPosition(),
                     net.minecraft.sounds.SoundEvents.LIGHTNING_BOLT_THUNDER,
                     net.minecraft.sounds.SoundSource.PLAYERS, 0.4f, 1.6f);
@@ -448,7 +806,19 @@ public final class CombatHandler {
         }
         if (WeaponArts.execute(player, style,
                 RunManager.attackDamageOf(player) * RunManager.artMultOf(player))) {
-            player.setData(ModAttachments.SOUL.get(), 0f);
+            // 恩寵「残響の刻印」: 奥義後に25%/Lvで魂ゲージが半分残る
+            if (player.getRandom().nextFloat() < 0.25 * RunManager.boonLv(player, "echo")) {
+                player.setData(ModAttachments.SOUL.get(), 50f);
+                player.displayClientMessage(Component.literal("§d残響！ 魂ゲージが半分残った"), true);
+            } else {
+                player.setData(ModAttachments.SOUL.get(), 0f);
+            }
+            int uses = player.getData(ModAttachments.ART_USES.get()) + 1;
+            player.setData(ModAttachments.ART_USES.get(), uses);
+            if (uses >= 10) {
+                var a = GameData.achievementById("art-master");
+                grantAch(player, "art-master", a.title(), GameData.shardsForReward(a.reward()));
+            }
             return true;
         }
         return false;
@@ -504,6 +874,7 @@ public final class CombatHandler {
             if (fortify > 0) player.setData(ModAttachments.FORTIFY.get(), Math.max(0, fortify - 0.05f));
             if (tickCounter % 10 == 0) RunManager.tickTraps(player);
             if (tickCounter % 20 == 0) tickAbilityBoons(player);
+            if (tickCounter % 20 == 0) RunManager.tickRunEffects(player);
             // コンボ減衰 (5秒撃破なしでリセット・原作comboT準拠)
             Long last = LAST_KILL_TICK.get(player.getUUID());
             if (player.getData(ModAttachments.COMBO.get()) > 0
@@ -517,7 +888,9 @@ public final class CombatHandler {
                                 player.getData(ModAttachments.FLOOR.get()),
                                 player.getData(ModAttachments.LEVEL.get()),
                                 player.getData(ModAttachments.KILLS.get()),
-                                player.getData(ModAttachments.COMBO.get())));
+                                player.getData(ModAttachments.COMBO.get()),
+                                RunManager.attrPointsLeft(player),
+                                player.getData(ModAttachments.PORTAL_OPEN.get())));
             }
         }
         // ボスバー進捗 + 真ボス弾幕
@@ -532,6 +905,7 @@ public final class CombatHandler {
                 e.getValue().setProgress((float) (boss.getHealth() / Math.max(1, boss.getMaxHealth())));
                 if (tickCounter % 100 == 0 && boss.level() instanceof ServerLevel sl) {
                     RunManager.tickTrueBoss(sl, boss);
+                    RunManager.tickPinnacleBoss(sl, boss);
                 }
             }
         }
@@ -557,17 +931,24 @@ public final class CombatHandler {
                     net.minecraft.core.particles.ParticleTypes.FLAME);
         }
         if (RunManager.boonLv(player, "missile") > 0) {
-            var target = level.getEntitiesOfClass(LivingEntity.class,
-                    new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,
-                            pos.x + 16, pos.y + 6, pos.z + 16),
-                    e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
-                    .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
-                    .orElse(null);
-            if (target != null) {
-                WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
-                        (float) (RunManager.attackDamageOf(player) * 0.7));
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
-                        target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
+            // 分裂の刻印・弓の追加弾: 発射弾数 +1/Lv
+            int shots = 1 + RunManager.boonLv(player, "proj")
+                    + RunManager.wbonusOf(player).projectiles()
+                    + (int) RunManager.affixOf(player, "projectiles");
+            for (int i = 0; i < shots; i++) {
+                var target = level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,
+                                pos.x + 16, pos.y + 6, pos.z + 16),
+                        e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
+                        .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
+                        .orElse(null);
+                if (target != null) {
+                    WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
+                            (float) (RunManager.attackDamageOf(player) * 0.7));
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
+                            target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
+                    if (shots > 1) target.teleportTo(target.getX(), target.getY(), target.getZ());
+                }
             }
         }
         // 影の眷属: 3秒ごとに使役が援護 (2秒周期tickの3回に1回≒6秒では遅いので毎tick判定で別カウンタ)
@@ -610,10 +991,13 @@ public final class CombatHandler {
         Vec3 dest = player.position().add(look.x * 6, 0, look.z * 6);
         player.teleportTo(dest.x, dest.y, dest.z);
         player.setData(ModAttachments.IFRAME.get(), 0.5f);
-        // 原作: 職業別の回避CT. 敏捷1点につき-1% (下限0.28秒)
+        // 原作: 職業別の回避CT. 敏捷1点につき-1% (下限0.28秒)。
+        // 疾走の刻印: 回避短縮12%/Lv (原作 b_speed.dashCdPct)
         var cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        player.setData(ModAttachments.DASH_CD.get(),
-                (float) GameData.dashCooldown(cls, RunManager.attrsOf(player)[2]));
+        double dashCd = GameData.dashCooldown(cls, RunManager.attrsOf(player)[2]);
+        int dashPct = RunManager.boonLv(player, "speed") * 12;
+        if (dashPct > 0) dashCd *= Math.max(0.5, 1 - dashPct / 100.0);
+        player.setData(ModAttachments.DASH_CD.get(), (float) dashCd);
         player.setData(ModAttachments.COUNTER.get(), 1.0f);
         player.displayClientMessage(Component.literal("§b回避！"), true);
         ((ServerLevel) player.level()).sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD,
@@ -646,15 +1030,34 @@ public final class CombatHandler {
                 a[0], a[1], a[2], a[3], a[4],
                 RunManager.boonsOf(player).toString(),
                 player.getData(ModAttachments.BOSSES.get()))));
+        player.sendSystemMessage(Component.literal(String.format(
+                "§7区域 %s §8| §7遺物 %s §8| §7技能 %s §8| §7実績 %s",
+                GameData.zoneForFloor(player.getData(ModAttachments.FLOOR.get())).name(),
+                RunManager.relicsOf(player).toString(),
+                RunManager.passivesOf(player).toString(),
+                player.getData(ModAttachments.ACH.get()))));
         var held = player.getMainHandItem();
         if (ModItems.styleOf(held.getItem()) != null) {
             String trait = RunManager.traitOf(held);
+            String curse = RunManager.curseOf(held);
+            int affixes = 0;
+            for (var ak : GameData.WEAPON_AFFIXES) {
+                if (RunManager.affixOf(held, ak.key()) != 0) affixes++;
+            }
             player.sendSystemMessage(Component.literal(String.format(
-                    "§7武器 %s (希少:%s 特性:%s 鍛造+%d)",
+                    "§7武器 %s (希少:%s 特性:%s%s 接辞:%d 鍛造+%d)",
                     held.getHoverName().getString(),
                     RunManager.rarityOf(held),
                     trait != null ? RunManager.traitName(trait) : "なし",
+                    curse != null ? " 呪い:" + curse + RunManager.curseValueOf(held) : "",
+                    affixes,
                     RunManager.forgeLv(held))));
         }
+        player.sendSystemMessage(Component.literal(String.format(
+                "§7スコア %d (撃破%d 与ダメ%d 最大 combo%d)",
+                RunManager.calcScore(player, false),
+                player.getData(ModAttachments.KILLS.get()),
+                player.getData(ModAttachments.DMG_DEALT.get()),
+                player.getData(ModAttachments.BEST_COMBO.get()))));
     }
 }

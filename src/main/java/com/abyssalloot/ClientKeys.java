@@ -12,7 +12,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * クライアント専用: E=武器奥義 / Q=必殺技 / C=回避ダッシュ (原作docの E/Q 配置に合わせる).
+ * クライアント専用: R=武器奥義 / V=必殺技 / X=回避ダッシュ / G=操作ハブ.
+ * E(インベントリ)・Q(ドロップ)・F(持ち替え)・C と被らない配置。
  * サーバー側では決して読み込まれない (Distチェック経由でのみ初期化).
  */
 public final class ClientKeys {
@@ -21,6 +22,7 @@ public final class ClientKeys {
     private static KeyMapping artKey;
     private static KeyMapping skillKey;
     private static KeyMapping dashKey;
+    private static KeyMapping hubKey;
 
     public static void init(IEventBus modBus) {
         modBus.addListener((RegisterKeyMappingsEvent event) -> {
@@ -29,14 +31,17 @@ public final class ClientKeys {
                             AbyssalLootMod.MODID, "main"));
             event.registerCategory(category);
             artKey = new KeyMapping("key.abyssalloot.art", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_E, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, category);
             skillKey = new KeyMapping("key.abyssalloot.skill", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Q, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, category);
             dashKey = new KeyMapping("key.abyssalloot.dash", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, category);
+            hubKey = new KeyMapping("key.abyssalloot.hub", KeyConflictContext.IN_GAME,
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, category);
             event.register(artKey);
             event.register(skillKey);
             event.register(dashKey);
+            event.register(hubKey);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             var conn = Minecraft.getInstance().getConnection();
@@ -49,6 +54,9 @@ public final class ClientKeys {
             }
             while (dashKey != null && dashKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("dash")));
+            }
+            while (hubKey != null && hubKey.consumeClick()) {
+                conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("hub")));
             }
         });
     }
