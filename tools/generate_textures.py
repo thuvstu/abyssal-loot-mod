@@ -209,60 +209,168 @@ MATERIALS = {
     "void_essence": 0x7c8cff,
 }
 
-# 深淵MOBの固有テクスチャ (原作 ENEMIES / BOSSES の color・accent)
+# 深淵MOBの固有テクスチャ (原作 ENEMIES / BOSSES の color・accent・shape準拠)。
+# (base, accent, pattern): pattern は FREE ゾーン (0,48,64,16) の模様。
 ENTITIES = {
-    "slime": (0x4bd07a, 0xc8ffe0),
-    "splitter": (0x7dd6a0, 0xd6ffe8),
-    "bat": (0x9d6bff, 0xe6d6ff),
-    "mirrorbat": (0x5cd8ff, 0xe0f8ff),
-    "goblin": (0x7ec850, 0xf2ffd6),
-    "skeleton": (0xdfe6ee, 0x8b95a5),
-    "imp": (0xff7a3c, 0xffd9a8),
-    "bomber": (0xffb03c, 0xfff0c9),
-    "wraith": (0x6ad7ff, 0xe6fbff),
-    "golem": (0xa58a6b, 0xffd9a0),
-    "phantom": (0xa070ff, 0xe8dcff),
-    "cultist": (0xff8ac2, 0xffd6ec),
-    "eye": (0xff5c9d, 0xffd6e8),
-    "boss_eye": (0xff5cc8, 0xffd6f2),
-    "charger": (0xc96a4a, 0xffe0cf),
-    "dragonkin": (0xe0455f, 0xffd0d8),
-    "guard": (0x7d9eb9, 0xd7ebff),
-    "necromancer": (0xb28ce0, 0xe9d2ff),
-    "gate": (0xbd517d, 0xffc4d8),
-    "goblin_king": (0x8fd44f, 0xffe98a),
-    "wyrm": (0x7c5cff, 0xd9c9ff),
-    "knight": (0xff3b5c, 0xffc9d2),
-    "nihil": (0xb14bff, 0xf0d6ff),
-    "zero": (0xffffff, 0xe34bff),
-    "omega": (0xff2a55, 0xffd700),
-    "ascender": (0xffd700, 0xffffff),
+    "slime": (0x4bd07a, 0xc8ffe0, "bubbles"),
+    "splitter": (0x7dd6a0, 0xd6ffe8, "bubbles"),
+    "bat": (0x9d6bff, 0xe6d6ff, "membrane"),
+    "mirrorbat": (0x5cd8ff, 0xe0f8ff, "membrane"),
+    "goblin": (0x7ec850, 0xf2ffd6, "cracks"),
+    "skeleton": (0xdfe6ee, 0x8b95a5, "cracks"),
+    "imp": (0xff7a3c, 0xffd9a8, "flames"),
+    "bomber": (0xffb03c, 0xfff0c9, "flames"),
+    "wraith": (0x6ad7ff, 0xe6fbff, "mist"),
+    "golem": (0xa58a6b, 0xffd9a0, "cracks"),
+    "phantom": (0xa070ff, 0xe8dcff, "mist"),
+    "cultist": (0xff8ac2, 0xffd6ec, "flames"),
+    "eye": (0xff5c9d, 0xffd6e8, "veins"),
+    "boss_eye": (0xff5cc8, 0xffd6f2, "veins"),
+    "charger": (0xc96a4a, 0xffe0cf, "cracks"),
+    "dragonkin": (0xe0455f, 0xffd0d8, "scales"),
+    "guard": (0x7d9eb9, 0xd7ebff, "plate"),
+    "necromancer": (0x251b3c, 0xb28ce0, "runes"),
+    "gate": (0x2a1626, 0xbd517d, "runes"),
+    "goblin_king": (0x8fd44f, 0xffe98a, "crown"),
+    "wyrm": (0x7c5cff, 0xd9c9ff, "scales"),
+    "knight": (0x1b1226, 0xff3b5c, "plate"),
+    "nihil": (0xb14bff, 0xf0d6ff, "starfield"),
+    "zero": (0xe8e8f2, 0xe34bff, "starfield"),
+    "omega": (0xff2a55, 0xffd700, "starfield"),
+    "ascender": (0xc9a227, 0xffffff, "crown"),
 }
 
+DARKC = (11, 10, 18, 255)
+WHITEC = (235, 240, 248, 255)
 
-def entity_tex(base, accent):
-    """64x64 の縦グラデーション + 斑点。箱モデルの全パート原点参照用"""
+
+def _shade(c, k):
+    return (max(0, min(255, int(c[0] * k))), max(0, min(255, int(c[1] * k))),
+            max(0, min(255, int(c[2] * k))), 255)
+
+
+def _vgrad(d, x0, y0, x1, y1, stops):
+    """垂直グラデーション。stops=[(t, color)...]"""
+    import random
+    h = y1 - y0
+    for y in range(y0, y1):
+        t = (y - y0) / max(1, h - 1)
+        for i in range(len(stops) - 1):
+            t0, c0 = stops[i]
+            t1, c1 = stops[i + 1]
+            if t0 <= t <= t1:
+                k = (t - t0) / max(1e-6, t1 - t0)
+                c = tuple(int(c0[j] + (c1[j] - c0[j]) * k) for j in range(3)) + (255,)
+                break
+        else:
+            c = stops[-1][1]
+        d.line([(x0, y), (x1 - 1, y)], fill=c)
+
+
+def _speckle(d, rnd, x0, y0, x1, y1, colors, n, size=1):
+    for _ in range(n):
+        x = rnd.randrange(x0, x1)
+        y = rnd.randrange(y0, y1)
+        c = colors[rnd.randrange(len(colors))]
+        if size <= 1:
+            d.point((x, y), fill=c)
+        else:
+            d.rectangle([x, y, x + size - 1, y + size - 1], fill=c)
+
+
+def _pattern_free(d, rnd, pattern, base, accent, dark):
+    x0, y0, x1, y1 = 0, 48, 64, 64
+    if pattern == "bubbles":
+        _speckle(d, rnd, x0, y0, x1, y1, [accent, _shade(accent, 0.85)], 26, 2)
+        for _ in range(8):
+            x = rnd.randrange(x0, x1 - 2)
+            y = rnd.randrange(y0, y1 - 2)
+            d.ellipse([x, y, x + 2, y + 2], outline=accent)
+    elif pattern == "membrane":
+        for i in range(8):
+            x = x0 + i * 8
+            d.line([(x, y0), (x + 3, y1)], fill=_shade(base, 0.55))
+        _speckle(d, rnd, x0, y0, x1, y1, [accent], 20)
+    elif pattern == "cracks":
+        for _ in range(7):
+            x = rnd.randrange(x0, x1)
+            y = rnd.randrange(y0, y1)
+            d.line([(x, y), (x + rnd.randrange(-6, 7), y + rnd.randrange(2, 7))], fill=dark)
+        _speckle(d, rnd, x0, y0, x1, y1, [accent], 24)
+    elif pattern == "flames":
+        for i in range(16):
+            x = x0 + i * 4
+            h = rnd.randrange(4, 14)
+            d.line([(x, y1 - 1), (x + 1, y1 - h)], fill=accent if i % 2 == 0 else _shade(accent, 0.8))
+    elif pattern == "mist":
+        for _ in range(10):
+            y = rnd.randrange(y0, y1)
+            d.line([(x0, y), (x1 - 1, y)], fill=_shade(accent, rnd.random() * 0.4 + 0.5))
+    elif pattern == "veins":
+        for _ in range(9):
+            x = rnd.randrange(x0, x1)
+            d.line([(x, y0), (x + rnd.randrange(-8, 9), y1 - 1)], fill=_shade(base, 0.45))
+        _speckle(d, rnd, x0, y0, x1, y1, [accent], 16)
+    elif pattern == "scales":
+        for row in range(4):
+            y = y0 + row * 4
+            for i in range(8):
+                x = x0 + i * 8 + (4 if row % 2 else 0)
+                d.arc([x, y, x + 7, y + 7], 180, 360, fill=_shade(base, 0.6))
+        _speckle(d, rnd, x0, y0, x1, y1, [accent], 12)
+    elif pattern == "plate":
+        d.rectangle([x0 + 2, y0 + 2, x1 - 3, y1 - 3], outline=accent)
+        for x in (x0 + 6, x1 - 7):
+            for y in (y0 + 4, y1 - 5):
+                d.point((x, y), fill=accent)
+        _speckle(d, rnd, x0 + 4, y0 + 4, x1 - 4, y1 - 4, [_shade(base, 0.8)], 30)
+    elif pattern == "runes":
+        for _ in range(8):
+            x = rnd.randrange(x0 + 2, x1 - 4)
+            y = rnd.randrange(y0 + 2, y1 - 8)
+            d.line([(x, y), (x, y + 5)], fill=accent)
+            d.line([(x, y + 1), (x + 3, y + 3)], fill=accent)
+            d.line([(x, y + 3), (x + 3, y + 1)], fill=accent)
+    elif pattern == "starfield":
+        for _ in range(40):
+            d.point((rnd.randrange(x0, x1), rnd.randrange(y0, y1)),
+                    fill=WHITEC if rnd.random() < 0.6 else accent)
+    elif pattern == "crown":
+        _vgrad(d, x0, y0, x1, y1, [(0, (255, 220, 120)), (1, (150, 105, 30))])
+        for i in range(6):
+            x = x0 + 5 + i * 10
+            d.point((x, y0 + 5), fill=(255, 80, 80, 255) if i % 2 == 0 else (80, 220, 255, 255))
+    else:
+        _speckle(d, rnd, x0, y0, x1, y1, [accent], 30)
+
+
+def entity_tex(base, accent, pattern):
+    """64x64。標準ゾーン分割 (AbyssModels の UV と対応)。
+    BODY(0,0,48,32) / BELLY(48,0,16,32) / DARK(0,32,16,16) /
+    WHITE(16,32,16,16) / ACC(32,32,32,16) / FREE(0,48,64,16)+模様"""
     import random
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    dark = tuple(max(0, c - 70) for c in base[:3]) + (255,)
-    for y in range(64):
-        t = y / 63
-        if t < 0.25:
-            c = accent
-        elif t < 0.7:
-            k = (t - 0.25) / 0.45
-            c = tuple(int(accent[i] + (base[i] - accent[i]) * k) for i in range(3)) + (255,)
-        else:
-            k = (t - 0.7) / 0.3
-            c = tuple(int(base[i] + (dark[i] - base[i]) * k) for i in range(3)) + (255,)
-        d.line([(0, y), (63, y)], fill=c)
     rnd = random.Random(0)
-    for _ in range(260):
-        x = rnd.randrange(64)
-        y = rnd.randrange(64)
-        s = base if rnd.random() < 0.7 else accent
-        d.point((x, y), fill=s)
+    dark = _shade(base, 0.45)
+    # BODY: 上アクセント→本体→下暗部
+    _vgrad(d, 0, 0, 48, 32, [(0, accent), (0.3, base), (1, dark)])
+    _speckle(d, rnd, 0, 0, 48, 32, [base, _shade(base, 1.08), dark], 130)
+    # BELLY: 明部
+    _vgrad(d, 48, 0, 64, 32, [(0, WHITEC), (0.5, accent), (1, _shade(accent, 0.7))])
+    # DARK: 目・口
+    d.rectangle([0, 32, 15, 47], fill=DARKC)
+    _speckle(d, rnd, 0, 32, 16, 48, [_shade(DARKC[:3] + (255,), 1.0)], 0)
+    d.point((3, 35), fill=WHITEC)
+    d.point((11, 35), fill=WHITEC)
+    # WHITE: 白目・牙・光輪
+    _vgrad(d, 16, 32, 32, 48, [(0, WHITEC), (1, _shade(WHITEC[:3] + (255,), 0.75))])
+    # ACC: 発光部
+    _vgrad(d, 32, 32, 64, 48, [(0, accent), (1, _shade(accent, 0.65))])
+    _speckle(d, rnd, 32, 32, 64, 48, [WHITEC, accent], 40)
+    # FREE: 種別模様
+    _vgrad(d, 0, 48, 64, 64, [(0, base), (1, dark)])
+    _pattern_free(d, rnd, pattern, base, accent, dark)
     return img
 
 
@@ -299,8 +407,8 @@ def main():
         write_model(item_id, "generated")
     ent_dir = os.path.join(ASSETS, "textures", "entity")
     os.makedirs(ent_dir, exist_ok=True)
-    for ent_id, (base, accent) in ENTITIES.items():
-        entity_tex(hexcolor(base), hexcolor(accent)).save(os.path.join(ent_dir, f"{ent_id}.png"))
+    for ent_id, (base, accent, pattern) in ENTITIES.items():
+        entity_tex(hexcolor(base), hexcolor(accent), pattern).save(os.path.join(ent_dir, f"{ent_id}.png"))
     print(f"generated {len(WEAPONS) + 1 + len(MATERIALS)} textures + {len(ENTITIES)} entity textures")
 
 

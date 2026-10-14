@@ -42,43 +42,46 @@ public final class ClientGui {
             event.registerLayerDefinition(AbyssModels.BOMBER, AbyssModels.BomberModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.WRAITH, AbyssModels.WraithModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.GOLEM, AbyssModels.GolemModel::createBodyLayer);
-            event.registerLayerDefinition(AbyssModels.PHANTOM, AbyssModels.PhantomModel::createBodyLayer);
-            event.registerLayerDefinition(AbyssModels.CULTIST, AbyssModels.CultistModel::createBodyLayer);
+            event.registerLayerDefinition(AbyssModels.PHANTOM, AbyssModels.WraithModel::createBodyLayer);
+            event.registerLayerDefinition(AbyssModels.CULTIST, AbyssModels.ImpModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.EYE, AbyssModels.EyeModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.CHARGER, AbyssModels.ChargerModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.DRAGONKIN, AbyssModels.DragonkinModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.GUARD, AbyssModels.GuardModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.NECROMANCER, AbyssModels.NecromancerModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.GATE, AbyssModels.GateModel::createBodyLayer);
+            event.registerLayerDefinition(AbyssModels.KING, AbyssModels.KingModel::createBodyLayer);
+            event.registerLayerDefinition(AbyssModels.DRAGON, AbyssModels.DragonModel::createBodyLayer);
+            event.registerLayerDefinition(AbyssModels.KNIGHT, AbyssModels.KnightModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.GOD, AbyssModels.GodModel::createBodyLayer);
         });
         modBus.addListener((EntityRenderersEvent.RegisterRenderers event) -> {
-            bind(event, ModEntities.SLIME, AbyssModels.SLIME, AbyssModels.SlimeModel::new, "slime", 0.4f);
-            bind(event, ModEntities.SPLITTER, AbyssModels.SPLITTER, AbyssModels.SplitterModel::new, "splitter", 0.9f);
-            bind(event, ModEntities.BAT, AbyssModels.BAT, AbyssModels.BatModel::new, "bat", 0.3f);
-            bind(event, ModEntities.MIRRORBAT, AbyssModels.BAT, AbyssModels.BatModel::new, "mirrorbat", 0.3f);
-            bind(event, ModEntities.GOBLIN, AbyssModels.GOBLIN, AbyssModels.GoblinModel::new, "goblin", 0.5f);
-            bind(event, ModEntities.SKELETON, AbyssModels.SKELETON, AbyssModels.SkeletonModel::new, "skeleton", 0.5f);
-            bind(event, ModEntities.IMP, AbyssModels.IMP, AbyssModels.ImpModel::new, "imp", 0.5f);
-            bind(event, ModEntities.BOMBER, AbyssModels.BOMBER, AbyssModels.BomberModel::new, "bomber", 0.5f);
-            bind(event, ModEntities.WRAITH, AbyssModels.WRAITH, AbyssModels.WraithModel::new, "wraith", 0.4f);
-            bind(event, ModEntities.GOLEM, AbyssModels.GOLEM, AbyssModels.GolemModel::new, "golem", 0.9f);
-            bind(event, ModEntities.PHANTOM, AbyssModels.PHANTOM, AbyssModels.PhantomModel::new, "phantom", 0.5f);
-            bind(event, ModEntities.CULTIST, AbyssModels.CULTIST, AbyssModels.CultistModel::new, "cultist", 0.5f);
-            bind(event, ModEntities.EYE, AbyssModels.EYE, AbyssModels.EyeModel::new, "eye", 0.4f);
-            bind(event, ModEntities.BOSS_EYE, AbyssModels.EYE, AbyssModels.EyeModel::new, "boss_eye", 0.6f);
-            bind(event, ModEntities.CHARGER, AbyssModels.CHARGER, AbyssModels.ChargerModel::new, "charger", 0.6f);
-            bind(event, ModEntities.GOBLIN_KING, AbyssModels.CHARGER, AbyssModels.ChargerModel::new, "goblin_king", 0.7f);
-            bind(event, ModEntities.DRAGONKIN, AbyssModels.DRAGONKIN, AbyssModels.DragonkinModel::new, "dragonkin", 0.6f);
-            bind(event, ModEntities.WYRM, AbyssModels.DRAGONKIN, AbyssModels.DragonkinModel::new, "wyrm", 0.8f);
-            bind(event, ModEntities.GUARD, AbyssModels.GUARD, AbyssModels.GuardModel::new, "guard", 0.5f);
-            bind(event, ModEntities.KNIGHT, AbyssModels.GUARD, AbyssModels.GuardModel::new, "knight", 0.6f);
-            bind(event, ModEntities.NECROMANCER, AbyssModels.NECROMANCER, AbyssModels.NecromancerModel::new, "necromancer", 0.5f);
-            bind(event, ModEntities.GATE, AbyssModels.GATE, AbyssModels.GateModel::new, "gate", 0.8f);
-            bind(event, ModEntities.NIHIL, AbyssModels.GOD, AbyssModels.GodModel::new, "nihil", 0.7f);
-            bind(event, ModEntities.ZERO, AbyssModels.GOD, AbyssModels.GodModel::new, "zero", 0.7f);
-            bind(event, ModEntities.OMEGA, AbyssModels.GOD, AbyssModels.GodModel::new, "omega", 0.9f);
-            bind(event, ModEntities.ASCENDER, AbyssModels.GOD, AbyssModels.GodModel::new, "ascender", 0.9f);
+            bind(event, ModEntities.SLIME, AbyssModels.SLIME, AbyssModels.SlimeModel::new, "slime", 0.3f, 0.96f);
+            bind(event, ModEntities.SPLITTER, AbyssModels.SPLITTER, AbyssModels.SplitterModel::new, "splitter", 0.7f, 2.24f);
+            bind(event, ModEntities.BAT, AbyssModels.BAT, AbyssModels.BatModel::new, "bat", 0.3f, 0.96f);
+            bind(event, ModEntities.MIRRORBAT, AbyssModels.BAT, AbyssModels.BatModel::new, "mirrorbat", 0.3f, 0.96f);
+            bind(event, ModEntities.GOBLIN, AbyssModels.GOBLIN, AbyssModels.GoblinModel::new, "goblin", 0.4f, 0.9f);
+            bind(event, ModEntities.SKELETON, AbyssModels.SKELETON, AbyssModels.SkeletonModel::new, "skeleton", 0.4f, 1.11f);
+            bind(event, ModEntities.IMP, AbyssModels.IMP, AbyssModels.ImpModel::new, "imp", 0.35f, 0.88f);
+            bind(event, ModEntities.BOMBER, AbyssModels.BOMBER, AbyssModels.BomberModel::new, "bomber", 0.4f, 1.6f);
+            bind(event, ModEntities.WRAITH, AbyssModels.WRAITH, AbyssModels.WraithModel::new, "wraith", 0.4f, 1.04f);
+            bind(event, ModEntities.GOLEM, AbyssModels.GOLEM, AbyssModels.GolemModel::new, "golem", 0.9f, 1.07f);
+            bind(event, ModEntities.PHANTOM, AbyssModels.PHANTOM, AbyssModels.WraithModel::new, "phantom", 0.5f, 1.76f);
+            bind(event, ModEntities.CULTIST, AbyssModels.CULTIST, AbyssModels.ImpModel::new, "cultist", 0.4f, 1.36f);
+            bind(event, ModEntities.EYE, AbyssModels.EYE, AbyssModels.EyeModel::new, "eye", 0.4f, 1.14f);
+            bind(event, ModEntities.BOSS_EYE, AbyssModels.EYE, AbyssModels.EyeModel::new, "boss_eye", 1.0f, 2.51f);
+            bind(event, ModEntities.CHARGER, AbyssModels.CHARGER, AbyssModels.ChargerModel::new, "charger", 0.6f, 1.07f);
+            bind(event, ModEntities.GOBLIN_KING, AbyssModels.KING, AbyssModels.KingModel::new, "goblin_king", 0.9f, 1.16f);
+            bind(event, ModEntities.DRAGONKIN, AbyssModels.DRAGONKIN, AbyssModels.DragonkinModel::new, "dragonkin", 0.6f, 1.2f);
+            bind(event, ModEntities.WYRM, AbyssModels.DRAGON, AbyssModels.DragonModel::new, "wyrm", 1.0f, 1.2f);
+            bind(event, ModEntities.GUARD, AbyssModels.GUARD, AbyssModels.GuardModel::new, "guard", 0.5f, 1.23f);
+            bind(event, ModEntities.KNIGHT, AbyssModels.KNIGHT, AbyssModels.KnightModel::new, "knight", 0.8f, 1.2f);
+            bind(event, ModEntities.NECROMANCER, AbyssModels.NECROMANCER, AbyssModels.NecromancerModel::new, "necromancer", 0.45f, 1.05f);
+            bind(event, ModEntities.GATE, AbyssModels.GATE, AbyssModels.GateModel::new, "gate", 0.8f, 1.37f);
+            bind(event, ModEntities.NIHIL, AbyssModels.GOD, AbyssModels.GodModel::new, "nihil", 0.9f, 1.47f);
+            bind(event, ModEntities.ZERO, AbyssModels.GOD, AbyssModels.GodModel::new, "zero", 1.0f, 1.68f);
+            bind(event, ModEntities.OMEGA, AbyssModels.GOD, AbyssModels.GodModel::new, "omega", 1.1f, 1.9f);
+            bind(event, ModEntities.ASCENDER, AbyssModels.GOD, AbyssModels.GodModel::new, "ascender", 1.2f, 2.1f);
         });
     }
 
@@ -86,10 +89,11 @@ public final class ClientGui {
                                              Supplier<EntityType<T>> type,
                                              net.minecraft.client.model.geom.ModelLayerLocation layer,
                                              Function<ModelPart, EntityModel<LivingEntityRenderState>> factory,
-                                             String tex, float shadow) {
+                                             String tex, float shadow, float modelScale) {
         event.registerEntityRenderer(type.get(),
                 ctx -> new AbyssRenderer<>(ctx, factory.apply(ctx.bakeLayer(layer)), shadow,
-                        Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "textures/entity/" + tex + ".png")));
+                        Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "textures/entity/" + tex + ".png"),
+                        modelScale));
     }
 
     public static List<String> compareLeft() {

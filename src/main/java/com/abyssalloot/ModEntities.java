@@ -157,30 +157,30 @@ public final class ModEntities {
 
     public static final Supplier<EntityType<SlimeMob>> SLIME = reg("abyss_slime", SlimeMob::new, MobCategory.MONSTER, 0.6f, 0.6f);
     public static final Supplier<EntityType<BatMob>> BAT = reg("abyss_bat", BatMob::new, MobCategory.MONSTER, 0.6f, 0.6f);
-    public static final Supplier<EntityType<GoblinMob>> GOBLIN = reg("abyss_goblin", GoblinMob::new, MobCategory.MONSTER, 1.2f, 1.3f);
+    public static final Supplier<EntityType<GoblinMob>> GOBLIN = reg("abyss_goblin", GoblinMob::new, MobCategory.MONSTER, 0.7f, 1.3f);
     public static final Supplier<EntityType<SkeletonMob>> SKELETON = reg("abyss_skeleton", SkeletonMob::new, MobCategory.MONSTER, 0.6f, 1.6f);
-    public static final Supplier<EntityType<ImpMob>> IMP = reg("abyss_imp", ImpMob::new, MobCategory.MONSTER, 0.6f, 1.3f);
+    public static final Supplier<EntityType<ImpMob>> IMP = reg("abyss_imp", ImpMob::new, MobCategory.MONSTER, 0.6f, 1.1f);
     public static final Supplier<EntityType<BomberMob>> BOMBER = reg("abyss_bomber", BomberMob::new, MobCategory.MONSTER, 0.8f, 1.0f);
-    public static final Supplier<EntityType<SplitterMob>> SPLITTER = reg("abyss_splitter", SplitterMob::new, MobCategory.MONSTER, 1.4f, 1.1f);
+    public static final Supplier<EntityType<SplitterMob>> SPLITTER = reg("abyss_splitter", SplitterMob::new, MobCategory.MONSTER, 1.4f, 1.4f);
     public static final Supplier<EntityType<WraithMob>> WRAITH = reg("abyss_wraith", WraithMob::new, MobCategory.MONSTER, 0.9f, 1.3f);
     public static final Supplier<EntityType<GolemMob>> GOLEM = reg("abyss_golem", GolemMob::new, MobCategory.MONSTER, 1.95f, 2.2f);
     public static final Supplier<EntityType<PhantomMob>> PHANTOM = reg("abyss_phantom", PhantomMob::new, MobCategory.MONSTER, 0.8f, 2.2f);
     public static final Supplier<EntityType<CultistMob>> CULTIST = reg("abyss_cultist", CultistMob::new, MobCategory.MONSTER, 0.7f, 1.7f);
     public static final Supplier<EntityType<EyeMob>> EYE = reg("abyss_eye", EyeMob::new, MobCategory.MONSTER, 1.0f, 1.0f);
     public static final Supplier<EntityType<MirrorBatMob>> MIRRORBAT = reg("abyss_mirrorbat", MirrorBatMob::new, MobCategory.MONSTER, 0.6f, 0.6f);
-    public static final Supplier<EntityType<ChargerMob>> CHARGER = reg("abyss_charger", ChargerMob::new, MobCategory.MONSTER, 0.8f, 1.6f);
+    public static final Supplier<EntityType<ChargerMob>> CHARGER = reg("abyss_charger", ChargerMob::new, MobCategory.MONSTER, 1.0f, 1.6f);
     public static final Supplier<EntityType<DragonkinMob>> DRAGONKIN = reg("abyss_dragonkin", DragonkinMob::new, MobCategory.MONSTER, 1.0f, 1.8f);
     public static final Supplier<EntityType<GuardMob>> GUARD = reg("abyss_guard", GuardMob::new, MobCategory.MONSTER, 0.7f, 2.0f);
     public static final Supplier<EntityType<NecromancerMob>> NECROMANCER = reg("abyss_necromancer", NecromancerMob::new, MobCategory.MONSTER, 0.7f, 1.7f);
     public static final Supplier<EntityType<GateMob>> GATE = reg("abyss_gate", GateMob::new, MobCategory.MONSTER, 1.2f, 2.4f);
-    public static final Supplier<EntityType<GoblinKingMob>> GOBLIN_KING = reg("abyss_goblin_king", GoblinKingMob::new, MobCategory.MONSTER, 0.8f, 1.7f);
-    public static final Supplier<EntityType<WyrmMob>> WYRM = reg("abyss_wyrm", WyrmMob::new, MobCategory.MONSTER, 1.0f, 1.8f);
-    public static final Supplier<EntityType<KnightMob>> KNIGHT = reg("abyss_knight", KnightMob::new, MobCategory.MONSTER, 0.8f, 2.0f);
-    public static final Supplier<EntityType<BossEyeMob>> BOSS_EYE = reg("abyss_boss_eye", BossEyeMob::new, MobCategory.MONSTER, 1.0f, 1.0f);
-    public static final Supplier<EntityType<NihilMob>> NIHIL = reg("abyss_nihil", NihilMob::new, MobCategory.MONSTER, 1.0f, 2.4f);
-    public static final Supplier<EntityType<ZeroMob>> ZERO = reg("abyss_zero", ZeroMob::new, MobCategory.MONSTER, 1.0f, 2.4f);
-    public static final Supplier<EntityType<OmegaMob>> OMEGA = reg("abyss_omega", OmegaMob::new, MobCategory.MONSTER, 1.2f, 2.6f);
-    public static final Supplier<EntityType<AscenderMob>> ASCENDER = reg("abyss_ascender", AscenderMob::new, MobCategory.MONSTER, 1.0f, 2.6f);
+    public static final Supplier<EntityType<GoblinKingMob>> GOBLIN_KING = reg("abyss_goblin_king", GoblinKingMob::new, MobCategory.MONSTER, 1.8f, 2.2f);
+    public static final Supplier<EntityType<WyrmMob>> WYRM = reg("abyss_wyrm", WyrmMob::new, MobCategory.MONSTER, 2.2f, 1.8f);
+    public static final Supplier<EntityType<KnightMob>> KNIGHT = reg("abyss_knight", KnightMob::new, MobCategory.MONSTER, 1.2f, 2.4f);
+    public static final Supplier<EntityType<BossEyeMob>> BOSS_EYE = reg("abyss_boss_eye", BossEyeMob::new, MobCategory.MONSTER, 2.2f, 2.2f);
+    public static final Supplier<EntityType<NihilMob>> NIHIL = reg("abyss_nihil", NihilMob::new, MobCategory.MONSTER, 1.4f, 2.8f);
+    public static final Supplier<EntityType<ZeroMob>> ZERO = reg("abyss_zero", ZeroMob::new, MobCategory.MONSTER, 1.6f, 3.2f);
+    public static final Supplier<EntityType<OmegaMob>> OMEGA = reg("abyss_omega", OmegaMob::new, MobCategory.MONSTER, 1.8f, 3.6f);
+    public static final Supplier<EntityType<AscenderMob>> ASCENDER = reg("abyss_ascender", AscenderMob::new, MobCategory.MONSTER, 2.0f, 4.0f);
 
     /** 全種に Monster 標準�E属性土台を登録 (実値は Enemies.apply で原作値から絶対設宁E */
     public static void attributes(IEventBus modBus) {
