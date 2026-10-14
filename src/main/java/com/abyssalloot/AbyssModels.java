@@ -404,7 +404,7 @@ public final class AbyssModels {
             box(root, "armL", BU + 38, BV, -6, 0, -3, 6, 14, 6, -11, 0, 0);
             box(root, "armR", BU + 38, BV + 15, -6, 0, -3, 6, 14, 6, 11, 0, 0);
             box(root, "fistL", FU + 30, FV, -7, 12, -4, 8, 4, 8, -11, 0, 0);
-            box(root, "fistR", FU + 30, FV + 12, -7, 12, -4, 8, 4, 8, 11, 0, 0);
+            box(root, "fistR", FU + 40, FV, -7, 12, -4, 8, 4, 8, 11, 0, 0);
             boxRot(root, "head", BU, BV, -4, -9, -4, 8, 7, 8, 0, 0, 0, -0.08f, 0, 0);
             box(root, "brow", BU + 10, BV, -4.5f, -7.5f, -4.5f, 9, 2.5f, 1, 0, 0, 0);
             box(root, "eyeL", AU + 6, AV, -3, -5.5f, -4.6f, 2, 1.5f, 0.4f, 0, 0, 0);
