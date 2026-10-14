@@ -229,6 +229,228 @@ public final class WeaponArts {
                 burst(player, "輪廻乱舞！", style);
                 return true;
             }
+            case RUNE_BLADE -> {
+                // ルーン連斬: 5方向へ斬撃波+氷結付与
+                for (int i = -2; i <= 2; i++) {
+                    double ang = Math.atan2(look.z, look.x) + i * 0.15;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    slashCone(level, player, origin, dir, 12, 1.5 * attackDamage, ParticleTypes.SWEEP_ATTACK);
+                }
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 12, origin.y - 5, origin.z - 12,
+                                origin.x + 12, origin.y + 5, origin.z + 12),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                }
+                burst(player, "ルーン連斬！", style);
+                return true;
+            }
+            case BLOOD_AXE -> {
+                // 血潮爆砕: 大爆発+与ダメの一部を吸収
+                final double[] drained = {0};
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 5, origin.y - 5, origin.z - 5,
+                                origin.x + 5, origin.y + 5, origin.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    float before = e.getHealth();
+                    artHurt(level, e, level.damageSources().playerAttack(player),
+                            (float) (3.6 * attackDamage));
+                    drained[0] += Math.max(0, before - e.getHealth());
+                    Vec3 kb = e.position().subtract(origin).normalize().scale(2.4);
+                    e.push(kb.x, 0.5, kb.z);
+                }
+                level.sendParticles(ParticleTypes.EXPLOSION, origin.x, origin.y + 1, origin.z,
+                        40, 2.5, 1.2, 2.5, 0.12);
+                if (drained[0] > 0) {
+                    player.heal((float) Math.min(player.getMaxHealth() - player.getHealth(), drained[0] * 0.25));
+                    level.sendParticles(ParticleTypes.HEART, player.getX(), player.getY() + 1.5, player.getZ(),
+                            8, 0.5, 0.5, 0.5, 0.1);
+                }
+                burst(player, "血潮爆砕！", style);
+                return true;
+            }
+            case STORM_SPEAR -> {
+                // 螺旋突貫: 突進+軌跡に雷撃
+                Vec3 dest = origin.add(look.x * 6, 0, look.z * 6);
+                player.teleportTo(dest.x, dest.y, dest.z);
+                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
+                java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
+                for (double d = 2; d <= 6; d += 2) {
+                    Vec3 at = origin.add(look.x * d, 0, look.z * d);
+                    for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                            new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
+                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        if (hit.add(e)) {
+                            artHurt(level, e, level.damageSources().playerAttack(player),
+                                    (float) (3.2 * attackDamage));
+                            level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
+                                    e.getX(), e.getY() + 1, e.getZ(), 10, 0.5, 0.8, 0.5, 0.15);
+                        }
+                    }
+                }
+                burst(player, "螺旋突貫！", style);
+                return true;
+            }
+            case VOID_STAFF -> {
+                // 虚空落とし: 最寄り敵位置に隕石3連 (0.4秒刻み)
+                LivingEntity t = nearest(origin, targets);
+                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 target = at;
+                for (int i = 0; i < 3; i++) {
+                    CombatHandler.after(8 + i * 8, () -> {
+                        if (!player.isAlive()) return;
+                        aoe(slevel(player), player, target, 4, 2.8 * attackDamage, true,
+                                ParticleTypes.PORTAL);
+                    });
+                }
+                level.sendParticles(ParticleTypes.PORTAL, at.x, at.y + 3, at.z, 30, 1.5, 2, 1.5, 0.15);
+                burst(player, "虚空落とし！", style);
+                return true;
+            }
+            case MOON_BOW -> {
+                // 月雨: 9矢を自動照準・貫通で連射
+                for (int i = 0; i < 9; i++) {
+                    CombatHandler.after(i * 2, () -> {
+                        ServerLevel lv = slevel(player);
+                        if (!player.isAlive()) return;
+                        LivingEntity tgt = nearest(player.position(), lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(player.getX() - 24, player.getY() - 8, player.getZ() - 24,
+                                        player.getX() + 24, player.getY() + 8, player.getZ() + 24),
+                                e -> e.isAlive() && !(e instanceof ServerPlayer)));
+                        if (tgt == null) return;
+                        artHurt(lv, tgt, lv.damageSources().playerAttack(player),
+                                (float) (1.1 * attackDamage));
+                        lv.sendParticles(ParticleTypes.END_ROD,
+                                tgt.getX(), tgt.getY() + 1, tgt.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
+                    });
+                }
+                burst(player, "月雨！", style);
+                return true;
+            }
+            case FANG_DAGGER -> {
+                // 牙影連襲: 3回瞬移し背後から噛む
+                LivingEntity t = nearest(origin, targets);
+                if (t == null) return false;
+                for (int i = 0; i < 3; i++) {
+                    LivingEntity tgt = t;
+                    CombatHandler.after(i * 4, () -> {
+                        if (!player.isAlive() || !tgt.isAlive()) return;
+                        ServerLevel lv = slevel(player);
+                        Vec3 behind = tgt.position().subtract(tgt.getLookAngle().scale(2.0));
+                        player.teleportTo(behind.x, behind.y, behind.z);
+                        artHurt(lv, tgt, lv.damageSources().playerAttack(player),
+                                (float) (2.6 * attackDamage));
+                        lv.sendParticles(ParticleTypes.CRIT, behind.x, behind.y + 1, behind.z,
+                                12, 0.6, 0.6, 0.6, 0.15);
+                    });
+                }
+                burst(player, "牙影連襲！", style);
+                return true;
+            }
+            case QUAKE_HAMMER -> {
+                // 地鳴り: 広範囲激震+鈍足
+                aoe(level, player, origin, 8, 3.4 * attackDamage, true, ParticleTypes.EXPLOSION);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 8, origin.y - 4, origin.z - 8,
+                                origin.x + 8, origin.y + 4, origin.z + 8),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
+                }
+                burst(player, "地鳴り！", style);
+                return true;
+            }
+            case FROST_KATANA -> {
+                // 氷月一閃: 周囲一閃+全体凍結・敵弾消去
+                aoe(level, player, origin, 6, 4.2 * attackDamage, false, ParticleTypes.SNOWFLAKE);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 6, origin.y - 4, origin.z - 6,
+                                origin.x + 6, origin.y + 4, origin.z + 6),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
+                    e.setTicksFrozen(Math.min(200, e.getTicksFrozen() + 120));
+                }
+                for (var p : level.getEntitiesOfClass(
+                        net.minecraft.world.entity.projectile.Projectile.class,
+                        new AABB(origin.x - 6, origin.y - 4, origin.z - 6,
+                                origin.x + 6, origin.y + 4, origin.z + 6),
+                        x -> !x.isRemoved())) {
+                    if (p.getOwner() instanceof ServerPlayer) continue;
+                    p.discard();
+                }
+                burst(player, "氷月一閃！", style);
+                return true;
+            }
+            case SOUL_SCYTHE -> {
+                // 魂収穫: 刈り取り+撃破ごとに魂ゲージ
+                for (LivingEntity e : List.copyOf(targets)) {
+                    if (e.distanceTo(player) > 6) continue;
+                    float before = e.getHealth();
+                    artHurt(level, e, level.damageSources().playerAttack(player),
+                            (float) (3.2 * attackDamage));
+                    if (!e.isAlive()) {
+                        RunManager.addGauge(player, 12);
+                    } else if (before - e.getHealth() > 0) {
+                        RunManager.addGauge(player, 3);
+                    }
+                }
+                level.sendParticles(ParticleTypes.SOUL, origin.x, origin.y + 1, origin.z, 50, 4, 2, 4, 0.2);
+                burst(player, "魂収穫！", style);
+                return true;
+            }
+            case TITAN_GAUNTLET -> {
+                // 岩砕十連: 前方10連・最後に大爆発
+                Vec3 dir = look;
+                for (int i = 0; i < 10; i++) {
+                    boolean last = (i == 9);
+                    Vec3 at = origin.add(dir.scale(2 + i * 0.8));
+                    CombatHandler.after(i * 2, () -> {
+                        ServerLevel lv = slevel(player);
+                        if (!player.isAlive()) return;
+                        aoe(lv, player, at, last ? 4 : 2.5, (last ? 3.5 : 0.55) * attackDamage,
+                                last, ParticleTypes.CRIT);
+                    });
+                }
+                burst(player, "岩砕十連！", style);
+                return true;
+            }
+            case ECLIPSE_CHAKRAM -> {
+                // 蝕輪廻: 24枚の輪刃を3周に分けて放つ
+                for (int w = 0; w < 3; w++) {
+                    CombatHandler.after(w * 8, () -> {
+                        if (!player.isAlive()) return;
+                        aoe(slevel(player), player, origin, 8, 1.2 * attackDamage * 2, false,
+                                ParticleTypes.PORTAL);
+                    });
+                }
+                burst(player, "蝕輪廻！", style);
+                return true;
+            }
+            case CHAOS_TOME -> {
+                // 混沌特異点: 爆縮+無作為の弱体 (鈍足/弱化/発光のいずれか)
+                LivingEntity t = nearest(origin, targets);
+                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 target = at;
+                CombatHandler.after(12, () -> {
+                    ServerLevel lv = slevel(player);
+                    if (!player.isAlive()) return;
+                    aoe(lv, player, target, 6, 5.0 * attackDamage, true, ParticleTypes.PORTAL);
+                    var effs = new MobEffectInstance[]{
+                            new MobEffectInstance(MobEffects.SLOWNESS, 120, 2),
+                            new MobEffectInstance(MobEffects.WEAKNESS, 120, 1),
+                            new MobEffectInstance(MobEffects.GLOWING, 200, 0),
+                    };
+                    for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
+                            new AABB(target.x - 6, target.y - 4, target.z - 6,
+                                    target.x + 6, target.y + 4, target.z + 6),
+                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        e.addEffect(effs[player.getRandom().nextInt(effs.length)]);
+                    }
+                });
+                level.sendParticles(ParticleTypes.PORTAL, at.x, at.y + 1, at.z, 30, 2, 1.5, 2, 0.15);
+                burst(player, "混沌特異点！", style);
+                return true;
+            }
             case TOME -> {
                 LivingEntity t = nearest(origin, targets);
                 Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
@@ -283,6 +505,30 @@ public final class WeaponArts {
                     aoe(level, player, origin, 14, 1.2 * attackDamage, false, ParticleTypes.CRIT);
                 }
                 announce(player, "バレットヘル！");
+            }
+            case BERSERKER -> {
+                // 血爆: 自身の現在HP20%を捧げて大爆発
+                float cost = player.getHealth() * 0.2f;
+                if (player.getHealth() > cost + 1) {
+                    player.hurtServer(level, level.damageSources().magic(), cost);
+                }
+                aoe(level, player, origin, 8, 5.0 * attackDamage, true, ParticleTypes.EXPLOSION);
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
+                announce(player, "血爆！");
+            }
+            case MONK -> {
+                // 禅定結界: 結界内の敵を鎮め自身を癒す
+                aoe(level, player, origin, 9, 1.2 * attackDamage, false, ParticleTypes.END_ROD);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 9, origin.y - 4, origin.z - 9,
+                                origin.x + 9, origin.y + 4, origin.z + 9),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
+                }
+                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 120, 1));
+                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 0));
+                announce(player, "禅定結界！");
             }
         }
         level.playSound(null, player.blockPosition(), SoundEvents.DRAGON_FIREBALL_EXPLODE, SoundSource.PLAYERS, 1f, 1f);

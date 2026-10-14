@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:abyss_soul_s"
+    },
+    {
+      "item": "abyssalloot:abyss_void_piece"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_soul_l",
+    "count": 1
+  }
+}

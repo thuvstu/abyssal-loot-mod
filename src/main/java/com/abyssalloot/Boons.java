@@ -59,6 +59,27 @@ public final class Boons {
             // --- 旧セーブ互換 (簡易版のまま) ---
             new BoonDef("dmg", "剛力の刻印・旧", "攻撃+12%/Lv (互換)", "common"),
             new BoonDef("art", "武の刻印", "奥義・必殺+12%/Lv", "rare"),
+            // --- 追加の祝福 (数値効果のみ。EXTRA_BOON_MODS で適用) ---
+            new BoonDef("b_power", "剛腕の祝福", "攻撃力 +15%", "common"),
+            new BoonDef("b_swift", "疾風の祝福", "攻撃速度 +12%", "common"),
+            new BoonDef("b_guard", "鉄壁の祝福", "ダメージ軽減 +10%", "common"),
+            new BoonDef("b_dash", "俊足の祝福", "移動速度 +10%", "common"),
+            new BoonDef("b_eye", "鷹の目の祝福", "会心率 +6%", "common"),
+            new BoonDef("b_fang", "牙の祝福", "会心威力 +30%", "rare"),
+            new BoonDef("b_leech", "蛭の祝福", "生命吸収 +3%", "rare"),
+            new BoonDef("b_mend", "修復の祝福", "HP自動回復 +1/秒", "common"),
+            new BoonDef("b_luck", "幸運の祝福", "運 +20", "common"),
+            new BoonDef("b_soul", "魂の祝福", "魂ゲージ増加 +20%", "common"),
+            new BoonDef("b_wide", "広域の祝福", "攻撃範囲 +12%", "common"),
+            new BoonDef("b_blast", "爆裂の祝福", "爆裂確率 +10%", "rare"),
+            new BoonDef("b_frost", "凍結の祝福", "氷結確率 +12%", "rare"),
+            new BoonDef("b_body", "強靭の祝福", "最大HP +12%", "common"),
+            new BoonDef("b_pierce", "貫通の祝福", "貫通 +1", "rare"),
+            new BoonDef("b_chain", "連鎖の祝福", "連鎖雷撃 +1", "epic"),
+            new BoonDef("b_volley", "斉射の祝福", "追加弾数 +1", "epic"),
+            new BoonDef("b_flat", "鉄槌の祝福", "攻撃力 +8", "common"),
+            new BoonDef("b_vital", "生命の祝福", "最大HP +30", "common"),
+            new BoonDef("b_drain", "吸魂の祝福", "生命吸収 +5% / 攻撃力 +10%", "epic"),
     };
 
     public static BoonDef boonById(String id) {

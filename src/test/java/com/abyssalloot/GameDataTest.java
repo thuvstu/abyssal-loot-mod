@@ -56,12 +56,12 @@ public class GameDataTest {
             assertNotNull(c.skillName());
             assertFalse(c.skillName().isBlank());
         }
-        assertEquals(5, GameData.HeroClass.values().length);
+        assertEquals(7, GameData.HeroClass.values().length);
     }
 
     @Test
     void twelveWeaponArtsExist() {
-        assertEquals(12, GameData.WeaponStyle.values().length);
+        assertEquals(24, GameData.WeaponStyle.values().length);
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(w.artName);
             assertFalse(w.artDesc.isBlank());
@@ -345,7 +345,7 @@ public class GameDataTest {
 
     @Test
     void eightRelicsWithMaxTwo() {
-        assertEquals(8, GameData.RELICS.size());
+        assertEquals(20, GameData.RELICS.size());
         var roll = GameData.rollRelics(new java.util.Random(42), java.util.List.of(), 3);
         assertEquals(3, roll.size());
         var owned = java.util.List.of("soulfang", "mirror");
@@ -356,7 +356,7 @@ public class GameDataTest {
 
     @Test
     void twentyPassivesWithCursedLimit() {
-        assertEquals(20, GameData.PASSIVES.size());
+        assertEquals(36, GameData.PASSIVES.size());
         var roll = GameData.rollPassives(new java.util.Random(7), java.util.List.of(), 3);
         assertEquals(3, roll.size());
         // 呪い所持時は呪いが出ない
@@ -443,11 +443,46 @@ public class GameDataTest {
         assertEquals(8, GameData.BOSSES.size());
     }
 
-    /** 祝福プール (Boons.BOON_POOL) が原作39種+互換2種で ID 一意 */
+    /** 追加コンテンツ (武器12・防具set4・恩寵20・技能16・遺物12) の定義健全性 */
+    @Test
+    void extraContentIsSound() {
+        assertEquals(20, GameData.EXTRA_BOON_MODS.size());
+        assertEquals(16, GameData.EXTRA_PASSIVE_MODS.size());
+        assertEquals(12, GameData.EXTRA_RELIC_MODS.size());
+        assertEquals(4, GameData.ARMOR_SETS.size());
+        var setIds = new java.util.HashSet<String>();
+        for (var s : GameData.ARMOR_SETS) {
+            assertTrue(setIds.add(s.id()));
+            assertFalse(s.bonus2().isEmpty());
+            assertFalse(s.bonus4().isEmpty());
+        }
+        // 追加恩寵・技能・遺物はすべて定義表に存在し、IDが一意
+        var ids = new java.util.HashSet<String>();
+        for (var b : Boons.BOON_POOL) assertTrue(ids.add("b:" + b.id()));
+        for (var p : GameData.PASSIVES) assertTrue(ids.add("p:" + p.id()));
+        for (var r : GameData.RELICS) assertTrue(ids.add("r:" + r.id()));
+        for (String id : GameData.EXTRA_BOON_MODS.keySet()) assertTrue(ids.contains("b:" + id));
+        for (String id : GameData.EXTRA_PASSIVE_MODS.keySet()) assertTrue(ids.contains("p:" + id));
+        for (String id : GameData.EXTRA_RELIC_MODS.keySet()) assertTrue(ids.contains("r:" + id));
+        // 新武器は奥義名・説明・ボーナスを持つ
+        for (String id : new String[]{"rune_blade", "blood_axe", "storm_spear", "void_staff",
+                "moon_bow", "fang_dagger", "quake_hammer", "frost_katana", "soul_scythe",
+                "titan_gauntlet", "eclipse_chakram", "chaos_tome"}) {
+            var w = GameData.WeaponStyle.byId(id);
+            assertEquals(id, w.id);
+            assertFalse(w.artName.isBlank());
+            assertNotNull(GameData.WEAPON_BONUS.get(id));
+        }
+        // 新職業の必殺技名
+        assertEquals("血爆", GameData.HeroClass.byId("berserker").skillName());
+        assertEquals("禅定結界", GameData.HeroClass.byId("monk").skillName());
+        // 追加遺物の flag null でも relicFlags が壊れない
+        assertTrue(GameData.relicFlags(java.util.List.of("r_blade", "soulfang")).contains("soulfang"));
+    }
     @Test
     void boonPoolCoversOriginal39PlusLegacy2() {
         var pool = Boons.BOON_POOL;
-        assertEquals(41, pool.length);
+        assertEquals(61, pool.length);
         var ids = new java.util.HashSet<String>();
         for (var b : pool) {
             assertFalse(b.desc().isBlank() || b.name().isBlank());
@@ -486,7 +521,7 @@ public class GameDataTest {
 
     @Test
     void weaponClassBonusMatchesCoreTs() {
-        assertEquals(12, GameData.WEAPON_BONUS.size());
+        assertEquals(24, GameData.WEAPON_BONUS.size());
         assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
         assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
         assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);

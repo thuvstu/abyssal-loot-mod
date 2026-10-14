@@ -103,6 +103,8 @@ public final class CombatHandler {
         } else if (rand.nextDouble() < 0.20) {
             int shards = RunManager.materialCount(player, 1.0);
             if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        } else if (rand.nextDouble() < 0.08) {
+            giveOrDrop(player, ModItems.randomConsumable(rand));
         }
         // 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加
         var deadTags = event.getEntity().getTags();
@@ -113,12 +115,23 @@ public final class CombatHandler {
         if (isBoss) {
             giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
             if (rand.nextFloat() < 0.5) giveOrDrop(player, randomMaterial(rand));
+            giveOrDrop(player, randomMaterial(rand));
+            giveOrDrop(player, randomMaterial(rand));
             player.sendSystemMessage(Component.literal("§5素材: 虚空のエッセンス×1 を得た"));
         } else if (isWarden && rand.nextFloat() < 0.8) {
             giveOrDrop(player, randomMaterial(rand));
             player.sendSystemMessage(Component.literal("§5素材: 番人の落とし物を得た"));
         } else if (isElite && rand.nextFloat() < 0.3) {
             giveOrDrop(player, randomMaterial(rand));
+            eliteMaterialDrop(player, rand);
+            if (rand.nextFloat() < 0.06) {
+                var setDrop = RunManager.makeSetArmor(null, null, rand,
+                        RunManager.luckOf(player),
+                        Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0);
+                giveOrDrop(player, setDrop);
+                player.sendSystemMessage(Component.literal(
+                        "§b戦利品: " + setDrop.getHoverName().getString() + " (右クリックで装備)"));
+            }
         }
         // レベルアップ: LvL→L+1 に (L-1)(L+4) 撃破
         int kills = player.getData(ModAttachments.KILLS.get());
@@ -176,7 +189,7 @@ public final class CombatHandler {
         // 恩寵「爆砕の刻印」・槌・魔導書・接辞: 撃破時に爆裂
         double explodeChance = RunManager.boonLv(player, "explode") * 0.18
                 + RunManager.wbonusOf(player).explodePct() / 100.0
-                + RunManager.affixOf(player, "explodePct") / 100.0;
+                + (RunManager.affixOf(player, "explodePct") + RunManager.extraStat(player, "explodePct")) / 100.0;
         if (explodeChance > 0 && rand.nextFloat() < explodeChance) {
             WeaponArts.pulse(level, player, event.getEntity().position(), 4, 1.0, true,
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
@@ -346,9 +359,25 @@ public final class CombatHandler {
     /** 素材の抽選 (古代50/混沌30/虚空20。原作 MATERIALS の重みに対応) */
     private static ItemStack randomMaterial(net.minecraft.util.RandomSource rand) {
         float r = rand.nextFloat();
-        if (r < 0.2f) return new ItemStack(ModItems.VOID_ESSENCE.get());
-        if (r < 0.5f) return new ItemStack(ModItems.CHAOS_GEM.get());
-        return new ItemStack(ModItems.ANCIENT_STONE.get());
+        if (r < 0.12f) return new ItemStack(ModItems.VOID_ESSENCE.get());
+        if (r < 0.30f) return new ItemStack(ModItems.CHAOS_GEM.get());
+        if (r < 0.48f) return new ItemStack(ModItems.ANCIENT_STONE.get());
+        var extra = new ItemStack[]{
+                new ItemStack(ModItems.ABYSS_BLOOD_CRYSTAL.get()),
+                new ItemStack(ModItems.ABYSS_SHADOW_STONE.get()),
+                new ItemStack(ModItems.ABYSS_STAR_DUST.get()),
+                new ItemStack(ModItems.ABYSS_WYRM_SCALE.get()),
+                new ItemStack(ModItems.ABYSS_ANCIENT_CORE.get()),
+                new ItemStack(ModItems.ABYSS_VOID_PIECE.get())};
+        return extra[rand.nextInt(extra.length)];
+    }
+
+    /** 精鋭の追加ドロップ: 新素材1〜2個 (18%) */
+    private static void eliteMaterialDrop(ServerPlayer player, net.minecraft.util.RandomSource rand) {
+        if (rand.nextFloat() < 0.18f) {
+            giveOrDrop(player, randomMaterial(rand));
+            if (rand.nextFloat() < 0.4f) giveOrDrop(player, randomMaterial(rand));
+        }
     }
 
     private static int needFor(int level) {
@@ -477,7 +506,8 @@ public final class CombatHandler {
                         * (float) (1 - RunManager.curseValueOf(heldDef) / 100.0));
             }
             // 接辞 (armorPct): 被ダメ軽減
-            double affixArmor = RunManager.affixOf(player, "armorPct");
+            double affixArmor = RunManager.affixOf(player, "armorPct")
+                    + RunManager.extraStat(player, "armorPct");
             if (affixArmor != 0) {
                 event.setNewDamage(event.getNewDamage()
                         * (float) Math.max(0.3, 1 - affixArmor / 100.0));
@@ -631,7 +661,8 @@ public final class CombatHandler {
                 // 吸血の刻印 (祝福) / 血の盟約 (技能・+6%/自然回復喪失は回復量で近似) / 接辞
                 int life = RunManager.boonLv(player, "life");
                 if (life > 0 && dmg > 0) RunManager.heal(player, dmg * 0.04 * life);
-                double affixLeech = RunManager.affixOf(player, "lifestealPct");
+                double affixLeech = RunManager.affixOf(player, "lifestealPct")
+                        + RunManager.extraStat(player, "lifestealPct");
                 if (affixLeech > 0 && dmg > 0) RunManager.heal(player, dmg * affixLeech / 100.0);
                 if (RunManager.passivesOf(player).contains("blood_pact") && dmg > 0) {
                     RunManager.heal(player, dmg * 0.06);
@@ -648,7 +679,7 @@ public final class CombatHandler {
                 }
                 // 恩寵「凍牙の刻印」・接辞: 命中時に氷結鈍足
                 double freezeChance = RunManager.boonLv(player, "freeze") * 0.20
-                        + RunManager.affixOf(player, "freezePct") / 100.0;
+                        + (RunManager.affixOf(player, "freezePct") + RunManager.extraStat(player, "freezePct")) / 100.0;
                 if (freezeChance > 0 && rand.nextFloat() < freezeChance) {
                     target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
                     target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 40, 0));
@@ -666,13 +697,14 @@ public final class CombatHandler {
                 }
                 // 連鎖雷 (武器特性 / 祝福): 他の敵へ飛び移る
                 int chainLv = RunManager.boonLv(player, "chain");
-                boolean weaponChain = "chain_l".equals(trait) || RunManager.affixOf(player, "chain") > 0;
+                boolean weaponChain = "chain_l".equals(trait) || RunManager.affixOf(player, "chain") > 0
+                        || RunManager.extraStat(player, "chain") > 0;
                 if ((weaponChain || chainLv > 0) && rand.nextFloat() < (weaponChain ? 1f : 0.25f)) {
                     float chainDmg = (float) (atk * (weaponChain ? 0.5 : 0.6));
                     // 貫通の刻印・弓・輪刃: 飛移り +2/個
                     int jumps = 2 + RunManager.boonLv(player, "pierce") * 2
                             + RunManager.wbonusOf(player).pierce() * 2
-                            + (int) RunManager.affixOf(player, "pierce") * 2;
+                            + (int) (RunManager.affixOf(player, "pierce") + RunManager.extraStat(player, "pierce")) * 2;
                     chainStrike(level, player, target, chainDmg, jumps);
                 }
                 // 恩寵「渦刃」: 命中のたびに刃の渦が飛ぶ (周囲に小斬撃)
@@ -933,7 +965,7 @@ public final class CombatHandler {
             // 分裂の刻印・弓の追加弾: 発射弾数 +1/Lv
             int shots = 1 + RunManager.boonLv(player, "proj")
                     + RunManager.wbonusOf(player).projectiles()
-                    + (int) RunManager.affixOf(player, "projectiles");
+                    + (int) (RunManager.affixOf(player, "projectiles") + RunManager.extraStat(player, "projectiles"));
             for (int i = 0; i < shots; i++) {
                 var target = level.getEntitiesOfClass(LivingEntity.class,
                         new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,

@@ -20,7 +20,9 @@ public final class GameData {
         MAGE("mage", "魔導士", "星詠みの術者", 84, 9, 16, 2.0f, 0.10f, 1, 244, 1.25f),
         NINJA("ninja", "忍者", "影縫いの刃", 96, 11, 12, 3.1f, 0.20f, 1, 300, 0.62f),
         PALADIN("paladin", "聖騎士", "不滅の盾", 190, 21, 16, 1.25f, 0.05f, 1, 226, 1.50f),
-        GUNNER("gunner", "銃魔", "鉛の嵐", 100, 12, 11, 3.4f, 0.14f, 2, 256, 1.00f);
+        GUNNER("gunner", "銃魔", "鉛の嵐", 100, 12, 11, 3.4f, 0.14f, 2, 256, 1.00f),
+        BERSERKER("berserker", "狂戦士", "血路の王", 150, 18, 24, 1.30f, 0.12f, 1, 260, 1.20f),
+        MONK("monk", "僧兵", "静寂の拳", 140, 16, 15, 2.60f, 0.10f, 1, 270, 0.90f);
 
         public final String id;
         public final String name;
@@ -66,6 +68,8 @@ public final class GameData {
                 case NINJA -> "影分身乱舞";
                 case PALADIN -> "ジャッジメント";
                 case GUNNER -> "バレットヘル";
+                case BERSERKER -> "血爆";
+                case MONK -> "禅定結界";
             };
         }
     }
@@ -82,7 +86,19 @@ public final class GameData {
         SCYTHE("scythe", "鎌", "冥府の収穫", "周囲を刈り取り低HPに追加打", 0xaff097),
         GAUNTLET("gauntlet", "拳套", "六連震掌", "前方6連衝撃・最後に吹き飛ばし", 0xffd092),
         CHAKRAM("chakram", "輪刃", "輪廻乱舞", "16枚の貫通輪刃を全方位へ", 0x91f2eb),
-        TOME("tome", "魔導書", "禁書・虚空葬", "狙った地点に虚空の爆縮・脆弱", 0xde9df7);
+        TOME("tome", "魔導書", "禁書・虚空葬", "狙った地点に虚空の爆縮・脆弱", 0xde9df7),
+        RUNE_BLADE("rune_blade", "ルーン剣", "ルーン連斬", "5連斬撃波・凍結を添える", 0x7ce8ff),
+        BLOOD_AXE("blood_axe", "血斧", "血潮爆砕", "爆発と共に生命を吸う", 0xff2a55),
+        STORM_SPEAR("storm_spear", "嵐槍", "螺旋突貫", "突進の軌跡に雷撃", 0x9fd8ff),
+        VOID_STAFF("void_staff", "虚杖", "虚空落とし", "隕石を3連で落とす", 0x8a5cff),
+        MOON_BOW("moon_bow", "月弓", "月雨", "9矢を自動照準・貫通で連射", 0xd6f0ff),
+        FANG_DAGGER("fang_dagger", "牙短剣", "牙影連襲", "3回瞬移し背後から噛む", 0xffe14a),
+        QUAKE_HAMMER("quake_hammer", "震槌", "地鳴り", "広範囲に激震・鈍足", 0xc9a227),
+        FROST_KATANA("frost_katana", "氷刀", "氷月一閃", "一閃と共に周囲を凍結", 0xaee9ff),
+        SOUL_SCYTHE("soul_scythe", "魂鎌", "魂収穫", "刈り取り魂ゲージを得る", 0xc9a0ff),
+        TITAN_GAUNTLET("titan_gauntlet", "剛拳", "岩砕十連", "10連衝撃・最後に大爆発", 0xffb03c),
+        ECLIPSE_CHAKRAM("eclipse_chakram", "蝕輪", "蝕輪廻", "24枚の輪刃を全方位へ", 0x5c8cff),
+        CHAOS_TOME("chaos_tome", "混沌書", "混沌特異点", "爆縮と無作為の弱体", 0xff5c8a);
 
         public final String id;
         public final String weaponName;
@@ -466,7 +482,19 @@ public final class GameData {
             new Relic("twin", "双魂の盃", "10レベルごとに弾数+1・攻撃+10%", "twin"),
             new Relic("storm", "嵐召喚者の冠", "見切り成立のたび落雷が3体を焼く", "storm"),
             new Relic("greed", "巨人の欲", "45秒ごとに所持欠片の半分がHPに変わる", "greed"),
-            new Relic("compass", "深羅針盤", "地上の最強装備へ光の道を示す", "compass"));
+            new Relic("compass", "深羅針盤", "地上の最強装備へ光の道を示す", "compass"),
+            new Relic("r_blade", "斬鉄剣", "攻撃力 +20%", null),
+            new Relic("r_wind", "疾風の羽", "攻撃速度 +10%", null),
+            new Relic("r_plate", "金剛の盾", "ダメージ軽減 +15%", null),
+            new Relic("r_heart", "巨人の心臓", "最大HP +20%", null),
+            new Relic("r_eye", "千里眼", "会心率 +8%", null),
+            new Relic("r_fang", "吸血牙", "生命吸収 +5%", null),
+            new Relic("r_orb", "魂の宝珠", "魂ゲージ増加 +30%", null),
+            new Relic("r_wave", "震動の鈴", "攻撃範囲 +15%", null),
+            new Relic("r_bomb", "爆薬庫", "爆裂確率 +15%", null),
+            new Relic("r_boot", "疾風の靴", "移動速度 +12%", null),
+            new Relic("r_spring", "生命の泉", "HP自動回復 +2/秒", null),
+            new Relic("r_star", "星屑の冠", "運 +25", null));
 
     public static Relic relicById(String id) {
         for (Relic r : RELICS) {
@@ -518,7 +546,23 @@ public final class GameData {
             new Passive("undying", "不滅の誓い", "一度だけ HP50% で復活 / 最大HP -20%", "cursed", "undying"),
             new Passive("echo_strike", "残響の型", "フィニッシャーが再放される / 攻速 -15%", "cursed", "echo_strike"),
             new Passive("perfection", "完全主義", "見切り後3秒間、攻撃 +90%", "major", "last_stand"),
-            new Passive("frostbound", "氷縛の理", "氷結 +40% / 攻撃速度 -12%", "minor", null));
+            new Passive("frostbound", "氷縛の理", "氷結 +40% / 攻撃速度 -12%", "minor", null),
+            new Passive("fighting_spirit", "闘志", "攻撃力 +18%", "minor", null),
+            new Passive("last_bet", "背水の陣", "攻撃力 +35% / 最大HP -20%", "major", null),
+            new Passive("acrobat", "軽業", "攻撃速度 +12% / 移動速度 +8%", "minor", null),
+            new Passive("iron_wall", "鉄壁", "ダメージ軽減 +12% / 最大HP +10%", "minor", null),
+            new Passive("sniper", "狙撃手", "会心威力 +40% / 会心率 -3%", "minor", null),
+            new Passive("runner", "疾駆", "移動速度 +15% / 攻撃速度 +5%", "minor", null),
+            new Passive("miser", "貯蓄家", "最大HP +20% / 移動速度 -5%", "minor", null),
+            new Passive("executioner", "処刑人", "会心率 +10% / 攻撃力 +8%", "major", null),
+            new Passive("ascetic", "禁欲", "魂ゲージ増加 +25% / 攻撃力 -5%", "minor", null),
+            new Passive("regenerate", "自動修復", "HP自動回復 +1.5/秒", "minor", null),
+            new Passive("lucky", "強運", "運 +30 / 会心率 +3%", "minor", null),
+            new Passive("destroyer", "破壊者", "攻撃範囲 +15% / 攻撃力 -8%", "major", null),
+            new Passive("bomber", "爆弾魔", "爆裂確率 +15% / 軽減 -5%", "minor", null),
+            new Passive("vampire", "吸血鬼", "生命吸収 +4% / 最大HP -8%", "major", null),
+            new Passive("freezer", "凍結師", "氷結確率 +20% / 攻撃速度 -5%", "minor", null),
+            new Passive("berserk", "狂化", "攻撃力 +45% / 軽減 -15% / 最大HP -15%", "cursed", null));
 
     public static Passive passiveById(String id) {
         for (Passive p : PASSIVES) {
@@ -889,11 +933,109 @@ public final class GameData {
             java.util.Map.entry("scythe", wb(14, 0, 18, 0, 0, 0, 0, 0, 0, 0, -6)),
             java.util.Map.entry("gauntlet", wb(-14, 28, 0, 0, 0, 0, 0, 0, 0, 8, 0)),
             java.util.Map.entry("chakram", wb(0, -8, 20, 0, 0, 3, 0, 0, 0, 0, 0)),
-            java.util.Map.entry("tome", wb(22, -26, 0, 0, 0, 0, 0, 0, 35, 0, 0)));
+            java.util.Map.entry("tome", wb(22, -26, 0, 0, 0, 0, 0, 0, 35, 0, 0)),
+            java.util.Map.entry("rune_blade", wb(8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("blood_axe", wb(24, -14, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("storm_spear", wb(0, 10, 20, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("void_staff", wb(-5, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("moon_bow", wb(0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("fang_dagger", wb(0, 0, 0, 0, 0, 0, 15, 40, 0, 0, 0)),
+            java.util.Map.entry("quake_hammer", wb(0, -24, 0, 0, 0, 0, 0, 0, 30, 0, 0)),
+            java.util.Map.entry("frost_katana", wb(12, 0, 10, 0, 0, 0, 8, 0, 0, 0, 0)),
+            java.util.Map.entry("soul_scythe", wb(16, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("titan_gauntlet", wb(10, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("eclipse_chakram", wb(0, 0, 15, 0, 0, 4, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("chaos_tome", wb(18, -20, 0, 0, 0, 0, 0, 0, 40, 0, 0)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
                 new WeaponBonus(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+    }
+
+    /* ---------------- 追加コンテンツの汎用ステータス (恩寵・技能・遺物・防具set) ----------------
+     * 追加の恩寵・技能・遺物・防具セット効果はすべて接辞キー (damagePct 等) の束で表し、
+     * RunManager.extraStat が合算して各計算式に反映する。振る舞い系フックは不要。
+     */
+    public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_BOON_MODS =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("b_power", java.util.Map.of("damagePct", 15.0)),
+                    java.util.Map.entry("b_swift", java.util.Map.of("attackSpeedPct", 12.0)),
+                    java.util.Map.entry("b_guard", java.util.Map.of("armorPct", 10.0)),
+                    java.util.Map.entry("b_dash", java.util.Map.of("moveSpeedPct", 10.0)),
+                    java.util.Map.entry("b_eye", java.util.Map.of("critPct", 6.0)),
+                    java.util.Map.entry("b_fang", java.util.Map.of("critDmgPct", 30.0)),
+                    java.util.Map.entry("b_leech", java.util.Map.of("lifestealPct", 3.0)),
+                    java.util.Map.entry("b_mend", java.util.Map.of("regenFlat", 1.0)),
+                    java.util.Map.entry("b_luck", java.util.Map.of("luckFlat", 20.0)),
+                    java.util.Map.entry("b_soul", java.util.Map.of("energyPct", 20.0)),
+                    java.util.Map.entry("b_wide", java.util.Map.of("areaPct", 12.0)),
+                    java.util.Map.entry("b_blast", java.util.Map.of("explodePct", 10.0)),
+                    java.util.Map.entry("b_frost", java.util.Map.of("freezePct", 12.0)),
+                    java.util.Map.entry("b_body", java.util.Map.of("maxHpPct", 12.0)),
+                    java.util.Map.entry("b_pierce", java.util.Map.of("pierce", 1.0)),
+                    java.util.Map.entry("b_chain", java.util.Map.of("chain", 1.0)),
+                    java.util.Map.entry("b_volley", java.util.Map.of("projectiles", 1.0)),
+                    java.util.Map.entry("b_flat", java.util.Map.of("damageFlat", 8.0)),
+                    java.util.Map.entry("b_vital", java.util.Map.of("maxHpFlat", 30.0)),
+                    java.util.Map.entry("b_drain", java.util.Map.of("lifestealPct", 5.0, "damagePct", 10.0)));
+
+    public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_PASSIVE_MODS =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("fighting_spirit", java.util.Map.of("damagePct", 18.0)),
+                    java.util.Map.entry("last_bet", java.util.Map.of("damagePct", 35.0, "maxHpPct", -20.0)),
+                    java.util.Map.entry("acrobat", java.util.Map.of("attackSpeedPct", 12.0, "moveSpeedPct", 8.0)),
+                    java.util.Map.entry("iron_wall", java.util.Map.of("armorPct", 12.0, "maxHpPct", 10.0)),
+                    java.util.Map.entry("sniper", java.util.Map.of("critDmgPct", 40.0, "critPct", -3.0)),
+                    java.util.Map.entry("runner", java.util.Map.of("moveSpeedPct", 15.0, "attackSpeedPct", 5.0)),
+                    java.util.Map.entry("miser", java.util.Map.of("maxHpPct", 20.0, "moveSpeedPct", -5.0)),
+                    java.util.Map.entry("executioner", java.util.Map.of("critPct", 10.0, "damagePct", 8.0)),
+                    java.util.Map.entry("ascetic", java.util.Map.of("energyPct", 25.0, "damagePct", -5.0)),
+                    java.util.Map.entry("regenerate", java.util.Map.of("regenFlat", 1.5)),
+                    java.util.Map.entry("lucky", java.util.Map.of("luckFlat", 30.0, "critPct", 3.0)),
+                    java.util.Map.entry("destroyer", java.util.Map.of("areaPct", 15.0, "damagePct", -8.0)),
+                    java.util.Map.entry("bomber", java.util.Map.of("explodePct", 15.0, "armorPct", -5.0)),
+                    java.util.Map.entry("vampire", java.util.Map.of("lifestealPct", 4.0, "maxHpPct", -8.0)),
+                    java.util.Map.entry("freezer", java.util.Map.of("freezePct", 20.0, "attackSpeedPct", -5.0)),
+                    java.util.Map.entry("berserk", java.util.Map.of("damagePct", 45.0, "armorPct", -15.0, "maxHpPct", -15.0)));
+
+    public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_RELIC_MODS =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("r_blade", java.util.Map.of("damagePct", 20.0)),
+                    java.util.Map.entry("r_wind", java.util.Map.of("attackSpeedPct", 10.0)),
+                    java.util.Map.entry("r_plate", java.util.Map.of("armorPct", 15.0)),
+                    java.util.Map.entry("r_heart", java.util.Map.of("maxHpPct", 20.0)),
+                    java.util.Map.entry("r_eye", java.util.Map.of("critPct", 8.0)),
+                    java.util.Map.entry("r_fang", java.util.Map.of("lifestealPct", 5.0)),
+                    java.util.Map.entry("r_orb", java.util.Map.of("energyPct", 30.0)),
+                    java.util.Map.entry("r_wave", java.util.Map.of("areaPct", 15.0)),
+                    java.util.Map.entry("r_bomb", java.util.Map.of("explodePct", 15.0)),
+                    java.util.Map.entry("r_boot", java.util.Map.of("moveSpeedPct", 12.0)),
+                    java.util.Map.entry("r_spring", java.util.Map.of("regenFlat", 2.0)),
+                    java.util.Map.entry("r_star", java.util.Map.of("luckFlat", 25.0)));
+
+    /** 深淵防具セット (2部位・4部位ボーナス)。部位は abyss_<set>_helm/chest/legs/boots */
+    public record ArmorSet(String id, String name, int trimColor, int accentColor,
+                           java.util.Map<String, Double> bonus2, java.util.Map<String, Double> bonus4) {}
+
+    public static final java.util.List<ArmorSet> ARMOR_SETS = java.util.List.of(
+            new ArmorSet("blood", "血装", 0xff4d6d, 0xffd0d8,
+                    java.util.Map.of("lifestealPct", 3.0),
+                    java.util.Map.of("damagePct", 12.0, "lifestealPct", 3.0)),
+            new ArmorSet("shadow", "影装", 0x8a7cff, 0xe0d8ff,
+                    java.util.Map.of("moveSpeedPct", 10.0),
+                    java.util.Map.of("critPct", 8.0, "attackSpeedPct", 10.0)),
+            new ArmorSet("rock", "岩装", 0xc9a227, 0xffe9a8,
+                    java.util.Map.of("armorPct", 8.0),
+                    java.util.Map.of("maxHpPct", 15.0, "armorPct", 8.0)),
+            new ArmorSet("star", "星装", 0x7ce8ff, 0xe0f8ff,
+                    java.util.Map.of("energyPct", 20.0),
+                    java.util.Map.of("energyPct", 20.0, "areaPct", 12.0)));
+
+    public static ArmorSet armorSetById(String id) {
+        for (ArmorSet s : ARMOR_SETS) {
+            if (s.id().equals(id)) return s;
+        }
+        return null;
     }
 
     /* ---------------- 原作の武器名 (接頭・接尾・伝説・神話) ---------------- */

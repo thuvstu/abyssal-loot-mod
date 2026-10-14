@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "minecraft:milk_bucket"
+    },
+    {
+      "item": "abyssalloot:abyss_shadow_stone"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_cure",
+    "count": 1
+  }
+}

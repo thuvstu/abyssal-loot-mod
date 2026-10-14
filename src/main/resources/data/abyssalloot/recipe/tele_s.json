@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "minecraft:ender_pearl"
+    },
+    {
+      "item": "abyssalloot:ancient_stone"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_tele_s",
+    "count": 1
+  }
+}

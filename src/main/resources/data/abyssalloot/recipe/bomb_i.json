@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "abyssalloot:abyss_shadow_stone"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_bomb_i",
+    "count": 1
+  }
+}

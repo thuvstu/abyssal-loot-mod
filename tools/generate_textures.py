@@ -227,6 +227,174 @@ def tome(accent):
     return img
 
 
+# ---------------- 追加武器12種 (原作色・固有形状) ----------------
+
+def tome(accent):
+    img, d = canvas()
+    poly(d, [(1, 4), (12, 2), (14, 11), (3, 13)], (46, 28, 70, 255))  # 表紙
+    poly(d, [(2, 5), (11, 3), (12, 10), (3, 12)], accent)
+    d.line([(3, 6), (10, 4)], fill=(245, 240, 230, 255), width=1)  # 本文
+    d.line([(3, 8), (10, 6)], fill=(245, 240, 230, 255), width=1)
+    d.line([(4, 10), (9, 9)], fill=(245, 240, 230, 255), width=1)
+    line(d, [(2, 5), (1, 13)], GOLD, 1)  # 背・留金
+    d.rectangle([5, 6, 8, 9], fill=OUTLINE)  # 紋章枠
+    d.point((6, 7), fill=WHITE)
+    d.point((7, 8), fill=GOLD)
+    return img
+
+
+def rune_blade(accent):
+    img, d = canvas()
+    _dia_blade(d, 4, 12, 13, 3, accent)
+    line(d, [(2, 8), (6, 12)], GOLD, 1)  # 十字鍔
+    line(d, [(4, 12), (2, 14)], WOOD_DARK, 2)
+    for x, y in ((7, 9), (9, 7), (11, 5)):  # ルーン刻み
+        d.point((x, y), fill=accent)
+        d.point((x + 1, y), fill=WHITE)
+    d.point((3, 13), fill=accent)
+    return img
+
+
+def blood_axe(accent):
+    img, d = canvas()
+    line(d, [(2, 15), (9, 6)], WOOD_DARK, 2)
+    poly(d, [(7, 1), (15, 2), (14, 9), (8, 10)], STEEL_LIGHT)  # 大刃
+    poly(d, [(10, 3), (14, 4), (13, 8), (9, 9)], accent)  # 血刃
+    d.line([(10, 3), (14, 4)], fill=WHITE, width=1)
+    d.line([(8, 10), (6, 12)], fill=accent, width=1)  # 血雫
+    d.point((12, 6), fill=WHITE)
+    line(d, [(5, 12), (7, 10)], GOLD, 1)
+    return img
+
+
+def storm_spear(accent):
+    img, d = canvas()
+    line(d, [(1, 15), (9, 7)], WOOD, 1)
+    poly(d, [(8, 0), (11, 1), (10, 6)], STEEL_LIGHT)  # 主穂
+    poly(d, [(11, 2), (14, 3), (11, 6)], STEEL_LIGHT)  # 副穂
+    d.line([(9, 2), (10, 5)], fill=WHITE, width=1)
+    d.line([(12, 3), (11, 5)], fill=WHITE, width=1)
+    d.point((10, 4), fill=accent)
+    line(d, [(7, 9), (9, 11)], GOLD, 1)
+    d.line([(6, 10), (4, 12)], fill=accent, width=1)  # 雷房
+    return img
+
+
+def void_staff(accent):
+    img, d = canvas()
+    line(d, [(7, 15), (7, 8)], WOOD_DARK, 2)
+    d.ellipse([3, 6, 12, 9], outline=GOLD, width=1)  # 環
+    d.ellipse([4, 0, 11, 7], fill=OUTLINE)
+    d.ellipse([5, 1, 10, 6], fill=(20, 8, 40, 255))  # 虚核
+    d.ellipse([6, 2, 9, 5], fill=accent)
+    d.point((7, 3), fill=WHITE)
+    d.point((4, 8), fill=accent)
+    d.point((11, 8), fill=accent)
+    return img
+
+
+def moon_bow(accent):
+    img, d = canvas()
+    d.arc([0, 0, 11, 15], start=-75, end=75, fill=OUTLINE, width=4)
+    d.arc([1, 1, 10, 14], start=-75, end=75, fill=WOOD, width=2)
+    d.ellipse([3, 0, 6, 3], fill=accent, outline=OUTLINE)  # 上弦月
+    d.ellipse([3, 12, 6, 15], fill=accent, outline=OUTLINE)  # 下弦月
+    d.line([(8, 1), (8, 14)], fill=(230, 230, 230, 255), width=1)
+    d.line([(8, 8), (14, 8)], fill=STEEL_LIGHT, width=1)
+    poly(d, [(13, 7), (15, 8), (13, 9)], accent)
+    d.point((5, 7), fill=WHITE)
+    return img
+
+
+def fang_dagger(accent):
+    img, d = canvas()
+    poly(d, [(6, 4), (13, 2), (12, 5), (7, 9)], STEEL_LIGHT)  # 牙刃
+    for x, y in ((9, 5), (10, 4), (11, 3)):  # 鋸歯
+        d.point((x, y), fill=OUTLINE)
+    d.line([(7, 6), (12, 3)], fill=WHITE, width=1)
+    line(d, [(5, 7), (8, 10)], GOLD, 1)
+    line(d, [(6, 10), (3, 13)], WOOD_DARK, 2)
+    d.point((7, 5), fill=accent)
+    d.point((4, 12), fill=accent)
+    return img
+
+
+def quake_hammer(accent):
+    img, d = canvas()
+    line(d, [(3, 15), (8, 8)], WOOD, 2)
+    poly(d, [(4, 0), (15, 2), (13, 11), (2, 9)], STEEL_DARK)  # 巨頭
+    poly(d, [(6, 2), (13, 4), (11, 9), (4, 7)], STEEL_LIGHT)
+    d.line([(6, 3), (12, 5)], fill=accent, width=1)  # 亀裂光
+    d.line([(5, 6), (10, 8)], fill=accent, width=1)
+    d.point((9, 5), fill=WHITE)
+    line(d, [(5, 12), (7, 10)], GOLD, 1)
+    return img
+
+
+def frost_katana(accent):
+    img, d = canvas()
+    poly(d, [(2, 10), (7, 6), (12, 2), (14, 1), (13, 4), (8, 8), (3, 12)], STEEL_LIGHT)
+    d.line([(4, 10), (11, 3)], fill=accent, width=1)  # 氷の反り
+    poly(d, [(11, 1), (13, 0), (13, 3)], WHITE)  # 氷晶
+    d.point((6, 6), fill=WHITE)
+    d.ellipse([0, 9, 4, 13], fill=OUTLINE)
+    d.ellipse([1, 10, 3, 12], fill=GOLD)
+    line(d, [(1, 12), (0, 15)], WOOD_DARK, 2)
+    d.point((3, 5), fill=accent)
+    return img
+
+
+def soul_scythe(accent):
+    img, d = canvas()
+    line(d, [(2, 15), (8, 5)], WOOD_DARK, 2)
+    d.arc([4, -1, 16, 11], start=170, end=305, fill=OUTLINE, width=4)
+    d.arc([5, 0, 15, 10], start=170, end=305, fill=STEEL_LIGHT, width=2)
+    d.ellipse([10, 1, 13, 4], fill=accent, outline=OUTLINE)  # 魂玉
+    d.point((11, 2), fill=WHITE)
+    for x, y in ((6, 4), (8, 6), (5, 8)):  # 魂気
+        d.point((x, y), fill=accent)
+    line(d, [(7, 6), (9, 4)], GOLD, 1)
+    return img
+
+
+def titan_gauntlet(accent):
+    img, d = canvas()
+    d.rectangle([2, 8, 12, 14], fill=OUTLINE)  # 大手甲
+    d.rectangle([3, 9, 11, 13], fill=STEEL_DARK)
+    d.line([(3, 9), (11, 9)], fill=STEEL_LIGHT, width=1)
+    for i, x in enumerate((3, 5, 7, 9, 11)):
+        d.rectangle([x, 3, x + 1, 8], fill=OUTLINE)  # 指5本
+        d.rectangle([x, 4, x, 7], fill=STEEL_LIGHT)
+        d.point((x, 3), fill=accent)  # 爪先鋲
+    d.rectangle([5, 10, 9, 12], fill=accent)  # 拳核
+    d.point((6, 10), fill=WHITE)
+    return img
+
+
+def eclipse_chakram(accent):
+    img, d = canvas()
+    d.ellipse([0, 0, 15, 15], outline=OUTLINE, width=4)
+    d.ellipse([1, 1, 14, 14], outline=(20, 10, 40, 255), width=2)  # 蝕輪
+    for cx, cy in ((7, 0), (7, 14), (0, 7), (14, 7), (2, 2), (13, 2), (2, 13), (13, 13)):
+        d.point((cx, cy), fill=accent)  # 輪刃の星
+    d.ellipse([4, 4, 11, 11], outline=accent, width=2)
+    d.ellipse([6, 6, 9, 9], fill=accent, outline=OUTLINE)
+    d.ellipse([7, 7, 8, 8], fill=(20, 10, 40, 255))
+    return img
+
+
+def chaos_tome(accent):
+    img, d = canvas()
+    poly(d, [(1, 4), (12, 2), (14, 11), (3, 13)], (60, 10, 30, 255))  # 混沌表紙
+    poly(d, [(3, 5), (10, 4), (11, 9), (4, 11)], accent)
+    d.arc([5, 5, 10, 10], start=0, end=270, fill=(245, 240, 230, 255), width=1)  # 渦巻文
+    d.point((7, 7), fill=WHITE)
+    d.point((11, 3), fill=accent)
+    d.point((2, 10), fill=accent)
+    line(d, [(2, 5), (1, 13)], GOLD, 1)
+    return img
+
+
 ABYSS_PLATE = (58, 40, 92, 255)
 ABYSS_DARK = (30, 20, 52, 255)
 ABYSS_LIGHT = (120, 92, 190, 255)
@@ -242,42 +410,42 @@ def _plate(d, box, trim=True):
         d.point((x1 - 2, y1 - 2), fill=GOLD)
 
 
-def helm(accent):
+def helm(accent, trim=GOLD):
     img, d = canvas()
     _plate(d, [3, 3, 12, 11])
     d.rectangle([5, 7, 10, 9], fill=ABYSS_DARK)  # 面頬
     d.line([(5, 8), (10, 8)], fill=accent, width=1)  # 目元光
-    d.rectangle([7, 2, 8, 4], fill=GOLD)  # 前立
+    d.rectangle([7, 2, 8, 4], fill=trim)  # 前立
     d.point((7, 3), fill=WHITE)
     return img
 
 
-def chest(accent):
+def chest(accent, trim=GOLD):
     img, d = canvas()
     _plate(d, [4, 4, 11, 12])
     d.rectangle([1, 5, 3, 11], fill=OUTLINE)  # 腕
     d.rectangle([2, 6, 2, 10], fill=ABYSS_PLATE)
     d.rectangle([12, 5, 14, 11], fill=OUTLINE)
     d.rectangle([13, 6, 13, 10], fill=ABYSS_PLATE)
-    d.line([(4, 9), (11, 9)], fill=GOLD, width=1)  # 帯金具
+    d.line([(4, 9), (11, 9)], fill=trim, width=1)  # 帯金具
     d.rectangle([7, 5, 8, 7], fill=accent)  # 胸核
     d.point((7, 5), fill=WHITE)
     return img
 
 
-def legs(accent):
+def legs(accent, trim=GOLD):
     img, d = canvas()
     d.rectangle([3, 2, 12, 5], fill=OUTLINE)  # 腰
     d.rectangle([4, 3, 11, 4], fill=ABYSS_PLATE)
     _plate(d, [3, 5, 7, 13], trim=False)  # 左脚
     _plate(d, [8, 5, 12, 13], trim=False)  # 右脚
-    d.line([(3, 4), (12, 4)], fill=GOLD, width=1)
+    d.line([(3, 4), (12, 4)], fill=trim, width=1)
     d.point((5, 7), fill=accent)
     d.point((10, 7), fill=accent)
     return img
 
 
-def boots(accent):
+def boots(accent, trim=GOLD):
     img, d = canvas()
     _plate(d, [2, 3, 6, 11], trim=False)  # 左
     _plate(d, [9, 3, 13, 11], trim=False)  # 右
@@ -287,8 +455,8 @@ def boots(accent):
     d.rectangle([10, 11, 12, 12], fill=ABYSS_DARK)
     d.point((3, 5), fill=accent)
     d.point((12, 5), fill=accent)
-    d.point((4, 11), fill=GOLD)
-    d.point((11, 11), fill=GOLD)
+    d.point((4, 11), fill=trim)
+    d.point((11, 11), fill=trim)
     return img
 
 
@@ -314,14 +482,172 @@ WEAPONS = {
     "abyss_gauntlet": (gauntlet, 0xffb84a, "handheld"),
     "abyss_chakram": (chakram, 0x7ce8ff, "generated"),
     "abyss_tome": (tome, 0xe34bff, "generated"),
+    "abyss_rune_blade": (rune_blade, 0x7ce8ff, "handheld"),
+    "abyss_blood_axe": (blood_axe, 0xff2a55, "handheld"),
+    "abyss_storm_spear": (storm_spear, 0x9fd8ff, "handheld"),
+    "abyss_void_staff": (void_staff, 0x8a5cff, "handheld"),
+    "abyss_moon_bow": (moon_bow, 0xd6f0ff, "handheld"),
+    "abyss_fang_dagger": (fang_dagger, 0xffe14a, "handheld"),
+    "abyss_quake_hammer": (quake_hammer, 0xc9a227, "handheld"),
+    "abyss_frost_katana": (frost_katana, 0xaee9ff, "handheld"),
+    "abyss_soul_scythe": (soul_scythe, 0xc9a0ff, "handheld"),
+    "abyss_titan_gauntlet": (titan_gauntlet, 0xffb03c, "handheld"),
+    "abyss_eclipse_chakram": (eclipse_chakram, 0x5c8cff, "generated"),
+    "abyss_chaos_tome": (chaos_tome, 0xff5c8a, "generated"),
+}
+
+
+def flask(liquid):
+    """回復薬フラスコ"""
+    img, d = canvas()
+    d.ellipse([3, 6, 12, 15], fill=OUTLINE)
+    d.ellipse([4, 7, 11, 14], fill=liquid)
+    d.ellipse([5, 8, 7, 10], fill=WHITE)
+    d.rectangle([6, 1, 9, 6], fill=OUTLINE)  # 首
+    d.rectangle([7, 2, 8, 5], fill=WOOD)
+    d.rectangle([6, 0, 9, 1], fill=GOLD)  # 栓
+    return img
+
+
+def vial(liquid):
+    """細首の薬瓶"""
+    img, d = canvas()
+    d.rectangle([5, 5, 10, 14], fill=OUTLINE)
+    d.rectangle([6, 6, 9, 13], fill=liquid)
+    d.line([(6, 6), (6, 13)], fill=WHITE, width=1)
+    d.rectangle([6, 1, 9, 5], fill=OUTLINE)
+    d.rectangle([7, 2, 8, 4], fill=WOOD_DARK)
+    d.point((8, 8), fill=WHITE)
+    return img
+
+
+def orb(liquid):
+    """魂のオーブ"""
+    img, d = canvas()
+    d.ellipse([3, 3, 12, 14], fill=OUTLINE)
+    d.ellipse([4, 4, 11, 13], fill=liquid)
+    d.ellipse([6, 5, 8, 7], fill=WHITE)
+    d.point((9, 10), fill=WHITE)
+    d.point((5, 11), fill=liquid)
+    return img
+
+
+def bomb(color):
+    """爆弾 (導火線つき黒玉+色帯)"""
+    img, d = canvas()
+    d.ellipse([2, 5, 13, 15], fill=OUTLINE)
+    d.ellipse([3, 6, 12, 14], fill=(35, 30, 45, 255))
+    d.arc([4, 7, 11, 13], start=90, end=200, fill=color, width=2)
+    d.line([(9, 5), (12, 1)], fill=WOOD, width=1)  # 導火線
+    d.point((12, 1), fill=(255, 200, 80, 255))  # 火花
+    d.point((5, 8), fill=WHITE)
+    return img
+
+
+def rune_stone(color):
+    """転移のルーン石"""
+    img, d = canvas()
+    poly(d, [(4, 2), (11, 4), (12, 11), (5, 14), (2, 9)], (90, 85, 110, 255))
+    d.line([(6, 5), (6, 11)], fill=color, width=1)
+    d.line([(6, 6), (9, 8)], fill=color, width=1)
+    d.line([(6, 10), (9, 8)], fill=color, width=1)
+    d.point((8, 5), fill=WHITE)
+    return img
+
+
+def scroll(_c=None):
+    """予言の羊皮紙"""
+    img, d = canvas()
+    poly(d, [(3, 2), (12, 4), (12, 12), (3, 14)], (232, 220, 190, 255))
+    d.line([(2, 2), (2, 14)], fill=WOOD, width=2)  # 軸
+    d.line([(13, 4), (13, 12)], fill=WOOD, width=1)
+    d.line([(5, 6), (10, 7)], fill=(120, 60, 140, 255), width=1)
+    d.line([(5, 9), (10, 10)], fill=(120, 60, 140, 255), width=1)
+    d.point((7, 5), fill=(255, 220, 120, 255))
+    return img
+
+
+def feast(_c=None):
+    """満腹の宴 (骨付き肉)"""
+    img, d = canvas()
+    d.ellipse([2, 3, 11, 12], fill=OUTLINE)
+    d.ellipse([3, 4, 10, 11], fill=(190, 110, 70, 255))
+    d.ellipse([4, 5, 7, 8], fill=(240, 200, 160, 255))
+    d.line([(10, 10), (14, 14)], fill=(235, 230, 220, 255), width=2)
+    d.point((12, 12), fill=OUTLINE)
+    return img
+
+
+def lodestone(color):
+    """魂の磁石"""
+    img, d = canvas()
+    d.arc([2, 2, 13, 13], start=0, end=360, fill=OUTLINE, width=5)
+    d.arc([3, 3, 12, 12], start=0, end=360, fill=color, width=3)
+    d.rectangle([6, 11, 9, 14], fill=(235, 235, 240, 255))  # 両極
+    d.line([(6, 11), (6, 14)], fill=OUTLINE, width=1)
+    d.line([(9, 11), (9, 14)], fill=OUTLINE, width=1)
+    d.point((5, 5), fill=WHITE)
+    return img
+
+
+CONSUMABLES = {
+    "abyss_heal_s": (flask, 0xff5c5c, "generated"),
+    "abyss_heal_m": (flask, 0xff2a55, "generated"),
+    "abyss_heal_l": (flask, 0xffd0d8, "generated"),
+    "abyss_soul_s": (orb, 0xb14bff, "generated"),
+    "abyss_soul_l": (orb, 0xe34bff, "generated"),
+    "abyss_pwr": (vial, 0xff5c5c, "generated"),
+    "abyss_spd": (vial, 0x7ce8ff, "generated"),
+    "abyss_irn": (vial, 0x9aa5b5, "generated"),
+    "abyss_rgn": (vial, 0x4bd07a, "generated"),
+    "abyss_abs": (vial, 0xffd700, "generated"),
+    "abyss_fir": (vial, 0xff8a2b, "generated"),
+    "abyss_owl": (vial, 0x5cd8ff, "generated"),
+    "abyss_fth": (vial, 0xe8e8f2, "generated"),
+    "abyss_lck": (vial, 0x4ae88a, "generated"),
+    "abyss_bomb_f": (bomb, 0xff5c2a, "generated"),
+    "abyss_bomb_t": (bomb, 0xffe14a, "generated"),
+    "abyss_bomb_i": (bomb, 0xaee9ff, "generated"),
+    "abyss_tele_a": (rune_stone, 0x7ce8ff, "generated"),
+    "abyss_tele_s": (rune_stone, 0x7ec850, "generated"),
+    "abyss_cure": (vial, 0xffffff, "generated"),
+    "abyss_magnet": (lodestone, 0xff4d6d, "generated"),
+    "abyss_reveal": (scroll, 0xffffff, "generated"),
+    "abyss_feast": (feast, 0xffffff, "generated"),
+    "abyss_smoke": (bomb, 0x8a8a95, "generated"),
+}
+
+NEWMATS = {
+    "abyss_blood_crystal": 0xff2a55,
+    "abyss_shadow_stone": 0x4a2a6a,
+    "abyss_star_dust": 0xbfe9ff,
+    "abyss_wyrm_scale": 0x4bd07a,
+    "abyss_ancient_core": 0xffd700,
+    "abyss_void_piece": 0x2a0a3a,
 }
 
 ARMORS = {
-    "abyss_helm": (helm, 0xb28ce0, "generated"),
-    "abyss_chest": (chest, 0xb28ce0, "generated"),
-    "abyss_legs": (legs, 0xb28ce0, "generated"),
-    "abyss_boots": (boots, 0xb28ce0, "generated"),
+    "abyss_helm": (helm, 0xb28ce0, None, "generated"),
+    "abyss_chest": (chest, 0xb28ce0, None, "generated"),
+    "abyss_legs": (legs, 0xb28ce0, None, "generated"),
+    "abyss_boots": (boots, 0xb28ce0, None, "generated"),
 }
+
+# 防具セット (blood/shadow/rock/star × 4部位)。trim・accent をセット色に
+SET_COLORS = {
+    "blood": (0xffd0d8, 0xff4d6d),
+    "shadow": (0xe0d8ff, 0x8a7cff),
+    "rock": (0xffe9a8, 0xc9a227),
+    "star": (0xe0f8ff, 0x7ce8ff),
+}
+SET_ARMORS = {}
+for _set, (_acc, _trim) in SET_COLORS.items():
+    _TA = hexcolor(_trim)
+    SET_ARMORS[f"abyss_{_set}_helm"] = (helm, _acc, _TA, "generated")
+    SET_ARMORS[f"abyss_{_set}_chest"] = (chest, _acc, _TA, "generated")
+    SET_ARMORS[f"abyss_{_set}_legs"] = (legs, _acc, _TA, "generated")
+    SET_ARMORS[f"abyss_{_set}_boots"] = (boots, _acc, _TA, "generated")
+del _set, _acc, _trim, _TA
 
 
 def gem(outer, inner):
@@ -563,9 +889,15 @@ def main():
     for item_id, (fn, color, parent) in WEAPONS.items():
         fn(hexcolor(color)).save(os.path.join(TEX_DIR, f"{item_id}.png"))
         write_model(item_id, parent)
-    for armor_id, (fn, color, parent) in ARMORS.items():
-        fn(hexcolor(color)).save(os.path.join(TEX_DIR, f"{armor_id}.png"))
+    for armor_id, (fn, color, trim, parent) in list(ARMORS.items()) + list(SET_ARMORS.items()):
+        fn(hexcolor(color), trim if trim else GOLD).save(os.path.join(TEX_DIR, f"{armor_id}.png"))
         write_model(armor_id, parent)
+    for con_id, (fn, color, parent) in CONSUMABLES.items():
+        fn(hexcolor(color)).save(os.path.join(TEX_DIR, f"{con_id}.png"))
+        write_model(con_id, parent)
+    for mat_id, color in NEWMATS.items():
+        gem(hexcolor(color), (230, 240, 255, 255)).save(os.path.join(TEX_DIR, f"{mat_id}.png"))
+        write_model(mat_id, "generated")
     shard().save(os.path.join(TEX_DIR, "soul_shard.png"))
     write_model("soul_shard", "generated")
     for item_id, color in MATERIALS.items():

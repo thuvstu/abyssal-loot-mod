@@ -6,15 +6,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -119,7 +124,7 @@ public final class RunManager {
         double rate = GameData.trialRules(sigilsOf(player)).energy()
                 * (1 + boonLv(player, "energy") * 0.35)
                 * (1 + wbonusOf(player).energyPct() / 100.0)
-                * (1 + affixOf(player, "energyPct") / 100.0);
+                * (1 + (affixOf(player, "energyPct") + extraStat(player, "energyPct")) / 100.0);
         // 呪い (xpPct): 成長阻害でゲージ増加が鈍る (呪喰らいで無効化)
         var held = player.getMainHandItem();
         if (curseActive(player, held) && "xpPct".equals(curseOf(held))) {
@@ -300,9 +305,9 @@ public final class RunManager {
         }
         // 原作: 剛力+3%/点, 韻律+2%/点, 敏捷+1.5%/点, 忍耐+4%/点, 幸運=会心相当
         var wb0 = wbonusOf(player);
-        double maxHp = (GameData.heroMaxHp(cls, level) + affixOf(player, "maxHpFlat"))
+        double maxHp = (GameData.heroMaxHp(cls, level) + affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
                 * (1 + a[3] * 0.04) * (1 + boonLv(player, "hp") * 0.18)
-                * (1 + wb0.maxHpPct() / 100.0) * (1 + affixOf(player, "maxHpPct") / 100.0)
+                * (1 + wb0.maxHpPct() / 100.0) * (1 + (affixOf(player, "maxHpPct") + extraStat(player, "maxHpPct")) / 100.0)
                 * (1 + GameData.passiveMaxHpPct(passives) / 100.0)
                 * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.01)
                 * (1 + curseHp / 100.0);
@@ -325,7 +330,7 @@ public final class RunManager {
             double base = cls.mcMoveSpeed();
             // 疾走の刻印 +12%/Lv (原作 b_speed)。回避短縮は dash 側で適用
             double movePct = boonLv(player, "speed") * 12 + curseMove
-                    + wb0.moveSpeedPct() + affixOf(player, "moveSpeedPct");
+                    + wb0.moveSpeedPct() + affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
             if (passives.contains("swift")) movePct += 25;
             if (passives.contains("slow_burn")) movePct -= 12;
             spd.setBaseValue(base * (1 + a[2] * 0.015) * (1 + movePct / 100.0));
@@ -351,7 +356,8 @@ public final class RunManager {
             curseAspd = curseValueOf(held);
         }
         double v = boonLv(player, "as") * 16 + curseAspd
-                + wbonusOf(player).attackSpeedPct() + affixOf(player, "attackSpeedPct");
+                + wbonusOf(player).attackSpeedPct() + affixOf(player, "attackSpeedPct")
+                + extraStat(player, "attackSpeedPct");
         var passives = passivesOf(player);
         if (passives.contains("clear_mind")) v -= 10;
         if (passives.contains("frostbound")) v -= 12;
@@ -384,12 +390,13 @@ public final class RunManager {
         int level = player.getData(ModAttachments.LEVEL.get());
         int[] a = attrsOf(player);
         var passives = passivesOf(player);
-        // 破壊の刻印 (b_dmg2): 固定+12/Lv (乗算の前に加算)。防具の攻撃接辞も合算
-        base += boonLv(player, "dmg2") * 12 + affixOf(held, "damageFlat") + armorAffix(player, "damageFlat");
+        // 破壊の刻印 (b_dmg2): 固定+12/Lv (乗算の前に加算)。防具・追加効果の攻撃接辞も合算
+        base += boonLv(player, "dmg2") * 12 + affixOf(held, "damageFlat") + armorAffix(player, "damageFlat")
+                + extraStat(player, "damageFlat");
         var wb = wbonusOf(held);
         double mult = (1 + a[0] * 0.03) * (1 + boonLv(player, "dmg") * 0.12)
                 * (1 + boonLv(player, "dmg1") * 0.18) * (1 + boonLv(player, "dmg2") * 0.08)
-                * (1 + wb.damagePct() / 100.0) * (1 + (affixOf(held, "damagePct") + armorAffix(player, "damagePct")) / 100.0)
+                * (1 + wb.damagePct() / 100.0) * (1 + (affixOf(held, "damagePct") + armorAffix(player, "damagePct") + extraStat(player, "damagePct")) / 100.0)
                 * (1 + player.getData(ModAttachments.OATH_DMG.get()) * 0.08)
                 * (1 + forgeLv(held) * 0.08)
                 * curseMultOf(player, held)
@@ -526,6 +533,53 @@ public final class RunManager {
                 net.minecraft.world.entity.EquipmentSlot.LEGS,
                 net.minecraft.world.entity.EquipmentSlot.FEET}) {
             v += affixMap(player.getItemBySlot(slot)).getOrDefault(key, 0.0);
+        }
+        return v;
+    }
+
+    /**
+     * 追加コンテンツの汎用ステータス合算 (追加恩寵・追加技能・追加遺物・防具セット)。
+     * すべて接辞キーで表し、各計算式に加算する。
+     */
+    public static double extraStat(ServerPlayer player, String key) {
+        double v = 0;
+        for (var e : boonsOf(player).entrySet()) {
+            var m = GameData.EXTRA_BOON_MODS.get(e.getKey());
+            if (m != null) v += m.getOrDefault(key, 0.0) * e.getValue();
+        }
+        for (String id : passivesOf(player)) {
+            var m = GameData.EXTRA_PASSIVE_MODS.get(id);
+            if (m != null) v += m.getOrDefault(key, 0.0);
+        }
+        for (String id : relicsOf(player)) {
+            var m = GameData.EXTRA_RELIC_MODS.get(id);
+            if (m != null) v += m.getOrDefault(key, 0.0);
+        }
+        v += armorSetBonus(player, key);
+        return v;
+    }
+
+    /** 装備中防具セットのボーナス (2部位・4部位)。setId -> 部位数で判定 */
+    public static double armorSetBonus(ServerPlayer player, String key) {
+        var count = new java.util.HashMap<String, Integer>();
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS,
+                net.minecraft.world.entity.EquipmentSlot.FEET}) {
+            var st = player.getItemBySlot(slot);
+            if (st.isEmpty()) continue;
+            var data = st.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                    net.minecraft.world.item.component.CustomData.EMPTY);
+            String set = data.copyTag().getString("abyss_set").orElse("");
+            if (!set.isEmpty()) count.merge(set, 1, Integer::sum);
+        }
+        double v = 0;
+        for (var e : count.entrySet()) {
+            var s = GameData.armorSetById(e.getKey());
+            if (s == null) continue;
+            if (e.getValue() >= 2) v += s.bonus2().getOrDefault(key, 0.0);
+            if (e.getValue() >= 4) v += s.bonus4().getOrDefault(key, 0.0);
         }
         return v;
     }
@@ -678,13 +732,21 @@ public final class RunManager {
         return stack;
     }
 
-    /** 深淵防具の部位名 */
+    /** 深淵防具の部位名 (セット品はスロットから判定) */
     public static String armorBaseName(net.minecraft.world.item.Item item) {
         if (item == ModItems.ABYSS_HELM.get()) return "深淵兜";
         if (item == ModItems.ABYSS_CHEST.get()) return "深淵鎧";
         if (item == ModItems.ABYSS_LEGS.get()) return "深淵脚";
         if (item == ModItems.ABYSS_BOOTS.get()) return "深淵靴";
-        return null;
+        var slot = ModItems.slotOf(item);
+        if (slot == null) return null;
+        return switch (slot) {
+            case HEAD -> "深淵兜";
+            case CHEST -> "深淵鎧";
+            case LEGS -> "深淵脚";
+            case FEET -> "深淵靴";
+            default -> null;
+        };
     }
 
     /**
@@ -749,6 +811,178 @@ public final class RunManager {
         }
         var styles = GameData.WeaponStyle.values();
         return makeWeapon(styles[rand.nextInt(styles.length)], rand, luck, floor, bonus);
+    }
+
+    /**
+     * セット防具生成 (abyss_<set>_<piece>)。abyss_set を刻印しセット名で命名。
+     * setId が null ならランダムセット、piece が null ならランダム部位。
+     */
+    public static net.minecraft.world.item.ItemStack makeSetArmor(
+            String setId, net.minecraft.world.item.Item piece, net.minecraft.util.RandomSource rand,
+            int luck, int floor, double bonus) {
+        var sets = GameData.ARMOR_SETS;
+        GameData.ArmorSet picked = setId != null ? GameData.armorSetById(setId)
+                : sets.get(rand.nextInt(sets.size()));
+        if (picked == null) picked = sets.get(0);
+        final GameData.ArmorSet set = picked;
+        var keys = new java.util.ArrayList<>(ModItems.SET_PIECES.keySet().stream()
+                .filter(k -> k.startsWith(set.id() + "_")).toList());
+        String key = piece != null ? null : keys.get(rand.nextInt(keys.size()));
+        net.minecraft.world.item.Item item = piece != null ? piece
+                : ModItems.SET_PIECES.get(key).get();
+        var stack = makeArmor(item, rand, luck, floor, bonus);
+        var tag = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
+        tag.putString("abyss_set", set.id());
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(tag));
+        String base = armorBaseName(item);
+        String rarity = rarityOf(stack);
+        String disp = switch (rarity) {
+            case "mythic" -> GameData.mythicFor(rand::nextDouble);
+            case "legendary" -> GameData.legendFor(rand::nextDouble);
+            case "rare" -> GameData.prefixFor(rand::nextDouble) + base;
+            case "magic" -> GameData.prefixFor(rand::nextDouble) + base
+                    + "・" + GameData.suffixFor(rand::nextDouble);
+            default -> base;
+        };
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                Component.literal("§b【" + set.name() + "】" + rarityColor(rarity) + disp));
+        return stack;
+    }
+
+    /** 消耗品の効果説明 (lore 用) */
+    public static String consumableDesc(String kind) {
+        return switch (kind) {
+            case "heal_30" -> "HPを30%回復";
+            case "heal_70" -> "HPを70%回復";
+            case "heal_100" -> "HPを全回復";
+            case "gauge_40" -> "魂ゲージ+40";
+            case "gauge_100" -> "魂ゲージ全満";
+            case "buff_str" -> "攻撃力上昇60秒";
+            case "buff_spd" -> "移動速度上昇60秒";
+            case "buff_res" -> "ダメージ耐性60秒";
+            case "buff_regen" -> "再生60秒";
+            case "buff_abso" -> "守護60秒";
+            case "buff_fire" -> "火炎耐性120秒";
+            case "buff_nv" -> "暗視120秒";
+            case "buff_fall" -> "落下耐性60秒";
+            case "buff_luck" -> "幸運60秒";
+            case "bomb_fire" -> "前方に火炎爆発";
+            case "bomb_bolt" -> "前方に雷爆発・鈍足";
+            case "bomb_frost" -> "前方に氷爆発・凍結";
+            case "tele_arena" -> "アリーナ中心へ転移";
+            case "tele_spawn" -> "初期スポーンへ転移";
+            case "cure" -> "状態異常を解除";
+            case "magnet" -> "周囲の品を吸着";
+            case "reveal" -> "戦況を看破する";
+            case "feast" -> "満腹・小回復";
+            case "smoke" -> "煙に紛れて隠形15秒";
+            default -> kind;
+        };
+    }
+
+    /** 消耗品の使用。効果を適用したら true (1個消費) */
+    public static boolean useConsumable(ServerPlayer player, String kind) {
+        if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return false;
+        Vec3 origin = player.position();
+        switch (kind) {
+            case "heal_30" -> heal(player, player.getMaxHealth() * 0.3);
+            case "heal_70" -> heal(player, player.getMaxHealth() * 0.7);
+            case "heal_100" -> heal(player, player.getMaxHealth());
+            case "gauge_40" -> addGauge(player, 40);
+            case "gauge_100" -> addGauge(player, 100);
+            case "buff_str" -> player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 1200, 0));
+            case "buff_spd" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 1200, 0));
+            case "buff_res" -> player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 1200, 0));
+            case "buff_regen" -> player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1200, 0));
+            case "buff_abso" -> player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 1200, 1));
+            case "buff_fire" -> player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 2400, 0));
+            case "buff_nv" -> player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 2400, 0));
+            case "buff_fall" -> player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 1200, 0));
+            case "buff_luck" -> player.addEffect(new MobEffectInstance(MobEffects.LUCK, 1200, 0));
+            case "bomb_fire" -> WeaponArts.pulse(level, player,
+                    origin.add(player.getLookAngle().scale(8)), 4, 3.0, true, ParticleTypes.EXPLOSION);
+            case "bomb_bolt" -> {
+                Vec3 at = origin.add(player.getLookAngle().scale(8));
+                WeaponArts.pulse(level, player, at, 5, 4.0, true, ParticleTypes.ELECTRIC_SPARK);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 5, at.y - 4, at.z - 5, at.x + 5, at.y + 4, at.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                }
+            }
+            case "bomb_frost" -> {
+                Vec3 at = origin.add(player.getLookAngle().scale(8));
+                WeaponArts.pulse(level, player, at, 4, 3.0, false, ParticleTypes.SNOWFLAKE);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 4, at.y - 4, at.z - 4, at.x + 4, at.y + 4, at.z + 4),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 3));
+                }
+            }
+            case "tele_arena" -> {
+                BlockPos c = arenaCenterOf(player);
+                if (c == null) {
+                    player.sendSystemMessage(Component.literal("§cアリーナが無い (出撃中のみ)"));
+                    return false;
+                }
+                player.teleportTo(c.getX() + 0.5, c.getY() + 1, c.getZ() + 0.5);
+                level.sendParticles(ParticleTypes.PORTAL, c.getX() + 0.5, c.getY() + 1, c.getZ() + 0.5,
+                        30, 1, 1, 1, 0.3);
+            }
+            case "tele_spawn" -> {
+                var rd = level.getLevelData().getRespawnData();
+                if (rd == null) rd = net.minecraft.world.level.storage.LevelData.RespawnData.DEFAULT;
+                net.minecraft.core.GlobalPos gp = rd.globalPos();
+                ServerLevel dest = player.level() instanceof ServerLevel sl
+                        ? sl.getServer().getLevel(gp.dimension()) : level;
+                if (dest == null) dest = level;
+                BlockPos s = gp.pos();
+                int sy = safeSpawnY(dest, s.getX(), s.getZ(), s.getY() + 1);
+                player.teleportTo(dest, s.getX() + 0.5, sy, s.getZ() + 0.5,
+                        java.util.Set.<net.minecraft.world.entity.Relative>of(), rd.yaw(), rd.pitch(), true);
+            }
+            case "cure" -> {
+                player.removeAllEffects();
+                player.displayClientMessage(Component.literal("§a浄化した"), true);
+            }
+            case "magnet" -> {
+                for (var it : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        player.getBoundingBox().inflate(12), e -> e.isAlive())) {
+                    Vec3 d = origin.subtract(it.position()).normalize().scale(1.2);
+                    it.setDeltaMovement(d.x, Math.max(0.3, d.y + 0.4), d.z);
+                    it.setNoPickUpDelay();
+                }
+            }
+            case "reveal" -> {
+                int total = player.getData(ModAttachments.WAVE_TOTAL.get());
+                int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
+                player.sendSystemMessage(Component.literal("§e看破: 残り " + Math.max(0, total - kills) + "体"));
+                for (var e : BOSS_BARS.entrySet()) {
+                    if (e.getKey().isAlive()) {
+                        player.sendSystemMessage(Component.literal("§c層主 HP "
+                                + Math.max(0, Math.round(e.getKey().getHealth())) + "/"
+                                + Math.round(e.getKey().getMaxHealth())));
+                    }
+                }
+            }
+            case "feast" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.SATURATION, 200, 0));
+                heal(player, 20);
+            }
+            case "smoke" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 300, 0));
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 0));
+                level.sendParticles(ParticleTypes.SMOKE, origin.x, origin.y + 1, origin.z,
+                        40, 1.5, 1.5, 1.5, 0.1);
+            }
+            default -> {
+                return false;
+            }
+        }
+        level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.8f, 1.2f);
+        return true;
     }
 
     /** 接辞キー -> 日本語表示 (原作 STAT_META.label) */
@@ -832,7 +1066,8 @@ public final class RunManager {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ
         double crit = cls.crit + boonLv(player, "crit") * 0.05
-                + wbonusOf(player).critPct() / 100.0 + affixOf(player, "critPct") / 100.0;
+                + wbonusOf(player).critPct() / 100.0 + affixOf(player, "critPct") / 100.0
+                + extraStat(player, "critPct") / 100.0;
         if (passivesOf(player).contains("abyss_eye")) crit += 0.12;
         return Math.min(0.95, crit);
     }
@@ -840,20 +1075,21 @@ public final class RunManager {
     /** 会心威力 (原作2.0倍 + 致命の刻印+45%/Lv) */
     public static double critDamageMult(ServerPlayer player) {
         return 2.0 + boonLv(player, "critdmg") * 0.45
-                + wbonusOf(player).critDmgPct() / 100.0 + affixOf(player, "critDmgPct") / 100.0;
+                + wbonusOf(player).critDmgPct() / 100.0 + affixOf(player, "critDmgPct") / 100.0
+                + extraStat(player, "critDmgPct") / 100.0;
     }
 
     /** 攻撃範囲 (恩寵「拡大の刻印」+22%/Lv。奥義・祝福の半径に適用) */
     public static double areaMult(ServerPlayer player) {
         return (1 + boonLv(player, "area") * 0.22)
                 * (1 + wbonusOf(player).areaPct() / 100.0)
-                * (1 + affixOf(player, "areaPct") / 100.0);
+                * (1 + (affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0);
     }
 
     /** 運 (幸運+7/点 + 知識の渇望+20/Lv + 呪いluckFlat) */
     public static int luckOf(ServerPlayer player) {
         int luck = GameData.luckOf(attrsOf(player)[4]) + boonLv(player, "xp") * 20
-                + (int) affixOf(player, "luckFlat");
+                + (int) affixOf(player, "luckFlat") + (int) extraStat(player, "luckFlat");
         var held = player.getMainHandItem();
         if (curseActive(player, held) && "luckFlat".equals(curseOf(held))) {
             luck += (int) curseValueOf(held);
@@ -1284,7 +1520,8 @@ public final class RunManager {
                 net.minecraft.world.item.component.CustomData.of(tag));
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal("§d神話の" + style.weaponName));
-        player.getInventory().add(stack);
+                    player.getInventory().add(stack);
+        player.getInventory().add(makeSetArmor(null, null, player.getRandom(), luckOf(player), 26, 130));
         sendSoulSummary(player, true);
         CombatHandler.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
         player.sendSystemMessage(Component.literal("§c終焉の座が開いた… /abyss pinnacle で《タルタロス・オメガ》に挑め"));
@@ -1350,6 +1587,13 @@ public final class RunManager {
                     Component.literal("§d神話の" + style.weaponName));
             player.getInventory().add(stack);
         }
+        var setDrop = makeSetArmor(null, null, player.getRandom(), luckOf(player), 27, 130);
+        var setTag = setDrop.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
+        setTag.putString("abyss_rarity", "mythic");
+        setDrop.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(setTag));
+        player.getInventory().add(setDrop);
         var a = GameData.achievementById("pinnacle-god");
         CombatHandler.grantAch(player, "pinnacle-god", a.title(), GameData.shardsForReward(a.reward()));
         player.setData(ModAttachments.FLOOR.get(), 1);
@@ -1375,6 +1619,7 @@ public final class RunManager {
                     Component.literal("§d神話の" + style.weaponName));
             player.getInventory().add(stack);
         }
+        player.getInventory().add(makeSetArmor(null, null, player.getRandom(), luckOf(player), 28, 130));
         int shards = materialCount(player, 32);
         if (shards > 0) {
             player.getInventory().add(new net.minecraft.world.item.ItemStack(
@@ -2028,8 +2273,14 @@ public final class RunManager {
         boolean bossFloor = floor % 5 == 0;
         var styles = GameData.WeaponStyle.values();
         var st = styles[player.getRandom().nextInt(styles.length)];
-        var drop = makeWeapon(st, player.getRandom(), luckOf(player), floor + 1,
-                bossFloor ? 130 : 65);
+        net.minecraft.world.item.ItemStack drop;
+        if (player.getRandom().nextDouble() < 0.4) {
+            drop = makeSetArmor(null, null, player.getRandom(), luckOf(player), floor + 1,
+                    bossFloor ? 130 : 65);
+        } else {
+            drop = makeWeapon(st, player.getRandom(), luckOf(player), floor + 1,
+                    bossFloor ? 130 : 65);
+        }
         player.getInventory().add(drop);
         player.sendSystemMessage(Component.literal(
                 "§b宝箱を開けた: " + drop.getHoverName().getString()));
@@ -2416,7 +2667,8 @@ public final class RunManager {
         }
         long t = level.getGameTime();
         // 巨躯の刻印・接辞: HP回復 (1秒ごと)
-        double regen = boonLv(player, "hp") * 0.6 + affixOf(player, "regenFlat");
+        double regen = boonLv(player, "hp") * 0.6 + affixOf(player, "regenFlat")
+                + extraStat(player, "regenFlat");
         if (regen > 0 && t % 20 == 0) {
             heal(player, regen);
         }
