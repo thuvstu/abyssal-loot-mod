@@ -227,6 +227,71 @@ def tome(accent):
     return img
 
 
+ABYSS_PLATE = (58, 40, 92, 255)
+ABYSS_DARK = (30, 20, 52, 255)
+ABYSS_LIGHT = (120, 92, 190, 255)
+
+
+def _plate(d, box, trim=True):
+    d.rectangle(box, fill=OUTLINE)
+    x0, y0, x1, y1 = box
+    d.rectangle([x0 + 1, y0 + 1, x1 - 1, y1 - 1], fill=ABYSS_PLATE)
+    d.line([(x0 + 1, y0 + 1), (x1 - 1, y0 + 1)], fill=ABYSS_LIGHT, width=1)
+    if trim:
+        d.point((x0 + 2, y1 - 2), fill=GOLD)
+        d.point((x1 - 2, y1 - 2), fill=GOLD)
+
+
+def helm(accent):
+    img, d = canvas()
+    _plate(d, [3, 3, 12, 11])
+    d.rectangle([5, 7, 10, 9], fill=ABYSS_DARK)  # 面頬
+    d.line([(5, 8), (10, 8)], fill=accent, width=1)  # 目元光
+    d.rectangle([7, 2, 8, 4], fill=GOLD)  # 前立
+    d.point((7, 3), fill=WHITE)
+    return img
+
+
+def chest(accent):
+    img, d = canvas()
+    _plate(d, [4, 4, 11, 12])
+    d.rectangle([1, 5, 3, 11], fill=OUTLINE)  # 腕
+    d.rectangle([2, 6, 2, 10], fill=ABYSS_PLATE)
+    d.rectangle([12, 5, 14, 11], fill=OUTLINE)
+    d.rectangle([13, 6, 13, 10], fill=ABYSS_PLATE)
+    d.line([(4, 9), (11, 9)], fill=GOLD, width=1)  # 帯金具
+    d.rectangle([7, 5, 8, 7], fill=accent)  # 胸核
+    d.point((7, 5), fill=WHITE)
+    return img
+
+
+def legs(accent):
+    img, d = canvas()
+    d.rectangle([3, 2, 12, 5], fill=OUTLINE)  # 腰
+    d.rectangle([4, 3, 11, 4], fill=ABYSS_PLATE)
+    _plate(d, [3, 5, 7, 13], trim=False)  # 左脚
+    _plate(d, [8, 5, 12, 13], trim=False)  # 右脚
+    d.line([(3, 4), (12, 4)], fill=GOLD, width=1)
+    d.point((5, 7), fill=accent)
+    d.point((10, 7), fill=accent)
+    return img
+
+
+def boots(accent):
+    img, d = canvas()
+    _plate(d, [2, 3, 6, 11], trim=False)  # 左
+    _plate(d, [9, 3, 13, 11], trim=False)  # 右
+    d.rectangle([2, 10, 6, 13], fill=OUTLINE)  # 爪先
+    d.rectangle([9, 10, 13, 13], fill=OUTLINE)
+    d.rectangle([3, 11, 5, 12], fill=ABYSS_DARK)
+    d.rectangle([10, 11, 12, 12], fill=ABYSS_DARK)
+    d.point((3, 5), fill=accent)
+    d.point((12, 5), fill=accent)
+    d.point((4, 11), fill=GOLD)
+    d.point((11, 11), fill=GOLD)
+    return img
+
+
 def shard():
     img, d = canvas()
     poly(d, [(8, 1), (13, 7), (8, 15), (3, 7)], (80, 200, 255, 255))
@@ -249,6 +314,13 @@ WEAPONS = {
     "abyss_gauntlet": (gauntlet, 0xffb84a, "handheld"),
     "abyss_chakram": (chakram, 0x7ce8ff, "generated"),
     "abyss_tome": (tome, 0xe34bff, "generated"),
+}
+
+ARMORS = {
+    "abyss_helm": (helm, 0xb28ce0, "generated"),
+    "abyss_chest": (chest, 0xb28ce0, "generated"),
+    "abyss_legs": (legs, 0xb28ce0, "generated"),
+    "abyss_boots": (boots, 0xb28ce0, "generated"),
 }
 
 
@@ -491,6 +563,9 @@ def main():
     for item_id, (fn, color, parent) in WEAPONS.items():
         fn(hexcolor(color)).save(os.path.join(TEX_DIR, f"{item_id}.png"))
         write_model(item_id, parent)
+    for armor_id, (fn, color, parent) in ARMORS.items():
+        fn(hexcolor(color)).save(os.path.join(TEX_DIR, f"{armor_id}.png"))
+        write_model(armor_id, parent)
     shard().save(os.path.join(TEX_DIR, "soul_shard.png"))
     write_model("soul_shard", "generated")
     for item_id, color in MATERIALS.items():

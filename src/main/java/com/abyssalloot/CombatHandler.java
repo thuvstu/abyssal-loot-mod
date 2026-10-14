@@ -89,14 +89,13 @@ public final class CombatHandler {
         // 原作: 敵ドロップ率 × 異変の loot 倍率 (豊穣の刻は1.85倍)
         double weaponChance = 0.06 * loot + GameData.luckDropBonus(luck);
         if (rand.nextDouble() < weaponChance) {
-            var styles = GameData.WeaponStyle.values();
-            var style = styles[rand.nextInt(styles.length)];
-            // 原作 rollRarity: 運・層で上位が出やすい
-            var drop = RunManager.makeWeapon(style, rand, luck,
+            // 原作 rollRarity: 運・層で上位が出やすい。武器65%・防具35%
+            var drop = RunManager.makeEquipment(rand, luck,
                     Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0);
             giveOrDrop(player, drop);
             player.sendSystemMessage(Component.literal(
-                    "§b戦利品: " + drop.getHoverName().getString() + " (持ち替えで奥義が変わる)"));
+                    "§b戦利品: " + drop.getHoverName().getString()
+                            + (ModItems.slotOf(drop.getItem()) != null ? " (右クリックで装備)" : " (持ち替えで奥義が変わる)")));
             if ("mythic".equals(RunManager.rarityOf(drop))) {
                 var a = GameData.achievementById("mythic-hunter");
                 grantAch(player, "mythic-hunter", a.title(), GameData.shardsForReward(a.reward()));

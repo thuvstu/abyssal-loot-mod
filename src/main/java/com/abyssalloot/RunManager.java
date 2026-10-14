@@ -280,6 +280,11 @@ public final class RunManager {
     }
 
     public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level) {
+        applyClass(player, cls, level, false);
+    }
+
+    /** 防具変更時の静かな再計算用 (quiet=true で告知なし) */
+    public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level, boolean quiet) {
         player.setData(ModAttachments.HERO_CLASS.get(), cls.id);
         player.setData(ModAttachments.LEVEL.get(), level);
         int[] a = attrsOf(player);
@@ -332,8 +337,10 @@ public final class RunManager {
                     * (1 + a[1] * 0.02)
                     * (1 + asPct / 100.0));
         }
-        player.displayClientMessage(Component.literal(
-                "§6職業: " + cls.name + "「" + cls.title + "」 必殺技: " + cls.skillName()), false);
+        if (!quiet) {
+            player.displayClientMessage(Component.literal(
+                    "§6職業: " + cls.name + "「" + cls.title + "」 必殺技: " + cls.skillName()), false);
+        }
     }
 
     /** 攻速の合計% (迅風・武器クラス・接辞・技能・呪い)。applyClass と共有 */
@@ -377,12 +384,12 @@ public final class RunManager {
         int level = player.getData(ModAttachments.LEVEL.get());
         int[] a = attrsOf(player);
         var passives = passivesOf(player);
-        // 破壊の刻印 (b_dmg2): 固定+12/Lv (乗算の前に加算)
-        base += boonLv(player, "dmg2") * 12 + affixOf(held, "damageFlat");
+        // 破壊の刻印 (b_dmg2): 固定+12/Lv (乗算の前に加算)。防具の攻撃接辞も合算
+        base += boonLv(player, "dmg2") * 12 + affixOf(held, "damageFlat") + armorAffix(player, "damageFlat");
         var wb = wbonusOf(held);
         double mult = (1 + a[0] * 0.03) * (1 + boonLv(player, "dmg") * 0.12)
                 * (1 + boonLv(player, "dmg1") * 0.18) * (1 + boonLv(player, "dmg2") * 0.08)
-                * (1 + wb.damagePct() / 100.0) * (1 + affixOf(held, "damagePct") / 100.0)
+                * (1 + wb.damagePct() / 100.0) * (1 + (affixOf(held, "damagePct") + armorAffix(player, "damagePct")) / 100.0)
                 * (1 + player.getData(ModAttachments.OATH_DMG.get()) * 0.08)
                 * (1 + forgeLv(held) * 0.08)
                 * curseMultOf(player, held)
@@ -505,9 +512,22 @@ public final class RunManager {
         return style == null ? GameData.weaponBonus("") : GameData.weaponBonus(style.id);
     }
 
-    /** 主手持ち武器の接辞値 (なければ 0) */
+    /** 主手持ち武器の接辞値 (なければ 0)。防具4部位の合算も含む */
     public static double affixOf(ServerPlayer player, String key) {
-        return affixOf(player.getMainHandItem(), key);
+        return affixOf(player.getMainHandItem(), key) + armorAffix(player, key);
+    }
+
+    /** 装備中防具4部位の接辞合計 (原作の7スロット合算に相当) */
+    public static double armorAffix(ServerPlayer player, String key) {
+        double v = 0;
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS,
+                net.minecraft.world.entity.EquipmentSlot.FEET}) {
+            v += affixMap(player.getItemBySlot(slot)).getOrDefault(key, 0.0);
+        }
+        return v;
     }
 
     public static double affixOf(net.minecraft.world.item.ItemStack stack, String key) {
@@ -578,7 +598,7 @@ public final class RunManager {
      */
     public static int powerOf(net.minecraft.world.item.ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
-        if (ModItems.styleOf(stack.getItem()) == null) return 0;
+        if (ModItems.styleOf(stack.getItem()) == null && ModItems.slotOf(stack.getItem()) == null) return 0;
         double p = 0;
         for (var e : affixMap(stack).entrySet()) {
             p += Math.abs(e.getValue()) * WORTH.getOrDefault(e.getKey(), 1.0);
@@ -656,6 +676,125 @@ public final class RunManager {
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal(name));
         return stack;
+    }
+
+    /** 深淵防具の部位名 */
+    public static String armorBaseName(net.minecraft.world.item.Item item) {
+        if (item == ModItems.ABYSS_HELM.get()) return "深淵兜";
+        if (item == ModItems.ABYSS_CHEST.get()) return "深淵鎧";
+        if (item == ModItems.ABYSS_LEGS.get()) return "深淵脚";
+        if (item == ModItems.ABYSS_BOOTS.get()) return "深淵靴";
+        return null;
+    }
+
+    /**
+     * ランダム防具生成 (武器 makeWeapon の防具版)。
+     * 希少度・呪い・接辞・命名は武器と同式。特性は付かない (原作通り武器専用)。
+     * piece が null なら4部位からランダム。
+     */
+    public static net.minecraft.world.item.ItemStack makeArmor(
+            net.minecraft.world.item.Item piece, net.minecraft.util.RandomSource rand,
+            int luck, int floor, double bonus) {
+        var pieces = new net.minecraft.world.item.Item[]{
+                ModItems.ABYSS_HELM.get(), ModItems.ABYSS_CHEST.get(),
+                ModItems.ABYSS_LEGS.get(), ModItems.ABYSS_BOOTS.get()};
+        var item = piece != null ? piece : pieces[rand.nextInt(pieces.length)];
+        var stack = new net.minecraft.world.item.ItemStack(item);
+        String rarity = GameData.rollRarity(rand::nextDouble, luck, bonus, floor);
+        String curseKey = null;
+        double curseVal = 0;
+        if (GameData.rollCursed(rand::nextDouble, rarity)) {
+            var mod = GameData.rollCursedMod(rand::nextDouble);
+            curseKey = mod.key();
+            curseVal = GameData.rollCursedValue(rand::nextDouble, mod);
+        }
+        int[] range = GameData.affixCountRange(rarity);
+        int nAffix = range[0] + rand.nextInt(range[1] - range[0] + 1);
+        var affixes = GameData.rollAffixes(rand::nextDouble, rarity, nAffix, GameData.ARMOR_AFFIXES);
+        var tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("abyss_rarity", rarity);
+        if (curseKey != null) {
+            tag.putString("abyss_curse", curseKey);
+            tag.putDouble("abyss_curse_val", curseVal);
+        }
+        if (!affixes.isEmpty()) {
+            var sb = new StringBuilder();
+            for (var af : affixes) {
+                if (!sb.isEmpty()) sb.append(";");
+                sb.append(af.key()).append(":").append(af.value());
+            }
+            tag.putString("abyss_affixes", sb.toString());
+        }
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(tag));
+        String base = armorBaseName(item);
+        String disp = switch (rarity) {
+            case "mythic" -> GameData.mythicFor(rand::nextDouble);
+            case "legendary" -> GameData.legendFor(rand::nextDouble);
+            case "rare" -> GameData.prefixFor(rand::nextDouble) + base;
+            case "magic" -> GameData.prefixFor(rand::nextDouble) + base
+                    + "・" + GameData.suffixFor(rand::nextDouble);
+            default -> base;
+        };
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                Component.literal((curseKey != null ? "§5呪縛の" : "") + rarityColor(rarity) + disp));
+        return stack;
+    }
+
+    /** 武器or防具のランダム装備 (雑魚ドロップ用。武器65%・防具35%) */
+    public static net.minecraft.world.item.ItemStack makeEquipment(
+            net.minecraft.util.RandomSource rand, int luck, int floor, double bonus) {
+        if (rand.nextDouble() < 0.35) {
+            return makeArmor(null, rand, luck, floor, bonus);
+        }
+        var styles = GameData.WeaponStyle.values();
+        return makeWeapon(styles[rand.nextInt(styles.length)], rand, luck, floor, bonus);
+    }
+
+    /** 接辞キー -> 日本語表示 (原作 STAT_META.label) */
+    private static final java.util.Map<String, String> AFFIX_LABEL = java.util.Map.ofEntries(
+            java.util.Map.entry("damageFlat", "攻撃力"), java.util.Map.entry("damagePct", "攻撃力"),
+            java.util.Map.entry("maxHpFlat", "最大HP"), java.util.Map.entry("maxHpPct", "最大HP"),
+            java.util.Map.entry("attackSpeedPct", "攻撃速度"), java.util.Map.entry("critPct", "会心率"),
+            java.util.Map.entry("critDmgPct", "会心威力"), java.util.Map.entry("moveSpeedPct", "移動速度"),
+            java.util.Map.entry("armorPct", "軽減"), java.util.Map.entry("areaPct", "範囲"),
+            java.util.Map.entry("lifestealPct", "吸収"), java.util.Map.entry("regenFlat", "再生"),
+            java.util.Map.entry("luckFlat", "運"), java.util.Map.entry("energyPct", "魂"),
+            java.util.Map.entry("pierce", "貫通"), java.util.Map.entry("projectiles", "追加弾"),
+            java.util.Map.entry("chain", "連鎖"), java.util.Map.entry("explodePct", "爆裂"),
+            java.util.Map.entry("freezePct", "凍結"));
+
+    /** 武器・防具のツールチップ追記 (接辞・特性・奥義・使い方) */
+    public static void appendGearLore(net.minecraft.world.item.ItemStack stack,
+                                      java.util.function.Consumer<Component> out, boolean isWeapon) {
+        var style = ModItems.styleOf(stack.getItem());
+        if (isWeapon && style != null) {
+            out.accept(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
+            out.accept(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
+        } else if (!isWeapon) {
+            out.accept(Component.literal("§7右クリックで装備。接辞は武器と合算"));
+        }
+        String trait = traitOf(stack);
+        if (trait != null) {
+            out.accept(Component.literal("§6特性〔" + traitName(trait) + "〕"));
+        }
+        for (var e : affixMap(stack).entrySet()) {
+            String label = AFFIX_LABEL.getOrDefault(e.getKey(), e.getKey());
+            double v = e.getValue();
+            String num = (v == Math.floor(v)) ? String.valueOf((long) v) : String.valueOf(v);
+            out.accept(Component.literal("§b+" + num + " " + label));
+        }
+        String curse = curseOf(stack);
+        if (curse != null) {
+            out.accept(Component.literal("§5呪い: " + AFFIX_LABEL.getOrDefault(curse, curse)
+                    + " に弱点 (恩寵「呪喰らい」で無効化)"));
+        }
+        int forge = forgeLv(stack);
+        if (forge > 0) out.accept(Component.literal("§b鍛造+" + forge));
+        out.accept(Component.literal("§8威力 " + powerOf(stack)));
+        if (isWeapon) {
+            out.accept(Component.literal("§8/abyss compare・/abyss merge で厳選・合成"));
+        }
     }
 
     /** 武器の呪い種別 (なければ null)。原作 CURSED_MODS のキー */
@@ -958,6 +1097,38 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
+        clearArenaBarriers(player);
+    }
+
+    /**
+     * リタイア: 出撃を中断し、アリーナのバリアを除去して残存MOBを消す。
+     * 装備・欠片は保持される (原作の帰還に相当)。
+     */
+    public static void retire(ServerPlayer player) {
+        clearArenaBarriers(player);
+        if (player.level() instanceof ServerLevel level) {
+            for (Mob m : level.getEntitiesOfClass(Mob.class,
+                    player.getBoundingBox().inflate(64), e -> e.isAlive())) {
+                boolean abyss = RunManager.BOSS_BARS.containsKey(m);
+                if (!abyss) {
+                    for (String t : m.getTags()) {
+                        if (t.startsWith("abyss_")) {
+                            abyss = true;
+                            break;
+                        }
+                    }
+                }
+                if (abyss) m.discard();
+            }
+            for (var e : BOSS_BARS.entrySet()) {
+                e.getValue().removePlayer(player);
+            }
+        }
+        player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
+        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
+        player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
+        player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
     }
 
     public static boolean isTrueFloor(ServerPlayer player) {
@@ -1012,8 +1183,9 @@ public final class RunManager {
         double dmgMult = GameData.enemyDmgMult(sigilsOf(player)) * diffDmgMult(player);
         Monster boss = ModEntities.ZERO.get().create(level, EntitySpawnReason.EVENT);
         if (boss == null) throw new IllegalStateException("true boss create failed");
-        BlockPos pos = player.blockPosition().offset(0, 1, -10);
-        boss.setPos(pos.getX(), pos.getY(), pos.getZ());
+        BlockPos bp = player.blockPosition();
+        int zy = safeSpawnY(level, bp.getX(), bp.getZ() - 10, bp.getY() + 1);
+        boss.setPos(bp.getX() + 0.5, zy, bp.getZ() - 10 + 0.5);
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             hp.setBaseValue(4000 * hpMult);
@@ -1090,7 +1262,8 @@ public final class RunManager {
         if (m == null) return;
         var p = boss.blockPosition().offset(
                 boss.getRandom().nextInt(9) - 4, 1, boss.getRandom().nextInt(9) - 4);
-        m.setPos(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
+        int my = safeSpawnY(level, p.getX(), p.getZ(), p.getY());
+        m.setPos(p.getX() + 0.5, my, p.getZ() + 0.5);
         var target = level.getNearestPlayer(boss.getX(), boss.getY(), boss.getZ(), 48, false);
         if (target instanceof ServerPlayer sp) m.setTarget(sp);
         else if (target != null) m.setTarget(target);
@@ -1119,6 +1292,7 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        clearArenaBarriers(player);
     }
 
     /** 終焉の座 (原作PINNACLE_FLOOR=27。単層決戦) */
@@ -1136,8 +1310,9 @@ public final class RunManager {
         double dmgMult = GameData.enemyDmgMult(sigilsOf(player)) * diffDmgMult(player);
         Monster boss = ModEntities.OMEGA.get().create(level, EntitySpawnReason.EVENT);
         if (boss == null) throw new IllegalStateException("pinnacle boss create failed");
-        BlockPos pos = player.blockPosition().offset(0, 1, -10);
-        boss.setPos(pos.getX(), pos.getY(), pos.getZ());
+        BlockPos bp2 = player.blockPosition();
+        int oy = safeSpawnY(level, bp2.getX(), bp2.getZ() - 10, bp2.getY() + 1);
+        boss.setPos(bp2.getX() + 0.5, oy, bp2.getZ() - 10 + 0.5);
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             hp.setBaseValue(Math.min(1000000, def.hp() * hpMult / 20));
@@ -1181,6 +1356,7 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        clearArenaBarriers(player);
     }
 
     /** 超越者 (原作 b_ascension・28層。無限深淵で到達する裏決戦) */
@@ -1205,6 +1381,7 @@ public final class RunManager {
                     ModItems.SOUL_SHARD.get(), shards));
         }
         sendSoulSummary(player, true);
+        clearArenaBarriers(player);
     }
 
     public static void nextFloor(ServerPlayer player) {
@@ -1274,28 +1451,178 @@ public final class RunManager {
     }
 
     /** アリーナ半径 (MOB収容の境界も兼ねる) — 上の ARENA_R を参照 */
+    private static final int WALL_H = 5;
+
+    /** 区域ごとの床ブロック (見た目で深層帯が分かる) */
+    private static net.minecraft.world.level.block.Block floorBlockFor(String zoneId) {
+        return switch (zoneId) {
+            case "ossuary" -> Blocks.BONE_BLOCK;
+            case "forge" -> Blocks.BLACKSTONE;
+            case "glacier" -> Blocks.PACKED_ICE;
+            case "voidheart" -> Blocks.OBSIDIAN;
+            case "nihil" -> Blocks.BEDROCK;
+            default -> Blocks.STONE_BRICKS;
+        };
+    }
+
+    /** 区域ごとの障害物ブロック */
+    private static net.minecraft.world.level.block.Block trimBlockFor(String zoneId) {
+        return switch (zoneId) {
+            case "ossuary" -> Blocks.QUARTZ_BLOCK;
+            case "forge" -> Blocks.MAGMA_BLOCK;
+            case "glacier" -> Blocks.BLUE_ICE;
+            case "voidheart" -> Blocks.CRYING_OBSIDIAN;
+            case "nihil" -> Blocks.OBSIDIAN;
+            default -> Blocks.COBBLESTONE;
+        };
+    }
+
+    /**
+     * アリーナ構築: 整地 (埋没防止)・区域床・ランダム障害物・5段塀・バリア天井。
+     * 前回のアリーナのバリアは除去する。
+     */
     private static void buildArena(ServerPlayer player) {
         ServerLevel level = (ServerLevel) player.level();
+        BlockPos old = arenaCenterOf(player);
         BlockPos center = player.blockPosition();
         int r = ARENA_R;
+        if (old != null && !old.equals(center)) clearBarriers(level, old);
         player.setData(ModAttachments.ARENA.get(),
                 center.getX() + "," + center.getY() + "," + center.getZ());
+        int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
+        String zone = GameData.zoneForFloor(floor).id();
+        var floorBlock = floorBlockFor(zone);
+        var trim = trimBlockFor(zone);
+        var rand = player.getRandom();
+        // 床
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 if (x * x + z * z > r * r) continue;
-                BlockPos p = center.offset(x, -1, z);
-                level.setBlock(p, Blocks.STONE_BRICKS.defaultBlockState(), 3);
-                // 壁は3段 (地上MOBのジャンプ・ノックバック越えを防ぐ。
-                // 飛行・登攀・テレポート抜けは EnemyAI の収容処理で戻す)
-                if (x * x + z * z > (r - 2) * (r - 2)) {
-                    level.setBlock(center.offset(x, 0, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
-                    level.setBlock(center.offset(x, 1, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
-                    level.setBlock(center.offset(x, 2, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
-                    level.setBlock(center.offset(x, 3, z), Blocks.AIR.defaultBlockState(), 3);
+                level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), 3);
+            }
+        }
+        // 整地: 場内の地形・樹木を除去 (埋没防止。基盤は残す)
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                if (x * x + z * z > r * r) continue;
+                for (int y = 0; y <= 9; y++) {
+                    BlockPos p = center.offset(x, y, z);
+                    var st = level.getBlockState(p);
+                    if (!st.isAir() && !st.is(Blocks.BEDROCK)) {
+                        level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                    }
                 }
             }
         }
-        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した"), false);
+        // ランダム障害物: 柱・岩塊・棘を 5〜7基 (中央4・湧き輪13〜15を避ける)
+        int nFeat = 5 + rand.nextInt(3);
+        int placed = 0;
+        for (int tries = 0; tries < 40 && placed < nFeat; tries++) {
+            double ang = rand.nextDouble() * Math.PI * 2;
+            double dist = 5 + rand.nextDouble() * 7;
+            if (dist > 12.5 && dist < 15.5) continue;
+            int fx = center.getX() + (int) Math.round(Math.cos(ang) * dist);
+            int fz = center.getZ() + (int) Math.round(Math.sin(ang) * dist);
+            int kind = rand.nextInt(3);
+            if (kind == 0) {
+                int h = 2 + rand.nextInt(3);
+                for (int y = 0; y < h; y++) {
+                    level.setBlock(new BlockPos(fx, center.getY() + y, fz),
+                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), 3);
+                }
+            } else if (kind == 1) {
+                for (int dx = 0; dx < 2; dx++) {
+                    for (int dz = 0; dz < 2; dz++) {
+                        level.setBlock(new BlockPos(fx + dx, center.getY(), fz + dz),
+                                Blocks.COBBLESTONE.defaultBlockState(), 3);
+                        if (rand.nextBoolean()) {
+                            level.setBlock(new BlockPos(fx + dx, center.getY() + 1, fz + dz),
+                                    trim.defaultBlockState(), 3);
+                        }
+                    }
+                }
+            } else {
+                level.setBlock(new BlockPos(fx, center.getY(), fz),
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                level.setBlock(new BlockPos(fx, center.getY() + 1, fz),
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+            }
+            placed++;
+        }
+        // 塀は5段 (ジャンプ・ノックバック越えを防ぐ。飛行等の抜けは収容処理で戻す)
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                if (x * x + z * z <= (r - 2) * (r - 2)) continue;
+                if (x * x + z * z > r * r) continue;
+                for (int y = 0; y < WALL_H; y++) {
+                    level.setBlock(center.offset(x, y, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                }
+            }
+        }
+        // バリア: 塀上〜天井を不可視ブロックで封鎖 (リタイア・終了まで維持)
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                double d2 = x * x + z * z;
+                if (d2 > r * r) continue;
+                if (d2 > (r - 2) * (r - 2)) {
+                    for (int y = WALL_H; y <= WALL_H + 5; y++) {
+                        level.setBlock(center.offset(x, y, z), Blocks.BARRIER.defaultBlockState(), 3);
+                    }
+                } else if (d2 <= (r - 2) * (r - 2) && Math.abs(x) + Math.abs(z) > 0) {
+                    // 天井 (中央1マスは開けて光を入れる)
+                    if ((x * x + z * z) % 7 == 0) continue;
+                    level.setBlock(center.offset(x, WALL_H + 5, z), Blocks.BARRIER.defaultBlockState(), 3);
+                }
+            }
+        }
+        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した (周囲を整地)"), false);
+    }
+
+    /** 前回アリーナのバリアを除去 (再出撃・終了時) */
+    public static void clearBarriers(ServerLevel level, BlockPos center) {
+        int r = ARENA_R;
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                double d2 = x * x + z * z;
+                if (d2 > r * r) continue;
+                if (d2 > (r - 2) * (r - 2)) {
+                    for (int y = WALL_H; y <= WALL_H + 5; y++) {
+                        BlockPos p = center.offset(x, y, z);
+                        if (level.getBlockState(p).is(Blocks.BARRIER)) {
+                            level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                        }
+                    }
+                } else {
+                    BlockPos p = center.offset(x, WALL_H + 5, z);
+                    if (level.getBlockState(p).is(Blocks.BARRIER)) {
+                        level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                    }
+                }
+            }
+        }
+    }
+
+    /** 現在のアリーナのバリアを除去 (リタイア・勝利時) */
+    public static void clearArenaBarriers(ServerPlayer player) {
+        BlockPos center = arenaCenterOf(player);
+        if (center != null && player.level() instanceof ServerLevel level) {
+            clearBarriers(level, center);
+        }
+    }
+
+    /** 安全な湧きY: 上から走査し、固体の上の3マス空気を探す (埋没防止) */
+    public static int safeSpawnY(ServerLevel level, int x, int z, int baseY) {
+        for (int y = baseY + 12; y >= baseY - 10; y--) {
+            BlockPos p = new BlockPos(x, y, z);
+            if (level.getBlockState(p).isAir()
+                    && level.getBlockState(p.above()).isAir()
+                    && level.getBlockState(p.above().above()).isAir()
+                    && !level.getBlockState(p.below()).isAir()
+                    && level.getBlockState(p.below()).getFluidState().isEmpty()) {
+                return y;
+            }
+        }
+        return baseY;
     }
 
     /** 保存されたアリーナ中心 (未出撃なら null) */
@@ -1364,10 +1691,12 @@ public final class RunManager {
 
         for (int i = 0; i < count; i++) {
             double ang = (Math.PI * 2 * i) / count;
-            BlockPos pos = center.offset((int) (Math.cos(ang) * 14), 1, (int) (Math.sin(ang) * 14));
+            int sx = center.getX() + (int) (Math.cos(ang) * 14);
+            int sz = center.getZ() + (int) (Math.sin(ang) * 14);
+            int sy = safeSpawnY(level, sx, sz, center.getY() + 1);
             var spec = Enemies.pickSpec(floor, i, rand);
             Mob mob = Enemies.create(level, spec);
-            mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+            mob.setPos(sx + 0.5, sy, sz + 0.5);
             // 門は耐久が高い (原作の門は壊すまで増援し続ける)
             double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
             Enemies.apply(mob, spec, scale, extra);
@@ -1392,8 +1721,8 @@ public final class RunManager {
             var w = GameData.WARDENS.get(rand.nextInt(GameData.WARDENS.size()));
             Mob warden = (Mob) Enemies.wardenMob().create(level, EntitySpawnReason.EVENT);
             if (warden != null) {
-                BlockPos pos = center.offset(0, 1, 10);
-                warden.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                int sy = safeSpawnY(level, center.getX(), center.getZ() + 10, center.getY() + 1);
+                warden.setPos(center.getX() + 0.5, sy, center.getZ() + 10.5);
                 Enemies.apply(warden, Enemies.byId("golem"), scale, 1.0);
                 Enemies.makeWarden(warden, w);
                 warden.setTarget(player);
@@ -1414,8 +1743,8 @@ public final class RunManager {
         String bossName = def != null ? def.name() : "層主 第" + floor + "層";
         Mob boss = (Mob) Enemies.bossMobFor(floor).create(level, EntitySpawnReason.EVENT);
         if (boss == null) throw new IllegalStateException("boss create failed");
-        BlockPos pos = center.offset(0, 1, -10);
-        boss.setPos(pos.getX(), pos.getY(), pos.getZ());
+        int sy = safeSpawnY(level, center.getX(), center.getZ() - 10, center.getY() + 1);
+        boss.setPos(center.getX() + 0.5, sy, center.getZ() - 10 + 0.5);
         double hpBase = def != null ? def.hp() : 60 + floor * 60;
         double dmgBase = def != null ? def.dmg() : 8 + floor * 1.6;
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
@@ -1448,8 +1777,8 @@ public final class RunManager {
         var def = GameData.bossForFloor(GameData.ASCENSION_FLOOR);
         Mob boss = ModEntities.ASCENDER.get().create(level, EntitySpawnReason.EVENT);
         if (boss == null) throw new IllegalStateException("ascension boss create failed");
-        BlockPos pos = center.offset(0, 1, -12);
-        boss.setPos(pos.getX(), pos.getY(), pos.getZ());
+        int sy = safeSpawnY(level, center.getX(), center.getZ() - 12, center.getY() + 1);
+        boss.setPos(center.getX() + 0.5, sy, center.getZ() - 12 + 0.5);
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             // MC の属性上限に収まるよう圧縮 (原作85万/属性倍率)
@@ -1724,8 +2053,12 @@ public final class RunManager {
     public static void doMergeStacks(ServerPlayer player,
                                      net.minecraft.world.item.ItemStack main,
                                      net.minecraft.world.item.ItemStack sub) {
-        if (ModItems.styleOf(main.getItem()) == null || ModItems.styleOf(sub.getItem()) == null) {
-            player.sendSystemMessage(Component.literal("§c合成にはAbyss武器が2点必要 (両手持ち or 鍛造画面)"));
+        boolean bothWeapons = ModItems.styleOf(main.getItem()) != null
+                && ModItems.styleOf(sub.getItem()) != null;
+        boolean bothArmor = ModItems.slotOf(main.getItem()) != null
+                && main.getItem() == sub.getItem();
+        if (!bothWeapons && !bothArmor) {
+            player.sendSystemMessage(Component.literal("§c合成にはAbyss武器2点か同種の深淵防具2点が必要 (両手持ち or 鍛造画面)"));
             return;
         }
         int lv = forgeLv(main);
@@ -2049,8 +2382,38 @@ public final class RunManager {
     }
 
     /** 遺物・区域の毎秒処理 (呪杯の代償・巨人の欲・溶鉄の炉・虚無の心臓) */
+    /** 防具変更検出用 (UUID -> 4部位の署名) */
+    private static final java.util.Map<java.util.UUID, String> ARMOR_SIG = new java.util.HashMap<>();
+
+    private static String armorSig(ServerPlayer player) {
+        var sb = new StringBuilder();
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS,
+                net.minecraft.world.entity.EquipmentSlot.FEET}) {
+            var st = player.getItemBySlot(slot);
+            if (!sb.isEmpty()) sb.append("|");
+            sb.append(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()));
+            sb.append(st.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                    net.minecraft.world.item.component.CustomData.EMPTY).copyTag().toString());
+        }
+        return sb.toString();
+    }
+
     public static void tickRunEffects(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return;
+        // 防具の着脱でステータス再計算 (初回は記録のみ)
+        String sig = armorSig(player);
+        String prev = ARMOR_SIG.get(player.getUUID());
+        if (prev == null) {
+            ARMOR_SIG.put(player.getUUID(), sig);
+        } else if (!prev.equals(sig)) {
+            ARMOR_SIG.put(player.getUUID(), sig);
+            GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+            applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()), true);
+            player.displayClientMessage(Component.literal("§b防具を変更: ステータス再計算"), true);
+        }
         long t = level.getGameTime();
         // 巨躯の刻印・接辞: HP回復 (1秒ごと)
         double regen = boonLv(player, "hp") * 0.6 + affixOf(player, "regenFlat");
@@ -2117,7 +2480,8 @@ public final class RunManager {
     public static java.util.List<String> compareLines(ServerPlayer player,
                                                       net.minecraft.world.item.ItemStack stack) {
         var style = ModItems.styleOf(stack.getItem());
-        if (style == null) return java.util.List.of("(空)");
+        boolean isArmor = ModItems.slotOf(stack.getItem()) != null;
+        if (style == null && !isArmor) return java.util.List.of("(空)");
         String trait = traitOf(stack);
         String curse = curseOf(stack);
         int affixes = 0;
@@ -2126,7 +2490,11 @@ public final class RunManager {
         }
         var out = new java.util.ArrayList<String>();
         out.add(stack.getHoverName().getString());
-        out.add(String.format("攻撃 %.1f (奥義「%s」)", attackDamageWith(player, stack), style.artName));
+        if (isArmor) {
+            out.add("部位: " + ModItems.slotOf(stack.getItem()) + " 威力: " + powerOf(stack));
+        } else {
+            out.add(String.format("攻撃 %.1f (奥義「%s」)", attackDamageWith(player, stack), style.artName));
+        }
         out.add("希少:" + rarityOf(stack) + " 特性:" + (trait != null ? traitName(trait) : "なし"));
         out.add("鍛造+" + forgeLv(stack) + " 接辞:" + affixes
                 + (curse != null ? " 呪い:" + curse + curseValueOf(stack) : ""));

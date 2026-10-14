@@ -23,13 +23,15 @@ public class CompareMenu extends AbstractContainerMenu {
         addSlot(new Slot(inputs, SLOT_A, 30, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ModItems.styleOf(stack.getItem()) != null;
+                return ModItems.styleOf(stack.getItem()) != null
+                        || ModItems.slotOf(stack.getItem()) != null;
             }
         });
         addSlot(new Slot(inputs, SLOT_B, 130, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ModItems.styleOf(stack.getItem()) != null;
+                return ModItems.styleOf(stack.getItem()) != null
+                        || ModItems.slotOf(stack.getItem()) != null;
             }
         });
         for (int row = 0; row < 3; row++) {
@@ -56,7 +58,7 @@ public class CompareMenu extends AbstractContainerMenu {
             copy = in.copy();
             if (index < 2) {
                 if (!moveItemStackTo(in, 2, slots.size(), true)) return ItemStack.EMPTY;
-            } else if (ModItems.styleOf(in.getItem()) != null) {
+            } else if (ModItems.styleOf(in.getItem()) != null || ModItems.slotOf(in.getItem()) != null) {
                 if (!moveItemStackTo(in, SLOT_A, SLOT_B + 1, false)) {
                     return ItemStack.EMPTY;
                 }

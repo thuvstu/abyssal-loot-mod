@@ -38,13 +38,15 @@ public class ForgeMenu extends AbstractContainerMenu {
         addSlot(new Slot(inputs, SLOT_WEAPON, 44, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ModItems.styleOf(stack.getItem()) != null;
+                return ModItems.styleOf(stack.getItem()) != null
+                        || ModItems.slotOf(stack.getItem()) != null;
             }
         });
         addSlot(new Slot(inputs, SLOT_MATERIAL, 116, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ModItems.styleOf(stack.getItem()) != null;
+                return ModItems.styleOf(stack.getItem()) != null
+                        || ModItems.slotOf(stack.getItem()) != null;
             }
         });
         // プレイヤーインベントリ (3行) + ホットバー
@@ -67,7 +69,7 @@ public class ForgeMenu extends AbstractContainerMenu {
             copy = in.copy();
             if (index < 2) {
                 if (!moveItemStackTo(in, 2, slots.size(), true)) return ItemStack.EMPTY;
-            } else if (ModItems.styleOf(in.getItem()) != null) {
+            } else if (ModItems.styleOf(in.getItem()) != null || ModItems.slotOf(in.getItem()) != null) {
                 if (!moveItemStackTo(in, SLOT_WEAPON, SLOT_MATERIAL + 1, false)) {
                     return ItemStack.EMPTY;
                 }

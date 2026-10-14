@@ -17,5 +17,9 @@
   "key.abyssalloot.art": "Weapon Art",
   "key.abyssalloot.skill": "Class Skill",
   "key.abyssalloot.dash": "Dodge Dash",
-  "key.abyssalloot.hub": "Abyss Hub"
+  "key.abyssalloot.hub": "Abyss Hub",
+  "item.abyssalloot.abyss_helm": "Abyssal Helm",
+  "item.abyssalloot.abyss_chest": "Abyssal Chestplate",
+  "item.abyssalloot.abyss_legs": "Abyssal Leggings",
+  "item.abyssalloot.abyss_boots": "Abyssal Boots"
 }

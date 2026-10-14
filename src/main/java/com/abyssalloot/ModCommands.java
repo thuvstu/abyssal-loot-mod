@@ -150,6 +150,10 @@ public final class ModCommands {
                     RunManager.nextFloor(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("retire").executes(ctx -> {
+                    RunManager.retire(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 .then(Commands.literal("daily").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     p.setData(ModAttachments.MODE.get(), "daily");
@@ -440,11 +444,15 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§bR 武器奥義（右クリックでも可） / §dV 職業の必殺技 / §aX 回避ダッシュ"));
         p.sendSystemMessage(Component.literal("§eG 操作ハブ（出撃・次層・各GUIへのボタン集）"));
         p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでRの奥義。"));
-        p.sendSystemMessage(Component.literal("§7倒すと武器や魂の欠片が出る。全滅で転移門が開く → /abyss next"));
+        p.sendSystemMessage(Component.literal("§7倒すと武器・防具や魂の欠片が出る。全滅で転移門が開く → /abyss next"));
+        p.sendSystemMessage(Component.literal("§7防具(兜・鎧・脚・靴)は右クリックで装備。接辞は武器と合算される"));
+        p.sendSystemMessage(Component.literal("§7武器は持ち替えで奥義が変わる。性能はカーソルを合わせると表示"));
         p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運（レベルアップで1点）"));
         p.sendSystemMessage(Component.literal("§7呪印（難易度）/abyss sigil <id>　モード /abyss mode <id>"));
-        p.sendSystemMessage(Component.literal("§7武器合成は鍛造画面で")
+        p.sendSystemMessage(Component.literal("§7武器合成は鍛造画面で（同武器2点 or 同防具2点）")
                 .append(button("§b[鍛造画面を開く]", "/abyss forge")));
+        p.sendSystemMessage(Component.literal("§7出撃の中断は ")
+                .append(button("§c[リタイア]", "/abyss retire")));
         p.sendSystemMessage(Component.literal("§7")
                 .append(button("§6[商店]", "/abyss shop"))
                 .append(button("§b[装備比較]", "/abyss compare"))

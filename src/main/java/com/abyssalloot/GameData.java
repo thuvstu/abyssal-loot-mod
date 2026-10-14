@@ -965,8 +965,19 @@ public final class GameData {
      */
     public static java.util.List<RolledAffix> rollAffixes(java.util.function.DoubleSupplier r,
                                                           String rarity, int n) {
+        return rollAffixes(r, rarity, n, WEAPON_AFFIXES);
+    }
+
+    /** 防具用の接辞プール (貫通・追加弾・連鎖は武器専用のため除外。原作の slots 制限に相当) */
+    public static final java.util.List<AffixKey> ARMOR_AFFIXES = WEAPON_AFFIXES.stream()
+            .filter(a -> !a.key().equals("pierce") && !a.key().equals("projectiles") && !a.key().equals("chain"))
+            .toList();
+
+    public static java.util.List<RolledAffix> rollAffixes(java.util.function.DoubleSupplier r,
+                                                          String rarity, int n,
+                                                          java.util.List<AffixKey> poolDef) {
         int tierBoost = rarity.equals("mythic") ? 3 : rarity.equals("legendary") ? 2 : 1;
-        var pool = new java.util.ArrayList<>(WEAPON_AFFIXES);
+        var pool = new java.util.ArrayList<>(poolDef);
         var out = new java.util.ArrayList<RolledAffix>();
         for (int i = 0; i < n && !pool.isEmpty(); i++) {
             double total = 0;

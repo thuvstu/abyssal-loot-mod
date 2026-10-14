@@ -17,5 +17,9 @@
   "key.abyssalloot.art": "武器奥義",
   "key.abyssalloot.skill": "必殺技",
   "key.abyssalloot.dash": "回避ダッシュ",
-  "key.abyssalloot.hub": "操作ハブ"
+  "key.abyssalloot.hub": "操作ハブ",
+  "item.abyssalloot.abyss_helm": "深淵兜",
+  "item.abyssalloot.abyss_chest": "深淵鎧",
+  "item.abyssalloot.abyss_legs": "深淵脚",
+  "item.abyssalloot.abyss_boots": "深淵靴"
 }
