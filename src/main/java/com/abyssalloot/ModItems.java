@@ -52,7 +52,7 @@ public final class ModItems {
         public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, TooltipDisplay display,
                                     Consumer<Component> out, TooltipFlag flag) {
             super.appendHoverText(stack, ctx, display, out, flag);
-            RunManager.appendGearLore(stack, out, true);
+            GearData.appendGearLore(stack, out, true);
         }
     }
 
@@ -73,7 +73,7 @@ public final class ModItems {
         public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, TooltipDisplay display,
                                     Consumer<Component> out, TooltipFlag flag) {
             super.appendHoverText(stack, ctx, display, out, flag);
-            RunManager.appendGearLore(stack, out, false);
+            GearData.appendGearLore(stack, out, false);
         }
     }
 

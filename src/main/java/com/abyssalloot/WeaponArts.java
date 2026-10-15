@@ -197,7 +197,7 @@ public final class WeaponArts {
                     CombatHandler.after(i * 2, () -> {
                         ServerLevel lv = slevel(player);
                         if (!player.isAlive()) return;
-                        double range = (last ? 3.0 : 3.5) * RunManager.areaMult(player);
+                        double range = (last ? 3.0 : 3.5) * StatCalc.areaMult(player);
                         for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                                 new AABB(at.x - range, at.y - 5, at.z - range,
                                         at.x + range, at.y + 5, at.z + range),
@@ -542,8 +542,8 @@ public final class WeaponArts {
     /** 指定点中心の範囲打撃 (罠・爆砕・回転刃・聖域の共通処理) */
     public static void pulse(ServerLevel level, ServerPlayer attacker, Vec3 at, double radius,
                              double mult, boolean knockback, ParticleOptions particle) {
-        radius *= RunManager.areaMult(attacker);
-        double dmg = RunManager.attackDamageOf(attacker) * mult;
+        radius *= StatCalc.areaMult(attacker);
+        double dmg = StatCalc.attackDamageOf(attacker) * mult;
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {
@@ -579,7 +579,7 @@ public final class WeaponArts {
     }
 
     private static void slashCone(ServerLevel level, ServerPlayer attacker, Vec3 origin, Vec3 dir, double range, double dmg, ParticleOptions particle) {
-        range *= RunManager.areaMult(attacker);
+        range *= StatCalc.areaMult(attacker);
         double baseAng = Math.atan2(dir.z, dir.x);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - range, origin.y - 5, origin.z - range, origin.x + range, origin.y + 5, origin.z + range),
@@ -598,7 +598,7 @@ public final class WeaponArts {
     }
 
     private static void aoe(ServerLevel level, ServerPlayer attacker, Vec3 at, double radius, double dmg, boolean knockback, ParticleOptions particle) {
-        radius *= RunManager.areaMult(attacker);
+        radius *= StatCalc.areaMult(attacker);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {

@@ -68,7 +68,7 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
             g.drawString(font, "2スロットにAbyss武器を置いてね", 8, 60, 0xFF888899, false);
             return;
         }
-        int lv = RunManager.forgeLv(main);
+        int lv = GearData.forgeLv(main);
         if (lv >= 5) {
             g.drawString(font, "鍛造MAX (覚醒)", 8, 60, 0xFFFFD23C, false);
             return;
@@ -78,7 +78,7 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
         var inv = minecraft.player.getInventory();
         int shards = countIn(inv, ModItems.SOUL_SHARD.get().getDefaultInstance().getItem());
         g.drawString(font, "欠片×" + cost + " (所持" + shards + ")", 8, 60, shards >= cost ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
-        String top = topRarity(RunManager.rarityOf(main), RunManager.rarityOf(sub));
+        String top = topRarity(GearData.rarityOf(main), GearData.rarityOf(sub));
         String matLine = matLine(top);
         if (matLine != null) {
             net.minecraft.world.item.Item matItem = matItem(top);

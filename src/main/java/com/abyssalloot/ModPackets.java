@@ -215,7 +215,7 @@ public final class ModPackets {
     private static void handleAttr(AttrPacket payload, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {
-                if (RunManager.addAttrPoint(sp, payload.index())) {
+                if (StatCalc.addAttrPoint(sp, payload.index())) {
                     net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
                             new StatusSync(RunManager.statusLines(sp)));
                 }
@@ -252,8 +252,8 @@ public final class ModPackets {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp
                     && sp.containerMenu instanceof CompareMenu cm) {
-                var left = RunManager.compareLines(sp, cm.getSlot(CompareMenu.SLOT_A).getItem());
-                var right = RunManager.compareLines(sp, cm.getSlot(CompareMenu.SLOT_B).getItem());
+                var left = GearData.compareLines(sp, cm.getSlot(CompareMenu.SLOT_A).getItem());
+                var right = GearData.compareLines(sp, cm.getSlot(CompareMenu.SLOT_B).getItem());
                 net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
                         new CompareSync(left, right));
             }

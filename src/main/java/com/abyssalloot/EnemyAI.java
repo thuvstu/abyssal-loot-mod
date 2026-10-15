@@ -95,10 +95,10 @@ public final class EnemyAI {
      * テレポート (ENDERMAN)・奥義の吹き飛びは壁を越えるため、0.5秒ごとに引き戻す.
      */
     private static void containMobs(ServerPlayer player, ServerLevel level) {
-        BlockPos center = RunManager.arenaCenterOf(player);
+        BlockPos center = ArenaManager.arenaCenterOf(player);
         if (center == null) return;
         double cx = center.getX() + 0.5, cy = center.getY(), cz = center.getZ() + 0.5;
-        double r = RunManager.ARENA_R;
+        double r = ArenaManager.ARENA_R;
         // 戦闘中のプレイヤーも場内に留める (ウェーブ進行中のみ)
         double pdx = player.getX() - cx, pdz = player.getZ() - cz;
         double pd = Math.sqrt(pdx * pdx + pdz * pdz);
@@ -183,7 +183,9 @@ public final class EnemyAI {
      * 毎tick: 原作の敵は回頭に時間がかかる。護衛兵・突進・番人・層主は
      * 最寄りのプレイヤーへ一定速度でしか向きを変えない (側面への回り込みが有効)。
      */
-    public static void tickGuards(MinecraftServer server) {
+    public static void tickGuards(MinecraftServer server, int now) {
+        // 2tickごとに2tick分まとめて回頭 (秒間の回頭量は同一)。毎tickの entity scan を半減
+        if (now % 2 != 0) return;
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (!(p.level() instanceof ServerLevel level)) continue;
             var heavies = level.getEntitiesOfClass(Mob.class,
@@ -194,8 +196,8 @@ public final class EnemyAI {
                                     || e.getTags().contains(Enemies.WARDEN_TAG)
                                     || RunManager.BOSS_BARS.containsKey(e)));
             for (Mob g : heavies) {
-                double rate = g.getTags().contains(Enemies.GUARD_TAG)
-                        ? GUARD_TURN_PER_TICK : HEAVY_TURN_PER_TICK;
+                double rate = 2 * (g.getTags().contains(Enemies.GUARD_TAG)
+                        ? GUARD_TURN_PER_TICK : HEAVY_TURN_PER_TICK);
                 ServerPlayer t = nearestPlayer(level, g);
                 if (t == null) continue;
                 // MCの向き規約: 方向ベクトル = (-sin(yaw), cos(yaw))

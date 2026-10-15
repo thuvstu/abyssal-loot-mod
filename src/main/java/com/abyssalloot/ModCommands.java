@@ -83,7 +83,7 @@ public final class ModCommands {
                                     GameData.HeroClass cls = GameData.HeroClass.byId(
                                             StringArgumentType.getString(ctx, "id"));
                                     int level = p.getData(ModAttachments.LEVEL.get());
-                                    RunManager.applyClass(p, cls, level);
+                                    StatCalc.applyClass(p, cls, level);
                                     return 1;
                                 })))
                 .then(Commands.literal("weapon")
@@ -98,7 +98,7 @@ public final class ModCommands {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                                     GameData.WeaponStyle style = GameData.WeaponStyle.byId(
                                             StringArgumentType.getString(ctx, "id"));
-                                    var stack = RunManager.makeWeapon(style, p.getRandom());
+                                    var stack = GearFactory.makeWeapon(style, p.getRandom());
                                     p.getInventory().add(stack);
                                     p.sendSystemMessage(Component.literal(
                                             "§b武器: " + style.weaponName + " / 奥義: " + style.artName + " — " + style.artDesc));
@@ -139,7 +139,7 @@ public final class ModCommands {
                                     int n = IntegerArgumentType.getInteger(ctx, "n");
                                     GameData.HeroClass cls = GameData.HeroClass.byId(
                                             p.getData(ModAttachments.HERO_CLASS.get()));
-                                    RunManager.applyClass(p, cls, n);
+                                    StatCalc.applyClass(p, cls, n);
                                     return 1;
                                 })))
                 .then(Commands.literal("start").executes(ctx -> {
@@ -247,7 +247,7 @@ public final class ModCommands {
                                     p.setData(ModAttachments.OFFER.get(), "");
                                     GameData.HeroClass cls = GameData.HeroClass.byId(
                                             p.getData(ModAttachments.HERO_CLASS.get()));
-                                    RunManager.applyClass(p, cls, p.getData(ModAttachments.LEVEL.get()));
+                                    StatCalc.applyClass(p, cls, p.getData(ModAttachments.LEVEL.get()));
                                     p.sendSystemMessage(Component.literal(
                                             "§e祝福を得た: " + def.name() + " (" + def.desc() + ")"));
                                     return 1;
@@ -262,11 +262,11 @@ public final class ModCommands {
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                                    return RunManager.addAttrPoint(p,
+                                    return StatCalc.addAttrPoint(p,
                                             attrIndex(StringArgumentType.getString(ctx, "id"))) ? 1 : 0;
                                 })))
                 .then(Commands.literal("respec").executes(ctx -> {
-                    RunManager.respec(ctx.getSource().getPlayerOrException());
+                    StatCalc.respec(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("mode")
@@ -440,7 +440,7 @@ public final class ModCommands {
         GameData.WeaponStyle style = GameData.WeaponStyle.byId(weaponId);
         p.setData(ModAttachments.HERO_CLASS.get(), cls.id);
         if (p.getData(ModAttachments.LEVEL.get()) < 1) p.setData(ModAttachments.LEVEL.get(), 1);
-        p.getInventory().add(RunManager.makeWeapon(style, p.getRandom()));
+        p.getInventory().add(GearFactory.makeWeapon(style, p.getRandom()));
         p.sendSystemMessage(Component.literal("§6配備完了: " + cls.name + " / " + style.weaponName
                 + "（奥義「" + style.artName + "」）→ 出撃します"));
         RunManager.startRun(p);
