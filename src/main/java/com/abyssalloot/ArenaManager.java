@@ -142,6 +142,13 @@ public final class ArenaManager {
             }
         }
         // バリア: 塀上〜天井を不可視ブロックで封鎖 (リタイア・終了まで維持)
+        placeBarriers(level, center);
+        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した (周囲を整地)"), false);
+    }
+
+    /** 塀上〜天井のバリア配置 */
+    public static void placeBarriers(ServerLevel level, BlockPos center) {
+        int r = ARENA_R;
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 double d2 = x * x + z * z;
@@ -157,7 +164,72 @@ public final class ArenaManager {
                 }
             }
         }
-        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した (周囲を整地)"), false);
+    }
+
+    /**
+     * 層ごとのアリーナ再構成 (床の張替え・バリア更新・障害物追加)。
+     * 難易度と層が上がるほど障害物が増える。既設物は壊さない (空きマスのみ)。
+     */
+    public static void refreshArena(ServerPlayer player, int floor) {
+        BlockPos center = arenaCenterOf(player);
+        if (!(player.level() instanceof ServerLevel level) || center == null) return;
+        int r = ARENA_R;
+        String zone = GameData.zoneForFloor(Math.max(1, floor)).id();
+        var floorBlock = floorBlockFor(zone);
+        var trim = trimBlockFor(zone);
+        var rand = player.getRandom();
+        // 床の張替え
+        for (int x = -r; x <= r; x++) {
+            for (int z = -r; z <= r; z++) {
+                if (x * x + z * z > r * r) continue;
+                level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), 3);
+            }
+        }
+        // バリア更新
+        clearBarriers(level, center);
+        placeBarriers(level, center);
+        // 障害物を追加 (空きマスのみ。層・難易度で増加)
+        String diff = player.getData(ModAttachments.DIFF.get());
+        int diffBonus = switch (diff) {
+            case "hard" -> 1;
+            case "hell" -> 2;
+            case "inferno" -> 3;
+            case "omega" -> 4;
+            default -> 0;
+        };
+        int nFeat = Math.min(6, 2 + floor / 6 + diffBonus);
+        int placed = 0;
+        for (int tries = 0; tries < 30 && placed < nFeat; tries++) {
+            double ang = rand.nextDouble() * Math.PI * 2;
+            double dist = 5 + rand.nextDouble() * 7;
+            if (dist > 12.5 && dist < 15.5) continue;
+            int fx = center.getX() + (int) Math.round(Math.cos(ang) * dist);
+            int fz = center.getZ() + (int) Math.round(Math.sin(ang) * dist);
+            if (!level.getBlockState(new BlockPos(fx, center.getY(), fz)).isAir()) continue;
+            if (!level.getBlockState(new BlockPos(fx, center.getY() + 1, fz)).isAir()) continue;
+            int kind = rand.nextInt(3);
+            if (kind == 0) {
+                int h = 2 + rand.nextInt(2);
+                for (int y = 0; y < h; y++) {
+                    level.setBlock(new BlockPos(fx, center.getY() + y, fz),
+                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), 3);
+                }
+            } else if (kind == 1) {
+                for (int dx = 0; dx < 2; dx++) {
+                    for (int dz = 0; dz < 2; dz++) {
+                        BlockPos q = new BlockPos(fx + dx, center.getY(), fz + dz);
+                        if (!level.getBlockState(q).isAir()) continue;
+                        level.setBlock(q, Blocks.COBBLESTONE.defaultBlockState(), 3);
+                    }
+                }
+            } else {
+                level.setBlock(new BlockPos(fx, center.getY(), fz),
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                level.setBlock(new BlockPos(fx, center.getY() + 1, fz),
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+            }
+            placed++;
+        }
     }
 
 

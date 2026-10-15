@@ -12,7 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * クライアント専用: R=武器奥義 / V=必殺技 / X=回避ダッシュ / G=操作ハブ.
+ * クライアント専用: R=武器奥義 / V=必殺技 / X=回避ダッシュ / G=操作ハブ / N=次の層へ.
  * E(インベントリ)・Q(ドロップ)・F(持ち替え)・C と被らない配置。
  * サーバー側では決して読み込まれない (Distチェック経由でのみ初期化).
  */
@@ -23,6 +23,7 @@ public final class ClientKeys {
     private static KeyMapping skillKey;
     private static KeyMapping dashKey;
     private static KeyMapping hubKey;
+    private static KeyMapping nextKey;
 
     public static void init(IEventBus modBus) {
         modBus.addListener((RegisterKeyMappingsEvent event) -> {
@@ -38,10 +39,13 @@ public final class ClientKeys {
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, category);
             hubKey = new KeyMapping("key.abyssalloot.hub", KeyConflictContext.IN_GAME,
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, category);
+            nextKey = new KeyMapping("key.abyssalloot.next", KeyConflictContext.IN_GAME,
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, category);
             event.register(artKey);
             event.register(skillKey);
             event.register(dashKey);
             event.register(hubKey);
+            event.register(nextKey);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             var conn = Minecraft.getInstance().getConnection();
@@ -57,6 +61,9 @@ public final class ClientKeys {
             }
             while (hubKey != null && hubKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("hub")));
+            }
+            while (nextKey != null && nextKey.consumeClick()) {
+                conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("next")));
             }
         });
     }

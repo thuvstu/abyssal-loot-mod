@@ -75,6 +75,19 @@ public final class CombatHandler {
     /** 魔弾の威力倍率 (castWandBolt が hurtServer 直前に設定し、命中処理で消費) */
     public static double boltMult = 0;
 
+    /** 出撃中の死亡: 死なずにリタイア処理 (装備・欠片は保持)。出撃外では通常死亡 */
+    @SubscribeEvent
+    public static void onPlayerDeath(LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (player.getData(ModAttachments.RUN_LOCK.get()) == 0
+                && player.getData(ModAttachments.WAVE_TOTAL.get()) == 0) return;
+        event.setCanceled(true);
+        player.setHealth(player.getMaxHealth() * 0.5f);
+        player.removeAllEffects();
+        RunManager.retire(player);
+        player.sendSystemMessage(Component.literal("§c敗北…深淵の加護で生還した (装備・欠片は保持)"));
+    }
+
     /** 撃破で魂ゲージ蓄積 (原作 artChargeGain の簡易版: 固定+敵最大HP比) */
     @SubscribeEvent
     public static void onKill(LivingDeathEvent event) {
@@ -183,7 +196,12 @@ public final class CombatHandler {
             if (RunManager.isCovenant(player)) {
                 player.sendSystemMessage(Component.literal("§5不幸の盟約: 祝福は得られない (魂×3.0で償う)"));
             } else {
-                offerBoons(player);
+                String pending = player.getData(ModAttachments.OFFER.get());
+                if (pending == null || pending.isBlank()) {
+                    offerBoons(player);
+                } else {
+                    resendBoonOffer(player);
+                }
             }
         }
         // 層主撃破の記録 + ボスバー除去
@@ -196,7 +214,7 @@ public final class CombatHandler {
             player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
             player.sendSystemMessage(Component.literal("§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
             RunManager.addGauge(player, 30);
-            // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ)
+            // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ。未選択があれば再提示)
             if (floor == 5) {
                 var a = GameData.achievementById("floor-five");
                 grantAch(player, "floor-five", a.title(), GameData.shardsForReward(a.reward()));
@@ -210,7 +228,12 @@ public final class CombatHandler {
                 var a = GameData.achievementById("boss-three");
                 grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
             }
-            RunManager.offerPassives(player);
+            String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
+            if (pendingPassive == null || pendingPassive.isBlank()) {
+                RunManager.offerPassives(player);
+            } else {
+                RunManager.resendPassiveOffer(player);
+            }
         }
         // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発) / 血の契約 (祝福・撃破回復)
         String killTrait = GearData.traitOf(player.getMainHandItem());
@@ -535,8 +558,7 @@ public final class CombatHandler {
     public static void offerBoons(ServerPlayer player) {
         // 原作 rollBoons と同じ重み (common 4.2 / rare 2.4 / epic 1.1) で3択
         var rand = player.getRandom();
-        var pick = Boons.rollBoons(rand::nextDouble, 3);
-        var ids = new java.util.ArrayList<String>();
+        var pick = Boons.rollBoons(rand::nextDouble, 3);        var ids = new java.util.ArrayList<String>();
         var msg = Component.literal("§e祝福を選べ: ");
         for (var b : pick) {
             ids.add(b.id());
@@ -546,6 +568,25 @@ public final class CombatHandler {
             msg.append(btn);
         }
         player.setData(ModAttachments.OFFER.get(), String.join(",", ids));
+        player.sendSystemMessage(msg);
+    }
+
+    /** 未選択の祝福を再提示 (上書きしない。選ばず進んでも失われない) */
+    public static void resendBoonOffer(ServerPlayer player) {
+        String raw = player.getData(ModAttachments.OFFER.get());
+        if (raw == null || raw.isBlank()) {
+            player.sendSystemMessage(Component.literal("§7選択待ちの祝福は無い"));
+            return;
+        }
+        var msg = Component.literal("§e祝福を選べ (再提示): ");
+        for (String id : raw.split(",")) {
+            var b = Boons.boonById(id);
+            if (b == null) continue;
+            var btn = Component.literal("§6[" + b.name() + " " + b.desc() + "] ")
+                    .withStyle(s -> s.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss boon " + b.id()))
+                            .withUnderlined(true));
+            msg.append(btn);
+        }
         player.sendSystemMessage(msg);
     }
 

@@ -265,7 +265,9 @@ public final class Enemies {
         level.addFreshEntity(child);
     }
 
-    /** 分裂スライム母の死亡時: 小さな子を2体残す (原作 split) */
+    /** 分裂スライム母の死亡時: 小さな子を2体残す (原作 split)。
+     * 子に SPLIT_TAG は付けない (付けると子の死亡で再分裂し指数増殖するため)。
+     * SUMMON_TAG で召喚扱い (ウェーブ数に数えず、バニラドロップ抑止は abyss_ 系タグで維持) */
     public static void handleSplit(ServerLevel level, Mob dead, ServerPlayer ref) {
         Scale scale = scaleFor(ref, Math.max(1, ref.getData(ModAttachments.FLOOR.get())));
         for (int i = 0; i < 2; i++) {
@@ -275,7 +277,7 @@ public final class Enemies {
                     dead.getRandom().nextInt(3) - 1);
             child.setPos(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
             apply(child, slime, scale, 0.4);
-            child.addTag(SPLIT_TAG); // バニラドロップ抑止の目印 (撃破数は通常通り計上)
+            child.addTag(SUMMON_TAG);
             child.setTarget(ref);
             level.addFreshEntity(child);
         }

@@ -487,6 +487,7 @@ public final class RunManager {
 
     /** 出撃: 現在地の近くに試練アリーナを整地し第1ウェーブを出す */
     public static void startRun(ServerPlayer player) {
+        clearRunField(player);
         int floor = 1;
         String mode = player.getData(ModAttachments.MODE.get());
         player.setData(ModAttachments.FLOOR.get(), floor);
@@ -623,10 +624,23 @@ public final class RunManager {
      * 装備・欠片は保持される (原作の帰還に相当)。
      */
     public static void retire(ServerPlayer player) {
+        clearRunField(player);
+        player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
+        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
+        player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
+        player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
+    }
+
+    /** 戦場の掃除: 前回アリーナのバリア除去・残存MOB消去・ボスバー解除 (再出撃・死亡時に使用) */
+    public static void clearRunField(ServerPlayer player) {
         ArenaManager.clearArenaBarriers(player);
         if (player.level() instanceof ServerLevel level) {
-            for (Mob m : level.getEntitiesOfClass(Mob.class,
-                    player.getBoundingBox().inflate(64), e -> e.isAlive())) {
+            BlockPos center = ArenaManager.arenaCenterOf(player);
+            net.minecraft.world.phys.AABB box = center != null
+                    ? new net.minecraft.world.phys.AABB(center).inflate(64)
+                    : player.getBoundingBox().inflate(64);
+            for (Mob m : level.getEntitiesOfClass(Mob.class, box, e -> e.isAlive())) {
                 boolean abyss = RunManager.BOSS_BARS.containsKey(m);
                 if (!abyss) {
                     for (String t : m.getTags()) {
@@ -642,11 +656,6 @@ public final class RunManager {
                 e.getValue().removePlayer(player);
             }
         }
-        player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
-        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
-        player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
-        player.setData(ModAttachments.RUN_LOCK.get(), 0);
-        player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
     }
 
     public static boolean isTrueFloor(ServerPlayer player) {
@@ -709,8 +718,8 @@ public final class RunManager {
     /** 真・最終決戦 (原作TRUE_FLOOR=26) */
     public static void startTrue(ServerPlayer player) {
         ServerLevel level = (ServerLevel) player.level();
-        player.setData(ModAttachments.FLOOR.get(), 26);
-        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
+        clearRunField(player);
+        player.setData(ModAttachments.FLOOR.get(), 26);        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.WAVE_TOTAL.get(), 1);
         player.setData(ModAttachments.OFFER.get(), "");
@@ -836,6 +845,7 @@ public final class RunManager {
     /** 終焉の座 (原作PINNACLE_FLOOR=27。単層決戦) */
     public static void startPinnacle(ServerPlayer player) {
         ServerLevel level = (ServerLevel) player.level();
+        clearRunField(player);
         player.setData(ModAttachments.FLOOR.get(), GameData.PINNACLE_FLOOR);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -930,9 +940,20 @@ public final class RunManager {
         ArenaManager.clearArenaBarriers(player);
     }
 
+    /** 次層への進行 (転移門の開放を確認。キー・ボタン用) */
+    public static void tryNextFloor(ServerPlayer player) {
+        int total = player.getData(ModAttachments.WAVE_TOTAL.get());
+        int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
+        if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0) {
+            player.sendSystemMessage(Component.literal(
+                    "§c転移門が開いていない (残り" + Math.max(0, total - kills) + "体)"));
+            return;
+        }
+        nextFloor(player);
+    }
+
     public static void nextFloor(ServerPlayer player) {
-        String mode = player.getData(ModAttachments.MODE.get());
-        int cur = player.getData(ModAttachments.FLOOR.get());
+        String mode = player.getData(ModAttachments.MODE.get());        int cur = player.getData(ModAttachments.FLOOR.get());
         if (cur >= 100) {
             player.sendSystemMessage(Component.literal("§7ここが最深層だ (真ボスを討て)"));
             return;
@@ -986,6 +1007,7 @@ public final class RunManager {
         if (!noHeal) heal(player, player.getMaxHealth() * 0.25);
         else player.sendSystemMessage(Component.literal("§e乾ききった迷宮: 層移動の回復なし"));
         player.teleportTo(player.getX(), player.getY(), player.getZ());
+        ArenaManager.refreshArena(player, floor);
         spawnWave(player, floor);
         var zone = GameData.zoneForFloor(floor);
         if (floor % 5 == 0) {
@@ -1054,7 +1076,9 @@ public final class RunManager {
             }
         }
         player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
-        BlockPos center = player.blockPosition();
+        // 湧き中心はアリーナ中心 (プレイヤー位置だと場外に湧くため)
+        BlockPos arena = ArenaManager.arenaCenterOf(player);
+        BlockPos center = arena != null ? arena : player.blockPosition();
 
         for (int i = 0; i < count; i++) {
             double ang = (Math.PI * 2 * i) / count;
@@ -1613,6 +1637,22 @@ public final class RunManager {
             var p = GameData.passiveById(id);
             player.sendSystemMessage(Component.literal("§b技能を得た: " + p.name() + " (" + p.desc() + ")"));
         }
+    }
+
+    /** 未選択の技能を再提示 (上書きしない。選ばず進んでも失われない) */
+    public static void resendPassiveOffer(ServerPlayer player) {
+        String raw = player.getData(ModAttachments.PASSIVE_OFFER.get());
+        if (raw == null || raw.isBlank()) {
+            player.sendSystemMessage(Component.literal("§7選択待ちの技能は無い"));
+            return;
+        }
+        var msg = Component.literal("§b技能を選べ (再提示): ");
+        for (String id : raw.split(",")) {
+            var p = GameData.passiveById(id);
+            if (p == null) continue;
+            msg.append(btn2("§6[" + p.name() + " " + p.desc() + "] ", "/abyss passive " + p.id()));
+        }
+        player.sendSystemMessage(msg);
     }
 
     /** 深羅針盤: 最寄りの強敵 (精鋭・番人・層主) を発光させて指し示す */

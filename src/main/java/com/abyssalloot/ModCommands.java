@@ -147,7 +147,7 @@ public final class ModCommands {
                     return 1;
                 }))
                 .then(Commands.literal("next").executes(ctx -> {
-                    RunManager.nextFloor(ctx.getSource().getPlayerOrException());
+                    RunManager.tryNextFloor(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("retire").executes(ctx -> {
@@ -193,6 +193,10 @@ public final class ModCommands {
                                     return 1;
                                 })))
                 .then(Commands.literal("passive")
+                        .executes(ctx -> {
+                            RunManager.resendPassiveOffer(ctx.getSource().getPlayerOrException());
+                            return 1;
+                        })
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
                                     for (var p : GameData.PASSIVES) b.suggest(p.id());
@@ -225,6 +229,10 @@ public final class ModCommands {
                     return 1;
                 }))
                 .then(Commands.literal("boon")
+                        .executes(ctx -> {
+                            CombatHandler.resendBoonOffer(ctx.getSource().getPlayerOrException());
+                            return 1;
+                        })
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
                                     for (var boon : Boons.BOON_POOL) b.suggest(boon.id());

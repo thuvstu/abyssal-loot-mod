@@ -207,6 +207,7 @@ public final class ModPackets {
                     case "dash" -> CombatHandler.dash(sp);
                     case "hub" -> net.neoforged.neoforge.network.PacketDistributor
                             .sendToPlayer(sp, new HubSync());
+                    case "next" -> RunManager.tryNextFloor(sp);
                 }
             }
         });
