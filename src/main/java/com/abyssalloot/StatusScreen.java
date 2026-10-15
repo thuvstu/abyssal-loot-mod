@@ -11,7 +11,7 @@ import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
  * {@link ModPackets.StatusSync} で送る。属性ボタン付き (未配分点の割振り)。
  */
 public class StatusScreen extends Screen {
-    private static final String[] ATTRS = {"剛", "韻", "敏", "忍", "幸"};
+    private static final String[] ATTRS = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技"};
 
     public StatusScreen() {
         super(Component.literal("ステータス"));

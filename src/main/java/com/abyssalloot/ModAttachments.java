@@ -48,9 +48,9 @@ public final class ModAttachments {
     /** 転移門オープン済みか (0/1) */
     public static final Supplier<AttachmentType<Integer>> PORTAL_OPEN =
             reg("portal_open", 0, Codec.INT);
-    /** 属性配分 "g,r,b,n,u" (剛力,韻律,敏捷,忍耐,幸運) */
+    /** 属性配分 "8値" (剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧) */
     public static final Supplier<AttachmentType<String>> ATTRS =
-            reg("attrs", "0,0,0,0,0", Codec.STRING);
+            reg("attrs", "0,0,0,0,0,0,0,0", Codec.STRING);
     /** 祝福 "id:lv,..." */
     public static final Supplier<AttachmentType<String>> BOONS =
             reg("boons", "", Codec.STRING);

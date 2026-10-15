@@ -60,6 +60,19 @@ public final class GameData {
             return moveSpeed / 2500.0;
         }
 
+        /** 職業適性: この属性の効果が1.5倍になる */
+        public int affinityAttr() {
+            return switch (this) {
+                case SAMURAI -> 0;
+                case MAGE -> 5;
+                case NINJA -> 2;
+                case PALADIN -> 3;
+                case GUNNER -> 4;
+                case BERSERKER -> 0;
+                case MONK -> 1;
+            };
+        }
+
         /** 原作 skillName 対応 */
         public String skillName() {
             return switch (this) {
@@ -1036,6 +1049,64 @@ public final class GameData {
             if (s.id().equals(id)) return s;
         }
         return null;
+    }
+
+    /* ---------------- 属性8種・節目ボーナス ----------------
+     * 原作 attributes.ts の5属性 + 追加3属性 (集中・活力・技巧)。
+     * 各属性は 10/20/30 点で節目ボーナス (接辞キー束) が付く。
+     */
+    public static final String[] ATTR_NAMES = {"剛力", "韻律", "敏捷", "忍耐", "幸運", "集中", "活力", "技巧"};
+    public static final String[] ATTR_SHORT = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技"};
+    public static final String[] ATTR_DESCS = {
+            "攻撃力 +3%/点", "攻撃速度 +2%/点", "移動速度 +1.5%・回避短縮/点",
+            "最大HP +4%/点", "運 +7・素材 +4%/点",
+            "会心率 +0.8%・会心威力 +2%/点", "HP再生 +0.15/秒・軽減 +0.5%/点",
+            "攻撃範囲 +1.5%・爆裂 +0.8%/点"};
+
+    public record Mile(int at, java.util.Map<String, Double> mods) {}
+
+    public static final java.util.List<java.util.List<Mile>> ATTR_MILESTONES = java.util.List.of(
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("damagePct", 10.0)),
+                    new Mile(20, java.util.Map.of("critDmgPct", 20.0)),
+                    new Mile(30, java.util.Map.of("damagePct", 15.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("attackSpeedPct", 8.0)),
+                    new Mile(20, java.util.Map.of("areaPct", 10.0)),
+                    new Mile(30, java.util.Map.of("attackSpeedPct", 12.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("moveSpeedPct", 8.0)),
+                    new Mile(20, java.util.Map.of("energyPct", 15.0)),
+                    new Mile(30, java.util.Map.of("moveSpeedPct", 12.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("maxHpPct", 10.0)),
+                    new Mile(20, java.util.Map.of("armorPct", 8.0)),
+                    new Mile(30, java.util.Map.of("maxHpPct", 15.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("luckFlat", 20.0)),
+                    new Mile(20, java.util.Map.of("energyPct", 15.0)),
+                    new Mile(30, java.util.Map.of("luckFlat", 30.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("critPct", 5.0)),
+                    new Mile(20, java.util.Map.of("critDmgPct", 25.0)),
+                    new Mile(30, java.util.Map.of("critPct", 8.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("regenFlat", 1.0)),
+                    new Mile(20, java.util.Map.of("armorPct", 6.0)),
+                    new Mile(30, java.util.Map.of("maxHpPct", 12.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("areaPct", 8.0)),
+                    new Mile(20, java.util.Map.of("explodePct", 10.0)),
+                    new Mile(30, java.util.Map.of("areaPct", 12.0))));
+
+    /** 節目の到達数 (0〜3)。表示・効果集計用 */
+    public static int milestoneTier(int attrIdx, int points) {
+        if (attrIdx < 0 || attrIdx >= ATTR_MILESTONES.size()) return 0;
+        int t = 0;
+        for (Mile m : ATTR_MILESTONES.get(attrIdx)) {
+            if (points >= m.at()) t++;
+        }
+        return t;
     }
 
     /* ---------------- 原作の武器名 (接頭・接尾・伝説・神話) ---------------- */

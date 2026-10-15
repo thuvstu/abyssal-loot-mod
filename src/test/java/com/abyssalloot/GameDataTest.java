@@ -443,7 +443,32 @@ public class GameDataTest {
         assertEquals(8, GameData.BOSSES.size());
     }
 
-    /** 追加コンテンツ (武器12・防具set4・恩寵20・技能16・遺物12) の定義健全性 */
+    /** 属性8種・節目・職業適性の定義健全性 */
+    @Test
+    void eightAttributesWithMilestones() {
+        assertEquals(8, GameData.ATTR_NAMES.length);
+        assertEquals(8, GameData.ATTR_SHORT.length);
+        assertEquals(8, GameData.ATTR_DESCS.length);
+        assertEquals(8, GameData.ATTR_MILESTONES.size());
+        for (var miles : GameData.ATTR_MILESTONES) {
+            assertEquals(3, miles.size());
+            assertEquals(10, miles.get(0).at());
+            assertEquals(20, miles.get(1).at());
+            assertEquals(30, miles.get(2).at());
+            for (var m : miles) assertFalse(m.mods().isEmpty());
+        }
+        assertEquals(0, GameData.milestoneTier(0, 0));
+        assertEquals(1, GameData.milestoneTier(0, 10));
+        assertEquals(2, GameData.milestoneTier(0, 25));
+        assertEquals(3, GameData.milestoneTier(0, 30));
+        assertEquals(0, GameData.milestoneTier(-1, 99));
+        // 各職業に適性があり範囲内
+        for (GameData.HeroClass c : GameData.HeroClass.values()) {
+            assertTrue(c.affinityAttr() >= 0 && c.affinityAttr() < 8);
+        }
+        assertEquals(0, GameData.HeroClass.byId("samurai").affinityAttr());
+        assertEquals(5, GameData.HeroClass.byId("mage").affinityAttr());
+    }
     @Test
     void extraContentIsSound() {
         assertEquals(20, GameData.EXTRA_BOON_MODS.size());

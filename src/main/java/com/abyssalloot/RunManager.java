@@ -162,7 +162,7 @@ public final class RunManager {
 
     /** 素材個数: 報酬倍率と幸運(+4%/点)を掛け、端数は確率丸め (1個でも無駄にならない) */
     public static int materialCount(ServerPlayer player, double base) {
-        int fortune = attrsOf(player)[4];
+        int fortune = (int) attrEff(player, 4);
         var rand = player.getRandom();
         double amount = base * rewardMult(player);
         // 遺物「盗賊の金貨」: 素材2倍 / 技能「強欲の契」: +60% / 恩寵「強欲の刻印」: +55%/Lv
@@ -205,18 +205,46 @@ public final class RunManager {
 
     /* ---------------- 属性・祝福 ---------------- */
 
-    /** 剛力,韻律,敏捷,忍耐,幸運 */
+    /** 剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧 (旧5値セーブは後ろを0埋め) */
     public static int[] attrsOf(ServerPlayer player) {
-        int[] a = new int[5];
+        int[] a = new int[8];
         try {
             String[] p = player.getData(ModAttachments.ATTRS.get()).split(",");
-            for (int i = 0; i < Math.min(5, p.length); i++) a[i] = Math.max(0, Integer.parseInt(p[i].trim()));
+            for (int i = 0; i < Math.min(8, p.length); i++) a[i] = Math.max(0, Integer.parseInt(p[i].trim()));
         } catch (Exception ignored) {}
         return a;
     }
 
     public static void setAttrs(ServerPlayer player, int[] a) {
-        player.setData(ModAttachments.ATTRS.get(), a[0] + "," + a[1] + "," + a[2] + "," + a[3] + "," + a[4]);
+        var sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            if (i > 0) sb.append(",");
+            sb.append(i < a.length ? Math.max(0, a[i]) : 0);
+        }
+        player.setData(ModAttachments.ATTRS.get(), sb.toString());
+    }
+
+    /**
+     * 属性の実効値 (職業適性は1.5倍)。計算式はすべてこちらを使う。
+     * 節目の到達判定は投下点 (素の値) で行う。
+     */
+    public static double attrEff(ServerPlayer player, int idx) {
+        int[] a = attrsOf(player);
+        if (idx < 0 || idx >= a.length) return 0;
+        GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        return a[idx] * (GameData.ATTR_NAMES.length > idx && cls.affinityAttr() == idx ? 1.5 : 1.0);
+    }
+
+    /** 節目ボーナスの合算 (接辞キー)。extraStat に含まれる */
+    public static double attrMilestone(ServerPlayer player, String key) {
+        int[] a = attrsOf(player);
+        double v = 0;
+        for (int i = 0; i < Math.min(a.length, GameData.ATTR_MILESTONES.size()); i++) {
+            for (GameData.Mile m : GameData.ATTR_MILESTONES.get(i)) {
+                if (a[i] >= m.at()) v += m.mods().getOrDefault(key, 0.0);
+            }
+        }
+        return v;
     }
 
     public static int attrSpent(ServerPlayer player) {
@@ -230,10 +258,10 @@ public final class RunManager {
         return Math.max(0, player.getData(ModAttachments.LEVEL.get()) - 1 - attrSpent(player));
     }
 
-    /** 属性1点配分 (成功でメッセージ・職業再適用)。GUI/コマンド共通 */
+    /** 属性1点配分 (成功でメッセージ・職業再適用・節目告知)。GUI/コマンド共通 */
     public static boolean addAttrPoint(ServerPlayer player, int idx) {
-        if (idx < 0 || idx > 4) {
-            player.sendSystemMessage(Component.literal("§c剛力/韻律/敏捷/忍耐/幸運で指定"));
+        if (idx < 0 || idx > 7) {
+            player.sendSystemMessage(Component.literal("§c剛力/韻律/敏捷/忍耐/幸運/集中/活力/技巧で指定"));
             return false;
         }
         int level = player.getData(ModAttachments.LEVEL.get());
@@ -244,14 +272,47 @@ public final class RunManager {
             return false;
         }
         int[] a = attrsOf(player);
+        int before = a[idx];
         a[idx]++;
         setAttrs(player, a);
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         applyClass(player, cls, level);
-        player.sendSystemMessage(Component.literal(
-                "§a属性配分: 剛" + a[0] + " 韻" + a[1] + " 敏" + a[2] + " 忍" + a[3] + " 幸" + a[4]
-                        + " (残" + (level - 1 - spent - 1) + "点)"));
+        var msg = new StringBuilder("§a属性配分:");
+        for (int i = 0; i < 8; i++) {
+            msg.append(" ").append(GameData.ATTR_SHORT[i]).append(a[i]);
+            if (cls.affinityAttr() == i) msg.append("★");
+        }
+        msg.append(" (残").append(level - 1 - spent - 1).append("点)");
+        player.sendSystemMessage(Component.literal(msg.toString()));
+        if (GameData.milestoneTier(idx, a[idx]) > GameData.milestoneTier(idx, before)) {
+            int next = nextMile(idx, a[idx]);
+            player.sendSystemMessage(Component.literal("§d◆ 節目到達！ " + GameData.ATTR_NAMES[idx]
+                    + a[idx] + "点ボーナス解放" + (a[idx] >= 30 ? " (最大)" : " (次は" + next + "点)")));
+        }
         return true;
+    }
+
+    private static int nextMile(int idx, int points) {
+        for (GameData.Mile m : GameData.ATTR_MILESTONES.get(idx)) {
+            if (points < m.at()) return m.at();
+        }
+        return 30;
+    }
+
+    /** 振り直し (欠片8個)。配分を全戻しし、職業を再適用する */
+    public static void respec(ServerPlayer player) {
+        if (attrSpent(player) == 0) {
+            player.sendSystemMessage(Component.literal("§c振り直す点が無い"));
+            return;
+        }
+        if (!takeShards(player, 8)) {
+            player.sendSystemMessage(Component.literal("§c欠片8個が足りない (所持" + countShards(player) + ")"));
+            return;
+        }
+        setAttrs(player, new int[8]);
+        GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()));
+        player.sendSystemMessage(Component.literal("§b属性を振り直した (欠片-8)。再配分は /abyss attr かステータス画面で"));
     }
 
     public static java.util.Map<String, Integer> boonsOf(ServerPlayer player) {
@@ -292,7 +353,6 @@ public final class RunManager {
     public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level, boolean quiet) {
         player.setData(ModAttachments.HERO_CLASS.get(), cls.id);
         player.setData(ModAttachments.LEVEL.get(), level);
-        int[] a = attrsOf(player);
         var passives = passivesOf(player);
         // 呪い武器の弱点 (主手持ちのみ。呪喰らいで無効化。攻速は attackSpeedPctOf 側で処理)
         var held = player.getMainHandItem();
@@ -306,7 +366,7 @@ public final class RunManager {
         // 原作: 剛力+3%/点, 韻律+2%/点, 敏捷+1.5%/点, 忍耐+4%/点, 幸運=会心相当
         var wb0 = wbonusOf(player);
         double maxHp = (GameData.heroMaxHp(cls, level) + affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
-                * (1 + a[3] * 0.04) * (1 + boonLv(player, "hp") * 0.18)
+                * (1 + attrEff(player, 3) * 0.04) * (1 + boonLv(player, "hp") * 0.18)
                 * (1 + wb0.maxHpPct() / 100.0) * (1 + (affixOf(player, "maxHpPct") + extraStat(player, "maxHpPct")) / 100.0)
                 * (1 + GameData.passiveMaxHpPct(passives) / 100.0)
                 * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.01)
@@ -333,13 +393,13 @@ public final class RunManager {
                     + wb0.moveSpeedPct() + affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
             if (passives.contains("swift")) movePct += 25;
             if (passives.contains("slow_burn")) movePct -= 12;
-            spd.setBaseValue(base * (1 + a[2] * 0.015) * (1 + movePct / 100.0));
+            spd.setBaseValue(base * (1 + attrEff(player, 2) * 0.015) * (1 + movePct / 100.0));
         }
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
         if (atkSpd != null) {
             double asPct = attackSpeedPctOf(player);
             atkSpd.setBaseValue(cls.attackSpeed
-                    * (1 + a[1] * 0.02)
+                    * (1 + attrEff(player, 1) * 0.02)
                     * (1 + asPct / 100.0));
         }
         if (!quiet) {
@@ -368,11 +428,10 @@ public final class RunManager {
     /** 鎌の収穫スタックを攻速属性へ即時反映 (チャット告知なし) */
     public static void refreshAttackSpeed(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        int[] a = attrsOf(player);
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
         if (atkSpd != null) {
             atkSpd.setBaseValue(cls.attackSpeed
-                    * (1 + a[1] * 0.02)
+                    * (1 + attrEff(player, 1) * 0.02)
                     * (1 + attackSpeedPctOf(player) / 100.0)
                     * (1 + player.getData(ModAttachments.SCYTHE.get()) * 0.06));
         }
@@ -388,13 +447,12 @@ public final class RunManager {
         double base = atk != null ? atk.getValue() : 10;
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         int level = player.getData(ModAttachments.LEVEL.get());
-        int[] a = attrsOf(player);
         var passives = passivesOf(player);
         // 破壊の刻印 (b_dmg2): 固定+12/Lv (乗算の前に加算)。防具・追加効果の攻撃接辞も合算
         base += boonLv(player, "dmg2") * 12 + affixOf(held, "damageFlat") + armorAffix(player, "damageFlat")
                 + extraStat(player, "damageFlat");
         var wb = wbonusOf(held);
-        double mult = (1 + a[0] * 0.03) * (1 + boonLv(player, "dmg") * 0.12)
+        double mult = (1 + attrEff(player, 0) * 0.03) * (1 + boonLv(player, "dmg") * 0.12)
                 * (1 + boonLv(player, "dmg1") * 0.18) * (1 + boonLv(player, "dmg2") * 0.08)
                 * (1 + wb.damagePct() / 100.0) * (1 + (affixOf(held, "damagePct") + armorAffix(player, "damagePct") + extraStat(player, "damagePct")) / 100.0)
                 * (1 + player.getData(ModAttachments.OATH_DMG.get()) * 0.08)
@@ -556,6 +614,7 @@ public final class RunManager {
             if (m != null) v += m.getOrDefault(key, 0.0);
         }
         v += armorSetBonus(player, key);
+        v += attrMilestone(player, key);
         return v;
     }
 
@@ -1067,7 +1126,7 @@ public final class RunManager {
         // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ
         double crit = cls.crit + boonLv(player, "crit") * 0.05
                 + wbonusOf(player).critPct() / 100.0 + affixOf(player, "critPct") / 100.0
-                + extraStat(player, "critPct") / 100.0;
+                + extraStat(player, "critPct") / 100.0 + attrEff(player, 5) * 0.008;
         if (passivesOf(player).contains("abyss_eye")) crit += 0.12;
         return Math.min(0.95, crit);
     }
@@ -1076,19 +1135,20 @@ public final class RunManager {
     public static double critDamageMult(ServerPlayer player) {
         return 2.0 + boonLv(player, "critdmg") * 0.45
                 + wbonusOf(player).critDmgPct() / 100.0 + affixOf(player, "critDmgPct") / 100.0
-                + extraStat(player, "critDmgPct") / 100.0;
+                + extraStat(player, "critDmgPct") / 100.0 + attrEff(player, 5) * 0.02;
     }
 
     /** 攻撃範囲 (恩寵「拡大の刻印」+22%/Lv。奥義・祝福の半径に適用) */
     public static double areaMult(ServerPlayer player) {
         return (1 + boonLv(player, "area") * 0.22)
                 * (1 + wbonusOf(player).areaPct() / 100.0)
-                * (1 + (affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0);
+                * (1 + (affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0)
+                * (1 + attrEff(player, 7) * 0.015);
     }
 
     /** 運 (幸運+7/点 + 知識の渇望+20/Lv + 呪いluckFlat) */
     public static int luckOf(ServerPlayer player) {
-        int luck = GameData.luckOf(attrsOf(player)[4]) + boonLv(player, "xp") * 20
+        int luck = GameData.luckOf((int) attrEff(player, 4)) + boonLv(player, "xp") * 20
                 + (int) affixOf(player, "luckFlat") + (int) extraStat(player, "luckFlat");
         var held = player.getMainHandItem();
         if (curseActive(player, held) && "luckFlat".equals(curseOf(held))) {
@@ -1268,7 +1328,7 @@ public final class RunManager {
             player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
             player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
             player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると選択肢が出る → 転移門へ → §b/abyss next §fで次層"));
-            player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択・属性1点。5層ごとに層主が待つ"));
+            player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択・属性1点 (8属性・適性★1.5倍・節目有)。5層ごとに層主が待つ"));
             player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
         }
     }
@@ -2668,7 +2728,7 @@ public final class RunManager {
         long t = level.getGameTime();
         // 巨躯の刻印・接辞: HP回復 (1秒ごと)
         double regen = boonLv(player, "hp") * 0.6 + affixOf(player, "regenFlat")
-                + extraStat(player, "regenFlat");
+                + extraStat(player, "regenFlat") + attrEff(player, 6) * 0.15;
         if (regen > 0 && t % 20 == 0) {
             heal(player, regen);
         }
@@ -2769,8 +2829,9 @@ public final class RunManager {
                 player.getHealth(), player.getMaxHealth(),
                 player.getData(ModAttachments.KILLS.get()),
                 style != null ? style.artName : "武器を持ってね"));
-        out.add(String.format("§7属性 剛%d 韻%d 敏%d 忍%d 幸%d",
-                a[0], a[1], a[2], a[3], a[4]));
+        out.add(String.format("§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d",
+                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
+        out.add("§7適性: " + GameData.ATTR_NAMES[cls.affinityAttr()] + "★ (効果1.5倍) / 節目 10・20・30点");
         out.add("§7祝福 " + boonsOf(player));
         out.add("§7層主 " + player.getData(ModAttachments.BOSSES.get()));
         out.add("§7区域 " + GameData.zoneForFloor(player.getData(ModAttachments.FLOOR.get())).name()

@@ -256,7 +256,8 @@ public final class ModCommands {
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
                                     b.suggest("剛力"); b.suggest("韻律"); b.suggest("敏捷");
-                                    b.suggest("忍耐"); b.suggest("幸運");
+                                    b.suggest("忍耐"); b.suggest("幸運"); b.suggest("集中");
+                                    b.suggest("活力"); b.suggest("技巧");
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
@@ -264,6 +265,10 @@ public final class ModCommands {
                                     return RunManager.addAttrPoint(p,
                                             attrIndex(StringArgumentType.getString(ctx, "id"))) ? 1 : 0;
                                 })))
+                .then(Commands.literal("respec").executes(ctx -> {
+                    RunManager.respec(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 .then(Commands.literal("mode")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
@@ -407,6 +412,9 @@ public final class ModCommands {
             case "敏捷", "びんしょう", "ビンショウ", "agility", "speed", "bin" -> 2;
             case "忍耐", "にんたい", "ニンタイ", "endurance", "vit", "nin" -> 3;
             case "幸運", "こううん", "コウウン", "luck", "un" -> 4;
+            case "集中", "しゅうちゅう", "シュウチュウ", "focus", "con" -> 5;
+            case "活力", "かつりょく", "カツリョク", "vital", "katsu" -> 6;
+            case "技巧", "ぎこう", "ギコウ", "tech", "giko" -> 7;
             default -> -1;
         };
     }
@@ -447,7 +455,8 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§7倒すと武器・防具や魂の欠片が出る。全滅で転移門が開く → /abyss next"));
         p.sendSystemMessage(Component.literal("§7防具(兜・鎧・脚・靴)は右クリックで装備。接辞は武器と合算される"));
         p.sendSystemMessage(Component.literal("§7武器は持ち替えで奥義が変わる。性能はカーソルを合わせると表示"));
-        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運（レベルアップで1点）"));
+        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運|集中|活力|技巧（レベルアップで1点）"));
+        p.sendSystemMessage(Component.literal("§7適性★の属性は効果1.5倍。各属性10・20・30点で節目ボーナス。振り直し /abyss respec (欠片8)"));
         p.sendSystemMessage(Component.literal("§7呪印（難易度）/abyss sigil <id>　モード /abyss mode <id>"));
         p.sendSystemMessage(Component.literal("§7武器合成は鍛造画面で（同武器2点 or 同防具2点）")
                 .append(button("§b[鍛造画面を開く]", "/abyss forge")));

@@ -189,7 +189,8 @@ public final class CombatHandler {
         // 恩寵「爆砕の刻印」・槌・魔導書・接辞: 撃破時に爆裂
         double explodeChance = RunManager.boonLv(player, "explode") * 0.18
                 + RunManager.wbonusOf(player).explodePct() / 100.0
-                + (RunManager.affixOf(player, "explodePct") + RunManager.extraStat(player, "explodePct")) / 100.0;
+                + (RunManager.affixOf(player, "explodePct") + RunManager.extraStat(player, "explodePct")) / 100.0
+                + RunManager.attrEff(player, 7) * 0.008;
         if (explodeChance > 0 && rand.nextFloat() < explodeChance) {
             WeaponArts.pulse(level, player, event.getEntity().position(), 4, 1.0, true,
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
@@ -507,7 +508,7 @@ public final class CombatHandler {
             }
             // 接辞 (armorPct): 被ダメ軽減
             double affixArmor = RunManager.affixOf(player, "armorPct")
-                    + RunManager.extraStat(player, "armorPct");
+                    + RunManager.extraStat(player, "armorPct") + RunManager.attrEff(player, 6) * 0.5;
             if (affixArmor != 0) {
                 event.setNewDamage(event.getNewDamage()
                         * (float) Math.max(0.3, 1 - affixArmor / 100.0));
@@ -1025,7 +1026,7 @@ public final class CombatHandler {
         // 原作: 職業別の回避CT. 敏捷1点につき-1% (下限0.28秒)。
         // 疾走の刻印: 回避短縮12%/Lv (原作 b_speed.dashCdPct)
         var cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        double dashCd = GameData.dashCooldown(cls, RunManager.attrsOf(player)[2]);
+        double dashCd = GameData.dashCooldown(cls, (int) RunManager.attrEff(player, 2));
         int dashPct = RunManager.boonLv(player, "speed") * 12;
         if (dashPct > 0) dashCd *= Math.max(0.5, 1 - dashPct / 100.0);
         player.setData(ModAttachments.DASH_CD.get(), (float) dashCd);
@@ -1057,8 +1058,8 @@ public final class CombatHandler {
                 player.getData(ModAttachments.KILLS.get()),
                 style != null ? style.artName : "武器を持ってね")));
         player.sendSystemMessage(Component.literal(String.format(
-                "§7属性 剛%d 韻%d 敏%d 忍%d 幸%d §8| §7祝福 %s §8| §7層主 %s",
-                a[0], a[1], a[2], a[3], a[4],
+                "§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d §8| §7祝福%s §8| §7層主 %s",
+                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7],
                 RunManager.boonsOf(player).toString(),
                 player.getData(ModAttachments.BOSSES.get()))));
         player.sendSystemMessage(Component.literal(String.format(
