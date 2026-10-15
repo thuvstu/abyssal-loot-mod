@@ -108,7 +108,15 @@ public final class Enemies {
             dmg *= mut.enemyDmg();
             speed *= mut.enemySpeed();
         }
-        return new Scale(hp, dmg, speed, trial.detection());
+        var dun = RunManager.currentDungeon(player);
+        double detection = trial.detection();
+        if (dun != null) {
+            hp *= dun.hp();
+            dmg *= dun.dmg();
+            speed *= dun.speed();
+            detection *= dun.detection();
+        }
+        return new Scale(hp, dmg, speed, detection);
     }
 
     /**
@@ -144,6 +152,21 @@ public final class Enemies {
             if (s.role() == role) return s;
         }
         throw new IllegalStateException("no spec for " + role);
+    }
+
+    /** EntityType から通常 Spec を逆引き (ボス等は null) */
+    public static Spec specOf(Mob m) {
+        if (m == null) return null;
+        for (Spec s : ROSTER) {
+            if (s.type() == m.getType()) return s;
+        }
+        return null;
+    }
+
+    /** モブの能力種 (なければ null)。表は GameData.MOB_ABILITIES */
+    public static String mobAbility(Mob m) {
+        Spec s = specOf(m);
+        return s == null ? null : GameData.MOB_ABILITIES.get(s.id());
     }
 
     /** 原作の重み: 1 + max(0, 6-|層-minFloor|)*0.5 */

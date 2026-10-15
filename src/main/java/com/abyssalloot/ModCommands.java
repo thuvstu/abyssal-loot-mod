@@ -456,6 +456,8 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§7防具(兜・鎧・脚・靴)は右クリックで装備。接辞は武器と合算される"));
         p.sendSystemMessage(Component.literal("§7武器は持ち替えで奥義が変わる。性能はカーソルを合わせると表示"));
         p.sendSystemMessage(Component.literal("§7ロッド・ワンドは遠隔魔弾が自動発射 (銃魔は多重化)。防具で着用モデル表示"));
+        p.sendSystemMessage(Component.literal("§7全武器に固有能力、全防具に部位能力つき (lore参照)。ツールも採集能力あり"));
+        p.sendSystemMessage(Component.literal("§7モブにも固有能力 (反射・爆発・転移・分裂・吸収・鈍足)。層に地相 (65%で1つ) あり"));
         p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運|集中|活力|技巧（レベルアップで1点）"));
         p.sendSystemMessage(Component.literal("§7適性★の属性は効果1.5倍。各属性10・20・30点で節目ボーナス。振り直し /abyss respec (欠片8)"));
         p.sendSystemMessage(Component.literal("§7呪印（難易度）/abyss sigil <id>　モード /abyss mode <id>"));

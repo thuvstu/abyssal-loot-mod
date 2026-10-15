@@ -668,6 +668,25 @@ public final class RunManager {
     }
 
     /** 現在層の異変 (なければ null) */
+    /** 層のダンジョン特性を抽選 (65%で1つ)。異変とは別枠 */
+    public static String rollDungeon(ServerPlayer player) {
+        String id = "";
+        if (player.getRandom().nextDouble() < 0.65) {
+            var pool = GameData.DUNGEON_TRAITS;
+            var t = pool.get(player.getRandom().nextInt(pool.size()));
+            id = t.id();
+            player.sendSystemMessage(Component.literal("§5《地相 — " + t.name() + "》" + t.desc()));
+        }
+        player.setData(ModAttachments.DUNGEON.get(), id);
+        return id;
+    }
+
+    /** 現在層のダンジョン特性 (なければ null) */
+    public static GameData.DungeonTrait currentDungeon(ServerPlayer player) {
+        String id = player.getData(ModAttachments.DUNGEON.get());
+        return id == null || id.isEmpty() ? null : GameData.dungeonById(id);
+    }
+
     public static GameData.Mutation currentMutation(ServerPlayer player) {
         String id = player.getData(ModAttachments.MUTATION.get());
         return id == null || id.isEmpty() ? null : GameData.mutationById(id);
@@ -992,6 +1011,7 @@ public final class RunManager {
     public static void spawnWave(ServerPlayer player, int floor, boolean rollFloor) {
         ServerLevel level = (ServerLevel) player.level();
         if (rollFloor) rollMutation(player, floor);
+        if (rollFloor) rollDungeon(player);
         var sigils = sigilsOf(player);
         var scale = Enemies.scaleFor(player, floor);
         boolean bossFloor = floor % 5 == 0 || isBossrush(player);
@@ -1003,6 +1023,8 @@ public final class RunManager {
 
         var mut = currentMutation(player);
         double spawnMul = mut != null ? mut.spawn() : 1.0;
+        var dun = currentDungeon(player);
+        if (dun != null) spawnMul *= dun.spawn();
         if (isDaily(player)) {
             var dm = dailyMod();
             if (dm != null) {

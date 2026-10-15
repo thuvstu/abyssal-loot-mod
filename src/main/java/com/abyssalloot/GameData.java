@@ -975,6 +975,90 @@ public final class GameData {
                 new WeaponBonus(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     }
 
+    /* ---------------- 全武器の固有能力 (命中・撃破・被弾で発動) ----------------
+     * kind: CHAIN (確率連鎖) / FROST (確率凍結) / SOUL (命中で魂) /
+     *       EXECUTE (瀕死へ倍率) / BURST (確率爆発) / GUARD (被弾時反射)
+     */
+    public record WeaponAbility(String kind, double chance, double value, String desc) {}
+
+    public static final java.util.Map<String, WeaponAbility> WEAPON_ABILITIES =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("sword", new WeaponAbility("SOUL", 0.5, 3, "命中時50%で魂+3")),
+                    java.util.Map.entry("axe", new WeaponAbility("BURST", 0.15, 1.0, "命中時15%で爆発")),
+                    java.util.Map.entry("spear", new WeaponAbility("EXECUTE", 1.0, 0.4, "瀕死へ+40%")),
+                    java.util.Map.entry("staff", new WeaponAbility("SOUL", 0.6, 5, "命中時60%で魂+5")),
+                    java.util.Map.entry("bow", new WeaponAbility("CHAIN", 0.2, 0.5, "命中時20%で連鎖")),
+                    java.util.Map.entry("dagger", new WeaponAbility("EXECUTE", 1.0, 0.5, "瀕死へ+50%")),
+                    java.util.Map.entry("hammer", new WeaponAbility("BURST", 0.25, 1.5, "命中時25%で爆発")),
+                    java.util.Map.entry("katana", new WeaponAbility("FROST", 0.3, 0.8, "命中時30%で凍結")),
+                    java.util.Map.entry("scythe", new WeaponAbility("SOUL", 0.4, 6, "命中時40%で魂+6")),
+                    java.util.Map.entry("gauntlet", new WeaponAbility("BURST", 0.2, 0.8, "命中時20%で爆発")),
+                    java.util.Map.entry("chakram", new WeaponAbility("CHAIN", 0.25, 0.4, "命中時25%で連鎖")),
+                    java.util.Map.entry("tome", new WeaponAbility("FROST", 0.2, 1.2, "命中時20%で凍結")),
+                    java.util.Map.entry("rune_blade", new WeaponAbility("FROST", 0.35, 1.0, "命中時35%で凍結")),
+                    java.util.Map.entry("blood_axe", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")),
+                    java.util.Map.entry("storm_spear", new WeaponAbility("CHAIN", 0.3, 0.7, "命中時30%で連鎖")),
+                    java.util.Map.entry("void_staff", new WeaponAbility("SOUL", 0.5, 8, "命中時50%で魂+8")),
+                    java.util.Map.entry("moon_bow", new WeaponAbility("CHAIN", 0.3, 0.5, "命中時30%で連鎖")),
+                    java.util.Map.entry("fang_dagger", new WeaponAbility("EXECUTE", 1.0, 0.7, "瀕死へ+70%")),
+                    java.util.Map.entry("quake_hammer", new WeaponAbility("BURST", 0.3, 2.0, "命中時30%で爆発")),
+                    java.util.Map.entry("frost_katana", new WeaponAbility("FROST", 0.5, 1.0, "命中時50%で凍結")),
+                    java.util.Map.entry("soul_scythe", new WeaponAbility("SOUL", 1.0, 4, "命中で魂+4")),
+                    java.util.Map.entry("titan_gauntlet", new WeaponAbility("BURST", 0.2, 1.2, "命中時20%で爆発")),
+                    java.util.Map.entry("eclipse_chakram", new WeaponAbility("CHAIN", 0.35, 0.5, "命中時35%で連鎖")),
+                    java.util.Map.entry("chaos_tome", new WeaponAbility("FROST", 0.25, 1.5, "命中時25%で凍結")),
+                    java.util.Map.entry("rod", new WeaponAbility("SOUL", 0.5, 6, "命中時50%で魂+6")),
+                    java.util.Map.entry("wand", new WeaponAbility("CHAIN", 0.2, 0.4, "命中時20%で連鎖")),
+                    java.util.Map.entry("greatsword", new WeaponAbility("BURST", 0.2, 1.8, "命中時20%で爆発")),
+                    java.util.Map.entry("twin_dagger", new WeaponAbility("EXECUTE", 1.0, 0.4, "瀕死へ+40%")),
+                    java.util.Map.entry("war_horn", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")));
+
+
+    /* ---------------- ダンジョン特性 (層ごとに65%で1つ。異変とは別枠) ---------------- */
+    public record DungeonTrait(String id, String name, String desc,
+                               double hp, double dmg, double speed, double spawn, double loot, double detection) {}
+
+    public static final java.util.List<DungeonTrait> DUNGEON_TRAITS = java.util.List.of(
+            new DungeonTrait("pressure", "重圧", "敵攻撃+25%", 1.0, 1.25, 1.0, 1.0, 1.0, 1.0),
+            new DungeonTrait("fortress", "堅牢", "敵HP+30%", 1.3, 1.0, 1.0, 1.0, 1.0, 1.0),
+            new DungeonTrait("gale", "疾風", "敵移動+20%", 1.0, 1.0, 1.2, 1.0, 1.0, 1.0),
+            new DungeonTrait("swarm", "群生", "出現数+40%", 1.0, 1.0, 1.0, 1.4, 1.0, 1.0),
+            new DungeonTrait("bounty", "豊穣", "戦利品+50%", 1.0, 1.0, 1.0, 1.0, 1.5, 1.0),
+            new DungeonTrait("deaths", "死地", "敵HP・攻撃+15%", 1.15, 1.15, 1.0, 1.0, 1.0, 1.0),
+            new DungeonTrait("mist", "濃霧", "索敵+50%", 1.0, 1.0, 1.0, 1.0, 1.0, 1.5),
+            new DungeonTrait("barren", "痩せ地", "出現-30%・戦利品+50%", 1.0, 1.0, 1.0, 0.7, 1.5, 1.0));
+
+    public static DungeonTrait dungeonById(String id) {
+        for (DungeonTrait t : DUNGEON_TRAITS) {
+            if (t.id().equals(id)) return t;
+        }
+        return null;
+    }
+
+    /* ---------------- 全モブの固有能力 (spec id -> 能力種) ----------------
+     * THORNS (被弾時15%反射) / BURST (死亡時爆発) / WARP (被弾時30%転移) /
+     * SPLIT (死亡時40%で子スライム) / LEECH (与ダメの10%吸収) / SNARE (25%で鈍足)
+     */
+    public static final java.util.Map<String, String> MOB_ABILITIES = java.util.Map.ofEntries(
+            java.util.Map.entry("iron_guard", "THORNS"),
+            java.util.Map.entry("necromancer", "WARP"),
+            java.util.Map.entry("cursed_gate", "THORNS"),
+            java.util.Map.entry("slime", "SPLIT"),
+            java.util.Map.entry("bat", "SNARE"),
+            java.util.Map.entry("goblin", "LEECH"),
+            java.util.Map.entry("skeleton", "THORNS"),
+            java.util.Map.entry("imp", "BURST"),
+            java.util.Map.entry("bomber", "BURST"),
+            java.util.Map.entry("splitter", "THORNS"),
+            java.util.Map.entry("wraith", "WARP"),
+            java.util.Map.entry("golem", "THORNS"),
+            java.util.Map.entry("phantom", "WARP"),
+            java.util.Map.entry("cultist", "LEECH"),
+            java.util.Map.entry("eye", "SNARE"),
+            java.util.Map.entry("mirrorbat", "SNARE"),
+            java.util.Map.entry("charger", "BURST"),
+            java.util.Map.entry("dragonkin", "LEECH"));
+
     /* ---------------- 追加コンテンツの汎用ステータス (恩寵・技能・遺物・防具set) ----------------
      * 追加の恩寵・技能・遺物・防具セット効果はすべて接辞キー (damagePct 等) の束で表し、
      * RunManager.extraStat が合算して各計算式に反映する。振る舞い系フックは不要。

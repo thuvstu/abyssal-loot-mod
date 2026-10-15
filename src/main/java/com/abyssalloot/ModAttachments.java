@@ -98,6 +98,9 @@ public final class ModAttachments {
     /** この層の異変ID (GameData.MUTATIONS の id。空=なし) */
     public static final Supplier<AttachmentType<String>> MUTATION =
             reg("mutation", "", Codec.STRING);
+    /** この層のダンジョン特性ID (GameData.DUNGEON_TRAITS の id。空=なし) */
+    public static final Supplier<AttachmentType<String>> DUNGEON =
+            reg("dungeon", "", Codec.STRING);
     /** アリーナ中心 "x,y,z" (MOBの脱走収容用。buildArenaで保存) */
     public static final Supplier<AttachmentType<String>> ARENA =
             reg("arena", "", Codec.STRING);

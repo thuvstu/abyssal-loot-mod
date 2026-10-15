@@ -198,6 +198,10 @@ public final class StatCalc {
             // 疾走の刻印 +12%/Lv (原作 b_speed)。回避短縮は dash 側で適用
             double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
                     + wb0.moveSpeedPct() + StatCalc.affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
+            // 防具スロット能力: 靴=疾走 (常時移動+3%)
+            if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).getItem()) != null) {
+                movePct += 3;
+            }
             if (passives.contains("swift")) movePct += 25;
             if (passives.contains("slow_burn")) movePct -= 12;
             spd.setBaseValue(base * (1 + attrEff(player, 2) * 0.015) * (1 + movePct / 100.0));

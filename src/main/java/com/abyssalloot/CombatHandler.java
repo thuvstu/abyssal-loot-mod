@@ -96,6 +96,8 @@ public final class CombatHandler {
         var rand = player.getRandom();
         var mut = RunManager.currentMutation(player);
         double loot = mut != null ? mut.loot() : 1.0;
+        var dun = RunManager.currentDungeon(player);
+        if (dun != null) loot *= dun.loot();
         // fate「呪いの霧」: 戦利品2倍
         if (RunManager.hasFate(player, "mist")) loot *= 2;
         int luck = StatCalc.luckOf(player);
@@ -118,6 +120,25 @@ public final class CombatHandler {
             if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         } else if (rand.nextDouble() < 0.08) {
             giveOrDrop(player, ModItems.randomConsumable(rand));
+        }
+        // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
+        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {            String dmab = Enemies.mobAbility(deadMob);
+            Vec3 dp = deadMob.position();
+            if ("BURST".equals(dmab)) {
+                WeaponArts.enemyPulse(level, dp, 3, Math.max(4, deadMob.getMaxHealth() * 0.08),
+                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+            } else if ("SPLIT".equals(dmab) && rand.nextFloat() < 0.4f) {
+                var child = ModEntities.SLIME.get().create(level,
+                        net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+                if (child instanceof net.minecraft.world.entity.Mob cm) {
+                    int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
+                    cm.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5, dp.z + (rand.nextDouble() - 0.5) * 2);
+                    Enemies.apply(cm, Enemies.byId("slime"), Enemies.scaleFor(player, floor), 0.5);
+                    Enemies.tagByRole(cm, Enemies.byId("slime"));
+                    cm.setTarget(player);
+                    level.addFreshEntity(cm);
+                }
+            }
         }
         // 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加
         var deadTags = event.getEntity().getTags();
@@ -314,6 +335,8 @@ public final class CombatHandler {
     public static void onBlockBreak(net.neoforged.neoforge.event.level.BlockEvent.BreakEvent event) {
         if (!(event.getPlayer() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
+        // 生活ツール能力: 対応ブロックで欠片・素材ボーナス
+        triggerToolAbility(player, level, event.getPos());
         String raw = player.getData(ModAttachments.DESTRUCT.get());
         if (raw == null || raw.isBlank()) return;
         var pos = event.getPos();
@@ -333,6 +356,63 @@ public final class CombatHandler {
             } catch (NumberFormatException ignored) {}
         }
         if (hit) player.setData(ModAttachments.DESTRUCT.get(), String.join(";", keep));
+    }
+
+    /** 生活ツール能力。手持ちの深淵ツールに応じた採集ボーナス */
+    private static void triggerToolAbility(ServerPlayer player, ServerLevel level,
+                                           net.minecraft.core.BlockPos pos) {
+        var held = player.getMainHandItem().getItem();
+        String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                .getKey(level.getBlockState(pos).getBlock()).getPath();
+        var rand = player.getRandom();
+        Runnable bonus = () -> {
+            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
+            player.displayClientMessage(Component.literal("§b深淵の恵み: 魂の欠片+1"), true);
+        };
+        if (held == ModItems.ABYSS_PICKAXE.get()) {
+            // 鉱石から12%で欠片
+            if (path.contains("ore") && rand.nextDouble() < 0.12) bonus.run();
+        } else if (held == ModItems.ABYSS_TOOL_AXE.get()) {
+            // 原木・幹から10%で欠片
+            if ((path.contains("log") || path.contains("stem")) && rand.nextDouble() < 0.10) {
+                bonus.run();
+            }
+        } else if (held == ModItems.ABYSS_SHOVEL.get()) {
+            // 土・砂・砂利から8%で欠片
+            if ((path.contains("dirt") || path.contains("sand") || path.contains("gravel"))
+                    && rand.nextDouble() < 0.08) {
+                bonus.run();
+            }
+        } else if (held == ModItems.ABYSS_HOE.get()) {
+            // 作物から25%で種+1
+            if ((path.contains("wheat") || path.contains("carrot") || path.contains("potato")
+                    || path.contains("beetroot") || path.contains("melon") || path.contains("pumpkin"))
+                    && rand.nextDouble() < 0.25) {
+                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.WHEAT_SEEDS));
+            }
+        } else if (held == ModItems.ABYSS_SHEARS.get()) {
+            // 蜘蛛の巣から50%で糸+2、葉から10%で棒
+            if (path.contains("cobweb") && rand.nextDouble() < 0.5) {
+                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STRING, 2));
+            } else if (path.contains("leaves") && rand.nextDouble() < 0.10) {
+                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STICK));
+            }
+        }
+    }
+
+    /** 釣果2倍 (深淵の釣竿・30%で各ドロップ複製) */
+    @SubscribeEvent
+    public static void onFished(net.neoforged.neoforge.event.entity.player.ItemFishedEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (player.getMainHandItem().getItem() != ModItems.ABYSS_FISHING_ROD.get()
+                && player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.OFFHAND).getItem()
+                        != ModItems.ABYSS_FISHING_ROD.get()) return;
+        if (player.getRandom().nextFloat() < 0.30f) {
+            for (ItemStack s : java.util.List.copyOf(event.getDrops())) {
+                event.getDrops().add(s.copy());
+            }
+            player.displayClientMessage(Component.literal("§b大漁！"), true);
+        }
     }
 
     private static void triggerDestructible(ServerPlayer player, ServerLevel level, String kind,
@@ -497,8 +577,11 @@ public final class CombatHandler {
             float iframe = player.getData(ModAttachments.IFRAME.get());
             if (iframe > 0) {
                 event.setNewDamage(0f);
-                // 見切り: 無敵中に受けた攻撃は魂+14
+                // 見切り: 無敵中に受けた攻撃は魂+14 (兜の直感で+6)
                 RunManager.addGauge(player, 14);
+                if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD).getItem()) != null) {
+                    RunManager.addGauge(player, 6);
+                }
                 int perfect = player.getData(ModAttachments.PERFECT.get()) + 1;
                 player.setData(ModAttachments.PERFECT.get(), perfect);
                 if (perfect >= 10) {
@@ -540,10 +623,28 @@ public final class CombatHandler {
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT,
                         atk.getX(), atk.getY() + 1, atk.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
             }
+            // 全武器の固有能力 (GUARD系は被弾時反射)
+            var gheld = player.getMainHandItem();
+            var gstyle = ModItems.styleOf(gheld.getItem());
+            var gab = gstyle != null ? GameData.WEAPON_ABILITIES.get(gstyle.id) : null;
+            if (gab != null && "GUARD".equals(gab.kind())
+                    && player.getRandom().nextFloat() < gab.chance()
+                    && event.getSource().getEntity() instanceof LivingEntity gatk && gatk.isAlive()) {
+                gatk.hurtServer(level, level.damageSources().magic(),
+                        event.getNewDamage() * (float) gab.value());
+            }
             var legs = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.LEGS);
             if ("l_leap".equals(GearData.skillOf(legs))
                     && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
                 event.setNewDamage(event.getNewDamage() * 0.5f);
+            }
+            // 防具スロット能力: 鎧=重装 (被ダメ-5%) / 脚=軽業 (落下-25%)
+            if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST).getItem()) != null) {
+                event.setNewDamage(event.getNewDamage() * 0.95f);
+            }
+            if (ModItems.slotOf(legs.getItem()) != null
+                    && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                event.setNewDamage(event.getNewDamage() * 0.75f);
             }
             // 恩寵「障壁の刻印」: 立ち止まると軽減が上がる (動いていなければ +8%/Lv)
             if (RunManager.boonLv(player, "warden") > 0
@@ -665,6 +766,13 @@ public final class CombatHandler {
                         && target.getHealth() / Math.max(1, target.getMaxHealth()) < 0.3f) {
                     dmg *= 1.9f;
                 }
+                // 全武器の固有能力 (EXECUTE系はここで威力に反映)
+                var wstyle = ModItems.styleOf(held.getItem());
+                var wab = wstyle != null ? GameData.WEAPON_ABILITIES.get(wstyle.id) : null;
+                if (wab != null && "EXECUTE".equals(wab.kind())
+                        && target.getHealth() / Math.max(1, target.getMaxHealth()) < 0.3f) {
+                    dmg *= (float) (1 + wab.value());
+                }
                 if ("frenzy".equals(trait) && player.getData(ModAttachments.COMBO.get()) >= 30) {
                     dmg *= 1.25f;
                 }
@@ -766,6 +874,62 @@ public final class CombatHandler {
                                 net.minecraft.core.particles.ParticleTypes.CRIT);
                     }
                 }
+                // 全武器の固有能力 (確率発動系)
+                if (wab != null) {
+                    switch (wab.kind()) {
+                        case "CHAIN" -> {
+                            if (rand.nextFloat() < wab.chance()) {
+                                chainStrike(level, player, target, (float) (atk * wab.value()), 2);
+                            }
+                        }
+                        case "FROST" -> {
+                            if (rand.nextFloat() < wab.chance()) {
+                                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                                WeaponArts.artHurt(level, target,
+                                        level.damageSources().playerAttack(player),
+                                        (float) (atk * wab.value()));
+                                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
+                                        target.getX(), target.getY() + 1, target.getZ(),
+                                        8, 0.4, 0.6, 0.4, 0.05);
+                            }
+                        }
+                        case "SOUL" -> {
+                            if (rand.nextFloat() < wab.chance()) RunManager.addGauge(player, wab.value());
+                        }
+                        case "BURST" -> {
+                            if (rand.nextFloat() < wab.chance()) {
+                                WeaponArts.pulse(level, player, target.position(), 3, wab.value(), false,
+                                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+                            }
+                        }
+                        default -> {
+                        }
+                    }
+                }
+                // モブの固有能力 (被弾時): THORNS=反射 / WARP=転移
+                if (target instanceof net.minecraft.world.entity.Mob mob) {
+                    String mab = Enemies.mobAbility(mob);
+                    if ("THORNS".equals(mab)) {
+                        player.hurtServer(level, level.damageSources().magic(), dmg * 0.15f);
+                    } else if ("WARP".equals(mab) && rand.nextFloat() < 0.3f) {
+                        Vec3 mp = mob.position();
+                        mob.teleportTo(mp.x + (rand.nextDouble() - 0.5) * 10, mp.y + 1,
+                                mp.z + (rand.nextDouble() - 0.5) * 10);
+                        level.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL,
+                                mp.x, mp.y + 1, mp.z, 20, 1, 1, 1, 0.3);
+                    }
+                }
+            }
+        }
+        // モブの固有能力 (加害時): LEECH=吸収 / SNARE=鈍足
+        if (event.getSource().getEntity() instanceof net.minecraft.world.entity.Mob m
+                && event.getEntity() instanceof ServerPlayer p2
+                && p2.level() instanceof ServerLevel lv2 && event.getNewDamage() > 0) {
+            String mab2 = Enemies.mobAbility(m);
+            if ("LEECH".equals(mab2)) {
+                m.heal(event.getNewDamage() * 0.1f);
+            } else if ("SNARE".equals(mab2) && p2.getRandom().nextFloat() < 0.25f) {
+                p2.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 0));
             }
         }
     }

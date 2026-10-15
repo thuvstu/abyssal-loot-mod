@@ -507,6 +507,16 @@ public class GameDataTest {
         assertEquals(6, GameData.ARMOR_SKILLS.size());
         assertNotNull(GameData.gearSkillById("w_soul"));
         assertNotNull(GameData.gearSkillById("b_dash"));
+        // 全武器に能力・全通常モブに能力・ダンジョン特性8種
+        assertEquals(29, GameData.WEAPON_ABILITIES.size());
+        for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
+            assertNotNull(GameData.WEAPON_ABILITIES.get(w.id), "ability missing: " + w.id);
+        }
+        assertEquals(8, GameData.DUNGEON_TRAITS.size());
+        assertEquals(18, GameData.MOB_ABILITIES.size());
+        assertEquals("THORNS", GameData.MOB_ABILITIES.get("golem"));
+        assertEquals("SPLIT", GameData.MOB_ABILITIES.get("slime"));
+        assertEquals("WARP", GameData.MOB_ABILITIES.get("phantom"));
         // 追加遺物の flag null でも relicFlags が壊れない
         assertTrue(GameData.relicFlags(java.util.List.of("r_blade", "soulfang")).contains("soulfang"));
     }

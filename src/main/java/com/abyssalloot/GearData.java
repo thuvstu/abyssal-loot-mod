@@ -224,8 +224,21 @@ public final class GearData {
         if (isWeapon && style != null) {
             out.accept(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
             out.accept(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
+            var ab = GameData.WEAPON_ABILITIES.get(style.id);
+            if (ab != null) out.accept(Component.literal("§e能力: " + ab.desc()));
         } else if (!isWeapon) {
             out.accept(Component.literal("§7右クリックで装備。接辞は武器と合算"));
+            var aslot = ModItems.slotOf(stack.getItem());
+            if (aslot != null) {
+                String ab = switch (aslot) {
+                    case HEAD -> "直感: 見切りで魂+6";
+                    case CHEST -> "重装: 被ダメ-5%";
+                    case LEGS -> "軽業: 落下-25%";
+                    case FEET -> "疾走: 移動+3%";
+                    default -> "";
+                };
+                if (!ab.isEmpty()) out.accept(Component.literal("§e能力: " + ab));
+            }
         }
         String trait = traitOf(stack);
         if (trait != null) {
