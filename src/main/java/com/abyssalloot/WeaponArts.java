@@ -468,6 +468,36 @@ public final class WeaponArts {
                 burst(player, "禁書・虚空葬！", style);
                 return true;
             }
+            case ROD -> {
+                // 螺旋嵐: 周囲を嵐で引き寄せ刻む
+                for (LivingEntity e : List.copyOf(targets)) {
+                    Vec3 d = origin.subtract(e.position());
+                    double dist = d.length();
+                    if (dist > 9 || dist < 0.5) continue;
+                    Vec3 pull = d.normalize().scale(1.8);
+                    e.push(pull.x, 0.2, pull.z);
+                    artHurt(level, e, level.damageSources().playerAttack(player),
+                            (float) (2.2 * attackDamage));
+                }
+                level.sendParticles(ParticleTypes.SWEEP_ATTACK, origin.x, origin.y + 1, origin.z,
+                        40, 4, 2, 4, 0.2);
+                level.sendParticles(ParticleTypes.CLOUD, origin.x, origin.y + 0.5, origin.z,
+                        25, 3.5, 1, 3.5, 0.15);
+                burst(player, "螺旋嵐！", style);
+                return true;
+            }
+            case WAND -> {
+                // 魔弾連星: 10連の自動魔弾
+                for (int i = 0; i < 10; i++) {
+                    CombatHandler.after(i * 2, () -> {
+                        ServerLevel lv = slevel(player);
+                        if (!player.isAlive()) return;
+                        CombatHandler.castWandBolt(player, 18, 1.1, 1);
+                    });
+                }
+                burst(player, "魔弾連星！", style);
+                return true;
+            }
         }
         return false;
     }

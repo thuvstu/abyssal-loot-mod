@@ -14,6 +14,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -61,6 +62,18 @@ public final class CombatHandler {
     public static void after(int ticks, Runnable task) {
         PENDING.add(new DelayTask(tickCounter + Math.max(0, ticks), task));
     }
+
+    /** 装備変更で即時ステータス再計算 (防具の着脱・持替でHP等が追従する) */
+    @SubscribeEvent
+    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!player.isAlive()) return;
+        GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        StatCalc.applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()), true);
+    }
+
+    /** 魔弾の威力倍率 (castWandBolt が hurtServer 直前に設定し、命中処理で消費) */
+    public static double boltMult = 0;
 
     /** 撃破で魂ゲージ蓄積 (原作 artChargeGain の簡易版: 固定+敵最大HP比) */
     @SubscribeEvent
@@ -612,6 +625,8 @@ public final class CombatHandler {
                 float dmg = (float) (atk * (crit ? StatCalc.critDamageMult(player) : 1.0));
                 // レアリティ倍率
                 dmg *= (float) GearData.rarityMult(GearData.rarityOf(held));
+                // 魔弾 (ロッド・ワンドの自動射撃): 最終威力に倍率
+                if (boltMult > 0) dmg *= (float) boltMult;
                 String trait = GearData.traitOf(held);
                 // 反撃窓: 回避直後の初撃×1.5 (技能「完全主義」は×1.9・原作カウンター)
                 if (player.getData(ModAttachments.COUNTER.get()) > 0) {
@@ -949,6 +964,18 @@ public final class CombatHandler {
         if (!(player.level() instanceof ServerLevel level)) return;
         if (!player.isAlive()) return;
         var pos = player.position();
+        // 魔術武器 (ロッド・ワンド) の自動魔弾 (1.5秒ごと)。銃魔は弾数ボーナスで多重化
+        if (tickCounter % 30 == 0) {
+            var style = ModItems.styleOf(player.getMainHandItem().getItem());
+            if (style == GameData.WeaponStyle.ROD) {
+                int targets = 1 + StatCalc.wbonusOf(player).projectiles()
+                        + (int) (StatCalc.affixOf(player, "projectiles")
+                                + StatCalc.extraStat(player, "projectiles"));
+                castWandBolt(player, 12, 0.7, targets);
+            } else if (style == GameData.WeaponStyle.WAND) {
+                castWandBolt(player, 16, 0.9, 1);
+            }
+        }
         if (RunManager.boonLv(player, "orbit") > 0) {
             WeaponArts.pulse(level, player, pos, 3.5, 0.8, false,
                     net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK);
@@ -1002,6 +1029,46 @@ public final class CombatHandler {
                             pos.x + 6, pos.y + 4, pos.z + 6),
                     e -> e.isAlive() && !(e instanceof ServerPlayer))) {
                 e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
+            }
+        }
+    }
+
+    /** 魔術武器の魔弾: 照準錐内の敵に通常攻撃を遠隔命中させる。
+     * 通常命中の全処理 (会心・特性・連鎖・ゲージ) を通し、最終威力に mult を掛ける */
+    public static void castWandBolt(ServerPlayer player, double range, double mult, int maxTargets) {
+        if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return;
+        Vec3 origin = player.position().add(0, 1.5, 0);
+        Vec3 look = player.getLookAngle();
+        var cands = level.getEntitiesOfClass(LivingEntity.class,
+                new net.minecraft.world.phys.AABB(origin.x - range, origin.y - range / 2, origin.z - range,
+                        origin.x + range, origin.y + range / 2, origin.z + range),
+                e -> e.isAlive() && !(e instanceof ServerPlayer));
+        var hits = new java.util.ArrayList<LivingEntity>();
+        for (var e : cands) {
+            Vec3 d = e.position().add(0, e.getBbHeight() / 2, 0).subtract(origin);
+            double dist = d.length();
+            if (dist > range + 1 || dist < 0.5) continue;
+            double cos = Math.max(-1, Math.min(1, d.normalize().dot(look)));
+            if (Math.acos(cos) > 0.22) continue;
+            hits.add(e);
+        }
+        hits.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(origin)));
+        int n = 0;
+        for (var t : hits) {
+            if (n++ >= Math.max(1, maxTargets)) break;
+            boltMult = mult;
+            try {
+                t.hurtServer(level, level.damageSources().playerAttack(player),
+                        (float) StatCalc.attackDamageOf(player));
+            } finally {
+                boltMult = 0;
+            }
+            Vec3 tp = t.position().add(0, t.getBbHeight() / 2, 0);
+            int steps = Math.max(1, (int) (origin.distanceTo(tp) * 2));
+            for (int i = 1; i <= steps; i++) {
+                Vec3 p = origin.lerp(tp, (double) i / steps);
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
+                        p.x, p.y, p.z, 1, 0, 0, 0, 0);
             }
         }
     }

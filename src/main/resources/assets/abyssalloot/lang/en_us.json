@@ -79,5 +79,19 @@
   "item.abyssalloot.abyss_star_dust": "Star Dust",
   "item.abyssalloot.abyss_wyrm_scale": "Wyrm Scale",
   "item.abyssalloot.abyss_ancient_core": "Ancient Core",
-  "item.abyssalloot.abyss_void_piece": "Void Shard"
+  "item.abyssalloot.abyss_void_piece": "Void Shard",
+  "item.abyssalloot.abyss_rod": "Abyssal Rod",
+  "item.abyssalloot.abyss_wand": "Abyssal Wand",
+  "item.abyssalloot.abyss_pickaxe": "Abyssal Pickaxe",
+  "item.abyssalloot.abyss_tool_axe": "Abyssal Axe",
+  "item.abyssalloot.abyss_shovel": "Abyssal Shovel",
+  "item.abyssalloot.abyss_hoe": "Abyssal Hoe",
+  "item.abyssalloot.abyss_frost_helm": "Frost Helm",
+  "item.abyssalloot.abyss_frost_chest": "Frost Chestplate",
+  "item.abyssalloot.abyss_frost_legs": "Frost Leggings",
+  "item.abyssalloot.abyss_frost_boots": "Frost Boots",
+  "item.abyssalloot.abyss_storm_helm": "Storm Helm",
+  "item.abyssalloot.abyss_storm_chest": "Storm Chestplate",
+  "item.abyssalloot.abyss_storm_legs": "Storm Leggings",
+  "item.abyssalloot.abyss_storm_boots": "Storm Boots"
 }

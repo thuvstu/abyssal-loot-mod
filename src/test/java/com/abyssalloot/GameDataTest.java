@@ -60,8 +60,8 @@ public class GameDataTest {
     }
 
     @Test
-    void twelveWeaponArtsExist() {
-        assertEquals(24, GameData.WeaponStyle.values().length);
+    void allWeaponArtsExist() {
+        assertEquals(26, GameData.WeaponStyle.values().length);
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(w.artName);
             assertFalse(w.artDesc.isBlank());
@@ -474,7 +474,7 @@ public class GameDataTest {
         assertEquals(20, GameData.EXTRA_BOON_MODS.size());
         assertEquals(16, GameData.EXTRA_PASSIVE_MODS.size());
         assertEquals(12, GameData.EXTRA_RELIC_MODS.size());
-        assertEquals(4, GameData.ARMOR_SETS.size());
+        assertEquals(6, GameData.ARMOR_SETS.size());
         var setIds = new java.util.HashSet<String>();
         for (var s : GameData.ARMOR_SETS) {
             assertTrue(setIds.add(s.id()));
@@ -492,7 +492,7 @@ public class GameDataTest {
         // 新武器は奥義名・説明・ボーナスを持つ
         for (String id : new String[]{"rune_blade", "blood_axe", "storm_spear", "void_staff",
                 "moon_bow", "fang_dagger", "quake_hammer", "frost_katana", "soul_scythe",
-                "titan_gauntlet", "eclipse_chakram", "chaos_tome"}) {
+                "titan_gauntlet", "eclipse_chakram", "chaos_tome", "rod", "wand"}) {
             var w = GameData.WeaponStyle.byId(id);
             assertEquals(id, w.id);
             assertFalse(w.artName.isBlank());
@@ -546,7 +546,7 @@ public class GameDataTest {
 
     @Test
     void weaponClassBonusMatchesCoreTs() {
-        assertEquals(24, GameData.WEAPON_BONUS.size());
+        assertEquals(26, GameData.WEAPON_BONUS.size());
         assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
         assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
         assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);

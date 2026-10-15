@@ -79,5 +79,19 @@
   "item.abyssalloot.abyss_star_dust": "星屑",
   "item.abyssalloot.abyss_wyrm_scale": "竜鱗",
   "item.abyssalloot.abyss_ancient_core": "古核",
-  "item.abyssalloot.abyss_void_piece": "虚無片"
+  "item.abyssalloot.abyss_void_piece": "虚無片",
+  "item.abyssalloot.abyss_rod": "ロッド",
+  "item.abyssalloot.abyss_wand": "ワンド",
+  "item.abyssalloot.abyss_pickaxe": "深淵のつるはし",
+  "item.abyssalloot.abyss_tool_axe": "深淵の斧",
+  "item.abyssalloot.abyss_shovel": "深淵のシャベル",
+  "item.abyssalloot.abyss_hoe": "深淵のクワ",
+  "item.abyssalloot.abyss_frost_helm": "氷装兜",
+  "item.abyssalloot.abyss_frost_chest": "氷装鎧",
+  "item.abyssalloot.abyss_frost_legs": "氷装脚",
+  "item.abyssalloot.abyss_frost_boots": "氷装靴",
+  "item.abyssalloot.abyss_storm_helm": "嵐装兜",
+  "item.abyssalloot.abyss_storm_chest": "嵐装鎧",
+  "item.abyssalloot.abyss_storm_legs": "嵐装脚",
+  "item.abyssalloot.abyss_storm_boots": "嵐装靴"
 }

@@ -78,9 +78,20 @@ public final class ModItems {
     }
 
     private static DeferredItem<Item> armor(String id, Rarity rarity, EquipmentSlot slot) {
+        return armor(id, rarity, slot, "abyssal");
+    }
+
+    /** 着用モデルつき防具 (assets/abyssalloot/equipment/<asset>.json を参照) */
+    private static DeferredItem<Item> armor(String id, Rarity rarity, EquipmentSlot slot, String asset) {
+        var key = net.minecraft.resources.ResourceKey.create(
+                net.minecraft.world.item.equipment.EquipmentAssets.ROOT_ID,
+                net.minecraft.resources.Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, asset));
         return ITEMS.registerItem(id,
                 props -> new AbyssArmorItem(props.stacksTo(1).durability(1651).rarity(rarity).fireResistant()
-                        .equippable(slot), slot));
+                        .component(net.minecraft.core.component.DataComponents.EQUIPPABLE,
+                                net.minecraft.world.item.equipment.Equippable.builder(slot)
+                                        .setAsset(key).build()),
+                        slot));
     }
 
     public static final DeferredItem<Item> ABYSS_SWORD = weapon("abyss_sword", Rarity.COMMON);
@@ -107,22 +118,24 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_TITAN_GAUNTLET = weapon("abyss_titan_gauntlet", Rarity.COMMON);
     public static final DeferredItem<Item> ABYSS_ECLIPSE_CHAKRAM = weapon("abyss_eclipse_chakram", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_CHAOS_TOME = weapon("abyss_chaos_tome", Rarity.EPIC);
+    public static final DeferredItem<Item> ABYSS_ROD = weapon("abyss_rod", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_WAND = weapon("abyss_wand", Rarity.COMMON);
 
     public static final DeferredItem<Item> ABYSS_HELM = armor("abyss_helm", Rarity.COMMON, EquipmentSlot.HEAD);
     public static final DeferredItem<Item> ABYSS_CHEST = armor("abyss_chest", Rarity.COMMON, EquipmentSlot.CHEST);
     public static final DeferredItem<Item> ABYSS_LEGS = armor("abyss_legs", Rarity.COMMON, EquipmentSlot.LEGS);
     public static final DeferredItem<Item> ABYSS_BOOTS = armor("abyss_boots", Rarity.COMMON, EquipmentSlot.FEET);
 
-    /** 深淵防具セット (blood/shadow/rock/star × 4部位)。接辞つき生成は RunManager.makeSetArmor */
+    /** 深淵防具セット (blood/shadow/rock/star × 4部位)。接辞つき生成は GearFactory.makeSetArmor */
     public static final java.util.Map<String, DeferredItem<Item>> SET_PIECES = buildSetPieces();
 
     private static java.util.Map<String, DeferredItem<Item>> buildSetPieces() {
         var map = new java.util.LinkedHashMap<String, DeferredItem<Item>>();
-        for (String set : new String[]{"blood", "shadow", "rock", "star"}) {
-            map.put(set + "_helm", armor("abyss_" + set + "_helm", Rarity.COMMON, EquipmentSlot.HEAD));
-            map.put(set + "_chest", armor("abyss_" + set + "_chest", Rarity.COMMON, EquipmentSlot.CHEST));
-            map.put(set + "_legs", armor("abyss_" + set + "_legs", Rarity.COMMON, EquipmentSlot.LEGS));
-            map.put(set + "_boots", armor("abyss_" + set + "_boots", Rarity.COMMON, EquipmentSlot.FEET));
+        for (String set : new String[]{"blood", "shadow", "rock", "star", "frost", "storm"}) {
+            map.put(set + "_helm", armor("abyss_" + set + "_helm", Rarity.COMMON, EquipmentSlot.HEAD, set));
+            map.put(set + "_chest", armor("abyss_" + set + "_chest", Rarity.COMMON, EquipmentSlot.CHEST, set));
+            map.put(set + "_legs", armor("abyss_" + set + "_legs", Rarity.COMMON, EquipmentSlot.LEGS, set));
+            map.put(set + "_boots", armor("abyss_" + set + "_boots", Rarity.COMMON, EquipmentSlot.FEET, set));
         }
         return java.util.Collections.unmodifiableMap(map);
     }
@@ -189,6 +202,26 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_FEAST = consumable("abyss_feast", "feast", Rarity.COMMON);
     public static final DeferredItem<Item> ABYSS_SMOKE = consumable("abyss_smoke", "smoke", Rarity.UNCOMMON);
 
+    /** 生活ツール用素材 (ネザライト級・高速・魂の欠片等で修繕可) */
+    public static final net.minecraft.world.item.ToolMaterial ABYSS_TIER =
+            new net.minecraft.world.item.ToolMaterial(net.minecraft.tags.BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
+                    3000, 12.0F, 5.0F, 18,
+                    net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
+                            net.minecraft.resources.Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID,
+                                    "repairs_tools")));
+
+    /** 深淵の生活ツール (試練の合間のマイクラ生活用。火耐性つき) */
+    public static final DeferredItem<Item> ABYSS_PICKAXE = ITEMS.registerItem("abyss_pickaxe",
+            props -> new Item(props.pickaxe(ABYSS_TIER, 1.0F, -2.6F).rarity(Rarity.UNCOMMON).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_TOOL_AXE = ITEMS.registerItem("abyss_tool_axe",
+            props -> new net.minecraft.world.item.AxeItem(ABYSS_TIER, 6.0F, -2.8F,
+                    props.rarity(Rarity.UNCOMMON).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_SHOVEL = ITEMS.registerItem("abyss_shovel",
+            props -> new net.minecraft.world.item.ShovelItem(ABYSS_TIER, 1.5F, -2.8F,
+                    props.rarity(Rarity.UNCOMMON).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_HOE = ITEMS.registerItem("abyss_hoe",
+            props -> new net.minecraft.world.item.HoeItem(ABYSS_TIER, -3.0F, -1.0F,
+                    props.rarity(Rarity.UNCOMMON).fireResistant()));
     /** 追加素材 (ドロップ・クラフト用) */
     public static final DeferredItem<Item> ABYSS_BLOOD_CRYSTAL = ITEMS.registerSimpleItem("abyss_blood_crystal",
             () -> new Item.Properties().rarity(Rarity.UNCOMMON));
@@ -244,6 +277,12 @@ public final class ModItems {
                         output.accept(ABYSS_TITAN_GAUNTLET.get());
                         output.accept(ABYSS_ECLIPSE_CHAKRAM.get());
                         output.accept(ABYSS_CHAOS_TOME.get());
+                        output.accept(ABYSS_ROD.get());
+                        output.accept(ABYSS_WAND.get());
+                        output.accept(ABYSS_PICKAXE.get());
+                        output.accept(ABYSS_TOOL_AXE.get());
+                        output.accept(ABYSS_SHOVEL.get());
+                        output.accept(ABYSS_HOE.get());
                         output.accept(ABYSS_HELM.get());
                         output.accept(ABYSS_CHEST.get());
                         output.accept(ABYSS_LEGS.get());
@@ -327,6 +366,8 @@ public final class ModItems {
         if (item == ABYSS_TITAN_GAUNTLET.get()) return GameData.WeaponStyle.TITAN_GAUNTLET;
         if (item == ABYSS_ECLIPSE_CHAKRAM.get()) return GameData.WeaponStyle.ECLIPSE_CHAKRAM;
         if (item == ABYSS_CHAOS_TOME.get()) return GameData.WeaponStyle.CHAOS_TOME;
+        if (item == ABYSS_ROD.get()) return GameData.WeaponStyle.ROD;
+        if (item == ABYSS_WAND.get()) return GameData.WeaponStyle.WAND;
         return null;
     }
 
@@ -356,6 +397,8 @@ public final class ModItems {
             case TITAN_GAUNTLET -> ABYSS_TITAN_GAUNTLET.get();
             case ECLIPSE_CHAKRAM -> ABYSS_ECLIPSE_CHAKRAM.get();
             case CHAOS_TOME -> ABYSS_CHAOS_TOME.get();
+            case ROD -> ABYSS_ROD.get();
+            case WAND -> ABYSS_WAND.get();
         };
     }
 }

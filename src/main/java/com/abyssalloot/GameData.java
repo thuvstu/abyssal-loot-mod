@@ -111,7 +111,9 @@ public final class GameData {
         SOUL_SCYTHE("soul_scythe", "魂鎌", "魂収穫", "刈り取り魂ゲージを得る", 0xc9a0ff),
         TITAN_GAUNTLET("titan_gauntlet", "剛拳", "岩砕十連", "10連衝撃・最後に大爆発", 0xffb03c),
         ECLIPSE_CHAKRAM("eclipse_chakram", "蝕輪", "蝕輪廻", "24枚の輪刃を全方位へ", 0x5c8cff),
-        CHAOS_TOME("chaos_tome", "混沌書", "混沌特異点", "爆縮と無作為の弱体", 0xff5c8a);
+        CHAOS_TOME("chaos_tome", "混沌書", "混沌特異点", "爆縮と無作為の弱体", 0xff5c8a),
+        ROD("rod", "ロッド", "螺旋嵐", "周囲を嵐で引き寄せ刻む", 0x9fd8ff),
+        WAND("wand", "ワンド", "魔弾連星", "10連の自動魔弾を放つ", 0xd6b8ff);
 
         public final String id;
         public final String weaponName;
@@ -958,7 +960,9 @@ public final class GameData {
             java.util.Map.entry("soul_scythe", wb(16, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0)),
             java.util.Map.entry("titan_gauntlet", wb(10, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
             java.util.Map.entry("eclipse_chakram", wb(0, 0, 15, 0, 0, 4, 0, 0, 0, 0, 0)),
-            java.util.Map.entry("chaos_tome", wb(18, -20, 0, 0, 0, 0, 0, 0, 40, 0, 0)));
+            java.util.Map.entry("chaos_tome", wb(18, -20, 0, 0, 0, 0, 0, 0, 40, 0, 0)),
+            java.util.Map.entry("rod", wb(0, 0, 15, 20, 1, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("wand", wb(-10, 0, 0, 15, 2, 0, 8, 0, 0, 0, 0)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
@@ -1042,7 +1046,13 @@ public final class GameData {
                     java.util.Map.of("maxHpPct", 15.0, "armorPct", 8.0)),
             new ArmorSet("star", "星装", 0x7ce8ff, 0xe0f8ff,
                     java.util.Map.of("energyPct", 20.0),
-                    java.util.Map.of("energyPct", 20.0, "areaPct", 12.0)));
+                    java.util.Map.of("energyPct", 20.0, "areaPct", 12.0)),
+            new ArmorSet("frost", "氷装", 0xaee9ff, 0xe8f8ff,
+                    java.util.Map.of("freezePct", 8.0),
+                    java.util.Map.of("freezePct", 8.0, "armorPct", 10.0)),
+            new ArmorSet("storm", "嵐装", 0xffe14a, 0xfff2c9,
+                    java.util.Map.of("attackSpeedPct", 8.0),
+                    java.util.Map.of("attackSpeedPct", 8.0, "chain", 1.0)));
 
     public static ArmorSet armorSetById(String id) {
         for (ArmorSet s : ARMOR_SETS) {

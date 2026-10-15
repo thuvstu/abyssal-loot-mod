@@ -195,15 +195,17 @@ public final class ArenaManager {
     }
 
 
-    /** 安全な湧きY: 上から走査し、固体の上の3マス空気を探す (埋没防止) */
+    /** 安全な湧きY: 上から走査し、固体の上の3マス空気を探す (埋没防止)。
+     * バリア・壁の上は除外 (バリア天井や塀の上に湧かないように) */
     public static int safeSpawnY(ServerLevel level, int x, int z, int baseY) {
         for (int y = baseY + 12; y >= baseY - 10; y--) {
             BlockPos p = new BlockPos(x, y, z);
+            var below = level.getBlockState(p.below());
             if (level.getBlockState(p).isAir()
                     && level.getBlockState(p.above()).isAir()
                     && level.getBlockState(p.above().above()).isAir()
-                    && !level.getBlockState(p.below()).isAir()
-                    && level.getBlockState(p.below()).getFluidState().isEmpty()) {
+                    && !below.isAir() && below.getFluidState().isEmpty()
+                    && !below.is(Blocks.BARRIER) && !below.is(Blocks.STONE_BRICK_WALL)) {
                 return y;
             }
         }

@@ -395,6 +395,75 @@ def chaos_tome(accent):
     return img
 
 
+def rod(accent):
+    img, d = canvas()
+    line(d, [(4, 15), (8, 7)], WOOD_DARK, 2)  # 長柄
+    line(d, [(5, 14), (8, 8)], WOOD, 1)  # 捻り
+    line(d, [(4, 14), (7, 9)], accent, 1)
+    d.ellipse([4, 0, 12, 8], fill=OUTLINE)  # 大水晶
+    poly(d, [(8, 1), (11, 4), (8, 7), (5, 4)], accent)
+    poly(d, [(8, 3), (9, 4), (8, 5), (7, 4)], WHITE)
+    d.point((5, 8), fill=GOLD)
+    d.point((11, 8), fill=GOLD)
+    d.point((10, 3), fill=accent)
+    return img
+
+
+def wand(accent):
+    img, d = canvas()
+    line(d, [(3, 14), (9, 8)], WOOD, 2)  # 短柄
+    line(d, [(3, 14), (9, 8)], WOOD_DARK, 1)
+    line(d, [(8, 9), (10, 7)], GOLD, 1)  # 口金
+    d.ellipse([8, 2, 14, 8], fill=OUTLINE)  # 宝石
+    d.ellipse([9, 3, 13, 7], fill=accent)
+    d.ellipse([10, 4, 11, 5], fill=WHITE)
+    d.point((6, 10), fill=accent)
+    d.point((12, 9), fill=WHITE)
+    return img
+
+
+def pickaxe(accent):
+    img, d = canvas()
+    line(d, [(6, 15), (8, 5)], WOOD, 2)  # 柄
+    poly(d, [(2, 1), (14, 1), (12, 4), (10, 3), (6, 3), (4, 4)], STEEL_LIGHT)  # 鶴嘴
+    d.line([(3, 2), (13, 2)], fill=accent, width=1)  # 深淵の帯
+    d.point((8, 2), fill=WHITE)
+    line(d, [(7, 5), (9, 5)], GOLD, 1)  # 目釘座
+    return img
+
+
+def tool_axe(accent):
+    img, d = canvas()
+    line(d, [(5, 15), (7, 5)], WOOD, 2)
+    poly(d, [(6, 1), (14, 3), (12, 10), (6, 8)], STEEL_LIGHT)  # 斧身
+    poly(d, [(8, 3), (12, 4), (11, 8), (7, 7)], accent)  # 刃の刻み
+    d.line([(8, 3), (12, 4)], fill=WHITE, width=1)
+    line(d, [(6, 9), (8, 7)], GOLD, 1)
+    return img
+
+
+def shovel(accent):
+    img, d = canvas()
+    line(d, [(8, 15), (8, 7)], WOOD, 2)
+    line(d, [(8, 15), (8, 7)], WOOD_DARK, 1)
+    poly(d, [(5, 1), (11, 1), (12, 5), (8, 8), (4, 5)], STEEL_LIGHT)  # 鋤先
+    d.line([(6, 2), (10, 2)], fill=accent, width=1)
+    d.point((8, 4), fill=WHITE)
+    line(d, [(7, 8), (9, 8)], GOLD, 1)
+    return img
+
+
+def hoe(accent):
+    img, d = canvas()
+    line(d, [(4, 15), (8, 7)], WOOD, 2)
+    line(d, [(4, 15), (8, 7)], WOOD_DARK, 1)
+    poly(d, [(7, 3), (14, 3), (14, 6), (8, 7)], STEEL_LIGHT)  # 横刃
+    d.line([(8, 4), (13, 4)], fill=accent, width=1)
+    d.point((12, 5), fill=WHITE)
+    line(d, [(7, 8), (9, 6)], GOLD, 1)
+    return img
+
+
 ABYSS_PLATE = (58, 40, 92, 255)
 ABYSS_DARK = (30, 20, 52, 255)
 ABYSS_LIGHT = (120, 92, 190, 255)
@@ -494,6 +563,12 @@ WEAPONS = {
     "abyss_titan_gauntlet": (titan_gauntlet, 0xffb03c, "handheld"),
     "abyss_eclipse_chakram": (eclipse_chakram, 0x5c8cff, "generated"),
     "abyss_chaos_tome": (chaos_tome, 0xff5c8a, "generated"),
+    "abyss_rod": (rod, 0x9fd8ff, "handheld"),
+    "abyss_wand": (wand, 0xd6b8ff, "handheld"),
+    "abyss_pickaxe": (pickaxe, 0xb28ce0, "handheld"),
+    "abyss_tool_axe": (tool_axe, 0xb28ce0, "handheld"),
+    "abyss_shovel": (shovel, 0xb28ce0, "handheld"),
+    "abyss_hoe": (hoe, 0xb28ce0, "handheld"),
 }
 
 

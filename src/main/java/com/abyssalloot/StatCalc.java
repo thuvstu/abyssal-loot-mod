@@ -185,8 +185,10 @@ public final class StatCalc {
         if ("gold".equals(RunManager.activeShrine(player))) maxHp = Math.max(1, maxHp - 20);
         var attr = player.getAttribute(Attributes.MAX_HEALTH);
         if (attr != null) {
+            // 現在HPの割合を維持 (装備の着脱で全快・激減しないように)
+            double ratio = player.getHealth() / Math.max(1.0, player.getMaxHealth());
             attr.setBaseValue(Math.min(1024, maxHp));
-            player.setHealth((float) Math.min(maxHp, attr.getValue()));
+            player.setHealth((float) Math.min(attr.getValue(), Math.max(1.0, attr.getValue() * ratio)));
         }
         var atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (atk != null) atk.setBaseValue(GameData.heroDamage(cls, level));
