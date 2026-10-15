@@ -42,10 +42,10 @@ public class GameDataTest {
 
     @Test
     void heroGrowthMatchesCoreTs() {
-        // samurai: hp 130+15/lv, damage 20*(1+0.17*(lv-1))
+        // samurai: hp 94+11/lv, damage 20*(1+0.17*(lv-1))
         var samurai = GameData.HeroClass.byId("samurai");
-        assertEquals(130.0, GameData.heroMaxHp(samurai, 1), 1e-9);
-        assertEquals(145.0, GameData.heroMaxHp(samurai, 2), 1e-9);
+        assertEquals(94.0, GameData.heroMaxHp(samurai, 1), 1e-9);
+        assertEquals(105.0, GameData.heroMaxHp(samurai, 2), 1e-9);
         assertEquals(20.0, GameData.heroDamage(samurai, 1), 1e-9);
         assertEquals(20.0 * 1.17, GameData.heroDamage(samurai, 2), 1e-9);
     }
@@ -196,8 +196,8 @@ public class GameDataTest {
     @Test
     void floorScalingMatchesCoreTs() {
         assertEquals(1.0, GameData.floorHpScale(0), 1e-9);
-        assertEquals(1 + 10 * 0.22, GameData.floorHpScale(10), 1e-9);
-        assertEquals(1 + 10 * 0.08, GameData.floorDmgScale(10), 1e-9);
+        assertEquals(1 + 10 * 0.30 + 100 * 0.004, GameData.floorHpScale(10), 1e-9);
+        assertEquals(1 + 10 * 0.12 + 100 * 0.002, GameData.floorDmgScale(10), 1e-9);
     }
 
     @Test
@@ -287,9 +287,9 @@ public class GameDataTest {
     void fiveDifficultiesMatchCoreTs() {
         assertEquals(5, GameData.DIFFICULTIES.size());
         assertEquals(1.0, GameData.difficultyById("normal").soulMul(), 1e-9);
-        assertEquals(1.35, GameData.difficultyById("hard").hpMul(), 1e-9);
-        assertEquals(1.8, GameData.difficultyById("hell").hpMul(), 1e-9);
-        assertEquals(2.5, GameData.difficultyById("inferno").hpMul(), 1e-9);
+        assertEquals(1.4, GameData.difficultyById("hard").hpMul(), 1e-9);
+        assertEquals(1.9, GameData.difficultyById("hell").hpMul(), 1e-9);
+        assertEquals(2.7, GameData.difficultyById("inferno").hpMul(), 1e-9);
         assertEquals(3.2, GameData.difficultyById("inferno").soulMul(), 1e-9);
         assertEquals(7.56, GameData.difficultyById("omega").soulMul(), 1e-9);
         assertEquals("normal", GameData.difficultyById("nope").id());

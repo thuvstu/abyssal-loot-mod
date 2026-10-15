@@ -60,6 +60,9 @@ public final class ModAttachments {
     /** 反撃窓タイマー (回避後の初撃×1.5) */
     public static final Supplier<AttachmentType<Float>> COUNTER =
             reg("counter", 0f, Codec.FLOAT);
+    /** 必殺技の残りCT (秒)。発動で25秒、毎tick減衰 */
+    public static final Supplier<AttachmentType<Float>> SKILL_CD =
+            reg("skill_cd", 0f, Codec.FLOAT);
     /** 進行モード standard/bossrush/endless/covenant */
     public static final Supplier<AttachmentType<String>> MODE =
             reg("mode", "standard", Codec.STRING);

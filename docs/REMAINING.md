@@ -133,7 +133,7 @@ orbit (周囲を周回)・bomber (接近で即点火) を `EnemyAI` に実装。
 ## 10. 呪印・難易度・モード (原作 `TRIAL_SIGILS` 8、`DIFFICULTIES` 5、`RUN_MODES` 8、`DAILY_MODIFIERS` 7)
 
 - 呪印 8 種: **済** (`GameData.Sigil`・`trialRules`・`soulMult`)。
-- 難易度: **済** (5 段階。`hell`・`omega` を含む原作値: hard 1.35/1.25/×1.5、hell 1.8/1.55/×2.1、inferno 2.5/2.1/×3.2、omega 3.5/2.8/×7.56)。
+- 難易度: **済** (5 段階。Mod調整値: hard 1.4/1.3/×1.5、hell 1.9/1.65/×2.1、inferno 2.7/2.3/×3.2、omega 3.8/3.0/×7.56)。
 - 出撃モード: **済** (8 種。standard/bossrush/endless/covenant/daily/pinnacle/danmaku/omega。魂倍率は原作値)。
   **部分**: `danmaku` (弾幕の獄) に固有ルールは無い (倍率のみ)。`omega` モードは倍率のみで、原作の「全8呪印を強制付与」は未実装。
 - 日替わり: **済** (`DAILY_MODIFIERS` 7 種。UTC日ローテ・敵/出現/精霊/魂の各倍率・乾きの回復なしに対応)。

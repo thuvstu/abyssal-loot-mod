@@ -225,6 +225,15 @@ public final class EnemyAI {
         return Math.max(1, p.getData(ModAttachments.FLOOR.get()));
     }
 
+    /** 上層ほどAIの手数が増える (突進・瞬間移動・召喚の間隔短縮、周回加速) */
+    private static double tempoOf(ServerPlayer target) {
+        return 1 + floorOf(target) * 0.03;
+    }
+
+    private static int scaledInterval(ServerPlayer target, int base, int min) {
+        return Math.max(min, (int) (base / tempoOf(target)));
+    }
+
     /** 射撃: 中距離を保つ (発射はバニラAI). 近すぎれば離れ、遠すぎれば寄る */
     private static void tickShooter(ServerLevel level, Mob m, int now) {
         ServerPlayer target = nearestPlayer(level, m);
@@ -264,8 +273,7 @@ public final class EnemyAI {
         if (d < 4 || d > 20) {
             NEXT_CHARGE.put(m.getUUID(), now + 20);
             return;
-        }
-        // 予兆 (鈍足+煙 1秒) → 突進
+        }        // 予兆 (鈍足+煙 1秒) → 突進
         m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 3, false, false));
         level.sendParticles(ParticleTypes.SMOKE, m.getX(), m.getY() + 1, m.getZ(), 16, 0.8, 0.5, 0.8, 0.05);
         final double len = Math.max(d, 1e-3);
@@ -282,7 +290,7 @@ public final class EnemyAI {
                 WeaponArts.enemyPulse(level, m.position(), 3.5, dmg, ParticleTypes.EXPLOSION);
             });
         });
-        NEXT_CHARGE.put(m.getUUID(), now + 120);
+        NEXT_CHARGE.put(m.getUUID(), now + scaledInterval(target, 120, 40));
     }
 
     /** 瞬間移動: 約5秒ごとにプレイヤー近傍 (±4m) へ */
@@ -295,7 +303,7 @@ public final class EnemyAI {
         double dz = target.getZ() - m.getZ();
         double d = Math.sqrt(dx * dx + dz * dz);
         if (d < 6) {
-            NEXT_TELE.put(m.getUUID(), now + 40);
+            NEXT_TELE.put(m.getUUID(), now + scaledInterval(target, 40, 15));
             return;
         }
         level.sendParticles(ParticleTypes.PORTAL, m.getX(), m.getY() + 1, m.getZ(), 24, 0.8, 1, 0.8, 0.2);
@@ -304,7 +312,7 @@ public final class EnemyAI {
         double nz = target.getZ() + Math.sin(ang) * (3 + m.getRandom().nextDouble() * 2);
         m.teleportTo(nx, target.getY(), nz);
         level.sendParticles(ParticleTypes.PORTAL, nx, target.getY() + 1, nz, 24, 0.8, 1, 0.8, 0.2);
-        NEXT_TELE.put(m.getUUID(), now + 100);
+        NEXT_TELE.put(m.getUUID(), now + scaledInterval(target, 100, 35));
     }
 
     /** 周回: プレイヤーの周囲 (半径6m) を回る. 速度は原作通り速め */
@@ -313,7 +321,7 @@ public final class EnemyAI {
         if (target == null) return;
         m.setTarget(target);
         double ang = ORBIT_ANG.getOrDefault(m.getUUID(), m.getRandom().nextDouble() * Math.PI * 2);
-        ang += 0.35;
+        ang += 0.35 * tempoOf(target);
         ORBIT_ANG.put(m.getUUID(), ang);
         double nx = target.getX() + Math.cos(ang) * 6;
         double nz = target.getZ() + Math.sin(ang) * 6;
@@ -372,7 +380,7 @@ public final class EnemyAI {
         }
         level.sendParticles(ParticleTypes.SOUL, m.getX(), m.getY() + 1, m.getZ(), 20, 1, 0.5, 1, 0.1);
         target.displayClientMessage(Component.literal("§5蘇生師が朽ちた兵を呼んだ"), true);
-        NEXT_SUMMON.put(m.getUUID(), now + Enemies.NECRO_SUMMON_TICKS);
+        NEXT_SUMMON.put(m.getUUID(), now + scaledInterval(target, Enemies.NECRO_SUMMON_TICKS, 40));
     }
 
     private static void tickGate(ServerLevel level, Mob m, int now) {
@@ -393,6 +401,6 @@ public final class EnemyAI {
             Enemies.spawnChild(level, m, scale, target, m.getRandom().nextDouble() * Math.PI * 2, 3);
         }
         level.sendParticles(ParticleTypes.PORTAL, m.getX(), m.getY() + 1, m.getZ(), 30, 1, 1, 1, 0.2);
-        NEXT_SUMMON.put(m.getUUID(), now + Enemies.GATE_SUMMON_TICKS);
+        NEXT_SUMMON.put(m.getUUID(), now + scaledInterval(target, Enemies.GATE_SUMMON_TICKS, 40));
     }
 }

@@ -1054,12 +1054,19 @@ public final class CombatHandler {
         return false;
     }
 
-    /** 必殺技の発動 (スニーク+右クリック / Fキー / コマンド共通) */
+    /** 必殺技の発動 (スニーク+右クリック / Fキー / コマンド共通。CT25秒) */
     public static void trySkill(ServerPlayer player) {
+        float cd = player.getData(ModAttachments.SKILL_CD.get());
+        if (cd > 0) {
+            player.displayClientMessage(
+                    Component.literal(String.format("§7必殺技CT %.1fs", cd)), true);
+            return;
+        }
         GameData.HeroClass cls =
                 GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         WeaponArts.executeSkill(player, cls,
                 StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player));
+        player.setData(ModAttachments.SKILL_CD.get(), 25f);
     }
 
     /** 無敵・ダッシュCT・反撃窓の減衰 + ボスバー更新 + 罠 */
@@ -1097,6 +1104,8 @@ public final class CombatHandler {
             if (counter > 0) player.setData(ModAttachments.COUNTER.get(), Math.max(0, counter - 0.05f));
             float fortify = player.getData(ModAttachments.FORTIFY.get());
             if (fortify > 0) player.setData(ModAttachments.FORTIFY.get(), Math.max(0, fortify - 0.05f));
+            float skillCd = player.getData(ModAttachments.SKILL_CD.get());
+            if (skillCd > 0) player.setData(ModAttachments.SKILL_CD.get(), Math.max(0, skillCd - 0.05f));
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
             if (tickCounter % 20 == 0) tickAbilityBoons(player);
             if (tickCounter % 20 == 0) RunManager.tickRunEffects(player);

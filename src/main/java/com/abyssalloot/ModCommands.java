@@ -449,7 +449,7 @@ public final class ModCommands {
     static void showHelp(ServerPlayer p) {
         p.sendSystemMessage(Component.literal("§6━━━ Abyssal Loot 操作説明 ━━━"));
         p.sendSystemMessage(Component.literal("§f移動 WASD / 攻撃 左クリック / 照準 マウス"));
-        p.sendSystemMessage(Component.literal("§bR 武器奥義（右クリックでも可） / §dV 職業の必殺技 / §aX 回避ダッシュ"));
+        p.sendSystemMessage(Component.literal("§bR 武器奥義（右クリックでも可） / §dV 職業の必殺技 (CT25秒) / §aX 回避ダッシュ"));
         p.sendSystemMessage(Component.literal("§eG 操作ハブ（出撃・次層・各GUIへのボタン集）"));
         p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでRの奥義。"));
         p.sendSystemMessage(Component.literal("§7倒すと武器・防具や魂の欠片が出る。全滅で転移門が開く → /abyss next"));

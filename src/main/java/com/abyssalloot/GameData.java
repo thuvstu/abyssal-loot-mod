@@ -16,13 +16,13 @@ public final class GameData {
 
     public enum HeroClass {
         //                 id         名前    称号        HP   HP/Lv  攻撃 攻速  会心  弾数 移動 回避CT
-        SAMURAI("samurai", "剣聖", "孤高の一刀", 130, 15, 20, 1.55f, 0.08f, 1, 250, 1.10f),
-        MAGE("mage", "魔導士", "星詠みの術者", 84, 9, 16, 2.0f, 0.10f, 1, 244, 1.25f),
-        NINJA("ninja", "忍者", "影縫いの刃", 96, 11, 12, 3.1f, 0.20f, 1, 300, 0.62f),
-        PALADIN("paladin", "聖騎士", "不滅の盾", 190, 21, 16, 1.25f, 0.05f, 1, 226, 1.50f),
-        GUNNER("gunner", "銃魔", "鉛の嵐", 100, 12, 11, 3.4f, 0.14f, 2, 256, 1.00f),
-        BERSERKER("berserker", "狂戦士", "血路の王", 150, 18, 24, 1.30f, 0.12f, 1, 260, 1.20f),
-        MONK("monk", "僧兵", "静寂の拳", 140, 16, 15, 2.60f, 0.10f, 1, 270, 0.90f);
+        SAMURAI("samurai", "剣聖", "孤高の一刀", 94, 11, 20, 1.55f, 0.08f, 1, 250, 1.10f),
+        MAGE("mage", "魔導士", "星詠みの術者", 60, 7, 16, 2.0f, 0.10f, 1, 244, 1.25f),
+        NINJA("ninja", "忍者", "影縫いの刃", 69, 8, 12, 3.1f, 0.20f, 1, 300, 0.62f),
+        PALADIN("paladin", "聖騎士", "不滅の盾", 137, 15, 16, 1.25f, 0.05f, 1, 226, 1.50f),
+        GUNNER("gunner", "銃魔", "鉛の嵐", 72, 9, 11, 3.4f, 0.14f, 2, 256, 1.00f),
+        BERSERKER("berserker", "狂戦士", "血路の王", 108, 13, 24, 1.30f, 0.12f, 1, 260, 1.20f),
+        MONK("monk", "僧兵", "静寂の拳", 101, 12, 15, 2.60f, 0.10f, 1, 270, 0.90f);
 
         public final String id;
         public final String name;
@@ -316,14 +316,14 @@ public final class GameData {
         return null;
     }
 
-    /** 層による敵HP倍率 (原作 1 + 層*0.22) */
+    /** 層による敵HP倍率 (上層ほど急峻に。1 + 層*0.30 + 層^2*0.004) */
     public static double floorHpScale(int floor) {
-        return 1 + floor * 0.22;
+        return 1 + floor * 0.30 + floor * floor * 0.004;
     }
 
-    /** 層による敵攻撃倍率 (原作 1 + 層*0.08) */
+    /** 層による敵攻撃倍率 (1 + 層*0.12 + 層^2*0.002) */
     public static double floorDmgScale(int floor) {
-        return 1 + floor * 0.08;
+        return 1 + floor * 0.12 + floor * floor * 0.002;
     }
 
     /**
@@ -381,10 +381,10 @@ public final class GameData {
 
     public static final java.util.List<Difficulty> DIFFICULTIES = java.util.List.of(
             new Difficulty("normal", "通常", 1.0, 1.0, 1.0, 1.0),
-            new Difficulty("hard", "極難", 1.35, 1.25, 1.5, 1.6),
-            new Difficulty("hell", "地獄", 1.8, 1.55, 2.1, 2.4),
-            new Difficulty("inferno", "阿鼻叫喚", 2.5, 2.1, 3.2, 3.8),
-            new Difficulty("omega", "終焉の契約", 3.5, 2.8, 7.56, 5.0));
+            new Difficulty("hard", "極難", 1.4, 1.3, 1.5, 1.6),
+            new Difficulty("hell", "地獄", 1.9, 1.65, 2.1, 2.4),
+            new Difficulty("inferno", "阿鼻叫喚", 2.7, 2.3, 3.2, 3.8),
+            new Difficulty("omega", "終焉の契約", 3.8, 3.0, 7.56, 5.0));
 
     public static Difficulty difficultyById(String id) {
         for (Difficulty d : DIFFICULTIES) {
