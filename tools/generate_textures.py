@@ -422,6 +422,69 @@ def wand(accent):
     return img
 
 
+def greatsword(accent):
+    img, d = canvas()
+    line(d, [(3, 13), (12, 4)], STEEL_LIGHT, 4)  # 巨刃
+    line(d, [(4, 13), (12, 5)], STEEL, 2)
+    d.line([(4, 12), (11, 5)], fill=STEEL_DARK, width=1)  # 樋
+    poly(d, [(11, 2), (15, 1), (13, 6)], STEEL_LIGHT)  # 切先
+    d.line([(5, 11), (10, 6)], fill=WHITE, width=1)  # 刃文
+    line(d, [(1, 10), (5, 14)], GOLD, 2)  # 大鍔
+    line(d, [(3, 13), (1, 15)], WOOD_DARK, 2)
+    d.point((6, 10), fill=accent)
+    d.point((10, 6), fill=accent)
+    return img
+
+
+def twin_dagger(accent):
+    img, d = canvas()
+    poly(d, [(4, 2), (10, 4), (8, 8), (3, 6)], STEEL_LIGHT)  # 上の刃
+    poly(d, [(12, 8), (14, 12), (10, 13), (8, 9)], STEEL_LIGHT)  # 下の刃
+    d.line([(5, 4), (8, 6)], fill=WHITE, width=1)
+    d.line([(11, 10), (9, 11)], fill=WHITE, width=1)
+    d.ellipse([6, 6, 10, 10], fill=OUTLINE)  # 連結環
+    d.ellipse([7, 7, 9, 9], fill=accent)
+    d.point((8, 8), fill=WHITE)
+    d.point((5, 3), fill=accent)
+    d.point((12, 11), fill=accent)
+    return img
+
+
+def war_horn(accent):
+    img, d = canvas()
+    poly(d, [(2, 12), (6, 6), (12, 4), (13, 7), (7, 9), (4, 14)], WOOD)  # 角
+    poly(d, [(6, 6), (12, 4), (12, 6), (7, 8)], STEEL_LIGHT)  # 金口
+    d.line([(3, 11), (6, 7)], fill=accent, width=1)  # 紋帯
+    d.line([(4, 12), (7, 8)], fill=accent, width=1)
+    d.point((11, 5), fill=WHITE)
+    d.point((5, 9), fill=GOLD)
+    line(d, [(2, 13), (4, 15)], GOLD, 1)  # 尾金具
+    return img
+
+
+def fishing_rod(accent):
+    img, d = canvas()
+    line(d, [(2, 14), (12, 2)], WOOD, 1)  # 竿
+    line(d, [(2, 14), (12, 2)], WOOD_DARK, 1)
+    d.line([(5, 11), (7, 9)], fill=accent, width=1)  # 握り巻
+    d.line([(12, 2), (12, 8)], fill=(230, 230, 230, 255), width=1)  # 糸
+    d.line([(12, 8), (10, 10)], fill=STEEL, width=1)  # 針
+    d.point((12, 8), fill=accent)
+    return img
+
+
+def shears(accent):
+    img, d = canvas()
+    line(d, [(3, 13), (10, 3)], STEEL_LIGHT, 2)  # 刃1
+    line(d, [(5, 14), (12, 4)], STEEL, 2)  # 刃2
+    d.ellipse([3, 10, 6, 13], fill=OUTLINE)  # 指輪1
+    d.ellipse([4, 11, 5, 12], fill=accent)
+    d.ellipse([6, 12, 9, 15], fill=OUTLINE)  # 指輪2
+    d.point((7, 13), fill=accent)
+    d.point((6, 8), fill=WHITE)
+    return img
+
+
 def pickaxe(accent):
     img, d = canvas()
     line(d, [(6, 15), (8, 5)], WOOD, 2)  # 柄
@@ -565,6 +628,11 @@ WEAPONS = {
     "abyss_chaos_tome": (chaos_tome, 0xff5c8a, "generated"),
     "abyss_rod": (rod, 0x9fd8ff, "handheld"),
     "abyss_wand": (wand, 0xd6b8ff, "handheld"),
+    "abyss_greatsword": (greatsword, 0xe9e3d5, "handheld"),
+    "abyss_twin_dagger": (twin_dagger, 0xffe14a, "handheld"),
+    "abyss_war_horn": (war_horn, 0xffd092, "handheld"),
+    "abyss_fishing_rod": (fishing_rod, 0x7ce8ff, "handheld"),
+    "abyss_shears": (shears, 0xb28ce0, "handheld"),
     "abyss_pickaxe": (pickaxe, 0xb28ce0, "handheld"),
     "abyss_tool_axe": (tool_axe, 0xb28ce0, "handheld"),
     "abyss_shovel": (shovel, 0xb28ce0, "handheld"),

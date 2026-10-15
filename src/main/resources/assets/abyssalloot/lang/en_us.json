@@ -93,5 +93,10 @@
   "item.abyssalloot.abyss_storm_helm": "Storm Helm",
   "item.abyssalloot.abyss_storm_chest": "Storm Chestplate",
   "item.abyssalloot.abyss_storm_legs": "Storm Leggings",
-  "item.abyssalloot.abyss_storm_boots": "Storm Boots"
+  "item.abyssalloot.abyss_storm_boots": "Storm Boots",
+  "item.abyssalloot.abyss_greatsword": "Greatsword",
+  "item.abyssalloot.abyss_twin_dagger": "Twin Daggers",
+  "item.abyssalloot.abyss_war_horn": "War Horn",
+  "item.abyssalloot.abyss_fishing_rod": "Abyssal Fishing Rod",
+  "item.abyssalloot.abyss_shears": "Abyssal Shears"
 }

@@ -61,7 +61,7 @@ public class GameDataTest {
 
     @Test
     void allWeaponArtsExist() {
-        assertEquals(26, GameData.WeaponStyle.values().length);
+        assertEquals(29, GameData.WeaponStyle.values().length);
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(w.artName);
             assertFalse(w.artDesc.isBlank());
@@ -492,7 +492,8 @@ public class GameDataTest {
         // 新武器は奥義名・説明・ボーナスを持つ
         for (String id : new String[]{"rune_blade", "blood_axe", "storm_spear", "void_staff",
                 "moon_bow", "fang_dagger", "quake_hammer", "frost_katana", "soul_scythe",
-                "titan_gauntlet", "eclipse_chakram", "chaos_tome", "rod", "wand"}) {
+                "titan_gauntlet", "eclipse_chakram", "chaos_tome", "rod", "wand",
+                "greatsword", "twin_dagger", "war_horn"}) {
             var w = GameData.WeaponStyle.byId(id);
             assertEquals(id, w.id);
             assertFalse(w.artName.isBlank());
@@ -501,6 +502,11 @@ public class GameDataTest {
         // 新職業の必殺技名
         assertEquals("血爆", GameData.HeroClass.byId("berserker").skillName());
         assertEquals("禅定結界", GameData.HeroClass.byId("monk").skillName());
+        // 装備スキル6+6
+        assertEquals(6, GameData.WEAPON_SKILLS.size());
+        assertEquals(6, GameData.ARMOR_SKILLS.size());
+        assertNotNull(GameData.gearSkillById("w_soul"));
+        assertNotNull(GameData.gearSkillById("b_dash"));
         // 追加遺物の flag null でも relicFlags が壊れない
         assertTrue(GameData.relicFlags(java.util.List.of("r_blade", "soulfang")).contains("soulfang"));
     }
@@ -546,7 +552,7 @@ public class GameDataTest {
 
     @Test
     void weaponClassBonusMatchesCoreTs() {
-        assertEquals(26, GameData.WEAPON_BONUS.size());
+        assertEquals(29, GameData.WEAPON_BONUS.size());
         assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
         assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
         assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);

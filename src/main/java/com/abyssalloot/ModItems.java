@@ -120,6 +120,9 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_CHAOS_TOME = weapon("abyss_chaos_tome", Rarity.EPIC);
     public static final DeferredItem<Item> ABYSS_ROD = weapon("abyss_rod", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_WAND = weapon("abyss_wand", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_GREATSWORD = weapon("abyss_greatsword", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_TWIN_DAGGER = weapon("abyss_twin_dagger", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_WAR_HORN = weapon("abyss_war_horn", Rarity.RARE);
 
     public static final DeferredItem<Item> ABYSS_HELM = armor("abyss_helm", Rarity.COMMON, EquipmentSlot.HEAD);
     public static final DeferredItem<Item> ABYSS_CHEST = armor("abyss_chest", Rarity.COMMON, EquipmentSlot.CHEST);
@@ -222,6 +225,13 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_HOE = ITEMS.registerItem("abyss_hoe",
             props -> new net.minecraft.world.item.HoeItem(ABYSS_TIER, -3.0F, -1.0F,
                     props.rarity(Rarity.UNCOMMON).fireResistant()));
+    /** 深淵の釣竿・鋏 (生活用。耐久高め) */
+    public static final DeferredItem<Item> ABYSS_FISHING_ROD = ITEMS.registerItem("abyss_fishing_rod",
+            props -> new net.minecraft.world.item.FishingRodItem(
+                    props.durability(512).rarity(Rarity.UNCOMMON).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_SHEARS = ITEMS.registerItem("abyss_shears",
+            props -> new net.minecraft.world.item.ShearsItem(
+                    props.durability(1024).rarity(Rarity.UNCOMMON).fireResistant()));
     /** 追加素材 (ドロップ・クラフト用) */
     public static final DeferredItem<Item> ABYSS_BLOOD_CRYSTAL = ITEMS.registerSimpleItem("abyss_blood_crystal",
             () -> new Item.Properties().rarity(Rarity.UNCOMMON));
@@ -279,10 +289,15 @@ public final class ModItems {
                         output.accept(ABYSS_CHAOS_TOME.get());
                         output.accept(ABYSS_ROD.get());
                         output.accept(ABYSS_WAND.get());
+                        output.accept(ABYSS_GREATSWORD.get());
+                        output.accept(ABYSS_TWIN_DAGGER.get());
+                        output.accept(ABYSS_WAR_HORN.get());
                         output.accept(ABYSS_PICKAXE.get());
                         output.accept(ABYSS_TOOL_AXE.get());
                         output.accept(ABYSS_SHOVEL.get());
                         output.accept(ABYSS_HOE.get());
+                        output.accept(ABYSS_FISHING_ROD.get());
+                        output.accept(ABYSS_SHEARS.get());
                         output.accept(ABYSS_HELM.get());
                         output.accept(ABYSS_CHEST.get());
                         output.accept(ABYSS_LEGS.get());
@@ -368,6 +383,9 @@ public final class ModItems {
         if (item == ABYSS_CHAOS_TOME.get()) return GameData.WeaponStyle.CHAOS_TOME;
         if (item == ABYSS_ROD.get()) return GameData.WeaponStyle.ROD;
         if (item == ABYSS_WAND.get()) return GameData.WeaponStyle.WAND;
+        if (item == ABYSS_GREATSWORD.get()) return GameData.WeaponStyle.GREATSWORD;
+        if (item == ABYSS_TWIN_DAGGER.get()) return GameData.WeaponStyle.TWIN_DAGGER;
+        if (item == ABYSS_WAR_HORN.get()) return GameData.WeaponStyle.WAR_HORN;
         return null;
     }
 
@@ -399,6 +417,9 @@ public final class ModItems {
             case CHAOS_TOME -> ABYSS_CHAOS_TOME.get();
             case ROD -> ABYSS_ROD.get();
             case WAND -> ABYSS_WAND.get();
+            case GREATSWORD -> ABYSS_GREATSWORD.get();
+            case TWIN_DAGGER -> ABYSS_TWIN_DAGGER.get();
+            case WAR_HORN -> ABYSS_WAR_HORN.get();
         };
     }
 }

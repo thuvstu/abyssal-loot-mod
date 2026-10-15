@@ -196,6 +196,12 @@ public final class CombatHandler {
         if ("vampiric".equals(killTrait)) {
             RunManager.heal(player, player.getMaxHealth() * 0.03);
         }
+        // 武器スキル (撃破時) + 靴スキル (撃破で回避CTリセット)
+        triggerWeaponSkill(player, level, event.getEntity());
+        var boots = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET);
+        if ("b_dash".equals(GearData.skillOf(boots))) {
+            player.setData(ModAttachments.DASH_CD.get(), 0f);
+        }
         if (RunManager.boonLv(player, "blood") > 0) {
             RunManager.heal(player, player.getMaxHealth() * 0.05 * RunManager.boonLv(player, "blood"));
         }
@@ -525,6 +531,19 @@ public final class CombatHandler {
             if (affixArmor != 0) {
                 event.setNewDamage(event.getNewDamage()
                         * (float) Math.max(0.3, 1 - affixArmor / 100.0));
+            }
+            // 防具スキル: 荊棘の鎧 (反射20%) / 落法 (落下半減)
+            var chest = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+            if ("c_thorns".equals(GearData.skillOf(chest))
+                    && event.getSource().getEntity() instanceof LivingEntity atk && atk.isAlive()) {
+                atk.hurtServer(level, level.damageSources().magic(), event.getNewDamage() * 0.2f);
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT,
+                        atk.getX(), atk.getY() + 1, atk.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
+            }
+            var legs = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.LEGS);
+            if ("l_leap".equals(GearData.skillOf(legs))
+                    && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                event.setNewDamage(event.getNewDamage() * 0.5f);
             }
             // 恩寵「障壁の刻印」: 立ち止まると軽減が上がる (動いていなければ +8%/Lv)
             if (RunManager.boonLv(player, "warden") > 0
@@ -1069,6 +1088,32 @@ public final class CombatHandler {
                 Vec3 p = origin.lerp(tp, (double) i / steps);
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
                         p.x, p.y, p.z, 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    /** 武器スキル (撃破時発動)。主手持ちの abyss_skill を読む */
+    private static void triggerWeaponSkill(ServerPlayer player, ServerLevel level, LivingEntity dead) {
+        String skill = GearData.skillOf(player.getMainHandItem());
+        if (skill == null) return;
+        Vec3 pos = dead.position();
+        switch (skill) {
+            case "w_soul" -> RunManager.addGauge(player, 8);
+            case "w_feast" -> RunManager.heal(player, player.getMaxHealth() * 0.05);
+            case "w_chain" -> WeaponArts.pulse(level, player, pos, 4, 0.8, false,
+                    net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK);
+            case "w_break" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                                pos.x + 5, pos.y + 4, pos.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
+                }
+            }
+            case "w_swift" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 0));
+            case "w_burst" -> WeaponArts.pulse(level, player, pos, 3, 1.5, true,
+                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+            default -> {
             }
         }
     }

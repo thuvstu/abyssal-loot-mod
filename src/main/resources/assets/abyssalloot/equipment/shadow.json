@@ -2,12 +2,12 @@
   "layers": {
     "humanoid": [
       {
-        "texture": "abyssalloot:entity/equipment/humanoid/shadow"
+        "texture": "abyssalloot:shadow"
       }
     ],
     "humanoid_leggings": [
       {
-        "texture": "abyssalloot:entity/equipment/humanoid/shadow_leggings"
+        "texture": "abyssalloot:shadow_leggings"
       }
     ]
   }

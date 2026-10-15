@@ -84,6 +84,11 @@ public final class GearFactory {
         var tag = new net.minecraft.nbt.CompoundTag();
         tag.putString("abyss_rarity", rarity);
         if (trait != null) tag.putString("abyss_trait", trait);
+        // 武器スキル: レア以上で25%
+        if (!rarity.equals("normal") && !rarity.equals("magic") && rand.nextDouble() < 0.25) {
+            var skills = GameData.WEAPON_SKILLS;
+            tag.putString("abyss_skill", skills.get(rand.nextInt(skills.size())).id());
+        }
         if (curseKey != null) {
             tag.putString("abyss_curse", curseKey);
             tag.putDouble("abyss_curse_val", curseVal);
@@ -159,6 +164,18 @@ public final class GearFactory {
         var affixes = GameData.rollAffixes(rand::nextDouble, rarity, nAffix, GameData.ARMOR_AFFIXES);
         var tag = new net.minecraft.nbt.CompoundTag();
         tag.putString("abyss_rarity", rarity);
+        // 防具スキル: 部位に応じたものを30%
+        if (rand.nextDouble() < 0.30) {
+            String prefix = switch (ModItems.slotOf(item)) {
+                case HEAD -> "h_";
+                case CHEST -> "c_";
+                case LEGS -> "l_";
+                case FEET -> "b_";
+                default -> "";
+            };
+            var pool = GameData.ARMOR_SKILLS.stream().filter(s -> s.id().startsWith(prefix)).toList();
+            if (!pool.isEmpty()) tag.putString("abyss_skill", pool.get(rand.nextInt(pool.size())).id());
+        }
         if (curseKey != null) {
             tag.putString("abyss_curse", curseKey);
             tag.putDouble("abyss_curse_val", curseVal);

@@ -113,7 +113,10 @@ public final class GameData {
         ECLIPSE_CHAKRAM("eclipse_chakram", "蝕輪", "蝕輪廻", "24枚の輪刃を全方位へ", 0x5c8cff),
         CHAOS_TOME("chaos_tome", "混沌書", "混沌特異点", "爆縮と無作為の弱体", 0xff5c8a),
         ROD("rod", "ロッド", "螺旋嵐", "周囲を嵐で引き寄せ刻む", 0x9fd8ff),
-        WAND("wand", "ワンド", "魔弾連星", "10連の自動魔弾を放つ", 0xd6b8ff);
+        WAND("wand", "ワンド", "魔弾連星", "10連の自動魔弾を放つ", 0xd6b8ff),
+        GREATSWORD("greatsword", "大剣", "天地断", "広域を薙ぎ払い衝撃波", 0xe9e3d5),
+        TWIN_DAGGER("twin_dagger", "双短剣", "乱舞連牙", "周囲へ8連の牙", 0xffe14a),
+        WAR_HORN("war_horn", "戦角", "大雄叫び", "吹き飛ばし+雄叫び強化", 0xffd092);
 
         public final String id;
         public final String weaponName;
@@ -962,7 +965,10 @@ public final class GameData {
             java.util.Map.entry("eclipse_chakram", wb(0, 0, 15, 0, 0, 4, 0, 0, 0, 0, 0)),
             java.util.Map.entry("chaos_tome", wb(18, -20, 0, 0, 0, 0, 0, 0, 40, 0, 0)),
             java.util.Map.entry("rod", wb(0, 0, 15, 20, 1, 0, 0, 0, 0, 0, 0)),
-            java.util.Map.entry("wand", wb(-10, 0, 0, 15, 2, 0, 8, 0, 0, 0, 0)));
+            java.util.Map.entry("wand", wb(-10, 0, 0, 15, 2, 0, 8, 0, 0, 0, 0)),
+            java.util.Map.entry("greatsword", wb(30, -25, 10, 0, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("twin_dagger", wb(-5, 20, 0, 0, 0, 0, 10, 0, 0, 0, 0)),
+            java.util.Map.entry("war_horn", wb(0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 15)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
@@ -1056,6 +1062,37 @@ public final class GameData {
 
     public static ArmorSet armorSetById(String id) {
         for (ArmorSet s : ARMOR_SETS) {
+            if (s.id().equals(id)) return s;
+        }
+        return null;
+    }
+
+    /* ---------------- 装備スキル (武器kill系・防具tick系。装備に付随する能力) ---------------- */
+    public record GearSkill(String id, String name, String desc) {}
+
+    /** 武器スキル (撃破時)。abyss_skill に刻印 */
+    public static final java.util.List<GearSkill> WEAPON_SKILLS = java.util.List.of(
+            new GearSkill("w_soul", "魂収穫", "撃破ごとに魂ゲージ+8"),
+            new GearSkill("w_feast", "血宴", "撃破時に最大HPの5%回復"),
+            new GearSkill("w_chain", "連鎖殺戮", "撃破時に周囲へ攻撃力の80%"),
+            new GearSkill("w_break", "崩し", "撃破時に周囲へ弱体5秒"),
+            new GearSkill("w_swift", "疾殺", "撃破時に移動速度上昇5秒"),
+            new GearSkill("w_burst", "爆裂殺", "撃破時に小爆発"));
+
+    /** 防具スキル (部位ごと)。abyss_skill に刻印 */
+    public static final java.util.List<GearSkill> ARMOR_SKILLS = java.util.List.of(
+            new GearSkill("h_danger", "危険感知", "兜: 10m内の敵を発光表示"),
+            new GearSkill("h_breath", "水の加護", "兜: 水中呼吸が続く"),
+            new GearSkill("c_thorns", "荊棘の鎧", "鎧: 受けた近接の20%を反射"),
+            new GearSkill("c_aegis", "聖盾", "鎧: 守護効果が絶えない"),
+            new GearSkill("l_leap", "落法", "脚: 落下ダメージ半減"),
+            new GearSkill("b_dash", "疾駆", "靴: 撃破で回避CTリセット"));
+
+    public static GearSkill gearSkillById(String id) {
+        for (GearSkill s : WEAPON_SKILLS) {
+            if (s.id().equals(id)) return s;
+        }
+        for (GearSkill s : ARMOR_SKILLS) {
             if (s.id().equals(id)) return s;
         }
         return null;

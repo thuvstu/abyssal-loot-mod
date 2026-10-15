@@ -1662,6 +1662,23 @@ public final class RunManager {
             player.displayClientMessage(Component.literal("§b防具を変更: ステータス再計算"), true);
         }
         long t = level.getGameTime();
+        // 防具スキル (tick系)。兜: 危険感知・水の加護 / 鎧: 聖盾
+        var helm = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        var helmSkill = GearData.skillOf(helm);
+        if ("h_danger".equals(helmSkill) && t % 40 == 0) {
+            for (Mob m : level.getEntitiesOfClass(Mob.class,
+                    player.getBoundingBox().inflate(10), e -> e.isAlive())) {
+                m.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, false));
+            }
+        }
+        if ("h_breath".equals(helmSkill) && player.isInWater()
+                && !player.hasEffect(MobEffects.WATER_BREATHING)) {            player.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 240, 0, false, false));
+        }
+        var chest = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+        if ("c_aegis".equals(GearData.skillOf(chest))
+                && !player.hasEffect(MobEffects.ABSORPTION) && t % 100 == 0) {
+            player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 400, 1, false, false));
+        }
         // 巨躯の刻印・接辞: HP回復 (1秒ごと)
         double regen = boonLv(player, "hp") * 0.6 + StatCalc.affixOf(player, "regenFlat")
                 + StatCalc.extraStat(player, "regenFlat") + StatCalc.attrEff(player, 6) * 0.15;

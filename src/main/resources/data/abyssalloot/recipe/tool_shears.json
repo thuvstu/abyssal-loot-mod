@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "abyssal_loot",
+  "pattern": [
+    " S",
+    "S "
+  ],
+  "key": {
+    "S": {
+      "item": "abyssalloot:ancient_stone"
+    }
+  },
+  "result": {
+    "id": "abyssalloot:abyss_shears",
+    "count": 1
+  }
+}

@@ -2,12 +2,12 @@
   "layers": {
     "humanoid": [
       {
-        "texture": "abyssalloot:entity/equipment/humanoid/frost"
+        "texture": "abyssalloot:frost"
       }
     ],
     "humanoid_leggings": [
       {
-        "texture": "abyssalloot:entity/equipment/humanoid/frost_leggings"
+        "texture": "abyssalloot:frost_leggings"
       }
     ]
   }

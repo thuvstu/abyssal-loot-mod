@@ -77,6 +77,15 @@ public final class GearData {
         return id.isEmpty() ? null : id;
     }
 
+    /** 装備スキル (なければ null)。武器は撃破時、防具は部位効果 */
+    public static String skillOf(net.minecraft.world.item.ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return null;
+        var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY);
+        String id = data.copyTag().getString("abyss_skill").orElse("");
+        return id.isEmpty() ? null : id;
+    }
+
 
     public static String rarityOf(net.minecraft.world.item.ItemStack stack) {
         if (stack == null || stack.isEmpty()) return "normal";
@@ -221,6 +230,11 @@ public final class GearData {
         String trait = traitOf(stack);
         if (trait != null) {
             out.accept(Component.literal("§6特性〔" + traitName(trait) + "〕"));
+        }
+        String skill = skillOf(stack);
+        if (skill != null) {
+            var def = GameData.gearSkillById(skill);
+            if (def != null) out.accept(Component.literal("§d装備スキル「" + def.name() + "」: " + def.desc()));
         }
         for (var e : affixMap(stack).entrySet()) {
             String label = AFFIX_LABEL.getOrDefault(e.getKey(), e.getKey());

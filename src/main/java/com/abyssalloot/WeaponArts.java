@@ -498,6 +498,48 @@ public final class WeaponArts {
                 burst(player, "魔弾連星！", style);
                 return true;
             }
+            case GREATSWORD -> {
+                // 天地断: 広域を薙ぎ払い衝撃波
+                Vec3 dir = look;
+                slashCone(level, player, origin, dir, 9, 4.5 * attackDamage, ParticleTypes.SWEEP_ATTACK);
+                CombatHandler.after(6, () -> {
+                    if (!player.isAlive()) return;
+                    aoe(slevel(player), player, origin.add(dir.scale(6)), 4, 2.5 * attackDamage, true,
+                            ParticleTypes.EXPLOSION);
+                });
+                burst(player, "天地断！", style);
+                return true;
+            }
+            case TWIN_DAGGER -> {
+                // 乱舞連牙: 周囲へ8連の牙
+                for (int i = 0; i < 8; i++) {
+                    double ang = Math.atan2(look.z, look.x) + i * Math.PI / 4;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    final int k = i;
+                    CombatHandler.after(k, () -> {
+                        if (!player.isAlive()) return;
+                        slashCone(slevel(player), player, origin, dir, 6, 1.2 * attackDamage,
+                                ParticleTypes.CRIT);
+                    });
+                }
+                burst(player, "乱舞連牙！", style);
+                return true;
+            }
+            case WAR_HORN -> {
+                // 大雄叫び: 吹き飛ばし+雄叫び強化
+                aoe(level, player, origin, 8, 2.0 * attackDamage, true, ParticleTypes.SONIC_BOOM);
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 200, 1));
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 8, origin.y - 4, origin.z - 8,
+                                origin.x + 8, origin.y + 4, origin.z + 8),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 120, 1));
+                }
+                level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_CRIT,
+                        SoundSource.PLAYERS, 1f, 0.5f);
+                burst(player, "大雄叫び！", style);
+                return true;
+            }
         }
         return false;
     }
