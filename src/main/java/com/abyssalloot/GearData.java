@@ -217,17 +217,18 @@ public final class GearData {
             java.util.Map.entry("freezePct", "凍結"));
 
 
-    /** 武器・防具のツールチップ追記 (接辞・特性・奥義・使い方) */
-    public static void appendGearLore(net.minecraft.world.item.ItemStack stack,
-                                      java.util.function.Consumer<Component> out, boolean isWeapon) {
+    /** 武器・防具のツールチップ行 (接辞・特性・奥義・使い方)。LOREコンポーネント用 */
+    public static java.util.List<Component> loreLines(net.minecraft.world.item.ItemStack stack,
+                                                      boolean isWeapon) {
+        var out = new java.util.ArrayList<Component>();
         var style = ModItems.styleOf(stack.getItem());
         if (isWeapon && style != null) {
-            out.accept(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
-            out.accept(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
+            out.add(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
+            out.add(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
             var ab = GameData.WEAPON_ABILITIES.get(style.id);
-            if (ab != null) out.accept(Component.literal("§e能力: " + ab.desc()));
+            if (ab != null) out.add(Component.literal("§e能力: " + ab.desc()));
         } else if (!isWeapon) {
-            out.accept(Component.literal("§7右クリックで装備。接辞は武器と合算"));
+            out.add(Component.literal("§7右クリックで装備。接辞は武器と合算"));
             var aslot = ModItems.slotOf(stack.getItem());
             if (aslot != null) {
                 String ab = switch (aslot) {
@@ -237,35 +238,46 @@ public final class GearData {
                     case FEET -> "疾走: 移動+3%";
                     default -> "";
                 };
-                if (!ab.isEmpty()) out.accept(Component.literal("§e能力: " + ab));
+                if (!ab.isEmpty()) out.add(Component.literal("§e能力: " + ab));
             }
         }
         String trait = traitOf(stack);
         if (trait != null) {
-            out.accept(Component.literal("§6特性〔" + traitName(trait) + "〕"));
+            out.add(Component.literal("§6特性〔" + traitName(trait) + "〕"));
         }
         String skill = skillOf(stack);
         if (skill != null) {
             var def = GameData.gearSkillById(skill);
-            if (def != null) out.accept(Component.literal("§d装備スキル「" + def.name() + "」: " + def.desc()));
+            if (def != null) out.add(Component.literal("§d装備スキル「" + def.name() + "」: " + def.desc()));
         }
         for (var e : affixMap(stack).entrySet()) {
             String label = AFFIX_LABEL.getOrDefault(e.getKey(), e.getKey());
             double v = e.getValue();
             String num = (v == Math.floor(v)) ? String.valueOf((long) v) : String.valueOf(v);
-            out.accept(Component.literal("§b+" + num + " " + label));
+            out.add(Component.literal("§b+" + num + " " + label));
         }
         String curse = curseOf(stack);
         if (curse != null) {
-            out.accept(Component.literal("§5呪い: " + AFFIX_LABEL.getOrDefault(curse, curse)
+            out.add(Component.literal("§5呪い: " + AFFIX_LABEL.getOrDefault(curse, curse)
                     + " に弱点 (恩寵「呪喰らい」で無効化)"));
         }
         int forge = forgeLv(stack);
-        if (forge > 0) out.accept(Component.literal("§b鍛造+" + forge));
-        out.accept(Component.literal("§8威力 " + powerOf(stack)));
+        if (forge > 0) out.add(Component.literal("§b鍛造+" + forge));
+        out.add(Component.literal("§8威力 " + powerOf(stack)));
         if (isWeapon) {
-            out.accept(Component.literal("§8/abyss compare・/abyss merge で厳選・合成"));
+            out.add(Component.literal("§8/abyss compare・/abyss merge で厳選・合成"));
         }
+        return out;
+    }
+
+    /** 装備のLOREを最新化 (生成・合成・報酬付与後に呼ぶ) */
+    public static void refreshLore(net.minecraft.world.item.ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+        boolean isWeapon = ModItems.styleOf(stack.getItem()) != null;
+        boolean isArmor = ModItems.slotOf(stack.getItem()) != null;
+        if (!isWeapon && !isArmor) return;
+        stack.set(net.minecraft.core.component.DataComponents.LORE,
+                new net.minecraft.world.item.component.ItemLore(loreLines(stack, isWeapon)));
     }
 
 

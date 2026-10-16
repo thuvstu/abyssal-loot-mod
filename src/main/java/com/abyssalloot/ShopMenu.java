@@ -76,6 +76,7 @@ public class ShopMenu extends AbstractContainerMenu {
             tag.putInt("abyss_price", price);
             stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                     net.minecraft.world.item.component.CustomData.of(tag));
+            GearData.refreshLore(stack);
             previews.setItem(i, stack);
         }
     }

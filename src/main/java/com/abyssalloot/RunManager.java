@@ -830,6 +830,7 @@ public final class RunManager {
                 net.minecraft.world.item.component.CustomData.of(tag));
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal("§d神話の" + style.weaponName));
+        GearData.refreshLore(stack);
                     player.getInventory().add(stack);
         player.getInventory().add(GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 26, 130));
         sendSoulSummary(player, true);
@@ -896,6 +897,7 @@ public final class RunManager {
                     net.minecraft.world.item.component.CustomData.of(tag));
             stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                     Component.literal("§d神話の" + style.weaponName));
+            GearData.refreshLore(stack);
             player.getInventory().add(stack);
         }
         var setDrop = GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 27, 130);
@@ -904,6 +906,7 @@ public final class RunManager {
         setTag.putString("abyss_rarity", "mythic");
         setDrop.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.of(setTag));
+        GearData.refreshLore(setDrop);
         player.getInventory().add(setDrop);
         var a = GameData.achievementById("pinnacle-god");
         CombatHandler.grantAch(player, "pinnacle-god", a.title(), GameData.shardsForReward(a.reward()));
@@ -928,6 +931,7 @@ public final class RunManager {
                     net.minecraft.world.item.component.CustomData.of(tag));
             stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                     Component.literal("§d神話の" + style.weaponName));
+            GearData.refreshLore(stack);
             player.getInventory().add(stack);
         }
         player.getInventory().add(GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 28, 130));
@@ -1438,6 +1442,7 @@ public final class RunManager {
         if (!newName.equals(main.getHoverName().getString())) {
             main.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(newName));
         }
+        GearData.refreshLore(main);
         player.sendSystemMessage(Component.literal(
                 "§b合成！ " + main.getHoverName().getString() + " 鍛造+" + (lv + 1)
                         + " 威力" + GearData.powerOf(main) + " (欠片-" + cost + ")"));

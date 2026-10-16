@@ -116,6 +116,7 @@ public final class GearFactory {
         if (trait != null) name += "〔" + GearData.traitName(trait) + "〕";
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal(name));
+        GearData.refreshLore(stack);
         return stack;
     }
 
@@ -201,6 +202,7 @@ public final class GearFactory {
         };
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal((curseKey != null ? "§5呪縛の" : "") + GearData.rarityColor(rarity) + disp));
+        GearData.refreshLore(stack);
         return stack;
     }
 
@@ -251,6 +253,7 @@ public final class GearFactory {
         };
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
                 Component.literal("§b【" + set.name() + "】" + GearData.rarityColor(rarity) + disp));
+        GearData.refreshLore(stack);
         return stack;
     }
 }

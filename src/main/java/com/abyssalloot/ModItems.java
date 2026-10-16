@@ -13,16 +13,11 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.attachment.AttachmentType;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * アイテム12武器種 + 深淵防具4種 + 魂の欠片.
@@ -39,21 +34,7 @@ public final class ModItems {
 
     private static DeferredItem<Item> weapon(String id, Rarity rarity) {
         return ITEMS.registerItem(id,
-                props -> new AbyssWeaponItem(props.stacksTo(1).durability(1561).rarity(rarity).fireResistant()));
-    }
-
-    /** 武器 (lore 表示つき) */
-    public static class AbyssWeaponItem extends Item {
-        public AbyssWeaponItem(Properties props) {
-            super(props);
-        }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, TooltipDisplay display,
-                                    Consumer<Component> out, TooltipFlag flag) {
-            super.appendHoverText(stack, ctx, display, out, flag);
-            GearData.appendGearLore(stack, out, true);
-        }
+                props -> new Item(props.stacksTo(1).durability(1561).rarity(rarity).fireResistant()));
     }
 
     /** 防具 (lore 表示つき。右クリック装備は EQUIPPABLE コンポーネントが処理) */
@@ -67,13 +48,6 @@ public final class ModItems {
 
         public EquipmentSlot abyssSlot() {
             return slot;
-        }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, TooltipDisplay display,
-                                    Consumer<Component> out, TooltipFlag flag) {
-            super.appendHoverText(stack, ctx, display, out, flag);
-            GearData.appendGearLore(stack, out, false);
         }
     }
 
@@ -165,19 +139,16 @@ public final class ModItems {
             }
             return InteractionResult.PASS;
         }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, TooltipDisplay display,
-                                    Consumer<Component> out, TooltipFlag flag) {
-            super.appendHoverText(stack, ctx, display, out, flag);
-            out.accept(Component.literal("§7右クリックで使用 (使い切り)"));
-            out.accept(Component.literal("§b" + RunManager.consumableDesc(kind)));
-        }
     }
 
     private static DeferredItem<Item> consumable(String id, String kind, Rarity rarity) {
         return ITEMS.registerItem(id,
-                props -> new AbyssConsumable(props.stacksTo(16).rarity(rarity), kind));
+                props -> new AbyssConsumable(props.stacksTo(16).rarity(rarity)
+                        .component(net.minecraft.core.component.DataComponents.LORE,
+                                new net.minecraft.world.item.component.ItemLore(java.util.List.of(
+                                        Component.literal("§7右クリックで使用 (使い切り)"),
+                                        Component.literal("§b" + RunManager.consumableDesc(kind))))),
+                        kind));
     }
 
     public static final DeferredItem<Item> ABYSS_HEAL_S = consumable("abyss_heal_s", "heal_30", Rarity.COMMON);
