@@ -22,7 +22,8 @@ public final class GameData {
         PALADIN("paladin", "聖騎士", "不滅の盾", 137, 15, 16, 1.25f, 0.05f, 1, 226, 1.50f),
         GUNNER("gunner", "銃魔", "鉛の嵐", 72, 9, 11, 3.4f, 0.14f, 2, 256, 1.00f),
         BERSERKER("berserker", "狂戦士", "血路の王", 108, 13, 24, 1.30f, 0.12f, 1, 260, 1.20f),
-        MONK("monk", "僧兵", "静寂の拳", 101, 12, 15, 2.60f, 0.10f, 1, 270, 0.90f);
+        MONK("monk", "僧兵", "静寂の拳", 101, 12, 15, 2.60f, 0.10f, 1, 270, 0.90f),
+        ARCHER("archer", "弓使い", "月下の狙撃手", 78, 9, 13, 2.40f, 0.16f, 3, 265, 1.00f);
 
         public final String id;
         public final String name;
@@ -70,6 +71,7 @@ public final class GameData {
                 case GUNNER -> 4;
                 case BERSERKER -> 0;
                 case MONK -> 1;
+                case ARCHER -> 5;
             };
         }
 
@@ -83,6 +85,7 @@ public final class GameData {
                 case GUNNER -> "バレットヘル";
                 case BERSERKER -> "血爆";
                 case MONK -> "禅定結界";
+                case ARCHER -> "天矢雨";
             };
         }
     }
@@ -194,6 +197,21 @@ public final class GameData {
 
     public static double heroDamage(HeroClass cls, int level) {
         return cls.baseDamage * (1.0 + (level - 1) * 0.17);
+    }
+
+    /** 奥義・必殺技のレベル段階 (10レベルごとに1段階、最大3)。段階名つき */
+    public static int skillTier(int level) {
+        return Math.min(3, Math.max(0, level / 10));
+    }
+
+    /** 奥義・必殺技のレベル倍率 (1.0 / 1.3 / 1.6 / 1.9) */
+    public static double skillTierMult(int level) {
+        return 1.0 + skillTier(level) * 0.3;
+    }
+
+    /** 奥義・必殺技の段階名 ("", "・改", "・極", "・神") */
+    public static String skillTierName(int level) {
+        return new String[]{"", "・改", "・極", "・神"}[skillTier(level)];
     }
 
     public static double heroMaxHp(HeroClass cls, int level) {
@@ -1186,13 +1204,14 @@ public final class GameData {
      * 原作 attributes.ts の5属性 + 追加3属性 (集中・活力・技巧)。
      * 各属性は 10/20/30 点で節目ボーナス (接辞キー束) が付く。
      */
-    public static final String[] ATTR_NAMES = {"剛力", "韻律", "敏捷", "忍耐", "幸運", "集中", "活力", "技巧"};
-    public static final String[] ATTR_SHORT = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技"};
+    public static final String[] ATTR_NAMES = {"剛力", "韻律", "敏捷", "忍耐", "幸運", "集中", "活力", "技巧", "採掘", "跳躍"};
+    public static final String[] ATTR_SHORT = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技", "採", "跳"};
     public static final String[] ATTR_DESCS = {
             "攻撃力 +3%/点", "攻撃速度 +2%/点", "移動速度 +1.5%・回避短縮/点",
             "最大HP +4%/点", "運 +7・素材 +4%/点",
             "会心率 +0.8%・会心威力 +2%/点", "HP再生 +0.15/秒・軽減 +0.5%/点",
-            "攻撃範囲 +1.5%・爆裂 +0.8%/点"};
+            "攻撃範囲 +1.5%・爆裂 +0.8%/点",
+            "掘削加速・鉱石の欠片率UP/点", "跳躍力UP・落下軽減/点"};
 
     public record Mile(int at, java.util.Map<String, Double> mods) {}
 
@@ -1228,7 +1247,15 @@ public final class GameData {
             java.util.List.of(
                     new Mile(10, java.util.Map.of("areaPct", 8.0)),
                     new Mile(20, java.util.Map.of("explodePct", 10.0)),
-                    new Mile(30, java.util.Map.of("areaPct", 12.0))));
+                    new Mile(30, java.util.Map.of("areaPct", 12.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("luckFlat", 10.0)),
+                    new Mile(20, java.util.Map.of("energyPct", 10.0)),
+                    new Mile(30, java.util.Map.of("luckFlat", 15.0))),
+            java.util.List.of(
+                    new Mile(10, java.util.Map.of("moveSpeedPct", 6.0)),
+                    new Mile(20, java.util.Map.of("armorPct", 4.0)),
+                    new Mile(30, java.util.Map.of("moveSpeedPct", 8.0))));
 
     /** 節目の到達数 (0〜3)。表示・効果集計用 */
     public static int milestoneTier(int attrIdx, int points) {

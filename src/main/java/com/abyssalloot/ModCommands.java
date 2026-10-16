@@ -266,6 +266,7 @@ public final class ModCommands {
                                     b.suggest("剛力"); b.suggest("韻律"); b.suggest("敏捷");
                                     b.suggest("忍耐"); b.suggest("幸運"); b.suggest("集中");
                                     b.suggest("活力"); b.suggest("技巧");
+                                    b.suggest("採掘"); b.suggest("跳躍");
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
@@ -423,6 +424,8 @@ public final class ModCommands {
             case "集中", "しゅうちゅう", "シュウチュウ", "focus", "con" -> 5;
             case "活力", "かつりょく", "カツリョク", "vital", "katsu" -> 6;
             case "技巧", "ぎこう", "ギコウ", "tech", "giko" -> 7;
+            case "採掘", "さいくつ", "サイクツ", "mining", "mine", "saikutu" -> 8;
+            case "跳躍", "ちょうやく", "チョウヤク", "jump", "leap", "tyouyaku" -> 9;
             default -> -1;
         };
     }

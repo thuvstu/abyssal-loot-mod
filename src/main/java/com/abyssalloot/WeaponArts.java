@@ -602,6 +602,13 @@ public final class WeaponArts {
                 player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 0));
                 announce(player, "禅定結界！");
             }
+            case ARCHER -> {
+                // 天矢雨: 5重の矢の輪が広がる
+                for (int k = 0; k < 5; k++) {
+                    aoe(level, player, origin, 6 + k * 2, (1.5 - k * 0.1) * attackDamage, false, ParticleTypes.CRIT);
+                }
+                announce(player, "天矢雨！");
+            }
         }
         level.playSound(null, player.blockPosition(), SoundEvents.DRAGON_FIREBALL_EXPLODE, SoundSource.PLAYERS, 1f, 1f);
     }

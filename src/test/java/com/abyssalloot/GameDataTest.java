@@ -56,7 +56,22 @@ public class GameDataTest {
             assertNotNull(c.skillName());
             assertFalse(c.skillName().isBlank());
         }
-        assertEquals(7, GameData.HeroClass.values().length);
+        assertEquals(8, GameData.HeroClass.values().length);
+        assertEquals("天矢雨", GameData.HeroClass.byId("archer").skillName());
+    }
+
+    @Test
+    void skillTierMultIsTiered() {
+        assertEquals(1.0, GameData.skillTierMult(1), 1e-9);
+        assertEquals(1.0, GameData.skillTierMult(9), 1e-9);
+        assertEquals(1.3, GameData.skillTierMult(10), 1e-9);
+        assertEquals(1.6, GameData.skillTierMult(20), 1e-9);
+        assertEquals(1.9, GameData.skillTierMult(30), 1e-9);
+        assertEquals(1.9, GameData.skillTierMult(99), 1e-9);
+        assertEquals("", GameData.skillTierName(1));
+        assertEquals("・改", GameData.skillTierName(10));
+        assertEquals("・極", GameData.skillTierName(20));
+        assertEquals("・神", GameData.skillTierName(30));
     }
 
     @Test
@@ -443,13 +458,13 @@ public class GameDataTest {
         assertEquals(8, GameData.BOSSES.size());
     }
 
-    /** 属性8種・節目・職業適性の定義健全性 */
+    /** 属性10種・節目・職業適性の定義健全性 */
     @Test
     void eightAttributesWithMilestones() {
-        assertEquals(8, GameData.ATTR_NAMES.length);
-        assertEquals(8, GameData.ATTR_SHORT.length);
-        assertEquals(8, GameData.ATTR_DESCS.length);
-        assertEquals(8, GameData.ATTR_MILESTONES.size());
+        assertEquals(10, GameData.ATTR_NAMES.length);
+        assertEquals(10, GameData.ATTR_SHORT.length);
+        assertEquals(10, GameData.ATTR_DESCS.length);
+        assertEquals(10, GameData.ATTR_MILESTONES.size());
         for (var miles : GameData.ATTR_MILESTONES) {
             assertEquals(3, miles.size());
             assertEquals(10, miles.get(0).at());
@@ -464,7 +479,7 @@ public class GameDataTest {
         assertEquals(0, GameData.milestoneTier(-1, 99));
         // 各職業に適性があり範囲内
         for (GameData.HeroClass c : GameData.HeroClass.values()) {
-            assertTrue(c.affinityAttr() >= 0 && c.affinityAttr() < 8);
+            assertTrue(c.affinityAttr() >= 0 && c.affinityAttr() < 10);
         }
         assertEquals(0, GameData.HeroClass.byId("samurai").affinityAttr());
         assertEquals(5, GameData.HeroClass.byId("mage").affinityAttr());

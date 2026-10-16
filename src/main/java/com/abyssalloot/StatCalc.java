@@ -30,12 +30,12 @@ public final class StatCalc {
 
     /* ---------------- 属性・祝福 ---------------- */
 
-    /** 剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧 (旧5値セーブは後ろを0埋め) */
+    /** 剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧,採掘,跳躍 (旧セーブは後ろを0埋め) */
     public static int[] attrsOf(ServerPlayer player) {
-        int[] a = new int[8];
+        int[] a = new int[10];
         try {
             String[] p = player.getData(ModAttachments.ATTRS.get()).split(",");
-            for (int i = 0; i < Math.min(8, p.length); i++) a[i] = Math.max(0, Integer.parseInt(p[i].trim()));
+            for (int i = 0; i < Math.min(10, p.length); i++) a[i] = Math.max(0, Integer.parseInt(p[i].trim()));
         } catch (Exception ignored) {}
         return a;
     }
@@ -43,7 +43,7 @@ public final class StatCalc {
 
     public static void setAttrs(ServerPlayer player, int[] a) {
         var sb = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             if (i > 0) sb.append(",");
             sb.append(i < a.length ? Math.max(0, a[i]) : 0);
         }
@@ -91,8 +91,8 @@ public final class StatCalc {
 
     /** 属性1点配分 (成功でメッセージ・職業再適用・節目告知)。GUI/コマンド共通 */
     public static boolean addAttrPoint(ServerPlayer player, int idx) {
-        if (idx < 0 || idx > 7) {
-            player.sendSystemMessage(Component.literal("§c剛力/韻律/敏捷/忍耐/幸運/集中/活力/技巧で指定"));
+        if (idx < 0 || idx > 9) {
+            player.sendSystemMessage(Component.literal("§c剛力/韻律/敏捷/忍耐/幸運/集中/活力/技巧/採掘/跳躍で指定"));
             return false;
         }
         int level = player.getData(ModAttachments.LEVEL.get());
@@ -109,7 +109,7 @@ public final class StatCalc {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         applyClass(player, cls, level);
         var msg = new StringBuilder("§a属性配分:");
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             msg.append(" ").append(GameData.ATTR_SHORT[i]).append(a[i]);
             if (cls.affinityAttr() == i) msg.append("★");
         }
@@ -142,7 +142,7 @@ public final class StatCalc {
             player.sendSystemMessage(Component.literal("§c欠片8個が足りない (所持" + RunManager.countShards(player) + ")"));
             return;
         }
-        setAttrs(player, new int[8]);
+        setAttrs(player, new int[10]);
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()));
         player.sendSystemMessage(Component.literal("§b属性を振り直した (欠片-8)。再配分は /abyss attr かステータス画面で"));
@@ -252,7 +252,7 @@ public final class StatCalc {
 
 
     public static double attackDamageOf(ServerPlayer player) {
-        return attackDamageWith(player, player.getMainHandItem());
+        return attackDamageWith(player, player.getMainHandItem()) * ArenaManager.arenaPowerMult(player);
     }
 
 

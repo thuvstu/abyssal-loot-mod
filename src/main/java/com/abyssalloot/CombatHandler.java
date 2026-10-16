@@ -393,17 +393,18 @@ public final class CombatHandler {
             player.displayClientMessage(Component.literal("§b深淵の恵み: 魂の欠片+1"), true);
         };
         if (held == ModItems.ABYSS_PICKAXE.get()) {
-            // 鉱石から12%で欠片
-            if (path.contains("ore") && rand.nextDouble() < 0.12) bonus.run();
+            // 鉱石から12%で欠片 (採掘属性で+0.5%/点)
+            if (path.contains("ore") && rand.nextDouble() < 0.12 + StatCalc.attrEff(player, 8) * 0.005) bonus.run();
         } else if (held == ModItems.ABYSS_TOOL_AXE.get()) {
-            // 原木・幹から10%で欠片
-            if ((path.contains("log") || path.contains("stem")) && rand.nextDouble() < 0.10) {
+            // 原木・幹から10%で欠片 (採掘属性で+0.5%/点)
+            if ((path.contains("log") || path.contains("stem"))
+                    && rand.nextDouble() < 0.10 + StatCalc.attrEff(player, 8) * 0.005) {
                 bonus.run();
             }
         } else if (held == ModItems.ABYSS_SHOVEL.get()) {
-            // 土・砂・砂利から8%で欠片
+            // 土・砂・砂利から8%で欠片 (採掘属性で+0.5%/点)
             if ((path.contains("dirt") || path.contains("sand") || path.contains("gravel"))
-                    && rand.nextDouble() < 0.08) {
+                    && rand.nextDouble() < 0.08 + StatCalc.attrEff(player, 8) * 0.005) {
                 bonus.run();
             }
         } else if (held == ModItems.ABYSS_HOE.get()) {
@@ -686,6 +687,11 @@ public final class CombatHandler {
             if (ModItems.slotOf(legs.getItem()) != null
                     && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
                 event.setNewDamage(event.getNewDamage() * 0.75f);
+            }
+            // 跳躍属性: 落下軽減 (最大-40%)
+            if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                event.setNewDamage(event.getNewDamage()
+                        * (float) (1 - Math.min(0.4, StatCalc.attrEff(player, 9) * 0.02)));
             }
             // 恩寵「障壁の刻印」: 立ち止まると軽減が上がる (動いていなければ +8%/Lv)
             if (RunManager.boonLv(player, "warden") > 0
@@ -1076,7 +1082,8 @@ public final class CombatHandler {
             return false;
         }
         if (WeaponArts.execute(player, style,
-                StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player))) {
+                StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player)
+                        * GameData.skillTierMult(player.getData(ModAttachments.LEVEL.get())))) {
             // 恩寵「残響の刻印」: 奥義後に25%/Lvで魂ゲージが半分残る
             if (player.getRandom().nextFloat() < 0.25 * RunManager.boonLv(player, "echo")) {
                 player.setData(ModAttachments.SOUL.get(), 50f);
@@ -1086,6 +1093,10 @@ public final class CombatHandler {
             }
             int uses = player.getData(ModAttachments.ART_USES.get()) + 1;
             player.setData(ModAttachments.ART_USES.get(), uses);
+            String artTier = GameData.skillTierName(player.getData(ModAttachments.LEVEL.get()));
+            if (!artTier.isEmpty()) {
+                player.displayClientMessage(Component.literal("§d奥義解放" + artTier + "！"), true);
+            }
             if (uses >= 10) {
                 var a = GameData.achievementById("art-master");
                 grantAch(player, "art-master", a.title(), GameData.shardsForReward(a.reward()));
@@ -1105,9 +1116,15 @@ public final class CombatHandler {
         }
         GameData.HeroClass cls =
                 GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        int lv = player.getData(ModAttachments.LEVEL.get());
         WeaponArts.executeSkill(player, cls,
-                StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player));
+                StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player)
+                        * GameData.skillTierMult(lv));
         player.setData(ModAttachments.SKILL_CD.get(), 25f);
+        String tierName = GameData.skillTierName(lv);
+        if (!tierName.isEmpty()) {
+            player.displayClientMessage(Component.literal("§d必殺技解放" + tierName + "！"), true);
+        }
     }
 
     /** 無敵・ダッシュCT・反撃窓の減衰 + ボスバー更新 + 罠 */
@@ -1332,7 +1349,7 @@ public final class CombatHandler {
         }
     }
 
-    /** 回避ダッシュ: 前方6m瞬動 + 0.5秒無敵 (原作dashの簡易版) */
+    /** 回避ダッシュ: 移動方向へ6m瞬動 + 0.5秒無敵 (原作dashの簡易版)。静止時は前方 */
     public static void dash(ServerPlayer player) {
         float cd = player.getData(ModAttachments.DASH_CD.get());
         if (cd > 0) {
@@ -1340,8 +1357,15 @@ public final class CombatHandler {
                     Component.literal(String.format("§7回避CT %.1fs", cd)), true);
             return;
         }
-        Vec3 look = player.getLookAngle();
-        Vec3 dest = player.position().add(look.x * 6, 0, look.z * 6);
+        Vec3 mot = player.getDeltaMovement();
+        Vec3 dir;
+        if (mot.horizontalDistanceSqr() > 0.004) {
+            dir = new Vec3(mot.x, 0, mot.z).normalize();
+        } else {
+            Vec3 look = player.getLookAngle();
+            dir = new Vec3(look.x, 0, look.z).normalize();
+        }
+        Vec3 dest = player.position().add(dir.scale(6));
         player.teleportTo(dest.x, dest.y, dest.z);
         player.setData(ModAttachments.IFRAME.get(), 0.5f);
         // 原作: 職業別の回避CT. 敏捷1点につき-1% (下限0.28秒)。
@@ -1379,8 +1403,8 @@ public final class CombatHandler {
                 player.getData(ModAttachments.KILLS.get()),
                 style != null ? style.artName : "武器を持ってね")));
         player.sendSystemMessage(Component.literal(String.format(
-                "§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d §8| §7祝福%s §8| §7層主 %s",
-                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7],
+                "§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d 採%d 跳%d §8| §7祝福%s §8| §7層主 %s",
+                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
                 RunManager.boonsOf(player).toString(),
                 player.getData(ModAttachments.BOSSES.get()))));
         player.sendSystemMessage(Component.literal(String.format(

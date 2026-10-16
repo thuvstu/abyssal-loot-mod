@@ -11,7 +11,7 @@ import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
  * {@link ModPackets.StatusSync} で送る。属性ボタン付き (未配分点の割振り)。
  */
 public class StatusScreen extends Screen {
-    private static final String[] ATTRS = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技"};
+    private static final String[] ATTRS = {"剛", "韻", "敏", "忍", "幸", "集", "活", "技", "採", "跳"};
 
     public StatusScreen() {
         super(Component.literal("ステータス"));
@@ -25,16 +25,18 @@ public class StatusScreen extends Screen {
 
     @Override
     protected void init() {
-        // 属性行の右側に縦に5ボタンを配置 (テキストと被りにくい余白側)
+        // 属性行の右側に2列×5行で配置 (10属性対応)
         int y = attrY() - 44;
         for (int i = 0; i < ATTRS.length; i++) {
             final int idx = i;
+            int col = i / 5;
+            int row = i % 5;
             addRenderableWidget(Button.builder(Component.literal("+" + ATTRS[i]), b -> {
                 var conn = net.minecraft.client.Minecraft.getInstance().getConnection();
                 if (conn != null) {
                     conn.send(new ServerboundCustomPayloadPacket(new ModPackets.AttrPacket(idx)));
                 }
-            }).bounds(width / 2 + 118, y + i * 22, 34, 20).build());
+            }).bounds(width / 2 + 118 + col * 38, y + row * 22, 34, 20).build());
         }
         addRenderableWidget(Button.builder(Component.literal("閉じる"), b -> onClose())
                 .bounds(width / 2 - 40, height - 30, 80, 20).build());

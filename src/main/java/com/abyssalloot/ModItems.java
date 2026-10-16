@@ -326,6 +326,12 @@ public final class ModItems {
         return new ItemStack(all.get(rand.nextInt(all.size())).get());
     }
 
+        /** 生活ツール判定 (採掘属性の疾走効果用) */
+    public static boolean isTool(Item item) {
+        return item == ABYSS_PICKAXE.get() || item == ABYSS_TOOL_AXE.get()
+                || item == ABYSS_SHOVEL.get() || item == ABYSS_HOE.get();
+    }
+
     /** 手持ちItem -> 武器種 の逆引き */
     public static GameData.WeaponStyle styleOf(Item item) {
         if (item == ABYSS_SWORD.get()) return GameData.WeaponStyle.SWORD;

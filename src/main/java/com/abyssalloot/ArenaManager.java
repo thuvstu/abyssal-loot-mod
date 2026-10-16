@@ -33,6 +33,21 @@ public final class ArenaManager {
     public static final int WALL_H = 5;
 
 
+    /**
+     * 戦闘威力のアリーナ補正。アリーナ内なら特攻1.5倍、範囲外・非出撃時は0.5倍に抑制。
+     * バニラ基準に寄せつつ、アリーナでは強く遊べるよう調整する。
+     */
+    public static double arenaPowerMult(ServerPlayer player) {
+        if (!RunManager.isRunLocked(player)) return 0.5;
+        BlockPos center = arenaCenterOf(player);
+        if (center == null) return 0.5;
+        double dx = player.getX() - (center.getX() + 0.5);
+        double dz = player.getZ() - (center.getZ() + 0.5);
+        double r = ARENA_R + 8;
+        return (dx * dx + dz * dz <= r * r) ? 1.5 : 0.5;
+    }
+
+
     /** 区域ごとの床ブロック (見た目で深層帯が分かる) */
     private static net.minecraft.world.level.block.Block floorBlockFor(String zoneId) {
         return switch (zoneId) {

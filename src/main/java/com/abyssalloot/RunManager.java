@@ -1729,6 +1729,19 @@ public final class RunManager {
             player.displayClientMessage(Component.literal("§b防具を変更: ステータス再計算"), true);
         }
         long t = level.getGameTime();
+        // 生活属性: 採掘=保持ツールで掘削加速 / 跳躍=常時跳躍力 (40tickごとに更新)
+        if (t % 40 == 0) {
+            double mine = StatCalc.attrEff(player, 8);
+            if (mine > 0 && ModItems.isTool(player.getMainHandItem().getItem())) {
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 70,
+                        Math.min(2, (int) (mine / 10)), false, false));
+            }
+            double jump = StatCalc.attrEff(player, 9);
+            if (jump > 0) {
+                player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 70,
+                        Math.min(2, (int) (jump / 12)), false, false));
+            }
+        }
         // 防具スキル (tick系)。兜: 危険感知・水の加護 / 鎧: 聖盾
         var helm = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
         var helmSkill = GearData.skillOf(helm);
@@ -1825,8 +1838,8 @@ public final class RunManager {
                 player.getHealth(), player.getMaxHealth(),
                 player.getData(ModAttachments.KILLS.get()),
                 style != null ? style.artName : "武器を持ってね"));
-        out.add(String.format("§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d",
-                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
+        out.add(String.format("§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d 採%d 跳%d",
+                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]));
         out.add("§7適性: " + GameData.ATTR_NAMES[cls.affinityAttr()] + "★ (効果1.5倍) / 節目 10・20・30点");
         out.add("§7祝福 " + boonsOf(player));
         out.add("§7層主 " + player.getData(ModAttachments.BOSSES.get()));
