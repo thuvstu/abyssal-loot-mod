@@ -54,13 +54,14 @@ WHITE = (255, 255, 255, 255)
 
 
 def _dia_blade(d, x0, y0, x1, y1, accent):
-    """斜め刃の基本形: 幅3の鋼 + 樋 + 切先 + 煌き。握り側(x0,y0)→切先(x1,y1)"""
+    """斜め刃の基本形: 幅3の鋼 + 樋 + 切先 + 二重煌き。握り側(x0,y0)→切先(x1,y1)"""
     line(d, [(x0, y0), (x1, y1)], STEEL_LIGHT, 3)
     line(d, [(x0, y0), (x1, y1)], STEEL, 1)
     d.line([(x0 + 1, y0), (x1, y1 - 1)], fill=STEEL_DARK, width=1)  # 樋
     tx, ty = x1 + 1, y1 - 1
     poly(d, [(x1 - 1, y1 + 1), (tx + 1, ty - 1), (x1 + 1, y1 + 3)], STEEL_LIGHT)  # 切先
-    d.point((x0 + (x1 - x0) * 2 // 3, y0 + (y1 - y0) * 2 // 3), fill=WHITE)  # 煌き
+    d.point((x0 + (x1 - x0) * 2 // 3, y0 + (y1 - y0) * 2 // 3), fill=WHITE)  # 煌き (中央)
+    d.point((x0 + (x1 - x0) * 5 // 6, y0 + (y1 - y0) * 5 // 6), fill=WHITE)  # 煌き (切先側)
     d.point((x0 + (x1 - x0) // 3 + 1, y0 + (y1 - y0) // 3), fill=accent)
 
 
@@ -464,27 +465,37 @@ def war_horn(accent):
 
 def wind_blade(accent):
     img, d = canvas()
-    # 回転する風輪 (2枚の弧) + 中心核
+    # 回転する風輪 (2枚の弧) + 中心核 + 風の走り
     d.arc([1, 1, 14, 14], start=200, end=330, fill=OUTLINE, width=4)
     d.arc([2, 2, 13, 13], start=200, end=330, fill=STEEL_LIGHT, width=2)
     d.arc([1, 1, 14, 14], start=20, end=150, fill=OUTLINE, width=4)
     d.arc([2, 2, 13, 13], start=20, end=150, fill=STEEL_LIGHT, width=2)
     d.arc([2, 2, 13, 13], start=30, end=70, fill=accent, width=1)  # 風の走り
     d.arc([2, 2, 13, 13], start=210, end=250, fill=accent, width=1)
-    d.ellipse([6, 6, 9, 9], fill=accent, outline=OUTLINE)
-    d.point((7, 7), fill=WHITE)
+    d.line([(4, 1), (7, 1)], fill=accent, width=1)  # 残風 (左上)
+    d.line([(11, 14), (14, 12)], fill=accent, width=1)  # 残風 (右下)
+    d.point((2, 6), fill=WHITE)
+    d.ellipse([5, 5, 10, 10], fill=OUTLINE)          # 核の外輪
+    d.ellipse([6, 6, 9, 9], fill=accent)
+    d.ellipse([7, 7, 8, 8], fill=OUTLINE)            # 核の目玉
+    d.point((7, 6), fill=WHITE)
     return img
 
 
 def ember_flail(accent):
     img, d = canvas()
     line(d, [(8, 15), (8, 11)], WOOD_DARK, 2)  # 握り
-    for x, y in ((8, 10), (7, 8), (9, 6), (8, 4)):  # 鎖
-        d.ellipse([x - 1, y - 1, x + 1, y + 1], outline=STEEL_DARK)
+    for i, (x, y) in enumerate(((8, 10), (7, 8), (9, 6), (8, 4))):  # 鎖 (明暗交互)
+        link = STEEL_DARK if i % 2 else STEEL
+        d.ellipse([x - 1, y - 1, x + 1, y + 1], outline=link)
+        if i % 2:
+            d.point((x, y), fill=WHITE)
     d.ellipse([4, 0, 12, 6], fill=OUTLINE)  # 分銅頭
     d.ellipse([5, 1, 11, 5], fill=STEEL_LIGHT)
     d.ellipse([6, 2, 10, 4], fill=accent)  # 焔核
     d.line([(6, 1), (10, 1)], fill=WHITE, width=1)
+    d.point((4, 7), fill=accent)  # 飛び火
+    d.point((12, 8), fill=accent)
     d.point((10, 11), fill=accent)
     return img
 
@@ -499,6 +510,9 @@ def astral_lance(accent):
     d.point((9, 5), fill=accent)
     d.point((11, 9), fill=accent)  # 流星の尾
     d.point((10, 11), fill=WHITE)
+    d.point((3, 3), fill=WHITE)      # 小星
+    d.point((5, 1), fill=accent)
+    d.point((1, 6), fill=accent)
     return img
 
 
@@ -515,20 +529,26 @@ def tide_trident(accent):
     poly(d, [(3, 0), (5, 0), (4, 3)], STEEL_LIGHT)  # 左穂
     poly(d, [(11, 0), (13, 0), (12, 3)], STEEL_LIGHT)
     poly(d, [(7, 0), (9, 0), (8, 3)], STEEL_LIGHT)
+    d.arc([1, 9, 6, 14], start=200, end=330, fill=accent, width=1)  # 渦の走り
     d.point((4, 5), fill=accent)
     d.point((12, 5), fill=accent)
     d.point((8, 5), fill=WHITE)
+    d.point((14, 12), fill=WHITE)  # 水滴
     return img
 
 
 def aegis(color):
-    """巨壁の粉 (盾紋章の袋)"""
+    """巨壁の粉 (盾紋章の袋。青の輪を太く見せる)"""
     img, d = canvas()
     poly(d, [(4, 2), (11, 2), (12, 8), (8, 15), (4, 8)], OUTLINE)
     poly(d, [(5, 3), (10, 3), (11, 8), (8, 13), (5, 8)], color)
     poly(d, [(6, 4), (9, 4), (10, 8), (8, 11), (6, 8)], (238, 240, 248, 255))
+    d.line([(6, 4), (6, 8)], fill=color, width=1)      # 内枠の青
+    d.line([(10, 4), (10, 8)], fill=color, width=1)
     d.point((8, 6), fill=color)
     d.point((8, 7), fill=WHITE)
+    d.point((4, 11), fill=GOLD)                        # 腰当ての金具
+    d.point((11, 11), fill=GOLD)
     return img
 
 
@@ -726,27 +746,38 @@ WEAPONS = {
 }
 
 
+def _liquid_shade(c, k=0.7):
+    """液体の底下り (濃色)"""
+    return (max(0, int(c[0] * k)), max(0, int(c[1] * k)), max(0, int(c[2] * k)), 255)
+
+
 def flask(liquid):
-    """回復薬フラスコ"""
+    """回復薬フラスコ (液面の沈み・気泡つき)"""
     img, d = canvas()
     d.ellipse([3, 6, 12, 15], fill=OUTLINE)
     d.ellipse([4, 7, 11, 14], fill=liquid)
+    d.rectangle([5, 11, 10, 14], fill=_liquid_shade(liquid))  # 液面の底下
     d.ellipse([5, 8, 7, 10], fill=WHITE)
+    d.point((9, 12), fill=WHITE)  # 気泡
     d.rectangle([6, 1, 9, 6], fill=OUTLINE)  # 首
     d.rectangle([7, 2, 8, 5], fill=WOOD)
     d.rectangle([6, 0, 9, 1], fill=GOLD)  # 栓
+    d.point((7, 0), fill=(255, 240, 200, 255))  # 栓の照り
     return img
 
 
 def vial(liquid):
-    """細首の薬瓶"""
+    """細首の薬瓶 (キャップ金具・底色・気泡つき)"""
     img, d = canvas()
     d.rectangle([5, 5, 10, 14], fill=OUTLINE)
     d.rectangle([6, 6, 9, 13], fill=liquid)
+    d.rectangle([6, 10, 9, 13], fill=_liquid_shade(liquid))  # 底の沈み
     d.line([(6, 6), (6, 13)], fill=WHITE, width=1)
+    d.point((8, 7), fill=WHITE)  # 気泡
     d.rectangle([6, 1, 9, 5], fill=OUTLINE)
-    d.rectangle([7, 2, 8, 4], fill=WOOD_DARK)
-    d.point((8, 8), fill=WHITE)
+    d.rectangle([6, 2, 9, 3], fill=GOLD)  # キャップ金具
+    d.rectangle([7, 3, 8, 4], fill=WOOD_DARK)
+    d.point((7, 2), fill=(255, 240, 200, 255))
     return img
 
 
@@ -755,21 +786,30 @@ def orb(liquid):
     img, d = canvas()
     d.ellipse([3, 3, 12, 14], fill=OUTLINE)
     d.ellipse([4, 4, 11, 13], fill=liquid)
+    d.ellipse([4, 10, 11, 13], fill=_liquid_shade(liquid))  # 底の沈み
     d.ellipse([6, 5, 8, 7], fill=WHITE)
     d.point((9, 10), fill=WHITE)
-    d.point((5, 11), fill=liquid)
+    d.point((5, 11), fill=_liquid_shade(liquid, 0.55))
     return img
 
 
-def bomb(color):
-    """爆弾 (導火線つき黒玉+色帯)"""
+def bomb(color, crown=False):
+    """爆弾 (導火線つき黒玉+色帯+飛び火)。crown=True で炎の冠 (業火弾)"""
     img, d = canvas()
     d.ellipse([2, 5, 13, 15], fill=OUTLINE)
     d.ellipse([3, 6, 12, 14], fill=(35, 30, 45, 255))
     d.arc([4, 7, 11, 13], start=90, end=200, fill=color, width=2)
     d.line([(9, 5), (12, 1)], fill=WOOD, width=1)  # 導火線
     d.point((12, 1), fill=(255, 200, 80, 255))  # 火花
+    d.point((12, 2), fill=(255, 110, 40, 255))  # 火花の暈
+    d.point((10, 1), fill=(255, 240, 180, 255))
+    if crown:
+        for x, h in ((8, 3), (10, 2), (12, 4)):  # 炎の冠
+            c = (255, 240, 180, 255) if h == 4 else (255, 150, 50, 255)
+            d.rectangle([x, 3 - h, x, 3 - 1], fill=c) if h > 1 else d.point((x, 3 - h), fill=c)
+        d.point((11, 0), fill=WHITE)
     d.point((5, 8), fill=WHITE)
+    d.point((10, 9), fill=WHITE)
     return img
 
 
@@ -846,9 +886,10 @@ CONSUMABLES = {
     "abyss_smoke": (bomb, 0x8a8a95, "generated"),
     "abyss_berserk": (vial, 0xd84a6a, "generated"),
     "abyss_bulwark": (aegis, 0x6a8cff, "generated"),
-    "abyss_bomb_h": (bomb, 0xff7a2a, "generated"),
+    "abyss_bomb_h": None,  # 炎の冠つき (下で差し替え)
     "abyss_fortune": (pouch, 0xffd23c, "generated"),
 }
+CONSUMABLES["abyss_bomb_h"] = (lambda c: bomb(c, crown=True), 0xff4a2a, "generated")
 
 NEWMATS = {
     "abyss_blood_crystal": 0xff2a55,
