@@ -80,6 +80,14 @@ public final class Boons {
             new BoonDef("b_flat", "鉄槌の祝福", "攻撃力 +8", "common"),
             new BoonDef("b_vital", "生命の祝福", "最大HP +30", "common"),
             new BoonDef("b_drain", "吸魂の祝福", "生命吸収 +5% / 攻撃力 +10%", "epic"),
+            new BoonDef("b_hawk", "鷲翼の祝福", "移動速度 +15% / 攻撃力 +8%", "common"),
+            new BoonDef("b_aegis", "護りの祝福", "ダメージ軽減 +14%", "common"),
+            new BoonDef("b_inferno", "灼熱の祝福", "爆裂確率 +18% / 攻撃力 +4%", "rare"),
+            new BoonDef("b_squall", "嵐の祝福", "攻撃速度 +8% / 攻撃範囲 +10%", "common"),
+            new BoonDef("b_luna", "月影の祝福", "会心率 +4% / 会心威力 +20%", "rare"),
+            new BoonDef("b_midas", "黄金の祝福", "運 +15 / HP回復 +0.5/秒", "common"),
+            new BoonDef("b_web", "蛛巣の祝福", "氷結確率 +15% / 連鎖雷撃 +1", "rare"),
+            new BoonDef("b_giant", "巨人の祝福", "最大HP +18% / 最大HP +25", "common"),
     };
 
     public static BoonDef boonById(String id) {

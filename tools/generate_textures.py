@@ -462,6 +462,88 @@ def war_horn(accent):
     return img
 
 
+def wind_blade(accent):
+    img, d = canvas()
+    # 回転する風輪 (2枚の弧) + 中心核
+    d.arc([1, 1, 14, 14], start=200, end=330, fill=OUTLINE, width=4)
+    d.arc([2, 2, 13, 13], start=200, end=330, fill=STEEL_LIGHT, width=2)
+    d.arc([1, 1, 14, 14], start=20, end=150, fill=OUTLINE, width=4)
+    d.arc([2, 2, 13, 13], start=20, end=150, fill=STEEL_LIGHT, width=2)
+    d.arc([2, 2, 13, 13], start=30, end=70, fill=accent, width=1)  # 風の走り
+    d.arc([2, 2, 13, 13], start=210, end=250, fill=accent, width=1)
+    d.ellipse([6, 6, 9, 9], fill=accent, outline=OUTLINE)
+    d.point((7, 7), fill=WHITE)
+    return img
+
+
+def ember_flail(accent):
+    img, d = canvas()
+    line(d, [(8, 15), (8, 11)], WOOD_DARK, 2)  # 握り
+    for x, y in ((8, 10), (7, 8), (9, 6), (8, 4)):  # 鎖
+        d.ellipse([x - 1, y - 1, x + 1, y + 1], outline=STEEL_DARK)
+    d.ellipse([4, 0, 12, 6], fill=OUTLINE)  # 分銅頭
+    d.ellipse([5, 1, 11, 5], fill=STEEL_LIGHT)
+    d.ellipse([6, 2, 10, 4], fill=accent)  # 焔核
+    d.line([(6, 1), (10, 1)], fill=WHITE, width=1)
+    d.point((10, 11), fill=accent)
+    return img
+
+
+def astral_lance(accent):
+    img, d = canvas()
+    line(d, [(2, 15), (9, 8)], WOOD, 1)  # 柄
+    poly(d, [(9, 2), (13, 6), (10, 9)], STEEL_LIGHT)  # 槍身
+    poly(d, [(10, 4), (12, 6), (10, 8)], STEEL)
+    d.ellipse([12, 1, 15, 4], fill=accent, outline=OUTLINE)  # 星
+    d.point((13, 2), fill=WHITE)
+    d.point((9, 5), fill=accent)
+    d.point((11, 9), fill=accent)  # 流星の尾
+    d.point((10, 11), fill=WHITE)
+    return img
+
+
+def tide_trident(accent):
+    img, d = canvas()
+    line(d, [(8, 15), (8, 7)], WOOD, 2)
+    line(d, [(4, 3), (4, 12)], STEEL_DARK, 1)  # 左股
+    line(d, [(12, 3), (12, 12)], STEEL_DARK, 1)
+    line(d, [(4, 12), (8, 14)], STEEL_DARK, 1)
+    line(d, [(12, 12), (8, 14)], STEEL_DARK, 1)
+    line(d, [(4, 3), (4, 6)], STEEL_LIGHT, 2)
+    line(d, [(12, 3), (12, 6)], STEEL_LIGHT, 2)
+    line(d, [(8, 2), (8, 8)], STEEL_LIGHT, 2)  # 中股
+    poly(d, [(3, 0), (5, 0), (4, 3)], STEEL_LIGHT)  # 左穂
+    poly(d, [(11, 0), (13, 0), (12, 3)], STEEL_LIGHT)
+    poly(d, [(7, 0), (9, 0), (8, 3)], STEEL_LIGHT)
+    d.point((4, 5), fill=accent)
+    d.point((12, 5), fill=accent)
+    d.point((8, 5), fill=WHITE)
+    return img
+
+
+def aegis(color):
+    """巨壁の粉 (盾紋章の袋)"""
+    img, d = canvas()
+    poly(d, [(4, 2), (11, 2), (12, 8), (8, 15), (4, 8)], OUTLINE)
+    poly(d, [(5, 3), (10, 3), (11, 8), (8, 13), (5, 8)], color)
+    poly(d, [(6, 4), (9, 4), (10, 8), (8, 11), (6, 8)], (238, 240, 248, 255))
+    d.point((8, 6), fill=color)
+    d.point((8, 7), fill=WHITE)
+    return img
+
+
+def pouch(color):
+    """幸運の粉 (首括りの袋)"""
+    img, d = canvas()
+    poly(d, [(5, 5), (11, 5), (13, 12), (8, 15), (3, 12)], OUTLINE)
+    poly(d, [(6, 6), (10, 6), (12, 12), (8, 13), (4, 12)], color)
+    d.line([(5, 5), (8, 1), (11, 5)], fill=OUTLINE, width=2)
+    d.line([(6, 5), (8, 2), (10, 5)], fill=GOLD, width=1)
+    d.point((7, 8), fill=WHITE)
+    d.point((9, 10), fill=WHITE)
+    return img
+
+
 def fishing_rod(accent):
     img, d = canvas()
     line(d, [(2, 14), (12, 2)], WOOD, 1)  # 竿
@@ -631,6 +713,10 @@ WEAPONS = {
     "abyss_greatsword": (greatsword, 0xe9e3d5, "handheld"),
     "abyss_twin_dagger": (twin_dagger, 0xffe14a, "handheld"),
     "abyss_war_horn": (war_horn, 0xffd092, "handheld"),
+    "abyss_wind_blade": (wind_blade, 0x9fe8d8, "handheld"),
+    "abyss_ember_flail": (ember_flail, 0xff8a3c, "handheld"),
+    "abyss_astral_lance": (astral_lance, 0xffe9a8, "handheld"),
+    "abyss_tide_trident": (tide_trident, 0x7cd8ff, "handheld"),
     "abyss_fishing_rod": (fishing_rod, 0x7ce8ff, "handheld"),
     "abyss_shears": (shears, 0xb28ce0, "handheld"),
     "abyss_pickaxe": (pickaxe, 0xb28ce0, "handheld"),
@@ -758,6 +844,10 @@ CONSUMABLES = {
     "abyss_reveal": (scroll, 0xffffff, "generated"),
     "abyss_feast": (feast, 0xffffff, "generated"),
     "abyss_smoke": (bomb, 0x8a8a95, "generated"),
+    "abyss_berserk": (vial, 0xd84a6a, "generated"),
+    "abyss_bulwark": (aegis, 0x6a8cff, "generated"),
+    "abyss_bomb_h": (bomb, 0xff7a2a, "generated"),
+    "abyss_fortune": (pouch, 0xffd23c, "generated"),
 }
 
 NEWMATS = {

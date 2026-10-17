@@ -119,7 +119,11 @@ public final class GameData {
         WAND("wand", "ワンド", "魔弾連星", "10連の自動魔弾を放つ", 0xd6b8ff),
         GREATSWORD("greatsword", "大剣", "天地断", "広域を薙ぎ払い衝撃波", 0xe9e3d5),
         TWIN_DAGGER("twin_dagger", "双短剣", "乱舞連牙", "周囲へ8連の牙", 0xffe14a),
-        WAR_HORN("war_horn", "戦角", "大雄叫び", "吹き飛ばし+雄叫び強化", 0xffd092);
+        WAR_HORN("war_horn", "戦角", "大雄叫び", "吹き飛ばし+雄叫び強化", 0xffd092),
+        WIND_BLADE("wind_blade", "風輪双刃", "千風乱舞", "3波の風輪が拡大して薙ぎ払う", 0x9fe8d8),
+        EMBER_FLAIL("ember_flail", "焔鎖鞭", "炎獄旋回", "炎の鎖を左右に薙ぎ最後に爆気", 0xff8a3c),
+        ASTRAL_LANCE("astral_lance", "星輝槍", "鋼星乱嵐", "星槍を乱れ打ち極大の一撃で締める", 0xffe9a8),
+        TIDE_TRIDENT("tide_trident", "潮王戟", "静潮・大渦", "渦で引き寄せ潮波で押し流す", 0x7cd8ff);
 
         public final String id;
         public final String weaponName;
@@ -371,7 +375,13 @@ public final class GameData {
             new Mutation("swarm", "群れの層", "敵が数重ねて押し寄せる。",
                     0.85, 0.95, 1.12, 1.65, 0.90, 1.2, 1.1, false),
             new Mutation("champion", "強者の巡礼地", "鍛え上げた強敵に出会いやすい。",
-                    1.12, 1.15, 1.04, 0.95, 2.30, 1.3, 1.5, false));
+                    1.12, 1.15, 1.04, 0.95, 2.30, 1.3, 1.5, false),
+            new Mutation("silence", "静寂の回廊", "沈黙が支配する層。敵は少ないが分配質が強い。",
+                    0.90, 1.00, 0.90, 0.80, 1.10, 1.40, 1.20, false),
+            new Mutation("maldust", "呪塵の層", "呪われた粉塵が漂う。敵は手強く、戦利品も濃い。",
+                    1.00, 1.25, 1.00, 1.05, 1.15, 1.25, 1.50, false),
+            new Mutation("vendetta", "因縁の刻", "宿敵たちが殺到する。精鋭率が跳ね上がる。",
+                    0.95, 1.10, 1.15, 1.00, 2.20, 1.30, 1.30, false));
 
     public static Mutation mutationById(String id) {
         for (Mutation m : MUTATIONS) {
@@ -478,7 +488,8 @@ public final class GameData {
             new Warden("幽玄の番人・ルファ", "迷い込んだ者を静かに刈り取る。", 4.6, 1.9),
             new Warden("窮獄の番人・メズ", "深淵の責め苦が仇成す者。", 5.8, 2.0),
             new Warden("永劫の番人・ノヴォ", "何人かの冒険者の記憶が人の形を模した。", 6.2, 2.2),
-            new Warden("戸惑の番人・ツイマ", "あらゆる扉の先にその知識が宿る。", 6.8, 2.4));
+            new Warden("戸惑の番人・ツイマ", "あらゆる扉の先にその知識が宿る。", 6.8, 2.4),
+            new Warden("灰燼の番人・ヴォスク", "焼け残った囁きが鎧の形をなした。", 7.5, 2.6));
 
     /** 原作 isWardenFloor: ボス層・真層を除く 3/8 層 */
     public static boolean isWardenFloor(int floor) {
@@ -497,7 +508,8 @@ public final class GameData {
             new Zone("forge", "溶鉄の炉", "天井から火花が降る。熱で視界が歪む。", 11, 15, 3, 1.0, 1.12, true, 0, 0),
             new Zone("glacier", "氷結の深層", "床が氷だ。足が言うことを聞かない。", 16, 20, 2, 1.1, 1.0, false, 0, 1.85),
             new Zone("voidheart", "虚無の心臓", "空間が軋み、全てが内側へ引き込まれる。", 21, 25, 3, 1.14, 1.28, false, 46, 0),
-            new Zone("nihil", "真の深淵", "ここには何もない。帰る場所も。", 26, 28, 0, 1.0, 1.0, false, 0, 0));
+            new Zone("nihil", "真の深淵", "ここには何もない。帰る場所も。", 26, 28, 0, 1.0, 1.0, false, 0, 0),
+            new Zone("lower_abyss", "果て無き深底", "終わらない下層。虚無がさらに沈んでいく。", 29, Integer.MAX_VALUE, 3, 1.16, 1.25, false, 56, 0));
 
     public static Zone zoneForFloor(int floor) {
         for (Zone z : ZONES) {
@@ -530,7 +542,13 @@ public final class GameData {
             new Relic("r_bomb", "爆薬庫", "爆裂確率 +15%", null),
             new Relic("r_boot", "疾風の靴", "移動速度 +12%", null),
             new Relic("r_spring", "生命の泉", "HP自動回復 +2/秒", null),
-            new Relic("r_star", "星屑の冠", "運 +25", null));
+            new Relic("r_star", "星屑の冠", "運 +25", null),
+            new Relic("r_gale", "疾風の触角", "攻撃速度 +15% / 移動速度 +8%", null),
+            new Relic("r_moon", "月璋", "会心率 +10% / 会心威力 +22%", null),
+            new Relic("r_core", "星の核", "攻撃範囲 +20% / 貫通 +1", null),
+            new Relic("r_flame", "焦土の指輪", "爆裂確率 +25% / 攻撃力 +6%", null),
+            new Relic("r_tide", "潮の腕輪", "ダメージ軽減 +8% / 最大HP +10%", null),
+            new Relic("r_grail", "残響の聖杯", "魂ゲージ増加 +35% / HP回復 +1/秒", null));
 
     public static Relic relicById(String id) {
         for (Relic r : RELICS) {
@@ -598,7 +616,15 @@ public final class GameData {
             new Passive("bomber", "爆弾魔", "爆裂確率 +15% / 軽減 -5%", "minor", null),
             new Passive("vampire", "吸血鬼", "生命吸収 +4% / 最大HP -8%", "major", null),
             new Passive("freezer", "凍結師", "氷結確率 +20% / 攻撃速度 -5%", "minor", null),
-            new Passive("berserk", "狂化", "攻撃力 +45% / 軽減 -15% / 最大HP -15%", "cursed", null));
+            new Passive("berserk", "狂化", "攻撃力 +45% / 軽減 -15% / 最大HP -15%", "cursed", null),
+            new Passive("hellfire", "獄炎", "攻撃力 +30% / 爆裂 +20% / 最大HP -10%", "major", null),
+            new Passive("moon_gaze", "月睫", "会心率 +15% / 魂ゲージ +15% / 軽減 -6%", "major", null),
+            new Passive("ironhide", "鉄皮", "軽減 +18% / 移動 -8%", "minor", null),
+            new Passive("phantom", "幻影", "移動 +25% / 攻撃力 -10%", "minor", null),
+            new Passive("gluttony", "暴食", "生命吸収 +8% / 攻撃力 +10% / 最大HP -12%", "major", null),
+            new Passive("ascension", "昇華", "魂ゲージ +40% / 軽減 -10%", "major", null),
+            new Passive("plague", "疫病", "氷結 +30% / 攻撃力 -12%", "minor", null),
+            new Passive("titan_heart", "巨心", "最大HP +30% / 攻撃力 -8%", "minor", null));
 
     public static Passive passiveById(String id) {
         for (Passive p : PASSIVES) {
@@ -758,7 +784,15 @@ public final class GameData {
             new Achievement("rush-master", "巡礼の果て", "主の巡礼で8体の層主を撃破", 1800, "mythic"),
             new Achievement("endless-diver", "限界の先", "無限深淵で第35層へ到達", 2200, "mythic"),
             new Achievement("pinnacle-god", "終焉を穿つ者", "終焉の座でタルタロス・オメガを討ち果たす", 10000, "mythic"),
-            new Achievement("inferno-slayer", "阿鼻叫喚を制す", "難易度【阿鼻叫喚】で第15層へ到達する", 4000, "mythic"));
+            new Achievement("inferno-slayer", "阿鼻叫喚を制す", "難易度【阿鼻叫喚】で第15層へ到達する", 4000, "mythic"),
+            new Achievement("combo-hundred", "百連撃", "1回の冒険で100コンボ達成", 1000, "mythic"),
+            new Achievement("perfect-twenty", "見切りの達人", "1回の冒険で20回見切る", 450, "gold"),
+            new Achievement("harvest-ten", "大豊作", "刈り取りを10回成功させる", 400, "gold"),
+            new Achievement("boss-five", "序列の主", "1回の冒険で5体の層主を撃破", 700, "gold"),
+            new Achievement("event-ten", "祭壇の常連", "層間イベントを10回完了", 400, "silver"),
+            new Achievement("kills-five-thousand", "五千斬", "1回の冒険で5,000体撃破", 2200, "mythic"),
+            new Achievement("endless-fifty", "無限の果て", "無限深淵で第50層へ到達", 2600, "mythic"),
+            new Achievement("forge-max", "覚醒の銘", "鍛造を最高段階まで鍛え上げる", 500, "gold"));
 
     public static Achievement achievementById(String id) {
         for (Achievement a : ACHIEVEMENTS) {
@@ -1009,7 +1043,11 @@ public final class GameData {
             java.util.Map.entry("wand", wb(-10, 0, 0, 15, 2, 0, 8, 0, 0, 0, 0)),
             java.util.Map.entry("greatsword", wb(30, -25, 10, 0, 0, 0, 0, 0, 0, 0, 0)),
             java.util.Map.entry("twin_dagger", wb(-5, 20, 0, 0, 0, 0, 10, 0, 0, 0, 0)),
-            java.util.Map.entry("war_horn", wb(0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 15)));
+            java.util.Map.entry("war_horn", wb(0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 15)),
+            java.util.Map.entry("wind_blade", wb(0, 14, 22, 0, 0, 2, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("ember_flail", wb(10, -6, 12, 0, 0, 0, 0, 0, 18, 0, 0)),
+            java.util.Map.entry("astral_lance", wb(6, 0, 8, 30, 1, 0, 8, 0, 0, 0, 0)),
+            java.util.Map.entry("tide_trident", wb(-6, 0, 25, 0, 0, 1, 0, 0, 0, 6, 6)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
@@ -1052,7 +1090,11 @@ public final class GameData {
                     java.util.Map.entry("wand", new WeaponAbility("CHAIN", 0.2, 0.4, "命中時20%で連鎖")),
                     java.util.Map.entry("greatsword", new WeaponAbility("BURST", 0.2, 1.8, "命中時20%で爆発")),
                     java.util.Map.entry("twin_dagger", new WeaponAbility("EXECUTE", 1.0, 0.4, "瀕死へ+40%")),
-                    java.util.Map.entry("war_horn", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")));
+                    java.util.Map.entry("war_horn", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")),
+                    java.util.Map.entry("wind_blade", new WeaponAbility("CHAIN", 0.3, 0.5, "命中時30%で連鎖")),
+                    java.util.Map.entry("ember_flail", new WeaponAbility("BURST", 0.22, 1.6, "命中時22%で爆発")),
+                    java.util.Map.entry("astral_lance", new WeaponAbility("SOUL", 0.5, 5, "命中時50%で魂+5")),
+                    java.util.Map.entry("tide_trident", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")));
 
     /* ---------------- ダンジョン特性 (層ごとに65%で1つ。異変とは別枠) ---------------- */
     public record DungeonTrait(String id, String name, String desc,
@@ -1066,7 +1108,10 @@ public final class GameData {
             new DungeonTrait("bounty", "豊穣", "戦利品+50%", 1.0, 1.0, 1.0, 1.0, 1.5, 1.0),
             new DungeonTrait("deaths", "死地", "敵HP・攻撃+15%", 1.15, 1.15, 1.0, 1.0, 1.0, 1.0),
             new DungeonTrait("mist", "濃霧", "索敵+50%", 1.0, 1.0, 1.0, 1.0, 1.0, 1.5),
-            new DungeonTrait("barren", "痩せ地", "出現-30%・戦利品+50%", 1.0, 1.0, 1.0, 0.7, 1.5, 1.0));
+            new DungeonTrait("barren", "痩せ地", "出現-30%・戦利品+50%", 1.0, 1.0, 1.0, 0.7, 1.5, 1.0),
+            new DungeonTrait("embergrave", "焼け跡", "敵HP+20%・攻撃+20%・戦利品+30%", 1.2, 1.2, 1.0, 1.0, 1.3, 1.05),
+            new DungeonTrait("quicksand", "流砂", "敵移動+28%・敵HP-8%", 0.92, 1.0, 1.28, 1.0, 1.0, 1.05),
+            new DungeonTrait("nocturne", "夜想曲", "索敵+60%・出現-20%", 1.0, 1.05, 1.0, 0.8, 1.1, 1.6));
 
     public static DungeonTrait dungeonById(String id) {
         for (DungeonTrait t : DUNGEON_TRAITS) {
@@ -1124,7 +1169,15 @@ public final class GameData {
                     java.util.Map.entry("b_volley", java.util.Map.of("projectiles", 1.0)),
                     java.util.Map.entry("b_flat", java.util.Map.of("damageFlat", 8.0)),
                     java.util.Map.entry("b_vital", java.util.Map.of("maxHpFlat", 30.0)),
-                    java.util.Map.entry("b_drain", java.util.Map.of("lifestealPct", 5.0, "damagePct", 10.0)));
+                    java.util.Map.entry("b_drain", java.util.Map.of("lifestealPct", 5.0, "damagePct", 10.0)),
+                    java.util.Map.entry("b_hawk", java.util.Map.of("moveSpeedPct", 15.0, "damagePct", 8.0)),
+                    java.util.Map.entry("b_aegis", java.util.Map.of("armorPct", 14.0)),
+                    java.util.Map.entry("b_inferno", java.util.Map.of("explodePct", 18.0, "damagePct", 4.0)),
+                    java.util.Map.entry("b_squall", java.util.Map.of("attackSpeedPct", 8.0, "areaPct", 10.0)),
+                    java.util.Map.entry("b_luna", java.util.Map.of("critPct", 4.0, "critDmgPct", 20.0)),
+                    java.util.Map.entry("b_midas", java.util.Map.of("luckFlat", 15.0, "regenFlat", 0.5)),
+                    java.util.Map.entry("b_web", java.util.Map.of("freezePct", 15.0, "chain", 1.0)),
+                    java.util.Map.entry("b_giant", java.util.Map.of("maxHpPct", 18.0, "maxHpFlat", 25.0)));
 
     public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_PASSIVE_MODS =
             java.util.Map.ofEntries(
@@ -1143,7 +1196,15 @@ public final class GameData {
                     java.util.Map.entry("bomber", java.util.Map.of("explodePct", 15.0, "armorPct", -5.0)),
                     java.util.Map.entry("vampire", java.util.Map.of("lifestealPct", 4.0, "maxHpPct", -8.0)),
                     java.util.Map.entry("freezer", java.util.Map.of("freezePct", 20.0, "attackSpeedPct", -5.0)),
-                    java.util.Map.entry("berserk", java.util.Map.of("damagePct", 45.0, "armorPct", -15.0, "maxHpPct", -15.0)));
+                    java.util.Map.entry("berserk", java.util.Map.of("damagePct", 45.0, "armorPct", -15.0, "maxHpPct", -15.0)),
+                    java.util.Map.entry("hellfire", java.util.Map.of("damagePct", 30.0, "explodePct", 20.0, "maxHpPct", -10.0)),
+                    java.util.Map.entry("moon_gaze", java.util.Map.of("critPct", 15.0, "energyPct", 15.0, "armorPct", -6.0)),
+                    java.util.Map.entry("ironhide", java.util.Map.of("armorPct", 18.0, "moveSpeedPct", -8.0)),
+                    java.util.Map.entry("phantom", java.util.Map.of("moveSpeedPct", 25.0, "damagePct", -10.0)),
+                    java.util.Map.entry("gluttony", java.util.Map.of("lifestealPct", 8.0, "damagePct", 10.0, "maxHpPct", -12.0)),
+                    java.util.Map.entry("ascension", java.util.Map.of("energyPct", 40.0, "armorPct", -10.0)),
+                    java.util.Map.entry("plague", java.util.Map.of("freezePct", 30.0, "damagePct", -12.0)),
+                    java.util.Map.entry("titan_heart", java.util.Map.of("maxHpPct", 30.0, "damagePct", -8.0)));
 
     public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_RELIC_MODS =
             java.util.Map.ofEntries(
@@ -1158,7 +1219,13 @@ public final class GameData {
                     java.util.Map.entry("r_bomb", java.util.Map.of("explodePct", 15.0)),
                     java.util.Map.entry("r_boot", java.util.Map.of("moveSpeedPct", 12.0)),
                     java.util.Map.entry("r_spring", java.util.Map.of("regenFlat", 2.0)),
-                    java.util.Map.entry("r_star", java.util.Map.of("luckFlat", 25.0)));
+                    java.util.Map.entry("r_star", java.util.Map.of("luckFlat", 25.0)),
+                    java.util.Map.entry("r_gale", java.util.Map.of("attackSpeedPct", 15.0, "moveSpeedPct", 8.0)),
+                    java.util.Map.entry("r_moon", java.util.Map.of("critPct", 10.0, "critDmgPct", 22.0)),
+                    java.util.Map.entry("r_core", java.util.Map.of("areaPct", 20.0, "pierce", 1.0)),
+                    java.util.Map.entry("r_flame", java.util.Map.of("explodePct", 25.0, "damagePct", 6.0)),
+                    java.util.Map.entry("r_tide", java.util.Map.of("armorPct", 8.0, "maxHpPct", 10.0)),
+                    java.util.Map.entry("r_grail", java.util.Map.of("energyPct", 35.0, "regenFlat", 1.0)));
 
     /** 深淵防具セット (2部位・4部位ボーナス)。部位は abyss_<set>_helm/chest/legs/boots */
     public record ArmorSet(String id, String name, int trimColor, int accentColor,
@@ -1201,8 +1268,13 @@ public final class GameData {
             new GearSkill("w_chain", "連鎖殺戮", "撃破時に周囲へ攻撃力の80%"),
             new GearSkill("w_break", "崩し", "撃破時に周囲へ弱体5秒"),
             new GearSkill("w_swift", "疾殺", "撃破時に移動速度上昇5秒"),
-            new GearSkill("w_burst", "爆裂殺", "撃破時に小爆発"));
-
+            new GearSkill("w_burst", "爆裂殺", "撃破時に小爆発"),
+            new GearSkill("w_venge", "復讐の銘", "撃破時に攻撃力上昇5秒"),
+            new GearSkill("w_tide", "潮の招き", "撃破時に周囲の敵を引き寄せ鈍足"),
+            new GearSkill("w_gale", "追風の銘", "撃破時に移動速度3秒+魂+6"),
+            new GearSkill("w_ignite", "火種の銘", "撃破時に周囲の敵を発火"),
+            new GearSkill("w_greed", "強奪の銘", "撃破時 20%で魂の欠片+1"),
+            new GearSkill("w_hymn", "鎮魂の銘", "撃破で守護4秒・小回復"));
     /** 防具スキル (部位ごと)。abyss_skill に刻印 */
     public static final java.util.List<GearSkill> ARMOR_SKILLS = java.util.List.of(
             new GearSkill("h_danger", "危険感知", "兜: 10m内の敵を発光表示"),
@@ -1210,7 +1282,13 @@ public final class GameData {
             new GearSkill("c_thorns", "荊棘の鎧", "鎧: 受けた近接の20%を反射"),
             new GearSkill("c_aegis", "聖盾", "鎧: 守護効果が絶えない"),
             new GearSkill("l_leap", "落法", "脚: 落下ダメージ半減"),
-            new GearSkill("b_dash", "疾駆", "靴: 撃破で回避CTリセット"));
+            new GearSkill("b_dash", "疾駆", "靴: 撃破で回避CTリセット"),
+            new GearSkill("c_frost", "霜の鎧", "鎧: 被弾時に周囲を氷結"),
+            new GearSkill("c_soul", "魂導の鎧", "鎧: 被弾で魂ゲージ+4"),
+            new GearSkill("h_warmth", "炉火の兜", "兜: 炎上を自動的に鎮める"),
+            new GearSkill("l_feather", "羽毛の脚", "脚: 常時緩降下"),
+            new GearSkill("b_magnet", "磁石の靴", "靴: 8m内の落とし物を吸い寄せる"),
+            new GearSkill("b_vigor", "敏捷の靴", "靴: 回避CT -10%"));
 
     public static GearSkill gearSkillById(String id) {
         for (GearSkill s : WEAPON_SKILLS) {

@@ -230,6 +230,10 @@ public final class CombatHandler {
                 var a = GameData.achievementById("boss-three");
                 grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
             }
+            if (bossCount >= 5) {
+                var a = GameData.achievementById("boss-five");
+                grantAch(player, "boss-five", a.title(), GameData.shardsForReward(a.reward()));
+            }
             String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
             if (pendingPassive == null || pendingPassive.isBlank()) {
                 RunManager.offerPassives(player);
@@ -299,6 +303,22 @@ public final class CombatHandler {
         if (player.getData(ModAttachments.COMBO.get()) >= 50) {
             var a = GameData.achievementById("combo-fifty");
             grantAch(player, "combo-fifty", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (player.getData(ModAttachments.COMBO.get()) >= 100) {
+            var a = GameData.achievementById("combo-hundred");
+            grantAch(player, "combo-hundred", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (player.getData(ModAttachments.PERFECT.get()) >= 20) {
+            var a = GameData.achievementById("perfect-twenty");
+            grantAch(player, "perfect-twenty", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (player.getData(ModAttachments.HARVEST.get()) >= 10) {
+            var a = GameData.achievementById("harvest-ten");
+            grantAch(player, "harvest-ten", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (player.getData(ModAttachments.KILLS.get()) >= 5000) {
+            var a = GameData.achievementById("kills-five-thousand");
+            grantAch(player, "kills-five-thousand", a.title(), GameData.shardsForReward(a.reward()));
         }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
         if (bossRec.contains("10")) grantAch(player, "floor-ten", "深層探査者", 10);
@@ -724,6 +744,20 @@ public final class CombatHandler {
                 atk.hurtServer(level, level.damageSources().magic(), event.getNewDamage() * 0.2f);
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT,
                         atk.getX(), atk.getY() + 1, atk.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
+            }
+            // 防具スキル「霜の鎧」: 被弾時に周囲を凍結
+            if ("c_frost".equals(GearData.skillOf(chest))) {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        player.getBoundingBox().inflate(4),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                }
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
+                        player.getX(), player.getY() + 1, player.getZ(), 12, 1.2, 0.8, 1.2, 0.1);
+            }
+            // 防具スキル「魂導の鎧」: 被弾で魂ゲージ+4
+            if ("c_soul".equals(GearData.skillOf(chest))) {
+                RunManager.addGauge(player, 4);
             }
             // 全武器の固有能力 (GUARD系は被弾時反射)
             var gheld = player.getMainHandItem();
@@ -1396,6 +1430,43 @@ public final class CombatHandler {
             case "w_swift" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 0));
             case "w_burst" -> WeaponArts.pulse(level, player, pos, 3, 1.5, true,
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+            case "w_venge" -> player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
+            case "w_tide" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
+                                pos.x + 6, pos.y + 4, pos.z + 6),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    Vec3 pull = pos.subtract(e.position()).normalize().scale(1.6);
+                    e.push(pull.x, 0.2, pull.z);
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                }
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,
+                        pos.x, pos.y + 1, pos.z, 20, 2, 1, 2, 0.1);
+            }
+            case "w_gale" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1));
+                RunManager.addGauge(player, 6);
+            }
+            case "w_ignite" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                                pos.x + 5, pos.y + 4, pos.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
+                }
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.FLAME,
+                        pos.x, pos.y + 1, pos.z, 20, 1.5, 1, 1.5, 0.1);
+            }
+            case "w_greed" -> {
+                if (player.getRandom().nextFloat() < 0.20f) {
+                    giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
+                    player.displayClientMessage(Component.literal("§6強奪！ 魂の欠片を奪った"), true);
+                }
+            }
+            case "w_hymn" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 80, 0));
+                RunManager.heal(player, player.getMaxHealth() * 0.02);
+            }
             default -> {
             }
         }
@@ -1426,6 +1497,10 @@ public final class CombatHandler {
         double dashCd = GameData.dashCooldown(cls, (int) StatCalc.attrEff(player, 2));
         int dashPct = RunManager.boonLv(player, "speed") * 12;
         if (dashPct > 0) dashCd *= Math.max(0.5, 1 - dashPct / 100.0);
+        // 防具スキル「敏捷の靴」: 回避CT-10%
+        if ("b_vigor".equals(GearData.skillOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET)))) {
+            dashCd *= 0.9;
+        }
         player.setData(ModAttachments.DASH_CD.get(), (float) dashCd);
         player.setData(ModAttachments.COUNTER.get(), 1.0f);
         player.displayClientMessage(Component.literal("§b回避！"), true);

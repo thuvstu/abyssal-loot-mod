@@ -502,6 +502,71 @@ public final class WeaponArts {
                 burst(player, "大雄叫び！", style);
                 return true;
             }
+            case WIND_BLADE -> {
+                // 千風乱舞: 3波の風輪が拡大する同心円 (半径4→9)
+                for (int w = 0; w < 3; w++) {
+                    final int wave = w;
+                    later(player, w * 5, lv ->
+                            aoe(lv, player, origin, 4 + wave * 2.5, (1.4 + wave * 0.35) * attackDamage, wave == 2,
+                                    ParticleTypes.SWEEP_ATTACK));
+                }
+                later(player, 16, lv -> aoe(lv, player, origin, 6, 2.2 * attackDamage, true, ParticleTypes.CLOUD));
+                burst(player, "千風乱舞！", style);
+                return true;
+            }
+            case EMBER_FLAIL -> {
+                // 炎獄旋回: 前方を左右7連の炎弧で薙ぎ、最後に爆気
+                for (int i = 0; i < 7; i++) {
+                    double ang = Math.atan2(look.z, look.x) + (i - 3) * 0.42;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    final int k = i;
+                    later(player, k * 2, lv ->
+                            slashCone(lv, player, origin, dir, 6.5, 1.35 * attackDamage, ParticleTypes.FLAME));
+                }
+                later(player, 15, lv -> aoe(lv, player, origin.add(look.scale(4)), 4,
+                        3.0 * attackDamage, true, ParticleTypes.EXPLOSION));
+                burst(player, "炎獄旋回！", style);
+                return true;
+            }
+            case ASTRAL_LANCE -> {
+                // 鋼星乱嵐: 近傍に7本の星槍を乱れ打ち、極大の一撃で締める
+                for (int i = 0; i < 7; i++) {
+                    Vec3 at = origin.add((player.getRandom().nextDouble() - 0.5) * 14, 0,
+                            (player.getRandom().nextDouble() - 0.5) * 14);
+                    final Vec3 target = at;
+                    later(player, 3 + i * 3, lv ->
+                            aoe(lv, player, target, 2.2, 1.7 * attackDamage, true, ParticleTypes.END_ROD));
+                }
+                later(player, 24, lv -> aoe(lv, player, origin, 5.5, 4.0 * attackDamage, true,
+                        ParticleTypes.WITCH));
+                burst(player, "鋼星乱嵐！", style);
+                return true;
+            }
+            case TIDE_TRIDENT -> {
+                // 静潮・大渦: 周囲を引き寄せ、3重の潮波で押し流す+鈍足
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 12, origin.y - 5, origin.z - 12,
+                                origin.x + 12, origin.y + 5, origin.z + 12),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    Vec3 pull = origin.subtract(e.position()).normalize().scale(2.4);
+                    e.push(pull.x, 0.25, pull.z);
+                }
+                for (int w = 0; w < 3; w++) {
+                    final int wave = w;
+                    later(player, 4 + w * 5, lv -> {
+                        double r = 5 + wave * 2;
+                        aoe(lv, player, origin, r, (1.5 + wave * 0.45) * attackDamage, true, ParticleTypes.SPLASH);
+                        for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(origin.x - r, origin.y - 5, origin.z - r,
+                                        origin.x + r, origin.y + 5, origin.z + r),
+                                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
+                        }
+                    });
+                }
+                burst(player, "静潮・大渦！", style);
+                return true;
+            }
         }
         return false;
     }

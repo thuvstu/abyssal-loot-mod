@@ -95,6 +95,10 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_GREATSWORD = weapon("abyss_greatsword", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_TWIN_DAGGER = weapon("abyss_twin_dagger", Rarity.COMMON);
     public static final DeferredItem<Item> ABYSS_WAR_HORN = weapon("abyss_war_horn", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_WIND_BLADE = weapon("abyss_wind_blade", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_EMBER_FLAIL = weapon("abyss_ember_flail", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_ASTRAL_LANCE = weapon("abyss_astral_lance", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_TIDE_TRIDENT = weapon("abyss_tide_trident", Rarity.COMMON);
 
     public static final DeferredItem<Item> ABYSS_HELM = armor("abyss_helm", Rarity.COMMON, EquipmentSlot.HEAD);
     public static final DeferredItem<Item> ABYSS_CHEST = armor("abyss_chest", Rarity.COMMON, EquipmentSlot.CHEST);
@@ -173,6 +177,10 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_REVEAL = consumable("abyss_reveal", "reveal", Rarity.UNCOMMON);
     public static final DeferredItem<Item> ABYSS_FEAST = consumable("abyss_feast", "feast", Rarity.COMMON);
     public static final DeferredItem<Item> ABYSS_SMOKE = consumable("abyss_smoke", "smoke", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_BERSERK = consumable("abyss_berserk", "berserk", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_BULWARK = consumable("abyss_bulwark", "bulwark", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_BOMB_H = consumable("abyss_bomb_h", "bomb_blaze", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_FORTUNE = consumable("abyss_fortune", "fortune", Rarity.UNCOMMON);
 
     /** 生活ツール用素材 (ネザライト級・高速・魂の欠片等で修繕可) */
     public static final net.minecraft.world.item.ToolMaterial ABYSS_TIER =
@@ -261,6 +269,10 @@ public final class ModItems {
                         output.accept(ABYSS_GREATSWORD.get());
                         output.accept(ABYSS_TWIN_DAGGER.get());
                         output.accept(ABYSS_WAR_HORN.get());
+                        output.accept(ABYSS_WIND_BLADE.get());
+                        output.accept(ABYSS_EMBER_FLAIL.get());
+                        output.accept(ABYSS_ASTRAL_LANCE.get());
+                        output.accept(ABYSS_TIDE_TRIDENT.get());
                         output.accept(ABYSS_PICKAXE.get());
                         output.accept(ABYSS_TOOL_AXE.get());
                         output.accept(ABYSS_SHOVEL.get());
@@ -296,6 +308,10 @@ public final class ModItems {
                         output.accept(ABYSS_REVEAL.get());
                         output.accept(ABYSS_FEAST.get());
                         output.accept(ABYSS_SMOKE.get());
+                        output.accept(ABYSS_BERSERK.get());
+                        output.accept(ABYSS_BULWARK.get());
+                        output.accept(ABYSS_BOMB_H.get());
+                        output.accept(ABYSS_FORTUNE.get());
                         output.accept(ABYSS_BLOOD_CRYSTAL.get());
                         output.accept(ABYSS_SHADOW_STONE.get());
                         output.accept(ABYSS_STAR_DUST.get());
@@ -321,7 +337,8 @@ public final class ModItems {
             ABYSS_FIR, ABYSS_OWL, ABYSS_FTH, ABYSS_LCK,
             ABYSS_BOMB_F, ABYSS_BOMB_T, ABYSS_BOMB_I,
             ABYSS_TELE_A, ABYSS_TELE_S, ABYSS_CURE,
-            ABYSS_MAGNET, ABYSS_REVEAL, ABYSS_FEAST, ABYSS_SMOKE);
+            ABYSS_MAGNET, ABYSS_REVEAL, ABYSS_FEAST, ABYSS_SMOKE,
+            ABYSS_BERSERK, ABYSS_BULWARK, ABYSS_BOMB_H, ABYSS_FORTUNE);
 
     public static ItemStack randomConsumable(net.minecraft.util.RandomSource rand) {
         return new ItemStack(DROP_CONSUMABLES.get(rand.nextInt(DROP_CONSUMABLES.size())).get());
@@ -381,6 +398,10 @@ public final class ModItems {
             case GREATSWORD -> ABYSS_GREATSWORD.get();
             case TWIN_DAGGER -> ABYSS_TWIN_DAGGER.get();
             case WAR_HORN -> ABYSS_WAR_HORN.get();
+            case WIND_BLADE -> ABYSS_WIND_BLADE.get();
+            case EMBER_FLAIL -> ABYSS_EMBER_FLAIL.get();
+            case ASTRAL_LANCE -> ABYSS_ASTRAL_LANCE.get();
+            case TIDE_TRIDENT -> ABYSS_TIDE_TRIDENT.get();
         };
     }
 }

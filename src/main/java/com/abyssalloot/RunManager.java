@@ -291,6 +291,10 @@ public final class RunManager {
             case "reveal" -> "戦況を看破する";
             case "feast" -> "満腹・小回復";
             case "smoke" -> "煙に紛れて隠形15秒";
+            case "berserk" -> "攻撃力・採掘速度が30秒跳ね上がる";
+            case "bulwark" -> "耐性・守護が30秒纏う";
+            case "bomb_blaze" -> "前方に業火の爆発";
+            case "fortune" -> "幸運の加護5分";
             default -> kind;
         };
     }
@@ -389,6 +393,32 @@ public final class RunManager {
                 player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 0));
                 level.sendParticles(ParticleTypes.SMOKE, origin.x, origin.y + 1, origin.z,
                         40, 1.5, 1.5, 1.5, 0.1);
+            }
+            case "berserk" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 600, 1));
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 600, 1));
+                level.sendParticles(ParticleTypes.FLAME, origin.x, origin.y + 1, origin.z,
+                        16, 0.8, 1, 0.8, 0.1);
+            }
+            case "bulwark" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 600, 1));
+                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 600, 1));
+                level.sendParticles(ParticleTypes.END_ROD, origin.x, origin.y + 1, origin.z,
+                        16, 0.8, 1, 0.8, 0.1);
+            }
+            case "bomb_blaze" -> {
+                Vec3 at = origin.add(player.getLookAngle().scale(8));
+                WeaponArts.pulse(level, player, at, 5, 3.2, true, ParticleTypes.FLAME);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 5, at.y - 4, at.z - 5, at.x + 5, at.y + 4, at.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 160));
+                }
+            }
+            case "fortune" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.LUCK, 6000, 0));
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, origin.x, origin.y + 1, origin.z,
+                        16, 0.8, 1, 0.8, 0.1);
             }
             default -> {
                 return false;
@@ -990,6 +1020,10 @@ public final class RunManager {
             var a = GameData.achievementById("endless-diver");
             CombatHandler.grantAch(player, "endless-diver", a.title(), GameData.shardsForReward(a.reward()));
         }
+        if (floor == 50 && "endless".equals(mode)) {
+            var a = GameData.achievementById("endless-fifty");
+            CombatHandler.grantAch(player, "endless-fifty", a.title(), GameData.shardsForReward(a.reward()));
+        }
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -1410,6 +1444,10 @@ public final class RunManager {
         main.set(DataComponents.CUSTOM_DATA,
                 CustomData.of(tag));
         GearData.setForgeLv(main, lv + 1);
+        if (lv + 1 >= 5) {
+            var a = GameData.achievementById("forge-max");
+            CombatHandler.grantAch(player, "forge-max", a.title(), GameData.shardsForReward(a.reward()));
+        }
         String nowTrait = GearData.traitOf(main);
         String hover = main.getHoverName().getString().replaceAll("^[§0-9a-f]+(覚醒|神錬)・", "");
         String lead = "";
@@ -1428,7 +1466,7 @@ public final class RunManager {
                         + " 威力" + GearData.powerOf(main) + " (欠片-" + cost + ")"));
     }
 
-    /** 層間イベントの完了記録 (実績「祭壇の巡礼者」は5回で) */
+    /** 層間イベントの完了記録 (実績「祭壇の巡礼者」/5回、「祭壇の常連」/10回) */
     public static void completeEvent(ServerPlayer player) {
         player.setData(ModAttachments.EVENT_DONE.get(), 1);
         int total = player.getData(ModAttachments.EVENT_TOTAL.get()) + 1;
@@ -1436,6 +1474,10 @@ public final class RunManager {
         if (total >= 5) {
             var a = GameData.achievementById("event-five");
             CombatHandler.grantAch(player, "event-five", a.title(), GameData.shardsForReward(a.reward()));
+        }
+        if (total >= 10) {
+            var a = GameData.achievementById("event-ten");
+            CombatHandler.grantAch(player, "event-ten", a.title(), GameData.shardsForReward(a.reward()));
         }
     }
 
@@ -1734,6 +1776,32 @@ public final class RunManager {
         if ("h_breath".equals(helmSkill) && player.isInWater()
                 && !player.hasEffect(MobEffects.WATER_BREATHING)) {
             player.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 240, 0, false, false));
+        }
+        // 兜スキル「炉火の兜」: 炎上を自動的に鎮める
+        if ("h_warmth".equals(helmSkill) && player.isOnFire()) {
+            player.setRemainingFireTicks(0);
+            level.sendParticles(ParticleTypes.SMOKE, player.getX(), player.getY() + 1, player.getZ(),
+                    8, 0.4, 0.6, 0.4, 0.05);
+        }
+        var legs = player.getItemBySlot(EquipmentSlot.LEGS);
+        // 脚スキル「羽毛の脚」: 常時緩降下
+        if ("l_feather".equals(GearData.skillOf(legs))
+                && player.getDeltaMovement().y < -0.1
+                && !player.hasEffect(MobEffects.SLOW_FALLING)) {
+            player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 120, 0, false, false));
+        }
+        var feet = player.getItemBySlot(EquipmentSlot.FEET);
+        // 靴スキル「磁石の靴」: 8m内の落とし物を吸い寄せる (2秒ごと)
+        if ("b_magnet".equals(GearData.skillOf(feet)) && t % 40 == 0) {
+            Vec3 pos = player.position();
+            for (ItemEntity it : level.getEntitiesOfClass(ItemEntity.class,
+                    player.getBoundingBox().inflate(8), e -> e.isAlive() && !e.hasPickUpDelay())) {
+                Vec3 d = pos.subtract(it.position());
+                if (d.lengthSqr() > 1) {
+                    it.setDeltaMovement(d.normalize().scale(0.35));
+                    it.setNoPickUpDelay();
+                }
+            }
         }
         var chest = player.getItemBySlot(EquipmentSlot.CHEST);
         if ("c_aegis".equals(GearData.skillOf(chest))

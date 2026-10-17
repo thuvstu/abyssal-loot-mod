@@ -76,7 +76,7 @@ public class GameDataTest {
 
     @Test
     void allWeaponArtsExist() {
-        assertEquals(29, GameData.WeaponStyle.values().length);
+        assertEquals(33, GameData.WeaponStyle.values().length);
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(w.artName);
             assertFalse(w.artDesc.isBlank());
@@ -216,11 +216,11 @@ public class GameDataTest {
     }
 
     @Test
-    void nineFloorMutationsWithUniqueIds() {
-        assertEquals(9, GameData.MUTATIONS.size());
+    void twelveFloorMutationsWithUniqueIds() {
+        assertEquals(9, GameData.MUTATIONS.size() - 3); // 元の9種が残っている
         var ids = new java.util.HashSet<String>();
         for (var m : GameData.MUTATIONS) ids.add(m.id());
-        assertEquals(9, ids.size());
+        assertEquals(12, ids.size());
         // 原作の値の抜粋: 血の饗宴 攻撃1.38 / 豊穣の刻 ドロップ1.85
         assertEquals(1.38, GameData.mutationById("bloodfeast").enemyDmg(), 1e-9);
         assertEquals(1.85, GameData.mutationById("bounty").loot(), 1e-9);
@@ -234,8 +234,8 @@ public class GameDataTest {
         assertNull(GameData.rollMutation(() -> 0.2, 5));            // 層主: 0.2 > 0.14
         assertNotNull(GameData.rollMutation(() -> 0.1, 5));         // 層主: 0.1 <= 0.14
         assertNull(GameData.rollMutation(() -> 0.0, 26));           // 真の決戦層は平穏
-        // 一様乱数 0.5 は index = floor(0.5*9) = 4 (防衛線)
-        assertEquals("fortress", GameData.rollMutation(() -> 0.5, 3).id());
+        // 一様乱数 0.5 は index = floor(0.5*12) = 6 (豊穣の刻)
+        assertEquals("bounty", GameData.rollMutation(() -> 0.5, 3).id());
     }
 
     @Test
@@ -343,25 +343,29 @@ public class GameDataTest {
         assertFalse(GameData.isWardenFloor(10));
         assertFalse(GameData.isWardenFloor(2));
         assertFalse(GameData.isWardenFloor(26));
-        assertEquals(5, GameData.WARDENS.size());
+        assertEquals(6, GameData.WARDENS.size());
+        assertEquals("灰燼の番人・ヴォスク", GameData.WARDENS.get(5).name());
     }
 
     @Test
-    void sixZonesCoverAllFloors() {
-        assertEquals(6, GameData.ZONES.size());
+    void sevenZonesCoverAllFloors() {
+        assertEquals(7, GameData.ZONES.size());
         assertEquals("ash", GameData.zoneForFloor(1).id());
         assertEquals("ossuary", GameData.zoneForFloor(6).id());
         assertEquals("forge", GameData.zoneForFloor(11).id());
         assertEquals("glacier", GameData.zoneForFloor(16).id());
         assertEquals("voidheart", GameData.zoneForFloor(21).id());
         assertEquals("nihil", GameData.zoneForFloor(26).id());
+        assertEquals("lower_abyss", GameData.zoneForFloor(30).id());
+        assertEquals("lower_abyss", GameData.zoneForFloor(100).id());
         assertTrue(GameData.zoneForFloor(11).emberRain());
         assertTrue(GameData.zoneForFloor(21).voidPull() > 0);
+        assertTrue(GameData.zoneForFloor(30).voidPull() > 0);
     }
 
     @Test
-    void eightRelicsWithMaxTwo() {
-        assertEquals(20, GameData.RELICS.size());
+    void relicsWithMaxTwo() {
+        assertEquals(26, GameData.RELICS.size());
         var roll = GameData.rollRelics(new java.util.Random(42), java.util.List.of(), 3);
         assertEquals(3, roll.size());
         var owned = java.util.List.of("soulfang", "mirror");
@@ -371,8 +375,8 @@ public class GameDataTest {
     }
 
     @Test
-    void twentyPassivesWithCursedLimit() {
-        assertEquals(36, GameData.PASSIVES.size());
+    void passivesWithCursedLimit() {
+        assertEquals(44, GameData.PASSIVES.size());
         var roll = GameData.rollPassives(new java.util.Random(7), java.util.List.of(), 3);
         assertEquals(3, roll.size());
         // 呪い所持時は呪いが出ない
@@ -388,8 +392,8 @@ public class GameDataTest {
     }
 
     @Test
-    void twentyFourAchievementsWithShardConversion() {
-        assertEquals(24, GameData.ACHIEVEMENTS.size());
+    void thirtyTwoAchievementsWithShardConversion() {
+        assertEquals(32, GameData.ACHIEVEMENTS.size());
         assertNotNull(GameData.achievementById("pinnacle-god"));
         assertEquals(1, GameData.shardsForReward(25));
         assertEquals(60, GameData.shardsForReward(1500));
@@ -488,9 +492,9 @@ public class GameDataTest {
 
     @Test
     void extraContentIsSound() {
-        assertEquals(20, GameData.EXTRA_BOON_MODS.size());
-        assertEquals(16, GameData.EXTRA_PASSIVE_MODS.size());
-        assertEquals(12, GameData.EXTRA_RELIC_MODS.size());
+        assertEquals(28, GameData.EXTRA_BOON_MODS.size());
+        assertEquals(24, GameData.EXTRA_PASSIVE_MODS.size());
+        assertEquals(18, GameData.EXTRA_RELIC_MODS.size());
         assertEquals(6, GameData.ARMOR_SETS.size());
         var setIds = new java.util.HashSet<String>();
         for (var s : GameData.ARMOR_SETS) {
@@ -510,7 +514,8 @@ public class GameDataTest {
         for (String id : new String[]{"rune_blade", "blood_axe", "storm_spear", "void_staff",
                 "moon_bow", "fang_dagger", "quake_hammer", "frost_katana", "soul_scythe",
                 "titan_gauntlet", "eclipse_chakram", "chaos_tome", "rod", "wand",
-                "greatsword", "twin_dagger", "war_horn"}) {
+                "greatsword", "twin_dagger", "war_horn",
+                "wind_blade", "ember_flail", "astral_lance", "tide_trident"}) {
             var w = GameData.WeaponStyle.byId(id);
             assertEquals(id, w.id);
             assertFalse(w.artName.isBlank());
@@ -520,16 +525,16 @@ public class GameDataTest {
         assertEquals("血爆", GameData.HeroClass.byId("berserker").skillName());
         assertEquals("禅定結界", GameData.HeroClass.byId("monk").skillName());
         // 装備スキル6+6
-        assertEquals(6, GameData.WEAPON_SKILLS.size());
-        assertEquals(6, GameData.ARMOR_SKILLS.size());
+        assertEquals(12, GameData.WEAPON_SKILLS.size());
+        assertEquals(12, GameData.ARMOR_SKILLS.size());
         assertNotNull(GameData.gearSkillById("w_soul"));
         assertNotNull(GameData.gearSkillById("b_dash"));
         // 全武器に能力・全通常モブに能力・ダンジョン特性8種
-        assertEquals(29, GameData.WEAPON_ABILITIES.size());
+        assertEquals(33, GameData.WEAPON_ABILITIES.size());
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(GameData.WEAPON_ABILITIES.get(w.id), "ability missing: " + w.id);
         }
-        assertEquals(8, GameData.DUNGEON_TRAITS.size());
+        assertEquals(11, GameData.DUNGEON_TRAITS.size());
         assertEquals(18, GameData.MOB_ABILITIES.size());
         assertEquals("THORNS", GameData.MOB_ABILITIES.get("golem"));
         assertEquals("SPLIT", GameData.MOB_ABILITIES.get("slime"));
@@ -541,7 +546,7 @@ public class GameDataTest {
     @Test
     void boonPoolCoversOriginal39PlusLegacy2() {
         var pool = Boons.BOON_POOL;
-        assertEquals(61, pool.length);
+        assertEquals(69, pool.length);
         var ids = new java.util.HashSet<String>();
         for (var b : pool) {
             assertFalse(b.desc().isBlank() || b.name().isBlank());
@@ -580,7 +585,7 @@ public class GameDataTest {
 
     @Test
     void weaponClassBonusMatchesCoreTs() {
-        assertEquals(29, GameData.WEAPON_BONUS.size());
+        assertEquals(33, GameData.WEAPON_BONUS.size());
         assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
         assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
         assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);
