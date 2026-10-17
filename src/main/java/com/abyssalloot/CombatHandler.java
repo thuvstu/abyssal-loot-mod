@@ -32,6 +32,9 @@ public final class CombatHandler {
     /** 最終撃破tick (コンボ減衰用) */
     private static final java.util.Map<java.util.UUID, Long> LAST_KILL_TICK =
             new java.util.HashMap<>();
+    /** 最終HUD送信tick (間引き送信用) */
+    private static final java.util.Map<java.util.UUID, Long> LAST_HUD_TICK =
+            new java.util.HashMap<>();
 
     /** 装備変更で即時ステータス再計算 (防具の着脱・持替でHP等が追従する) */
     @SubscribeEvent
@@ -389,6 +392,8 @@ public final class CombatHandler {
                 BoonHandler.resendBoonOffer(player);
             }
         }
+        // 撃破数・コンボ・転移門の開放をHUDに即時反映 (0.2秒に1回に間引き)
+        CombatHandler.sendHudSoon(player);
     }
 
     /* ---------------- 破壊物 ---------------- */
@@ -484,6 +489,7 @@ public final class CombatHandler {
 
     /** HUDの即時更新 (未選択カウントを出すため) */
     static void sendHud(ServerPlayer player) {
+        LAST_HUD_TICK.put(player.getUUID(), (long) tickCounter);
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                 new ModPackets.HudSync(
                         player.getData(ModAttachments.SOUL.get()),
@@ -496,6 +502,17 @@ public final class CombatHandler {
                         RunManager.pendingBoonsOf(player),
                         player.getData(ModAttachments.LIGHT_CD.get()),
                         player.getData(ModAttachments.SKILL_CD.get())));
+    }
+
+    /**
+     * HUDの間引き送信 (撃破・魂ゲージ変動など頻繁な変化用).
+     * 0.2秒以内の連発は間引くことで、撃破数・ゲージ・転移門の開放がほぼ即時に
+     * 反映されつつパケット量を抑える (定期送信0.1〜1秒でも確実に上書きされる).
+     */
+    static void sendHudSoon(ServerPlayer player) {
+        Long last = LAST_HUD_TICK.get(player.getUUID());
+        if (last != null && tickCounter - last < 4) return;
+        sendHud(player);
     }
 
 

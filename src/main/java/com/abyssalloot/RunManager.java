@@ -161,6 +161,8 @@ public final class RunManager {
                 player.displayClientMessage(Component.literal("§b◆ 絶対領域展開！"), false);
             }
         }
+        // ゲージの変動をHUDに即時反映 (0.2秒に1回に間引き)
+        CombatHandler.sendHudSoon(player);
     }
 
     /** 魂の報酬倍率 (原作 calculateRunReward: モード×難易度×呪印×日替わり×異変) */
@@ -365,6 +367,8 @@ public final class RunManager {
 
     /** 出撃: 現在地の近くに試練アリーナを整地し第1ウェーブを出す */
     public static void startRun(ServerPlayer player) {
+        // 開いていたGUI (商店・鍛造など) を閉じてから出撃する
+        player.closeContainer();
         clearRunField(player);
         int floor = 1;
         String mode = player.getData(ModAttachments.MODE.get());
@@ -437,6 +441,9 @@ public final class RunManager {
         player.setData(ModAttachments.SCYTHE.get(), 0);
         player.setData(ModAttachments.GCNT.get(), 0);
         player.setData(ModAttachments.PARRY_TICK.get(), -1000L);
+        player.setData(ModAttachments.PENDING_BOONS.get(), 0);
+        player.setData(ModAttachments.LIGHT_CD.get(), 0f);
+        player.setData(ModAttachments.SKILL_CD.get(), 0f);
     }
 
     /** 原作の魂の内訳をチャットに出す (勝利時の要約). 報酬の欠片とは別の換算値 */
@@ -507,6 +514,9 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        clearLingeringRunState(player);
+        // 開いていたGUI (商店・鍛造・比較など) を強制的に閉じる
+        player.closeContainer();
         player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
     }
 
@@ -657,14 +667,34 @@ public final class RunManager {
     }
 
     /** 踏破処理の共通末尾: 戦闘固定の解除・層の初期化・結界の撤去 */
+    /**
+     * 出撃の終了処理 (勝利・踏破)。条件固定を解除し、提示中の祝福/遺物/商店などの
+     * ラン依存状態を必ず消す (次の出撃に前ランの未選択が引きずられないように)。
+     */
     private static void endRun(ServerPlayer player) {
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        clearLingeringRunState(player);
         player.level().playSound(null, player.blockPosition(),
                 net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1f);
         ArenaManager.clearArenaBarriers(player);
+        player.closeContainer();
+    }
+
+    /** ラン中のみ有効な提示・イベント状態を消す (endRun / retire 共通) */
+    private static void clearLingeringRunState(ServerPlayer player) {
+        player.setData(ModAttachments.OFFER.get(), "");
+        player.setData(ModAttachments.PENDING_BOONS.get(), 0);
+        player.setData(ModAttachments.RELIC_OFFER.get(), "");
+        player.setData(ModAttachments.PASSIVE_OFFER.get(), "");
+        player.setData(ModAttachments.SHOP.get(), "");
+        player.setData(ModAttachments.EVENT_DONE.get(), 0);
+        player.setData(ModAttachments.MUTATION.get(), "");
+        player.setData(ModAttachments.DUNGEON.get(), "");
+        player.setData(ModAttachments.FATE_MIST.get(), 0L);
+        player.setData(ModAttachments.FATE_TIME.get(), 0L);
     }
 
     /** カスタムデータにレアリティを刻印し、銘を付け替えてloreを更新する */
@@ -865,6 +895,8 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
+        // 層移動で開いていたGUI (商店など) は自動的に閉じる (前の層の状態を引きずらない)
+        player.closeContainer();
         // 未選択の祝福は層移動しても絶対に消さない (原作 pendingBoons は新出撃まで保存される).
         // ここで OFFER を消すと「選択できないまま次の層に上がる」不具合の原因になったため提示だけやり直す.
         if (pendingBoonsOf(player) > 0

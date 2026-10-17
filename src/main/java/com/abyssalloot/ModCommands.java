@@ -144,7 +144,13 @@ public final class ModCommands {
                                     return 1;
                                 })))
                 .then(Commands.literal("start").executes(ctx -> {
-                    RunManager.startRun(ctx.getSource().getPlayerOrException());
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    if (RunManager.isRunLocked(p)) {
+                        p.sendSystemMessage(Component.literal(
+                                "§c出撃中だ。先に §7/abyss retire §cで中断するか §7/abyss quick §cで再配備してね"));
+                        return 0;
+                    }
+                    RunManager.startRun(p);
                     return 1;
                 }))
                 .then(Commands.literal("next").executes(ctx -> {

@@ -106,6 +106,8 @@ public class ShopMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.isAlive();
+        // 層移動などでこの層の商店が消えたら自動的に閉じる (前の層のGUIを引きずらない)
+        if (!(player instanceof ServerPlayer sp)) return player.isAlive();
+        return player.isAlive() && !sp.getData(ModAttachments.SHOP.get()).isBlank();
     }
 }

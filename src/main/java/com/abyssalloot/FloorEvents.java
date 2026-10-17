@@ -286,6 +286,11 @@ public final class FloorEvents {
     }
 
     public static void doBuy(ServerPlayer player, int index) {
+        // 連打による二重購入を防ぐ (この層のイベントは1回のみ)
+        if (player.getData(ModAttachments.EVENT_DONE.get()) != 0) {
+            player.sendSystemMessage(Component.literal("§cこの層のイベントは使用済み"));
+            return;
+        }
         String raw = player.getData(ModAttachments.SHOP.get());
         if (raw == null || raw.isBlank()) {
             player.sendSystemMessage(Component.literal("§c商店は開いていない (/abyss event shop)"));

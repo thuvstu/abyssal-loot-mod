@@ -18,6 +18,8 @@ import java.util.List;
 public class BoonSelectScreen extends Screen {
     private List<String> choices;
     private int remaining;
+    /** 選択送信済みフラグ (連打でパケットが二重送信されるのを防ぐ) */
+    private boolean chosen;
 
     public BoonSelectScreen(List<String> choices, int remaining) {
         super(Component.literal("祝福を選択"));
@@ -29,6 +31,7 @@ public class BoonSelectScreen extends Screen {
     public void refresh(List<String> next, int nextRemaining) {
         this.choices = next == null ? List.of() : List.copyOf(next);
         this.remaining = nextRemaining;
+        this.chosen = false;
     }
 
     private int choiceX() {
@@ -41,9 +44,10 @@ public class BoonSelectScreen extends Screen {
 
     /** 決定 (クリックと数字キーの共通)。選べない場合はサーバー側で拒否される */
     private void choose(int i) {
-        if (i < 0 || i >= choices.size()) return;
+        if (chosen || i < 0 || i >= choices.size()) return;
         var conn = minecraft != null ? minecraft.getConnection() : null;
         if (conn != null) {
+            chosen = true;
             conn.send(new ServerboundCustomPayloadPacket(new ModPackets.BoonPacket(choices.get(i))));
         }
         onClose();
