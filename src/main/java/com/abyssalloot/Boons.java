@@ -88,6 +88,9 @@ public final class Boons {
             new BoonDef("b_midas", "黄金の祝福", "運 +15 / HP回復 +0.5/秒", "common"),
             new BoonDef("b_web", "蛛巣の祝福", "氷結確率 +15% / 連鎖雷撃 +1", "rare"),
             new BoonDef("b_giant", "巨人の祝福", "最大HP +18% / 最大HP +25", "common"),
+            new BoonDef("b_reach", "望遠の祝福", "攻撃射程 +1", "common"),
+            new BoonDef("b_sweep", "横薙の祝福", "横斬り (薙ぎ幅) +1", "rare"),
+            new BoonDef("b_barrage", "連撃の祝福", "一打の連撃 +1", "rare"),
     };
 
     public static BoonDef boonById(String id) {

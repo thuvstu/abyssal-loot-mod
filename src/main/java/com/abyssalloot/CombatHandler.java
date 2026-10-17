@@ -36,6 +36,14 @@ public final class CombatHandler {
     private static final java.util.Map<java.util.UUID, Long> LAST_KILL_TICK =
             new java.util.HashMap<>();
 
+    /** 深淵タグ持ちか (ドロップ抑止・放浪判定の共用) */
+    private static boolean hasAbyssTag(net.minecraft.world.entity.Entity e) {
+        for (String t : e.getTags()) {
+            if (t.startsWith("abyss_")) return true;
+        }
+        return false;
+    }
+
     /**
      * 深淵MOBのバニラドロップを消す (骨・矢・火薬などのゴミ拾い防止).
      * Mod の報酬 (武器・欠片) は直接配布のため影響なし。経験値オーブは残る.
@@ -44,15 +52,7 @@ public final class CombatHandler {
     public static void onMobDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event) {
         LivingEntity e = event.getEntity();
         if (e instanceof ServerPlayer) return;
-        boolean ours = RunManager.BOSS_BARS.containsKey(e);
-        if (!ours) {
-            for (String t : e.getTags()) {
-                if (t.startsWith("abyss_")) {
-                    ours = true;
-                    break;
-                }
-            }
-        }
+        boolean ours = RunManager.BOSS_BARS.containsKey(e) || hasAbyssTag(e);
         if (ours) {
             event.getDrops().clear();
             event.setCanceled(true);
@@ -100,6 +100,25 @@ public final class CombatHandler {
         if (player.getData(ModAttachments.COMBO.get()) > player.getData(ModAttachments.BEST_COMBO.get())) {
             player.setData(ModAttachments.BEST_COMBO.get(), player.getData(ModAttachments.COMBO.get()));
         }
+        // 雷天の共闘: 雷雨中の討伐は深淵に響く (バニラの天候との融合)
+        if (level.isThundering()) RunManager.addGauge(player, 5);
+        // 放浪の討伐: 試練外でのバニラ敵討伐もカウントし、25体ごとに欠片が戻る
+        if (event.getEntity() instanceof net.minecraft.world.entity.monster.Monster
+                && !RunManager.BOSS_BARS.containsKey(event.getEntity())
+                && !hasAbyssTag(event.getEntity())) {
+            int roam = player.getData(ModAttachments.ROAM_KILLS.get()) + 1;
+            if (roam >= 25) {
+                roam = 0;
+                int shards = RunManager.materialCount(player, 1);
+                if (shards > 0) {
+                    giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+                    player.sendSystemMessage(Component.literal(
+                            "§7放浪の討伐 ×25 — 魂が欠片となって戻った +" + shards));
+                    RunManager.addGauge(player, 15);
+                }
+            }
+            player.setData(ModAttachments.ROAM_KILLS.get(), roam);
+        }
         // 遺物「魂喰いの爪」: 撃破ごとに魂+8
         if (RunManager.relicFlagsOf(player).contains("soulfang")) {
             RunManager.addGauge(player, 8);
@@ -133,6 +152,17 @@ public final class CombatHandler {
             if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         } else if (rand.nextDouble() < 0.08) {
             giveOrDrop(player, ModItems.randomConsumable(rand));
+        }
+        // 満腹度: 深淵の討伐でも食料が手に入る (バニラの食料システムとの融合)
+        // バニラのドロップ消去 (onMobDrops) で腹は満たせないためここで補う
+        if (rand.nextDouble() < 0.12) {
+            var foods = new net.minecraft.world.item.Item[]{
+                    net.minecraft.world.item.Items.COOKED_BEEF,
+                    net.minecraft.world.item.Items.BREAD,
+                    net.minecraft.world.item.Items.COOKED_PORKCHOP,
+                    net.minecraft.world.item.Items.COOKED_CHICKEN,
+                    net.minecraft.world.item.Items.COOKED_MUTTON};
+            giveOrDrop(player, new ItemStack(foods[rand.nextInt(foods.length)], 1 + rand.nextInt(2)));
         }
         // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
         if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {
@@ -190,6 +220,9 @@ public final class CombatHandler {
             StatCalc.applyClass(player, cls, lv);
             RunManager.heal(player, player.getMaxHealth() * 0.25);
             player.sendSystemMessage(Component.literal("§e◆ レベルアップ！ Lv" + lv + " (HP25%回復)"));
+            level.playSound(null, player.blockPosition(),
+                    net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.PLAYERS,
+                    0.8f, 1.2f);
             if (lv >= 20) {
                 var a = GameData.achievementById("level-twenty");
                 grantAch(player, "level-twenty", a.title(), GameData.shardsForReward(a.reward()));
@@ -215,6 +248,9 @@ public final class CombatHandler {
             String rec = player.getData(ModAttachments.BOSSES.get());
             player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
             player.sendSystemMessage(Component.literal("§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
+            level.playSound(null, player.blockPosition(),
+                    net.minecraft.sounds.SoundEvents.ENDER_DRAGON_DEATH, net.minecraft.sounds.SoundSource.PLAYERS,
+                    0.4f, 1.2f);
             RunManager.addGauge(player, 30);
             // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ。未選択があれば再提示)
             if (floor == 5) {
@@ -548,7 +584,7 @@ public final class CombatHandler {
         }
     }
 
-    /** 実績付与 (重複なし・欠片報酬) */
+    /** 実績付与 (重複なし・欠片報酬)。レベルアップ音で確実な存在感を出す */
     public static void grantAch(ServerPlayer player, String id, String title, int shards) {
         String raw = player.getData(ModAttachments.ACH.get());
         var have = new java.util.HashSet<String>();
@@ -557,6 +593,9 @@ public final class CombatHandler {
         have.add(id);
         player.setData(ModAttachments.ACH.get(), String.join(",", have));
         player.sendSystemMessage(Component.literal("§e★ 実績解除: " + title + " (欠片+" + shards + ")"));
+        player.level().playSound(null, player.blockPosition(),
+                net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.PLAYERS,
+                0.7f, 1.5f);
         if (shards > 0) {
             giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         }
@@ -695,6 +734,11 @@ public final class CombatHandler {
     /** 無敵時間の適用 + 武器ダメージの原作式上書き */
     @SubscribeEvent
     public static void onDamage(LivingDamageEvent.Pre event) {
+        // エリート「魔盾」: 盾持ちの被ダメ軽減 (原作のシールドエリート)
+        if (event.getEntity().getTags().contains(Enemies.ET_SHIELD)
+                && !(event.getEntity() instanceof ServerPlayer)) {
+            event.setNewDamage(event.getNewDamage() * 0.7f);
+        }
         if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             float iframe = player.getData(ModAttachments.IFRAME.get());
             if (iframe > 0) {
@@ -936,6 +980,8 @@ public final class CombatHandler {
                     if (near >= 3) dmg *= 1.35f;
                 }
                 event.setNewDamage(dmg);
+                // 一打の連撃・横斬り (通常武器命中のみ。奥義ヒット側は inArtHit で対象外)
+                applyShapeStrikes(player, level, target, dmg);
                 // スコア用: 累積与ダメ (切り捨て)
                 player.setData(ModAttachments.DMG_DEALT.get(),
                         player.getData(ModAttachments.DMG_DEALT.get()) + (int) dmg);
@@ -1075,8 +1121,60 @@ public final class CombatHandler {
         }
     }
 
-    /** 遺物「嵐召喚者の冠」: 見切りのたび、空から落雷が3体の敵を焼く */
-    private static void stormStrike(ServerLevel level, ServerPlayer player) {
+    /**
+     * 通常武器命中に付随する「一打の連撃」と「横斬り」.
+     * 連撃: 標的以外の近接を strikes 体まで同時に 45% で打つ (artHurt 経由で inArtHit ガードが回帰を遮断).
+     * 横斬り: 前方 sweepArc 以内の別敵に 40% の薙ぎ (奥義の slashCone とは別物で通常打に付随).
+     */
+    private static void applyShapeStrikes(ServerPlayer player, ServerLevel level,
+                                          LivingEntity target, float dmg) {
+        Vec3 look = player.getLookAngle();
+        double reach = 4 + StatCalc.reachOf(player);
+        int strikes = StatCalc.strikesOf(player);
+        if (strikes > 0) {
+            var cands = level.getEntitiesOfClass(LivingEntity.class,
+                    new net.minecraft.world.phys.AABB(
+                            target.position().x - reach, target.position().y - 4, target.position().z - reach,
+                            target.position().x + reach, target.position().y + 4, target.position().z + reach),
+                    e -> e.isAlive() && e != target && !(e instanceof ServerPlayer));
+            cands.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(target.position())));
+            int n = 0;
+            for (LivingEntity e : cands) {
+                if (n++ >= strikes) break;
+                WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), dmg * 0.45f);
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT,
+                        e.getX(), e.getY() + 1, e.getZ(), 6, 0.3, 0.5, 0.3, 0.1);
+            }
+        }
+        double sweep = StatCalc.sweepOf(player);
+        if (sweep > 0) {
+            double arc = StatCalc.sweepArc(player);
+            double baseAng = Math.atan2(look.z, look.x);
+            for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                    new net.minecraft.world.phys.AABB(
+                            player.getX() - reach, player.getY() - 4, player.getZ() - reach,
+                            player.getX() + reach, player.getY() + 4, player.getZ() + reach),
+                    x -> x.isAlive() && x != target && !(x instanceof ServerPlayer))) {
+                Vec3 d = e.position().subtract(player.position());
+                if (d.length() > reach) continue;
+                double diff = Math.abs(normAngle(Math.atan2(d.z, d.x) - baseAng));
+                if (diff < arc) {
+                    WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), dmg * 0.4f);
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK,
+                            e.getX(), e.getY() + 1, e.getZ(), 4, 0.3, 0.4, 0.3, 0.05);
+                }
+            }
+        }
+    }
+
+    /** 角度差の正規化 (-PI..PI) */
+    private static double normAngle(double a) {
+        while (a > Math.PI) a -= Math.PI * 2;
+        while (a < -Math.PI) a += Math.PI * 2;
+        return a;
+    }
+
+    /** 遺物「嵐召喚者の冠」: 見切りのたび、空から落雷が3体の敵を焼く */    private static void stormStrike(ServerLevel level, ServerPlayer player) {
         var pos = player.position();
         var targets = level.getEntitiesOfClass(LivingEntity.class,
                 new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,

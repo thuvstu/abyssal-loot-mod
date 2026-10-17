@@ -85,11 +85,13 @@ public final class WeaponArts {
             }
             case SPEAR -> {
                 // 竜殺し: 前方へ突進 (無敵付与) + 経路3点の全員を強襲 (原作 dash)
-                Vec3 dest = origin.add(look.x * 6, 0, look.z * 6);
+                // 突進距離は射程 (reach) で伸びる (reach 1点につき +0.75m, 上限+3m)
+                double dash = 6 + Math.min(4, StatCalc.reachOf(player)) * 0.75;
+                Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
                 player.teleportTo(dest.x, dest.y, dest.z);
                 player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
                 java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
-                for (double d = 2; d <= 6; d += 2) {
+                for (double d = 2; d <= dash; d += 2) {
                     Vec3 at = origin.add(look.x * d, 0, look.z * d);
                     for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                             new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
@@ -264,12 +266,13 @@ public final class WeaponArts {
                 return true;
             }
             case STORM_SPEAR -> {
-                // 螺旋突貫: 突進+軌跡に雷撃
-                Vec3 dest = origin.add(look.x * 6, 0, look.z * 6);
+                // 螺旋突貫: 突進+軌跡に雷撃 (突進距離は射程で伸びる)
+                double dash = 6 + Math.min(4, StatCalc.reachOf(player)) * 0.75;
+                Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
                 player.teleportTo(dest.x, dest.y, dest.z);
                 player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
                 java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
-                for (double d = 2; d <= 6; d += 2) {
+                for (double d = 2; d <= dash; d += 2) {
                     Vec3 at = origin.add(look.x * d, 0, look.z * d);
                     for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                             new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
@@ -685,7 +688,8 @@ public final class WeaponArts {
     }
 
     private static void slashCone(ServerLevel level, ServerPlayer attacker, Vec3 origin, Vec3 dir, double range, double dmg, ParticleOptions particle) {
-        range *= StatCalc.areaMult(attacker);
+        range *= StatCalc.areaMult(attacker) * StatCalc.reachMult(attacker);
+        double arc = StatCalc.sweepArc(attacker);
         double baseAng = Math.atan2(dir.z, dir.x);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - range, origin.y - 5, origin.z - range, origin.x + range, origin.y + 5, origin.z + range),
@@ -694,7 +698,7 @@ public final class WeaponArts {
             if (d.length() > range + 1) continue;
             double ang = Math.atan2(d.z, d.x);
             double diff = Math.abs(normAng(ang - baseAng));
-            if (diff < 0.6) {
+            if (diff < arc) {
                 artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
                 Vec3 kb = d.normalize().scale(1.2);
                 e.push(kb.x, 0.25, kb.z);

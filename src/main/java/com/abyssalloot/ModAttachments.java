@@ -169,4 +169,7 @@ public final class ModAttachments {
     /** 運命の祭壇の効果終了時刻 (gameTime) */
     public static final Supplier<AttachmentType<Long>> SHRINE_UNTIL =
             reg("shrine_until", 0L, Codec.LONG);
+    /** 放浪の討伐カウンタ (試練外でのバニラ敵討伐数。25体ごとに欠片) */
+    public static final Supplier<AttachmentType<Integer>> ROAM_KILLS =
+            reg("roam_kills", 0, Codec.INT);
 }

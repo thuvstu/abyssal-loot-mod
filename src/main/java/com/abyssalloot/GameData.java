@@ -889,6 +889,37 @@ public final class GameData {
         return null;
     }
 
+    /* ---------------- 地脈の共鳴 (バニラバイオームとの融合要素) ----------------
+     * 現在いるバニラバイオームが、その土地の性質を深淵の戦闘へ滲ませる。
+     * 効果は接辞キー束 (EXTRA_* と同じ感覚) で、StatCalc.extraStat が合算する。
+     */
+    public record BiomeEcho(String biome, String name, String desc, java.util.Map<String, Double> mods) {}
+
+    public static final java.util.List<BiomeEcho> BIOME_ECHOS = java.util.List.of(
+            new BiomeEcho("minecraft:soul_sand_valley", "魂谷の共鳴", "魂ゲージ増加 +15%",
+                    java.util.Map.of("energyPct", 15.0)),
+            new BiomeEcho("minecraft:crimson_forest", "焔森の共鳴", "攻撃力 +8%",
+                    java.util.Map.of("damagePct", 8.0)),
+            new BiomeEcho("minecraft:warped_forest", "歪森の共鳴", "攻撃範囲 +12%",
+                    java.util.Map.of("areaPct", 12.0)),
+            new BiomeEcho("minecraft:basalt_deltas", "玄武の共鳴", "被ダメ軽減 +8% / 攻撃力 +4%",
+                    java.util.Map.of("armorPct", 8.0, "damagePct", 4.0)),
+            new BiomeEcho("minecraft:deep_dark", "深闇の共鳴", "魂ゲージ +20% / 攻撃力 -5% (踏み鳴らすな)",
+                    java.util.Map.of("energyPct", 20.0, "damagePct", -5.0)),
+            new BiomeEcho("minecraft:lush_caves", "翠窟の共鳴", "HP回復 +1/秒",
+                    java.util.Map.of("regenFlat", 1.0)),
+            new BiomeEcho("minecraft:dripstone_caves", "鍾乳の共鳴", "攻撃力 +12%",
+                    java.util.Map.of("damagePct", 12.0)),
+            new BiomeEcho("minecraft:frozen_peaks", "氷峰の共鳴", "凍結 +15%",
+                    java.util.Map.of("freezePct", 15.0)));
+
+    public static BiomeEcho biomeEchoById(String biomeId) {
+        for (BiomeEcho e : BIOME_ECHOS) {
+            if (e.biome().equals(biomeId)) return e;
+        }
+        return null;
+    }
+
     /* ---------------- 原作 RARITY_META (希少度の重み) ---------------- */
 
     /** 原作 rollRarity の写し. l = 運 + 層×1.6 + ボーナス (鍛冶場65・層主130) */
@@ -1054,6 +1085,33 @@ public final class GameData {
                 new WeaponBonus(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     }
 
+    /* ---------------- 武器種ごとの「搦み」 (射程・横斬り・連撃の素値) ----------------
+     * 原作の武器クラス形状差をMCへ。StatCalc.shapeOf が参照する。
+     * reach = 攻撃射程 (バニラ属性 + 奥義の突進/横薙距離) /
+     * sweep = 横方向の斬り幅 (半角ラジアンの拡大) / strikes = 一打で同時に斬る隣接敵数。
+     */
+    public record ShapeBonus(double reach, double sweep, double strikes) {}
+
+    public static final java.util.Map<String, ShapeBonus> WEAPON_SHAPE = java.util.Map.ofEntries(
+            java.util.Map.entry("spear", new ShapeBonus(2, 0, 0)),
+            java.util.Map.entry("storm_spear", new ShapeBonus(2, 0, 0)),
+            java.util.Map.entry("tide_trident", new ShapeBonus(1, 0, 0)),
+            java.util.Map.entry("astral_lance", new ShapeBonus(1, 0, 0)),
+            java.util.Map.entry("bow", new ShapeBonus(1, 0, 0)),
+            java.util.Map.entry("moon_bow", new ShapeBonus(1, 0, 0)),
+            java.util.Map.entry("greatsword", new ShapeBonus(1, 1, 0)),
+            java.util.Map.entry("katana", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("frost_katana", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("axe", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("scythe", new ShapeBonus(0, 2, 0)),
+            java.util.Map.entry("ember_flail", new ShapeBonus(0, 2, 0)),
+            java.util.Map.entry("chakram", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("wind_blade", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("war_horn", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("twin_dagger", new ShapeBonus(0, 0, 1)),
+            java.util.Map.entry("gauntlet", new ShapeBonus(0, 0, 1)),
+            java.util.Map.entry("titan_gauntlet", new ShapeBonus(0, 0, 1)));
+
     /* ---------------- 全武器の固有能力 (命中・撃破・被弾で発動) ----------------
      * kind: CHAIN (確率連鎖) / FROST (確率凍結) / SOUL (命中で魂) /
      *       EXECUTE (瀕死へ倍率) / BURST (確率爆発) / GUARD (被弾時反射)
@@ -1177,7 +1235,10 @@ public final class GameData {
                     java.util.Map.entry("b_luna", java.util.Map.of("critPct", 4.0, "critDmgPct", 20.0)),
                     java.util.Map.entry("b_midas", java.util.Map.of("luckFlat", 15.0, "regenFlat", 0.5)),
                     java.util.Map.entry("b_web", java.util.Map.of("freezePct", 15.0, "chain", 1.0)),
-                    java.util.Map.entry("b_giant", java.util.Map.of("maxHpPct", 18.0, "maxHpFlat", 25.0)));
+                    java.util.Map.entry("b_giant", java.util.Map.of("maxHpPct", 18.0, "maxHpFlat", 25.0)),
+                    java.util.Map.entry("b_reach", java.util.Map.of("reach", 1.0)),
+                    java.util.Map.entry("b_sweep", java.util.Map.of("sweep", 1.0)),
+                    java.util.Map.entry("b_barrage", java.util.Map.of("strikes", 1.0)));
 
     public static final java.util.Map<String, java.util.Map<String, Double>> EXTRA_PASSIVE_MODS =
             java.util.Map.ofEntries(
@@ -1288,7 +1349,10 @@ public final class GameData {
             new GearSkill("h_warmth", "炉火の兜", "兜: 炎上を自動的に鎮める"),
             new GearSkill("l_feather", "羽毛の脚", "脚: 常時緩降下"),
             new GearSkill("b_magnet", "磁石の靴", "靴: 8m内の落とし物を吸い寄せる"),
-            new GearSkill("b_vigor", "敏捷の靴", "靴: 回避CT -10%"));
+            new GearSkill("b_vigor", "敏捷の靴", "靴: 回避CT -10%"),
+            new GearSkill("h_hawk", "鷹眼の兜", "兜: 攻撃射程 +1"),
+            new GearSkill("l_sweep", "横薙の脚", "脚: 横斬り (薙ぎ幅) +1"),
+            new GearSkill("b_barrage", "連撃の靴", "靴: 一打の連撃 +1"));
 
     public static GearSkill gearSkillById(String id) {
         for (GearSkill s : WEAPON_SKILLS) {
@@ -1415,7 +1479,10 @@ public final class GameData {
             new AffixKey("projectiles", 1, 1, 3),
             new AffixKey("chain", 1, 2, 3),
             new AffixKey("explodePct", 4, 10, 3),
-            new AffixKey("freezePct", 5, 12, 3));
+            new AffixKey("freezePct", 5, 12, 3),
+            new AffixKey("reach", 1, 1, 3),
+            new AffixKey("sweep", 1, 1, 3),
+            new AffixKey("strikes", 1, 1, 3));
 
     /** 原作 RARITY_META の接辞数 [min, max] */
     public static int[] affixCountRange(String rarity) {
@@ -1464,7 +1531,7 @@ public final class GameData {
             }
             pool.remove(sel);
             double v;
-            if (sel.key().equals("pierce") || sel.key().equals("projectiles") || sel.key().equals("chain")) {
+            if (isWholeAffix(sel.key())) {
                 v = Math.max(1, Math.round(sel.min() + r.getAsDouble() * (sel.max() - sel.min())));
             } else {
                 v = Math.round((sel.min() + r.getAsDouble() * (sel.max() - sel.min())) * 10) / 10.0;
@@ -1472,5 +1539,11 @@ public final class GameData {
             out.add(new RolledAffix(sel.key(), v));
         }
         return out;
+    }
+
+    /** 整数スロットの接辞 (1スタック単位で意味が出るもの) */
+    public static boolean isWholeAffix(String key) {
+        return key.equals("pierce") || key.equals("projectiles") || key.equals("chain")
+                || key.equals("reach") || key.equals("sweep") || key.equals("strikes");
     }
 }

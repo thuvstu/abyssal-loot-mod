@@ -432,6 +432,23 @@ public class GameDataTest {
     }
 
     @Test
+    void biomeEchoTableIsSound() {
+        assertEquals(8, GameData.BIOME_ECHOS.size());
+        var ids = new java.util.HashSet<String>();
+        for (var e : GameData.BIOME_ECHOS) {
+            assertTrue(ids.add(e.biome()), "重複したバイオーム: " + e.biome());
+            assertTrue(e.biome().startsWith("minecraft:"), e.biome());
+            assertFalse(e.name().isBlank() || e.desc().isBlank());
+            assertFalse(e.mods().isEmpty());
+        }
+        assertEquals(15.0,
+                GameData.biomeEchoById("minecraft:soul_sand_valley").mods().getOrDefault("energyPct", 0.0), 1e-9);
+        assertEquals(-5.0,
+                GameData.biomeEchoById("minecraft:deep_dark").mods().getOrDefault("damagePct", 0.0), 1e-9);
+        assertNull(GameData.biomeEchoById("minecraft:plains"));
+    }
+
+    @Test
     void curseEaterNullifiesDrawbacksAndDoublesBonuses() {
         // curseEaterBonus* はベース式への加算分を返す (合計 = ベース + 補正)。
         // 鉄の律儀: 攻撃+25%/最大HP-12% → 合計は攻撃+50%/最大HP±0%
@@ -492,7 +509,7 @@ public class GameDataTest {
 
     @Test
     void extraContentIsSound() {
-        assertEquals(28, GameData.EXTRA_BOON_MODS.size());
+        assertEquals(31, GameData.EXTRA_BOON_MODS.size());
         assertEquals(24, GameData.EXTRA_PASSIVE_MODS.size());
         assertEquals(18, GameData.EXTRA_RELIC_MODS.size());
         assertEquals(6, GameData.ARMOR_SETS.size());
@@ -526,7 +543,7 @@ public class GameDataTest {
         assertEquals("禅定結界", GameData.HeroClass.byId("monk").skillName());
         // 装備スキル6+6
         assertEquals(12, GameData.WEAPON_SKILLS.size());
-        assertEquals(12, GameData.ARMOR_SKILLS.size());
+        assertEquals(15, GameData.ARMOR_SKILLS.size());
         assertNotNull(GameData.gearSkillById("w_soul"));
         assertNotNull(GameData.gearSkillById("b_dash"));
         // 全武器に能力・全通常モブに能力・ダンジョン特性8種
@@ -546,7 +563,7 @@ public class GameDataTest {
     @Test
     void boonPoolCoversOriginal39PlusLegacy2() {
         var pool = Boons.BOON_POOL;
-        assertEquals(69, pool.length);
+        assertEquals(72, pool.length);
         var ids = new java.util.HashSet<String>();
         for (var b : pool) {
             assertFalse(b.desc().isBlank() || b.name().isBlank());
@@ -610,7 +627,7 @@ public class GameDataTest {
 
     @Test
     void affixRollMatchesGenItem() {
-        assertEquals(19, GameData.WEAPON_AFFIXES.size());
+        assertEquals(22, GameData.WEAPON_AFFIXES.size());
         assertArrayEquals(new int[]{0, 1}, GameData.affixCountRange("normal"));
         assertArrayEquals(new int[]{1, 2}, GameData.affixCountRange("magic"));
         assertArrayEquals(new int[]{3, 4}, GameData.affixCountRange("rare"));

@@ -181,6 +181,7 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_BULWARK = consumable("abyss_bulwark", "bulwark", Rarity.UNCOMMON);
     public static final DeferredItem<Item> ABYSS_BOMB_H = consumable("abyss_bomb_h", "bomb_blaze", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_FORTUNE = consumable("abyss_fortune", "fortune", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_RATION = consumable("abyss_ration", "ration", Rarity.COMMON);
 
     /** 生活ツール用素材 (ネザライト級・高速・魂の欠片等で修繕可) */
     public static final net.minecraft.world.item.ToolMaterial ABYSS_TIER =
@@ -312,6 +313,7 @@ public final class ModItems {
                         output.accept(ABYSS_BULWARK.get());
                         output.accept(ABYSS_BOMB_H.get());
                         output.accept(ABYSS_FORTUNE.get());
+                        output.accept(ABYSS_RATION.get());
                         output.accept(ABYSS_BLOOD_CRYSTAL.get());
                         output.accept(ABYSS_SHADOW_STONE.get());
                         output.accept(ABYSS_STAR_DUST.get());
@@ -338,7 +340,7 @@ public final class ModItems {
             ABYSS_BOMB_F, ABYSS_BOMB_T, ABYSS_BOMB_I,
             ABYSS_TELE_A, ABYSS_TELE_S, ABYSS_CURE,
             ABYSS_MAGNET, ABYSS_REVEAL, ABYSS_FEAST, ABYSS_SMOKE,
-            ABYSS_BERSERK, ABYSS_BULWARK, ABYSS_BOMB_H, ABYSS_FORTUNE);
+            ABYSS_BERSERK, ABYSS_BULWARK, ABYSS_BOMB_H, ABYSS_FORTUNE, ABYSS_RATION);
 
     public static ItemStack randomConsumable(net.minecraft.util.RandomSource rand) {
         return new ItemStack(DROP_CONSUMABLES.get(rand.nextInt(DROP_CONSUMABLES.size())).get());

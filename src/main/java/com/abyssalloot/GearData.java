@@ -131,7 +131,8 @@ public final class GearData {
             java.util.Map.entry("luckFlat", 1.1), java.util.Map.entry("energyPct", 1.6),
             java.util.Map.entry("maxHpFlat", 0.1), java.util.Map.entry("maxHpPct", 2.6),
             java.util.Map.entry("chain", 20.0), java.util.Map.entry("explodePct", 3.0),
-            java.util.Map.entry("freezePct", 2.6));
+            java.util.Map.entry("freezePct", 2.6), java.util.Map.entry("reach", 18.0),
+            java.util.Map.entry("sweep", 14.0), java.util.Map.entry("strikes", 22.0));
 
     /** 武器の接辞マップ (key→value)。原作 mods に相当 */
     public static java.util.Map<String, Double> affixMap(ItemStack stack) {
@@ -182,7 +183,9 @@ public final class GearData {
             java.util.Map.entry("luckFlat", "運"), java.util.Map.entry("energyPct", "魂"),
             java.util.Map.entry("pierce", "貫通"), java.util.Map.entry("projectiles", "追加弾"),
             java.util.Map.entry("chain", "連鎖"), java.util.Map.entry("explodePct", "爆裂"),
-            java.util.Map.entry("freezePct", "凍結"));
+            java.util.Map.entry("freezePct", "凍結"),
+            java.util.Map.entry("reach", "射程"), java.util.Map.entry("sweep", "横斬り"),
+            java.util.Map.entry("strikes", "連撃"));
 
     /** 武器・防具のツールチップ行 (接辞・特性・奥義・使い方)。LOREコンポーネント用 */
     public static java.util.List<Component> loreLines(ItemStack stack,

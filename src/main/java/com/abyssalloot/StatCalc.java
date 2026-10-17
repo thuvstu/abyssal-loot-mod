@@ -187,6 +187,11 @@ public final class StatCalc {
                     * (1 + attrEff(player, 1) * 0.02)
                     * (1 + asPct / 100.0));
         }
+        // 攻撃射程 (バニラの ENTITY_INTERACTION_RANGE。素値3m + 射程0.6m/点, 上限8m)
+        var reach = player.getAttribute(Attributes.ENTITY_INTERACTION_RANGE);
+        if (reach != null) {
+            reach.setBaseValue(Math.min(8.0, 3.0 + reachOf(player) * 0.6));
+        }
         if (!quiet) {
             player.displayClientMessage(Component.literal(
                     "§6職業: " + cls.name + "「" + cls.title + "」 必殺技: " + cls.skillName()), false);
@@ -328,8 +333,34 @@ public final class StatCalc {
         }
         v += armorSetBonus(player, key);
         v += attrMilestone(player, key);
+        // 地脈の共鳴: 現在地のバニラバイオームが戦闘に滲む
+        var echo = activeBiomeEcho(player);
+        if (echo != null) v += echo.mods().getOrDefault(key, 0.0);
         return v;
     }
+
+    /** 現在地のバイオーム共鳴 (該当ナシ = null)。1秒間キャッシュ (毎打点のバイオーム参照を省く) */
+    public static GameData.BiomeEcho activeBiomeEcho(ServerPlayer player) {
+        long t = player.level().getGameTime();
+        var cached = ECHO_CACHE.get(player.getUUID());
+        if (cached != null && cached.tick() == t) return cached.echo();
+        GameData.BiomeEcho echo = null;
+        try {
+            var id = player.level().registryAccess()
+                    .lookupOrThrow(net.minecraft.core.registries.Registries.BIOME)
+                    .getKey(player.level().getBiome(player.blockPosition()).value());
+            echo = GameData.biomeEchoById(id.getNamespace() + ":" + id.getPath());
+        } catch (Exception ignored) {
+            echo = null;
+        }
+        if (ECHO_CACHE.size() > 256) ECHO_CACHE.clear();
+        ECHO_CACHE.put(player.getUUID(), new EchoCache(t, echo));
+        return echo;
+    }
+
+    private record EchoCache(long tick, GameData.BiomeEcho echo) {}
+
+    private static final java.util.Map<java.util.UUID, EchoCache> ECHO_CACHE = new java.util.HashMap<>();
 
     /** 装備中防具セットのボーナス (2部位・4部位)。setId -> 部位数で判定 */
     public static double armorSetBonus(ServerPlayer player, String key) {
@@ -381,7 +412,6 @@ public final class StatCalc {
                 * (1 + (StatCalc.affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0)
                 * (1 + attrEff(player, 7) * 0.015);
     }
-
     /** 運 (幸運+7/点 + 知識の渇望+20/Lv + 呪いluckFlat) */
     public static int luckOf(ServerPlayer player) {
         int luck = GameData.luckOf((int) attrEff(player, 4)) + RunManager.boonLv(player, "xp") * 20
@@ -398,5 +428,56 @@ public final class StatCalc {
     /** 奥義・必殺の威力倍率 (武の祝福+12%/Lv) */
     public static double artMultOf(ServerPlayer player) {
         return 1 + RunManager.boonLv(player, "art") * 0.12;
+    }
+
+    /* ---------------- 武器の搦み (射程・横斬り・連撃) ----------------
+     * 出所は4系統がそれぞれ独立して積算される:
+     *   1) 接辞 (reach/sweep/strikes — 武器・防具両方)
+     *   2) 武器種の素値 (GameData.WEAPON_SHAPE)
+     *   3) 祝福 (b_reach / b_sweep / b_barrage)
+     *   4) 防具スキル (h_hawk / l_sweep / b_barrage)
+     */
+
+    /** 主手持ち武器種の形状ボーナス (なければゼロ) */
+    public static GameData.ShapeBonus shapeOf(ServerPlayer player) {
+        var style = ModItems.styleOf(player.getMainHandItem().getItem());
+        return style == null ? null : GameData.WEAPON_SHAPE.get(style.id);
+    }
+
+    /** 攻撃射程の加算値 (+1 あたり属性+0.6m・奥義範囲+8%) */
+    public static double reachOf(ServerPlayer player) {
+        double v = extraStat(player, "reach");
+        var shape = shapeOf(player);
+        if (shape != null) v += shape.reach();
+        if ("h_hawk".equals(GearData.skillOf(player.getItemBySlot(EquipmentSlot.HEAD)))) v += 1;
+        return v;
+    }
+
+    /** 横斬り (薙ぎ幅) の加算値 (+1 あたり横斬りの半角+12%) */
+    public static double sweepOf(ServerPlayer player) {
+        double v = extraStat(player, "sweep");
+        var shape = shapeOf(player);
+        if (shape != null) v += shape.sweep();
+        if ("l_sweep".equals(GearData.skillOf(player.getItemBySlot(EquipmentSlot.LEGS)))) v += 1;
+        return v;
+    }
+
+    /** 一打の連撃 (同時に斬る隣接敵の追加数, 上限3) */
+    public static int strikesOf(ServerPlayer player) {
+        int v = (int) extraStat(player, "strikes");
+        var shape = shapeOf(player);
+        if (shape != null) v += (int) shape.strikes();
+        if ("b_barrage".equals(GearData.skillOf(player.getItemBySlot(EquipmentSlot.FEET)))) v += 1;
+        return Math.max(0, Math.min(3, v));
+    }
+
+    /** 奥義横薙・斬撃系の倍率 (射程) */
+    public static double reachMult(ServerPlayer player) {
+        return 1 + Math.min(8, reachOf(player)) * 0.08;
+    }
+
+    /** 斬撃円錐の半角 (ラジアン。基礎0.6 + 横斬り12%/点, 上限1.5) */
+    public static double sweepArc(ServerPlayer player) {
+        return Math.min(1.5, 0.6 * (1 + 0.12 * sweepOf(player)));
     }
 }

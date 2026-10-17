@@ -84,6 +84,7 @@ public final class EnemyAI {
         NEXT_CHARGE.keySet().removeIf(id -> !seen.contains(id));
         NEXT_TELE.keySet().removeIf(id -> !seen.contains(id));
         ORBIT_ANG.keySet().removeIf(id -> !seen.contains(id));
+        SHOOT_DIR.keySet().removeIf(id -> !seen.contains(id));
         // 脱走収容 (壁を越えたMOBをアリーナ内へ戻す)
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (p.level() instanceof ServerLevel level) containMobs(p, level);
@@ -153,6 +154,7 @@ public final class EnemyAI {
                     3, m.getBbWidth() * 0.5, m.getBbHeight() * 0.4, m.getBbWidth() * 0.5, 0.02);
             level.sendParticles(ParticleTypes.WITCH, m.getX(), m.getY() + 0.3, m.getZ(),
                     2, m.getBbWidth() * 0.6, 0.4, m.getBbWidth() * 0.6, 0.05);
+            tickBossEnrage(level, m);
         } else if (elite && now % 20 == 0) {
             level.sendParticles(new net.minecraft.core.particles.DustParticleOptions(0xffd700, 1.0f),
                     m.getX(), m.getY() + m.getBbHeight() + 0.4, m.getZ(), 4, 0.5, 0.3, 0.5, 0.02);
@@ -175,6 +177,32 @@ public final class EnemyAI {
     }
 
     private static final String HP_SUFFIX_HEAD = " §8[§c";
+
+    /** 層主の激高フラグタグ (一度だけ発動) */
+    private static final String ENRAGE_TAG = "abyss_enraged";
+
+    /**
+     * 層主の激高: HP 35% 未満で一度だけ移動速度+攻撃が跳ね上がる。
+     * (真ボス・終彦の座はフェーズ制弾幕があるが激高も持たせる。音・チャット告知つき)
+     */
+    private static void tickBossEnrage(ServerLevel level, Mob boss) {
+        if (boss.getTags().contains(ENRAGE_TAG)) return;
+        if (boss.getHealth() / Math.max(1, boss.getMaxHealth()) > 0.35) return;
+        boss.addTag(ENRAGE_TAG);
+        boss.addEffect(new MobEffectInstance(MobEffects.SPEED, 999999, 1, false, false));
+        var atk = boss.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        if (atk != null) atk.setBaseValue(atk.getBaseValue() * 1.25);
+        level.sendParticles(ParticleTypes.ANGRY_VILLAGER,
+                boss.getX(), boss.getY() + boss.getBbHeight() + 0.4, boss.getZ(), 12, 0.6, 0.4, 0.6, 0.05);
+        level.playSound(null, boss.blockPosition(),
+                net.minecraft.sounds.SoundEvents.RAVAGER_ROAR, net.minecraft.sounds.SoundSource.HOSTILE,
+                1.0f, 1.15f);
+        var target = level.getNearestPlayer(boss.getX(), boss.getY(), boss.getZ(), 64, false);
+        if (target != null) {
+            target.displayClientMessage(Component.literal(
+                    "§c◆ " + boss.getName().getString() + " が激高した！ 刻まれた体力を最低まで見せてやる！"), false);
+        }
+    }
 
     /** 回頭速度 (度/tick). 護衛兵は約80度/秒、突進・番人・層主は約120度/秒 */
     private static final double GUARD_TURN_PER_TICK = 4.0;
@@ -251,7 +279,10 @@ public final class EnemyAI {
         }
     }
 
-    /** 射撃: 中距離を保つ (発射はバニラAI) */
+    /** 射撃 AI の横移動方向 (±1。MOBごとに固定, 時々折り返す) */
+    private static final Map<UUID, Integer> SHOOT_DIR = new HashMap<>();
+
+    /** 射撃: 中距離を保ちつつ横にジグザグ移動 (発射はバニラAI). 直立不動で撃たれるのを防ぐ */
     private static void tickShooter(ServerLevel level, Mob m, int now) {
         ServerPlayer target = nearestPlayer(level, m);
         if (target == null) {
@@ -259,6 +290,22 @@ public final class EnemyAI {
             return;
         }
         keepDistance(m, target, 8, 16, 1.0, 1.0);
+        double dx = m.getX() - target.getX();
+        double dz = m.getZ() - target.getZ();
+        double d = Math.sqrt(dx * dx + dz * dz);
+        if (d >= 8 && d <= 16) {
+            // 中距離圏: 目標の周囲を ±45° ずつ巻いて横にこぼれる (サイトが振れ続ける)
+            int dir = SHOOT_DIR.computeIfAbsent(m.getUUID(), k -> m.getRandom().nextBoolean() ? 1 : -1);
+            double sw = Math.toRadians(45) * dir;
+            double ca = Math.cos(sw);
+            double sa = Math.sin(sw);
+            m.getNavigation().moveTo(
+                    target.getX() + (dx * ca - dz * sa) / Math.max(1e-3, d) * d,
+                    m.getY(),
+                    target.getZ() + (dx * sa + dz * ca) / Math.max(1e-3, d) * d,
+                    1.0);
+            if (m.getRandom().nextFloat() < 0.1f) SHOOT_DIR.put(m.getUUID(), -dir);
+        }
         m.setTarget(target);
     }
 

@@ -295,6 +295,7 @@ public final class RunManager {
             case "bulwark" -> "耐性・守護が30秒纏う";
             case "bomb_blaze" -> "前方に業火の爆発";
             case "fortune" -> "幸運の加護5分";
+            case "ration" -> "満腹+8・小回復";
             default -> kind;
         };
     }
@@ -419,6 +420,11 @@ public final class RunManager {
                 player.addEffect(new MobEffectInstance(MobEffects.LUCK, 6000, 0));
                 level.sendParticles(ParticleTypes.HAPPY_VILLAGER, origin.x, origin.y + 1, origin.z,
                         16, 0.8, 1, 0.8, 0.1);
+            }
+            case "ration" -> {
+                // 満腹度回復 (バニラの食料システムとの融合。試練中の食繋ぎに)
+                player.getFoodData().eat(8, 0.6F);
+                heal(player, 10);
             }
             default -> {
                 return false;
@@ -649,8 +655,8 @@ public final class RunManager {
         player.getInventory().add(new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         player.sendSystemMessage(Component.literal("§e魂の欠片 ×" + shards + " (呪印・難易度・幸運の倍率込み)"));
         var styles = GameData.WeaponStyle.values();
-        player.getInventory().add(GearFactory.makeWeapon(styles[player.getRandom().nextInt(styles.length)],
-                player.getRandom(), StatCalc.luckOf(player), 25, 0));
+        player.getInventory().add(GearFactory.makePrizeWeapon(styles[player.getRandom().nextInt(styles.length)],
+                player.getRandom(), StatCalc.luckOf(player), 25));
         sendSoulSummary(player, false);
         CombatHandler.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
         if (isCovenant(player)) {
@@ -826,6 +832,8 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        player.level().playSound(null, player.blockPosition(),
+                net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1f);
         ArenaManager.clearArenaBarriers(player);
     }
 
@@ -839,11 +847,11 @@ public final class RunManager {
         return stack;
     }
 
-    /** 神話確定の武器 (真ボス・終焉の座・超越者の報酬)。ランダム武器種に神話ランクと神話の銘 */
+    /** 神話確定の武器 (真ボス・終焉の座・超越者の報酬)。ランダム武器種に神話ランクと神話の銘、スキルも確定 */
     private static ItemStack mythicWeapon(ServerPlayer player) {
         var styles = GameData.WeaponStyle.values();
         var style = styles[player.getRandom().nextInt(styles.length)];
-        var stack = GearFactory.makeWeapon(style, player.getRandom());
+        var stack = GearFactory.makePrizeWeapon(style, player.getRandom(), StatCalc.luckOf(player), 26);
         return withRarity(stack, "mythic", "§d神話の" + style.weaponName);
     }
 
@@ -1504,8 +1512,8 @@ public final class RunManager {
             player.sendSystemMessage(Component.literal("§c欠片" + price + "個が足りない (所持" + countShards(player) + ")"));
             return;
         }
-        player.getInventory().add(GearFactory.makeWeapon(st, player.getRandom(), StatCalc.luckOf(player),
-                Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0));
+        player.getInventory().add(GearFactory.makePrizeWeapon(st, player.getRandom(), StatCalc.luckOf(player),
+                Math.max(1, player.getData(ModAttachments.FLOOR.get()))));
         completeEvent(player);
         player.sendSystemMessage(Component.literal("§6購入: " + st.weaponName + " (奥義「" + st.artName + "」)"));
     }
@@ -1751,6 +1759,11 @@ public final class RunManager {
             player.displayClientMessage(Component.literal("§b防具を変更: ステータス再計算"), true);
         }
         long t = level.getGameTime();
+        // 深獄の呼吸: 試練外でも高度0未満 (バニラの地下) に潜ると魂が漂ってくる
+        // (レベルアップに繋がるので、洞窟探索自体が冒険の足場になる)
+        if (!isRunLocked(player) && player.getY() < 0) {
+            addGauge(player, 1);
+        }
         // 生活属性: 採掘=保持ツールで掘削加速 / 跳躍=常時跳躍力 (40tickごとに更新)
         if (t % 40 == 0) {
             double mine = StatCalc.attrEff(player, 8);
@@ -1889,10 +1902,14 @@ public final class RunManager {
         out.add(String.format("§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d 採%d 跳%d",
                 a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]));
         out.add("§7適性: " + GameData.ATTR_NAMES[cls.affinityAttr()] + "★ (効果1.5倍) / 節目 10・20・30点");
+        out.add(String.format("§7搦み §b射程+%.1f §b横斬り+%.1f §b連撃+%d (接辞・祝福・スキル・武器種)",
+                StatCalc.reachOf(player), StatCalc.sweepOf(player), StatCalc.strikesOf(player)));
         out.add("§7祝福 " + boonsOf(player));
         out.add("§7層主 " + player.getData(ModAttachments.BOSSES.get()));
         out.add("§7区域 " + GameData.zoneForFloor(player.getData(ModAttachments.FLOOR.get())).name()
                 + " §8| §7異変 " + mutationName(player.getData(ModAttachments.MUTATION.get())));
+        var echo = StatCalc.activeBiomeEcho(player);
+        out.add("§7地脈の共鳴 " + (echo != null ? "§b" + echo.name() + " §7(" + echo.desc() + ")" : "§8なし"));
         out.add("§7遺物 " + relicsOf(player));
         out.add("§7技能 " + passivesOf(player));
         out.add("§7実績 " + player.getData(ModAttachments.ACH.get()));

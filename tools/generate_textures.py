@@ -564,6 +564,20 @@ def pouch(color):
     return img
 
 
+def ration(_c=None):
+    """軍糧丸 (海苔巻きのおにぎり)"""
+    img, d = canvas()
+    poly(d, [(8, 1), (14, 8), (12, 14), (4, 14), (2, 8)], OUTLINE)      # 三角おにぎりの輪郭
+    poly(d, [(8, 3), (12, 8), (11, 12), (5, 12), (4, 8)], (246, 242, 232, 255))  # 白飯
+    d.rectangle([5, 9, 11, 14], fill=OUTLINE)                          # 海苔 (下)
+    d.rectangle([6, 10, 10, 13], fill=(24, 34, 28, 255))
+    d.line([(6, 10), (10, 10)], fill=(52, 70, 60, 255), width=1)       # 海苔の粗め
+    d.ellipse([6, 4, 8, 6], fill=(255, 255, 255, 255))                 # 飯の粒あしらい
+    d.point((10, 5), fill=(246, 242, 232, 255))
+    d.point((8, 12), fill=(90, 120, 100, 255))                         # 具の芯
+    return img
+
+
 def fishing_rod(accent):
     img, d = canvas()
     line(d, [(2, 14), (12, 2)], WOOD, 1)  # 竿
@@ -888,6 +902,7 @@ CONSUMABLES = {
     "abyss_bulwark": (aegis, 0x6a8cff, "generated"),
     "abyss_bomb_h": None,  # 炎の冠つき (下で差し替え)
     "abyss_fortune": (pouch, 0xffd23c, "generated"),
+    "abyss_ration": (ration, 0xffffff, "generated"),
 }
 CONSUMABLES["abyss_bomb_h"] = (lambda c: bomb(c, crown=True), 0xff4a2a, "generated")
 

@@ -99,7 +99,11 @@ public final class GearFactory {
      */
     public static ItemStack makeWeapon(GameData.WeaponStyle style, RandomSource rand,
                                        int luck, int floor, double bonus) {
-        var roll = rollGear(rand, luck, floor, bonus, GameData.WEAPON_AFFIXES);
+        return buildWeapon(style, rollGear(rand, luck, floor, bonus, GameData.WEAPON_AFFIXES), rand);
+    }
+
+    /** 抽選済みのロールから武器を積み上げる (命名含む)。makeWeapon / makePrizeWeapon の共通本体 */
+    private static ItemStack buildWeapon(GameData.WeaponStyle style, Roll roll, RandomSource rand) {
         // 特性: レア以上で必ず、魔法で30%、通常で10%
         String trait = null;
         if (isRareOrAbove(roll.rarity())) {
@@ -119,6 +123,27 @@ public final class GearFactory {
         stack.set(DataComponents.CUSTOM_NAME,
                 Component.literal(weaponTitle(style.weaponName, roll, trait, rand)));
         GearData.refreshLore(stack);
+        return stack;
+    }
+
+    /**
+     * 賞品武器 (報酬用)。希少度をレア級に下支えし (抽象ボーナス200で抽選)、
+     * 鍛造素材になるスキルを必ず1つ刻む。勝利品・商店・層主系の報酬で使う。
+     */
+    public static ItemStack makePrizeWeapon(GameData.WeaponStyle style, RandomSource rand,
+                                            int luck, int floor) {
+        var roll = rollGear(rand, luck, floor, 200, GameData.WEAPON_AFFIXES);
+        if (GameData.rarityRank(roll.rarity()) < 2) {
+            roll = new Roll("rare", roll.curseKey(), roll.curseVal(), roll.affixes());
+        }
+        var stack = buildWeapon(style, roll, rand);
+        var tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (GearData.skillOf(stack) == null) {
+            var skills = GameData.WEAPON_SKILLS;
+            tag.putString("abyss_skill", skills.get(rand.nextInt(skills.size())).id());
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            GearData.refreshLore(stack);
+        }
         return stack;
     }
 

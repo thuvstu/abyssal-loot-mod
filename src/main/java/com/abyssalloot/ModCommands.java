@@ -449,6 +449,8 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§7武器は持ち替えで奥義が変わる。性能はカーソルを合わせると表示"));
         p.sendSystemMessage(Component.literal("§7ロッド・ワンドは遠隔魔弾が自動発射 (銃魔は多重化)。防具で着用モデル表示"));
         p.sendSystemMessage(Component.literal("§7全武器に固有能力、全防具に部位能力つき (lore参照)。ツールも採集能力あり"));
+        p.sendSystemMessage(Component.literal("§7§b射程§7/§b横斬り§7/§b連撃§7は接辞・祝福・防具スキル・武器種の素値で伸びる (攻撃距離と薙ぎ幅)"));
+        p.sendSystemMessage(Component.literal("§7満腹は §b軍糧丸§7 や撃破時のもぐに (12%) で回復。試練も腹が減るのが本番"));
         p.sendSystemMessage(Component.literal("§7モブにも固有能力 (反射・爆発・転移・分裂・吸収・鈍足)。層に地相 (65%で1つ) あり"));
         p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運|集中|活力|技巧（レベルアップで1点）"));
         p.sendSystemMessage(Component.literal("§7適性★の属性は効果1.5倍。各属性10・20・30点で節目ボーナス。振り直し /abyss respec (欠片8)"));
