@@ -85,33 +85,13 @@ public final class WeaponArts {
             }
             case SPEAR -> {
                 // 竜殺し: 前方へ突進 (無敵付与) + 経路3点の全員を強襲 (原作 dash)
-                // 突進距離は射程 (reach) で伸びる (reach 1点につき +0.75m, 上限+3m)
-                double dash = 6 + Math.min(4, StatCalc.reachOf(player)) * 0.75;
-                Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
-                player.teleportTo(dest.x, dest.y, dest.z);
-                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
-                java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
-                for (double d = 2; d <= dash; d += 2) {
-                    Vec3 at = origin.add(look.x * d, 0, look.z * d);
-                    for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                            new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                        if (hit.add(e)) {
-                            artHurt(level, e, level.damageSources().playerAttack(player),
-                                    (float) (4.8 * attackDamage));
-                            Vec3 kb = e.position().subtract(at).normalize().scale(1.6);
-                            e.push(kb.x, 0.3, kb.z);
-                        }
-                    }
-                    level.sendParticles(ParticleTypes.CRIT, at.x, at.y + 1, at.z, 12, 1, 0.6, 1, 0.1);
-                }
+                dashSweep(player, origin, look, 4.8 * attackDamage, true, ParticleTypes.CRIT);
                 burst(player, "竜殺し！", style);
                 return true;
             }
             case STAFF -> {
                 // 星辰大爆裂: 最寄り敵位置に隕石
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 at = aimPoint(player, origin, targets, look, 8);
                 level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 1, at.z, 60, 2, 2, 2, 0.2);
                 Vec3 target = at;
                 later(player, 12, lv ->
@@ -121,20 +101,7 @@ public final class WeaponArts {
             }
             case BOW -> {
                 // 疾風連雨: 13連矢を自動照準で連射 (発射ごとに最寄りを再取得。原作 0.075秒刻み)
-                for (int i = 0; i < 13; i++) {
-                    int delay = i * 3 / 2;
-                    later(player, delay, lv -> {
-                        LivingEntity t = nearest(player.position(), lv.getEntitiesOfClass(LivingEntity.class,
-                                new AABB(player.getX() - 24, player.getY() - 8, player.getZ() - 24,
-                                        player.getX() + 24, player.getY() + 8, player.getZ() + 24),
-                                e -> e.isAlive() && !(e instanceof ServerPlayer)));
-                        if (t == null) return;
-                        artHurt(lv, t, lv.damageSources().playerAttack(player),
-                                (float) (0.82 * attackDamage));
-                        lv.sendParticles(ParticleTypes.CRIT,
-                                t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
-                    });
-                }
+                autoShotVolley(player, 13, 1.5, 24, 0.82 * attackDamage, ParticleTypes.CRIT);
                 burst(player, "疾風連雨！", style);
                 return true;
             }
@@ -151,8 +118,7 @@ public final class WeaponArts {
             }
             case HAMMER -> {
                 // 崩壊スマッシュ: 単体へ極大打撃。感電とスタンを周囲へ伝播 (原作通り)
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(5));
+                Vec3 at = aimPoint(player, origin, targets, look, 5);
                 aoe(level, player, at, 3.5, 8.0 * attackDamage, false, ParticleTypes.ELECTRIC_SPARK);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(at.x - 3.5, at.y - 4, at.z - 3.5, at.x + 3.5, at.y + 4, at.z + 3.5),
@@ -161,6 +127,7 @@ public final class WeaponArts {
                     level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                             e.getX(), e.getY() + 1, e.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
                 }
+                LivingEntity t = nearest(origin, targets);
                 if (t != null) t.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0));
                 burst(player, "崩壊スマッシュ！", style);
                 return true;
@@ -266,32 +233,14 @@ public final class WeaponArts {
                 return true;
             }
             case STORM_SPEAR -> {
-                // 螺旋突貫: 突進+軌跡に雷撃 (突進距離は射程で伸びる)
-                double dash = 6 + Math.min(4, StatCalc.reachOf(player)) * 0.75;
-                Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
-                player.teleportTo(dest.x, dest.y, dest.z);
-                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
-                java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
-                for (double d = 2; d <= dash; d += 2) {
-                    Vec3 at = origin.add(look.x * d, 0, look.z * d);
-                    for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                            new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                        if (hit.add(e)) {
-                            artHurt(level, e, level.damageSources().playerAttack(player),
-                                    (float) (3.2 * attackDamage));
-                            level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
-                                    e.getX(), e.getY() + 1, e.getZ(), 10, 0.5, 0.8, 0.5, 0.15);
-                        }
-                    }
-                }
+                // 螺旋突貫: 突進+軌跡に雷撃
+                dashSweep(player, origin, look, 3.2 * attackDamage, false, ParticleTypes.ELECTRIC_SPARK);
                 burst(player, "螺旋突貫！", style);
                 return true;
             }
             case VOID_STAFF -> {
                 // 虚空落とし: 最寄り敵位置に隕石3連 (0.4秒刻み)
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 at = aimPoint(player, origin, targets, look, 8);
                 Vec3 target = at;
                 for (int i = 0; i < 3; i++) {
                     later(player, 8 + i * 8, lv ->
@@ -303,19 +252,7 @@ public final class WeaponArts {
             }
             case MOON_BOW -> {
                 // 月雨: 9矢を自動照準・貫通で連射
-                for (int i = 0; i < 9; i++) {
-                    later(player, i * 2, lv -> {
-                        LivingEntity tgt = nearest(player.position(), lv.getEntitiesOfClass(LivingEntity.class,
-                                new AABB(player.getX() - 24, player.getY() - 8, player.getZ() - 24,
-                                        player.getX() + 24, player.getY() + 8, player.getZ() + 24),
-                                e -> e.isAlive() && !(e instanceof ServerPlayer)));
-                        if (tgt == null) return;
-                        artHurt(lv, tgt, lv.damageSources().playerAttack(player),
-                                (float) (1.1 * attackDamage));
-                        lv.sendParticles(ParticleTypes.END_ROD,
-                                tgt.getX(), tgt.getY() + 1, tgt.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
-                    });
-                }
+                autoShotVolley(player, 9, 2, 24, 1.1 * attackDamage, ParticleTypes.END_ROD);
                 burst(player, "月雨！", style);
                 return true;
             }
@@ -406,8 +343,7 @@ public final class WeaponArts {
             }
             case CHAOS_TOME -> {
                 // 混沌特異点: 爆縮+無作為の弱体 (鈍足/弱化/発光のいずれか)
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 at = aimPoint(player, origin, targets, look, 8);
                 Vec3 target = at;
                 later(player, 12, lv -> {
                     aoe(lv, player, target, 6, 5.0 * attackDamage, true, ParticleTypes.PORTAL);
@@ -428,8 +364,7 @@ public final class WeaponArts {
                 return true;
             }
             case TOME -> {
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(8));
+                Vec3 at = aimPoint(player, origin, targets, look, 8);
                 Vec3 target = at;
                 later(player, 15, lv -> {
                     aoe(lv, player, target, 5, 5.5 * attackDamage, true, ParticleTypes.WITCH);
@@ -583,8 +518,7 @@ public final class WeaponArts {
             }
             case METEOR_LANCE -> {
                 // 天斥落雁: 標的地点に隕槍を極大落下 (残存敵に弱体)
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(9));
+                Vec3 at = aimPoint(player, origin, targets, look, 9);
                 Vec3 target = at;
                 level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 8, at.z, 50, 0.6, 2, 0.6, 0.5);
                 later(player, 12, lv -> {
@@ -659,19 +593,7 @@ public final class WeaponArts {
             }
             case DEPTH_GUN -> {
                 // 急所乱舞: 6連射 (最寄りの敵へ自動照準)
-                for (int i = 0; i < 6; i++) {
-                    later(player, i * 3, lv -> {
-                        LivingEntity t = nearest(player.position(), lv.getEntitiesOfClass(LivingEntity.class,
-                                new AABB(player.getX() - 20, player.getY() - 6, player.getZ() - 20,
-                                        player.getX() + 20, player.getY() + 6, player.getZ() + 20),
-                                e -> e.isAlive() && !(e instanceof ServerPlayer)));
-                        if (t == null) return;
-                        artHurt(lv, t, lv.damageSources().playerAttack(player),
-                                (float) (0.7 * attackDamage));
-                        lv.sendParticles(ParticleTypes.CRIT,
-                                t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
-                    });
-                }
+                autoShotVolley(player, 6, 3, 20, 0.7 * attackDamage, ParticleTypes.CRIT);
                 burst(player, "急所乱舞！", style);
                 return true;
             }
@@ -753,31 +675,17 @@ public final class WeaponArts {
             case SPEAR -> // 穿突: 直線を貫いて突く
                     lineHit(level, player, origin, look, 8, dmg, 0.8, ParticleTypes.CRIT);
             case STAFF -> { // 星弾: 最も近い敵へ小隕石
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(6));
+                Vec3 at = aimPoint(player, origin, targets, look, 6);
                 level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 2, at.z, 15, 0.6, 1, 0.6, 0.2);
                 Vec3 target = at;
                 later(player, 8, lv -> aoe(lv, player, target, 2.5, dmg, true, ParticleTypes.EXPLOSION));
             }
-            case BOW -> { // 三連矢: 3本の矢を自動照準で放つ
-                for (int i = 0; i < 3; i++) {
-                    later(player, i * 3, lv -> autoShot(lv, player, 16, dmg / 3, ParticleTypes.CRIT));
-                }
-            }
-            case DAGGER -> { // 影刺: 最寄り敵へ2連の急所突き
-                LivingEntity t = nearest(origin, targets);
-                if (t == null) return;
-                artHurt(level, t, level.damageSources().playerAttack(player), (float) (dmg / 2));
-                later(player, 3, lv -> {
-                    if (!t.isAlive()) return;
-                    artHurt(lv, t, lv.damageSources().playerAttack(player), (float) (dmg / 2));
-                    lv.sendParticles(ParticleTypes.CRIT,
-                            t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
-                });
-            }
+            case BOW -> // 三連矢: 3本の矢を自動照準で放つ
+                    autoShotVolley(player, 3, 3, 16, dmg / 3, ParticleTypes.CRIT);
+            case DAGGER -> // 影刺: 最寄り敵へ2連の急所突き
+                    doubleStab(player, origin, targets, dmg, ParticleTypes.CRIT);
             case HAMMER -> { // 粉砕落とし: 単体に極大の一撃
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(4));
+                Vec3 at = aimPoint(player, origin, targets, look, 4);
                 aoe(level, player, at, 2.5, dmg, false, ParticleTypes.ELECTRIC_SPARK);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(at.x - 3, at.y - 4, at.z - 3, at.x + 3, at.y + 4, at.z + 3),
@@ -804,8 +712,7 @@ public final class WeaponArts {
             case CHAKRAM -> // 旋輪: 周囲に輪刃を回す
                     whirl(level, player, origin, 4, dmg, ParticleTypes.END_ROD);
             case TOME -> { // 呪言: 敵位置を呪い爆縮する
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(6));
+                Vec3 at = aimPoint(player, origin, targets, look, 6);
                 Vec3 target = at;
                 later(player, 10, lv -> {
                     aoe(lv, player, target, 3, dmg, true, ParticleTypes.WITCH);
@@ -851,27 +758,14 @@ public final class WeaponArts {
             case STORM_SPEAR -> // 雷槍: 直線を雷で貫く
                     lineHit(level, player, origin, look, 8, dmg, 0.8, ParticleTypes.ELECTRIC_SPARK);
             case VOID_STAFF -> { // 虚無弾: 虚無の弾を落とす
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(6));
+                Vec3 at = aimPoint(player, origin, targets, look, 6);
                 Vec3 target = at;
                 later(player, 6, lv -> aoe(lv, player, target, 2.5, dmg, true, ParticleTypes.PORTAL));
             }
-            case MOON_BOW -> { // 月影矢: 3本の月矢を連射する
-                for (int i = 0; i < 3; i++) {
-                    later(player, i * 3, lv -> autoShot(lv, player, 16, dmg / 3, ParticleTypes.END_ROD));
-                }
-            }
-            case FANG_DAGGER -> { // 牙突き: 最寄りへ2連の牙
-                LivingEntity t = nearest(origin, targets);
-                if (t == null) return;
-                artHurt(level, t, level.damageSources().playerAttack(player), (float) (dmg / 2));
-                later(player, 3, lv -> {
-                    if (!t.isAlive()) return;
-                    artHurt(lv, t, lv.damageSources().playerAttack(player), (float) (dmg / 2));
-                    lv.sendParticles(ParticleTypes.CRIT,
-                            t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
-                });
-            }
+            case MOON_BOW -> // 月影矢: 3本の月矢を連射する
+                    autoShotVolley(player, 3, 3, 16, dmg / 3, ParticleTypes.END_ROD);
+            case FANG_DAGGER -> // 牙突き: 最寄りへ2連の牙
+                    doubleStab(player, origin, targets, dmg, ParticleTypes.CRIT);
             case QUAKE_HAMMER -> { // 地割れ: 地面を割って鈍足にする
                 aoe(level, player, origin.add(look.scale(2)), 3.5, dmg, false, ParticleTypes.EXPLOSION);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
@@ -903,8 +797,7 @@ public final class WeaponArts {
             case ECLIPSE_CHAKRAM -> // 蝕回し: 蝕の輪を回す
                     whirl(level, player, origin, 4.5, dmg, ParticleTypes.PORTAL);
             case CHAOS_TOME -> { // 混沌の言葉: 混沌の弾で無作為に弱体
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(6));
+                Vec3 at = aimPoint(player, origin, targets, look, 6);
                 Vec3 target = at;
                 later(player, 8, lv -> {
                     aoe(lv, player, target, 3, dmg, true, ParticleTypes.PORTAL);
@@ -955,8 +848,7 @@ public final class WeaponArts {
                 }
             }
             case ASTRAL_LANCE -> { // 星槍一撃: 星の槍を落とす
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(6));
+                Vec3 at = aimPoint(player, origin, targets, look, 6);
                 Vec3 target = at;
                 later(player, 6, lv -> aoe(lv, player, target, 1.8, dmg, true, ParticleTypes.END_ROD));
             }
@@ -1007,8 +899,7 @@ public final class WeaponArts {
             case RIFT_BLADE -> // 虚斬: 空間ごと斬り裂く
                     slashCone(level, player, origin, look, 5.5, dmg, ParticleTypes.PORTAL);
             case METEOR_LANCE -> { // 隕落撃: 隕石の槍を落とす
-                LivingEntity t = nearest(origin, targets);
-                Vec3 at = t != null ? t.position() : origin.add(look.scale(7));
+                Vec3 at = aimPoint(player, origin, targets, look, 7);
                 level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 5, at.z, 25, 0.5, 1.5, 0.5, 0.4);
                 Vec3 target = at;
                 later(player, 10, lv ->
@@ -1139,6 +1030,62 @@ public final class WeaponArts {
                 .filter(e -> e.isAlive())
                 .min(Comparator.comparingDouble(e -> e.position().distanceTo(origin)))
                 .orElse(null);
+    }
+
+    /** 最寄り敵の位置 (いなければ照準前方 fallbackDist)。砲撃系 (奥義・小技) 共通の狙い位置 */
+    private static Vec3 aimPoint(ServerPlayer player, Vec3 origin, List<LivingEntity> targets,
+                                 Vec3 look, double fallbackDist) {
+        LivingEntity t = nearest(origin, targets);
+        return t != null ? t.position() : origin.add(look.scale(fallbackDist));
+    }
+
+    /** 自動照準の連射 (発射ごとに最寄り敵を再照準)。奥義・小技の射撃系共通 */
+    private static void autoShotVolley(ServerPlayer player, int shots, double intervalTicks,
+                                       double range, double dmg, ParticleOptions particle) {
+        for (int i = 0; i < shots; i++) {
+            later(player, (int) (i * intervalTicks),
+                    lv -> autoShot(lv, player, range, dmg, particle));
+        }
+    }
+
+    /** 2連の急所突き (最寄り敵・即時1発+短遅延で追撃)。小技の短剣系共通 */
+    private static void doubleStab(ServerPlayer player, Vec3 origin, List<LivingEntity> targets,
+                                   double dmg, ParticleOptions particle) {
+        ServerLevel level = slevel(player);
+        LivingEntity t = nearest(origin, targets);
+        if (t == null) return;
+        artHurt(level, t, level.damageSources().playerAttack(player), (float) (dmg / 2));
+        later(player, 3, lv -> {
+            if (!t.isAlive()) return;
+            artHurt(lv, t, lv.damageSources().playerAttack(player), (float) (dmg / 2));
+            lv.sendParticles(particle, t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
+        });
+    }
+
+    /** 突進して経路上の敵を薙ぐ (奥義の槍系共通)。突進距離は射程で伸びる。無敵・耐性つき */
+    private static void dashSweep(ServerPlayer player, Vec3 origin, Vec3 look, double dmg,
+                                  boolean knockback, ParticleOptions particle) {
+        ServerLevel level = slevel(player);
+        double dash = 6 + Math.min(4, StatCalc.reachOf(player)) * 0.75;
+        Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
+        player.teleportTo(dest.x, dest.y, dest.z);
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
+        java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
+        for (double d = 2; d <= dash; d += 2) {
+            Vec3 at = origin.add(look.x * d, 0, look.z * d);
+            for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                    new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
+                    x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                if (hit.add(e)) {
+                    artHurt(level, e, level.damageSources().playerAttack(player), (float) dmg);
+                    if (knockback) {
+                        Vec3 kb = e.position().subtract(at).normalize().scale(1.6);
+                        e.push(kb.x, 0.3, kb.z);
+                    }
+                }
+            }
+            level.sendParticles(particle, at.x, at.y + 1, at.z, 10, 0.5, 0.8, 0.5, 0.1);
+        }
     }
 
     /** 前方直線上の敵に命中 (幅 halfWidth の細長い帯)。小技の突き系共通 */
