@@ -276,7 +276,8 @@ public class GameDataTest {
     }
 
     @Test
-    void rarityEliteAndCurseMatchCoreTs() {        // rollRarity: l=0 → 原作の基礎重み (normal 46 / mythic 0.875)
+    void rarityEliteAndCurseMatchCoreTs() {
+        // rollRarity: l=0 → 原作の基礎重み (normal 46 / mythic 0.875)
         assertEquals("normal", GameData.rollRarity(() -> 0.0, 0, 0, 1));
         assertEquals("mythic", GameData.rollRarity(() -> 0.9999, 0, 0, 1));
         // 運が高いと上位が出やすい (l=200: normal max(4, 46-110)=4)
@@ -484,6 +485,7 @@ public class GameDataTest {
         assertEquals(0, GameData.HeroClass.byId("samurai").affinityAttr());
         assertEquals(5, GameData.HeroClass.byId("mage").affinityAttr());
     }
+
     @Test
     void extraContentIsSound() {
         assertEquals(20, GameData.EXTRA_BOON_MODS.size());
@@ -535,6 +537,7 @@ public class GameDataTest {
         // 追加遺物の flag null でも relicFlags が壊れない
         assertTrue(GameData.relicFlags(java.util.List.of("r_blade", "soulfang")).contains("soulfang"));
     }
+
     @Test
     void boonPoolCoversOriginal39PlusLegacy2() {
         var pool = Boons.BOON_POOL;

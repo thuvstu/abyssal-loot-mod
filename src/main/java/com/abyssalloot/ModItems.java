@@ -1,6 +1,5 @@
 package com.abyssalloot;
 
-import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -17,7 +16,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import net.neoforged.neoforge.attachment.AttachmentType;
 
 /**
  * アイテム12武器種 + 深淵防具4種 + 魂の欠片.
@@ -317,13 +315,16 @@ public final class ModItems {
     }
 
     /** 消耗品のランダム1個 (ドロップ用) */
+    private static final java.util.List<DeferredItem<Item>> DROP_CONSUMABLES = java.util.List.of(
+            ABYSS_HEAL_S, ABYSS_HEAL_M, ABYSS_HEAL_L, ABYSS_SOUL_S, ABYSS_SOUL_L,
+            ABYSS_PWR, ABYSS_SPD, ABYSS_IRN, ABYSS_RGN, ABYSS_ABS,
+            ABYSS_FIR, ABYSS_OWL, ABYSS_FTH, ABYSS_LCK,
+            ABYSS_BOMB_F, ABYSS_BOMB_T, ABYSS_BOMB_I,
+            ABYSS_TELE_A, ABYSS_TELE_S, ABYSS_CURE,
+            ABYSS_MAGNET, ABYSS_REVEAL, ABYSS_FEAST, ABYSS_SMOKE);
+
     public static ItemStack randomConsumable(net.minecraft.util.RandomSource rand) {
-        var all = java.util.List.of(
-                ABYSS_HEAL_S, ABYSS_HEAL_M, ABYSS_SOUL_S, ABYSS_PWR, ABYSS_SPD, ABYSS_IRN,
-                ABYSS_RGN, ABYSS_FIR, ABYSS_OWL, ABYSS_FTH, ABYSS_LCK, ABYSS_BOMB_F,
-                ABYSS_TELE_S, ABYSS_CURE, ABYSS_FEAST, ABYSS_SMOKE, ABYSS_HEAL_L, ABYSS_SOUL_L,
-                ABYSS_ABS, ABYSS_BOMB_T, ABYSS_BOMB_I, ABYSS_TELE_A, ABYSS_MAGNET, ABYSS_REVEAL);
-        return new ItemStack(all.get(rand.nextInt(all.size())).get());
+        return new ItemStack(DROP_CONSUMABLES.get(rand.nextInt(DROP_CONSUMABLES.size())).get());
     }
 
         /** 生活ツール判定 (採掘属性の疾走効果用) */
@@ -332,38 +333,21 @@ public final class ModItems {
                 || item == ABYSS_SHOVEL.get() || item == ABYSS_HOE.get();
     }
 
+    /** 手持ちItem -> 武器種の逆引き表 (登録後に1度だけ構築) */
+    private static java.util.Map<net.minecraft.world.item.Item, GameData.WeaponStyle> STYLE_INDEX;
+
     /** 手持ちItem -> 武器種 の逆引き */
-    public static GameData.WeaponStyle styleOf(Item item) {
-        if (item == ABYSS_SWORD.get()) return GameData.WeaponStyle.SWORD;
-        if (item == ABYSS_AXE.get()) return GameData.WeaponStyle.AXE;
-        if (item == ABYSS_SPEAR.get()) return GameData.WeaponStyle.SPEAR;
-        if (item == ABYSS_STAFF.get()) return GameData.WeaponStyle.STAFF;
-        if (item == ABYSS_BOW.get()) return GameData.WeaponStyle.BOW;
-        if (item == ABYSS_DAGGER.get()) return GameData.WeaponStyle.DAGGER;
-        if (item == ABYSS_HAMMER.get()) return GameData.WeaponStyle.HAMMER;
-        if (item == ABYSS_KATANA.get()) return GameData.WeaponStyle.KATANA;
-        if (item == ABYSS_SCYTHE.get()) return GameData.WeaponStyle.SCYTHE;
-        if (item == ABYSS_GAUNTLET.get()) return GameData.WeaponStyle.GAUNTLET;
-        if (item == ABYSS_CHAKRAM.get()) return GameData.WeaponStyle.CHAKRAM;
-        if (item == ABYSS_TOME.get()) return GameData.WeaponStyle.TOME;
-        if (item == ABYSS_RUNE_BLADE.get()) return GameData.WeaponStyle.RUNE_BLADE;
-        if (item == ABYSS_BLOOD_AXE.get()) return GameData.WeaponStyle.BLOOD_AXE;
-        if (item == ABYSS_STORM_SPEAR.get()) return GameData.WeaponStyle.STORM_SPEAR;
-        if (item == ABYSS_VOID_STAFF.get()) return GameData.WeaponStyle.VOID_STAFF;
-        if (item == ABYSS_MOON_BOW.get()) return GameData.WeaponStyle.MOON_BOW;
-        if (item == ABYSS_FANG_DAGGER.get()) return GameData.WeaponStyle.FANG_DAGGER;
-        if (item == ABYSS_QUAKE_HAMMER.get()) return GameData.WeaponStyle.QUAKE_HAMMER;
-        if (item == ABYSS_FROST_KATANA.get()) return GameData.WeaponStyle.FROST_KATANA;
-        if (item == ABYSS_SOUL_SCYTHE.get()) return GameData.WeaponStyle.SOUL_SCYTHE;
-        if (item == ABYSS_TITAN_GAUNTLET.get()) return GameData.WeaponStyle.TITAN_GAUNTLET;
-        if (item == ABYSS_ECLIPSE_CHAKRAM.get()) return GameData.WeaponStyle.ECLIPSE_CHAKRAM;
-        if (item == ABYSS_CHAOS_TOME.get()) return GameData.WeaponStyle.CHAOS_TOME;
-        if (item == ABYSS_ROD.get()) return GameData.WeaponStyle.ROD;
-        if (item == ABYSS_WAND.get()) return GameData.WeaponStyle.WAND;
-        if (item == ABYSS_GREATSWORD.get()) return GameData.WeaponStyle.GREATSWORD;
-        if (item == ABYSS_TWIN_DAGGER.get()) return GameData.WeaponStyle.TWIN_DAGGER;
-        if (item == ABYSS_WAR_HORN.get()) return GameData.WeaponStyle.WAR_HORN;
-        return null;
+    public static GameData.WeaponStyle styleOf(net.minecraft.world.item.Item item) {
+        var index = STYLE_INDEX;
+        if (index == null) {
+            var map = new java.util.HashMap<net.minecraft.world.item.Item, GameData.WeaponStyle>();
+            for (GameData.WeaponStyle style : GameData.WeaponStyle.values()) {
+                map.put(itemOf(style), style);
+            }
+            index = map;
+            STYLE_INDEX = index;
+        }
+        return index.get(item);
     }
 
     public static Item itemOf(GameData.WeaponStyle style) {

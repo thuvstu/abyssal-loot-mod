@@ -32,7 +32,6 @@ public final class ArenaManager {
     /** 塀の高さ */
     public static final int WALL_H = 5;
 
-
     /**
      * 戦闘威力のアリーナ補正。アリーナ内なら特攻1.5倍、範囲外・非出撃時は0.5倍に抑制。
      * バニラ基準に寄せつつ、アリーナでは強く遊べるよう調整する。
@@ -47,7 +46,6 @@ public final class ArenaManager {
         return (dx * dx + dz * dz <= r * r) ? 1.5 : 0.5;
     }
 
-
     /** 区域ごとの床ブロック (見た目で深層帯が分かる) */
     private static net.minecraft.world.level.block.Block floorBlockFor(String zoneId) {
         return switch (zoneId) {
@@ -60,7 +58,6 @@ public final class ArenaManager {
         };
     }
 
-
     /** 区域ごとの障害物ブロック */
     private static net.minecraft.world.level.block.Block trimBlockFor(String zoneId) {
         return switch (zoneId) {
@@ -72,7 +69,6 @@ public final class ArenaManager {
             default -> Blocks.COBBLESTONE;
         };
     }
-
 
     /**
      * アリーナ構築: 整地 (埋没防止)・区域床・ランダム障害物・5段塀・バリア天井。
@@ -247,7 +243,6 @@ public final class ArenaManager {
         }
     }
 
-
     /** 前回アリーナのバリアを除去 (再出撃・終了時) */
     public static void clearBarriers(ServerLevel level, BlockPos center) {
         int r = ARENA_R;
@@ -272,7 +267,6 @@ public final class ArenaManager {
         }
     }
 
-
     /** 現在のアリーナのバリアを除去 (リタイア・勝利時) */
     public static void clearArenaBarriers(ServerPlayer player) {
         BlockPos center = arenaCenterOf(player);
@@ -280,7 +274,6 @@ public final class ArenaManager {
             clearBarriers(level, center);
         }
     }
-
 
     /** 安全な湧きY: 上から走査し、固体の上の3マス空気を探す (埋没防止)。
      * バリア・壁の上は除外 (バリア天井や塀の上に湧かないように) */
@@ -299,7 +292,6 @@ public final class ArenaManager {
         return baseY;
     }
 
-
     /** 保存されたアリーナ中心 (未出撃なら null) */
     public static BlockPos arenaCenterOf(ServerPlayer player) {
         String raw = player.getData(ModAttachments.ARENA.get());
@@ -312,7 +304,6 @@ public final class ArenaManager {
             return null;
         }
     }
-
 
     /* ---------------- 罠・破壊物 ---------------- */
 
@@ -358,7 +349,6 @@ public final class ArenaManager {
         }
     }
 
-
     /** 罠チェック (10tickごと)。原作 traps.ts: spike=針・小範囲速発 / rock=岩・大範囲1秒予兆 */
     public static void tickTraps(ServerPlayer player) {
         String raw = player.getData(ModAttachments.TRAPS.get());
@@ -384,7 +374,7 @@ public final class ArenaManager {
                 double z = Double.parseDouble(p[off + 2]) + 0.5;
                 double d = Math.hypot(player.getX() - x, player.getZ() - z);
                 if (d < 2.5 && Math.abs(player.getY() - y) < 3) {
-                    var at = new net.minecraft.world.phys.Vec3(x, y + 1, z);
+                    var at = new Vec3(x, y + 1, z);
                     if ("spike".equals(fkind)) {
                         // 針罠: 短い予兆 (0.5秒) の後に小範囲の直撃 + 鈍足
                         for (int k = 0; k < 2; k++) {

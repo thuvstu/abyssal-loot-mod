@@ -17,12 +17,7 @@ public class ForgeMenu extends AbstractContainerMenu {
     public static final int SLOT_WEAPON = 0;
     public static final int SLOT_MATERIAL = 1;
 
-    private final Container inputs = new SimpleContainer(2) {
-        @Override
-        public void setChanged() {
-            super.setChanged();
-        }
-    };
+    private final Container inputs = new SimpleContainer(2);
 
     public ForgeMenu(int id, Inventory inv) {
         super(ModMenus.FORGE.get(), id);

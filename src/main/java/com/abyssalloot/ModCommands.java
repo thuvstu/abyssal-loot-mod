@@ -251,10 +251,7 @@ public final class ModCommands {
                 .then(Commands.literal("attr")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    b.suggest("剛力"); b.suggest("韻律"); b.suggest("敏捷");
-                                    b.suggest("忍耐"); b.suggest("幸運"); b.suggest("集中");
-                                    b.suggest("活力"); b.suggest("技巧");
-                                    b.suggest("採掘"); b.suggest("跳躍");
+                                    for (String name : GameData.ATTR_NAMES) b.suggest(name);
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
@@ -269,10 +266,7 @@ public final class ModCommands {
                 .then(Commands.literal("mode")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    b.suggest("standard"); b.suggest("bossrush");
-                                    b.suggest("endless"); b.suggest("covenant");
-                                    b.suggest("daily"); b.suggest("pinnacle");
-                                    b.suggest("danmaku"); b.suggest("omega");
+                                    for (var m : GameData.RUN_MODES) b.suggest(m.id());
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
@@ -300,8 +294,7 @@ public final class ModCommands {
                 .then(Commands.literal("diff")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    b.suggest("normal"); b.suggest("hard"); b.suggest("hell");
-                                    b.suggest("inferno"); b.suggest("omega");
+                                    for (var dif : GameData.DIFFICULTIES) b.suggest(dif.id());
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
@@ -504,15 +497,15 @@ public final class ModCommands {
         }
         p.sendSystemMessage(sig);
         var md = Component.literal("§5モード: ");
-        for (String m : new String[]{"standard", "bossrush", "endless", "covenant", "daily", "pinnacle", "danmaku", "omega"}) {
-            String mark = m.equals(mode) ? "§a" : "§7";
-            md.append(button(mark + "[" + m + "]", "/abyss mode " + m));
+        for (var m : GameData.RUN_MODES) {
+            String mark = m.id().equals(mode) ? "§a" : "§7";
+            md.append(button(mark + "[" + m.id() + "]", "/abyss mode " + m.id()));
         }
         p.sendSystemMessage(md);
         var df = Component.literal("§c難易度: ");
-        for (String d : new String[]{"normal", "hard", "hell", "inferno", "omega"}) {
-            String mark = d.equals(diff) ? "§a" : "§7";
-            df.append(button(mark + "[" + d + "]", "/abyss diff " + d));
+        for (var d : GameData.DIFFICULTIES) {
+            String mark = d.id().equals(diff) ? "§a" : "§7";
+            df.append(button(mark + "[" + d.id() + "]", "/abyss diff " + d.id()));
         }
         p.sendSystemMessage(df);
         p.sendSystemMessage(Component.literal("§7GUI: ")

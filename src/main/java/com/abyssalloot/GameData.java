@@ -874,6 +874,29 @@ public final class GameData {
         return "mythic";
     }
 
+    /** 希少度の序列 (0=normal, 1=magic, 2=rare, 3=legendary, 4=mythic)。未知の値は0 */
+    public static int rarityRank(String rarity) {
+        return switch (rarity) {
+            case "magic" -> 1;
+            case "rare" -> 2;
+            case "legendary" -> 3;
+            case "mythic" -> 4;
+            default -> 0;
+        };
+    }
+
+    /** 装備合成の素材種別 (希少度上位側で判定)。レア未満は null (欠片のみで足りる) */
+    public record MergeMaterial(String id, String name, int count) {}
+
+    public static MergeMaterial mergeMaterial(String topRarity) {
+        return switch (topRarity) {
+            case "mythic" -> new MergeMaterial("void", "虚空のエッセンス×2", 2);
+            case "legendary" -> new MergeMaterial("chaos", "混沌の宝石×1", 1);
+            case "rare" -> new MergeMaterial("ancient", "古代の石×1", 1);
+            default -> null;
+        };
+    }
+
     /* ---------------- 原作 ELITE_PREFIX (精鋭の冠詞6種) ---------------- */
 
     public record ElitePrefix(String name, double speed, double hp, double dmg) {}
@@ -1030,7 +1053,6 @@ public final class GameData {
                     java.util.Map.entry("greatsword", new WeaponAbility("BURST", 0.2, 1.8, "命中時20%で爆発")),
                     java.util.Map.entry("twin_dagger", new WeaponAbility("EXECUTE", 1.0, 0.4, "瀕死へ+40%")),
                     java.util.Map.entry("war_horn", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")));
-
 
     /* ---------------- ダンジョン特性 (層ごとに65%で1つ。異変とは別枠) ---------------- */
     public record DungeonTrait(String id, String name, String desc,

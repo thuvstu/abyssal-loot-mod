@@ -1,25 +1,8 @@
 package com.abyssalloot;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.BossEvent;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * 装備の CustomData 読み書き・威力・lore (RunManager から分離)。
@@ -27,9 +10,8 @@ import net.minecraft.world.phys.Vec3;
 public final class GearData {
     private GearData() {}
 
-
     /** 鍛造レベル (武器CustomData "abyss_forge") */
-    public static int forgeLv(net.minecraft.world.item.ItemStack stack) {
+    public static int forgeLv(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
         if (ModItems.styleOf(stack.getItem()) == null) return 0;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
@@ -37,8 +19,7 @@ public final class GearData {
         return Math.max(0, Math.min(5, data.copyTag().getInt("abyss_forge").orElse(0)));
     }
 
-
-    public static void setForgeLv(net.minecraft.world.item.ItemStack stack, int lv) {
+    public static void setForgeLv(ItemStack stack, int lv) {
         var tag = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
         tag.putInt("abyss_forge", Math.max(0, Math.min(5, lv)));
@@ -46,11 +27,9 @@ public final class GearData {
                 net.minecraft.world.item.component.CustomData.of(tag));
     }
 
-
     /* ---------------- 武器特性・レアリティ (原作WEAPON_TRAITS/RARITY準拠) ---------------- */
 
     public record TraitDef(String id, String name) {}
-
 
     public static final TraitDef[] TRAITS = {
             new TraitDef("sharp", "鋭刃"), new TraitDef("vampiric", "吸血鬼"),
@@ -60,7 +39,6 @@ public final class GearData {
             new TraitDef("frenzy", "狂戦士"), new TraitDef("fortify", "不壊"),
     };
 
-
     public static String traitName(String id) {
         for (var t : TRAITS) {
             if (t.id().equals(id)) return t.name();
@@ -68,8 +46,7 @@ public final class GearData {
         return null;
     }
 
-
-    public static String traitOf(net.minecraft.world.item.ItemStack stack) {
+    public static String traitOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
@@ -78,7 +55,7 @@ public final class GearData {
     }
 
     /** 装備スキル (なければ null)。武器は撃破時、防具は部位効果 */
-    public static String skillOf(net.minecraft.world.item.ItemStack stack) {
+    public static String skillOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
@@ -86,15 +63,13 @@ public final class GearData {
         return id.isEmpty() ? null : id;
     }
 
-
-    public static String rarityOf(net.minecraft.world.item.ItemStack stack) {
+    public static String rarityOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return "normal";
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
         String r = data.copyTag().getString("abyss_rarity").orElse("");
         return r.isEmpty() ? "normal" : r;
     }
-
 
     public static double rarityMult(String rarity) {
         return switch (rarity) {
@@ -106,7 +81,6 @@ public final class GearData {
         };
     }
 
-
     private static String rarityLabel(String rarity) {
         return switch (rarity) {
             case "mythic" -> "§d神話";
@@ -117,8 +91,7 @@ public final class GearData {
         };
     }
 
-
-    public static double affixOf(net.minecraft.world.item.ItemStack stack, String key) {
+    public static double affixOf(ItemStack stack, String key) {
         if (stack == null || stack.isEmpty()) return 0;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
@@ -137,7 +110,6 @@ public final class GearData {
         return 0;
     }
 
-
     public static String rarityColor(String rarity) {
         return switch (rarity) {
             case "mythic" -> "§d";
@@ -147,7 +119,6 @@ public final class GearData {
             default -> "§7";
         };
     }
-
 
     /** 原作 STAT_META.worth (威力計算用)。鍛造費・商店価格の基礎値 */
     private static final java.util.Map<String, Double> WORTH = java.util.Map.ofEntries(
@@ -162,9 +133,8 @@ public final class GearData {
             java.util.Map.entry("chain", 20.0), java.util.Map.entry("explodePct", 3.0),
             java.util.Map.entry("freezePct", 2.6));
 
-
     /** 武器の接辞マップ (key→value)。原作 mods に相当 */
-    public static java.util.Map<String, Double> affixMap(net.minecraft.world.item.ItemStack stack) {
+    public static java.util.Map<String, Double> affixMap(ItemStack stack) {
         var out = new java.util.LinkedHashMap<String, Double>();
         if (stack == null || stack.isEmpty()) return out;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
@@ -183,12 +153,11 @@ public final class GearData {
         return out;
     }
 
-
     /**
      * 武器の威力 (原作 power 式の MC 版)。
      * Σ|接辞|×worth × 希少度倍率 × (1+鍛造Lv×0.08)。鍛造費・商店価格に使用。
      */
-    public static int powerOf(net.minecraft.world.item.ItemStack stack) {
+    public static int powerOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
         if (ModItems.styleOf(stack.getItem()) == null && ModItems.slotOf(stack.getItem()) == null) return 0;
         double p = 0;
@@ -201,7 +170,6 @@ public final class GearData {
         if (curseOf(stack) != null) p *= 1.08;
         return Math.max(1, (int) Math.round(p));
     }
-
 
     /** 接辞キー -> 日本語表示 (原作 STAT_META.label) */
     private static final java.util.Map<String, String> AFFIX_LABEL = java.util.Map.ofEntries(
@@ -216,9 +184,8 @@ public final class GearData {
             java.util.Map.entry("chain", "連鎖"), java.util.Map.entry("explodePct", "爆裂"),
             java.util.Map.entry("freezePct", "凍結"));
 
-
     /** 武器・防具のツールチップ行 (接辞・特性・奥義・使い方)。LOREコンポーネント用 */
-    public static java.util.List<Component> loreLines(net.minecraft.world.item.ItemStack stack,
+    public static java.util.List<Component> loreLines(ItemStack stack,
                                                       boolean isWeapon) {
         var out = new java.util.ArrayList<Component>();
         var style = ModItems.styleOf(stack.getItem());
@@ -271,7 +238,7 @@ public final class GearData {
     }
 
     /** 装備のLOREを最新化 (生成・合成・報酬付与後に呼ぶ) */
-    public static void refreshLore(net.minecraft.world.item.ItemStack stack) {
+    public static void refreshLore(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return;
         boolean isWeapon = ModItems.styleOf(stack.getItem()) != null;
         boolean isArmor = ModItems.slotOf(stack.getItem()) != null;
@@ -280,9 +247,8 @@ public final class GearData {
                 new net.minecraft.world.item.component.ItemLore(loreLines(stack, isWeapon)));
     }
 
-
     /** 武器の呪い種別 (なければ null)。原作 CURSED_MODS のキー */
-    public static String curseOf(net.minecraft.world.item.ItemStack stack) {
+    public static String curseOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
@@ -290,34 +256,30 @@ public final class GearData {
         return id.isEmpty() ? null : id;
     }
 
-
-    public static double curseValueOf(net.minecraft.world.item.ItemStack stack) {
+    public static double curseValueOf(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
         return data.copyTag().getDouble("abyss_curse_val").orElse(0.0);
     }
 
-
     /**
      * 呪い武器の攻撃倍率。弱点と引き換えに +24%。
      * 恩寵「呪喰らい」所持時は弱点を無効化し効果2倍 (+48%)。
      */
-    public static double curseMultOf(ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
+    public static double curseMultOf(ServerPlayer player, ItemStack stack) {
         if (curseOf(stack) == null) return 1.0;
         return RunManager.boonLv(player, "curse_eater") > 0 ? 1.48 : 1.24;
     }
 
-
     /** 呪いの弱点が有効か (呪喰らいで無効化される) */
-    public static boolean curseActive(ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
+    public static boolean curseActive(ServerPlayer player, ItemStack stack) {
         return curseOf(stack) != null && RunManager.boonLv(player, "curse_eater") == 0;
     }
 
-
     /** 装備比較GUI用: 指定武器の性能テキスト。空なら (空) 1行 */
     public static java.util.List<String> compareLines(ServerPlayer player,
-                                                      net.minecraft.world.item.ItemStack stack) {
+                                                      ItemStack stack) {
         var style = ModItems.styleOf(stack.getItem());
         boolean isArmor = ModItems.slotOf(stack.getItem()) != null;
         if (style == null && !isArmor) return java.util.List.of("(空)");

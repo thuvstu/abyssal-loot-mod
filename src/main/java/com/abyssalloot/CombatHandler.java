@@ -135,7 +135,8 @@ public final class CombatHandler {
             giveOrDrop(player, ModItems.randomConsumable(rand));
         }
         // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
-        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {            String dmab = Enemies.mobAbility(deadMob);
+        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {
+            String dmab = Enemies.mobAbility(deadMob);
             Vec3 dp = deadMob.position();
             if ("BURST".equals(dmab)) {
                 WeaponArts.enemyPulse(level, dp, 3, Math.max(4, deadMob.getMaxHealth() * 0.08),
@@ -536,35 +537,12 @@ public final class CombatHandler {
         have.add(id);
         player.setData(ModAttachments.ACH.get(), String.join(",", have));
         player.sendSystemMessage(Component.literal("§e★ 実績解除: " + title + " (欠片+" + shards + ")"));
-        for (int i = 0; i < shards; i++) {
-            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
+        if (shards > 0) {
+            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         }
     }
 
     /* ---------------- 祝福3択 ---------------- */
-
-    /** 祝福定義は {@link Boons} (MC非依存・テスト可能)。ここは互換の別名 */
-    public record BoonDef(String id, String name, String desc, String grade) {}
-
-    /** @deprecated {@link Boons#BOON_POOL} を使うこと */
-    @Deprecated
-    public static final BoonDef[] BOON_POOL = toLegacyPool();
-
-    private static BoonDef[] toLegacyPool() {
-        var src = Boons.BOON_POOL;
-        var out = new BoonDef[src.length];
-        for (int i = 0; i < src.length; i++) {
-            out[i] = new BoonDef(src[i].id(), src[i].name(), src[i].desc(), src[i].grade());
-        }
-        return out;
-    }
-
-    /** @deprecated {@link Boons#boonById(String)} を使うこと */
-    @Deprecated
-    public static BoonDef boonById(String id) {
-        var b = Boons.boonById(id);
-        return b == null ? null : new BoonDef(b.id(), b.name(), b.desc(), b.grade());
-    }
 
     /**
      * 祝福3択の提示。原作 engine.ts drainRewards 相当:

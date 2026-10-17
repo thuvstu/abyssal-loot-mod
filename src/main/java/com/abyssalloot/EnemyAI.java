@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -234,24 +235,30 @@ public final class EnemyAI {
         return Math.max(min, (int) (base / tempoOf(target)));
     }
 
-    /** 射撃: 中距離を保つ (発射はバニラAI). 近すぎれば離れ、遠すぎれば寄る */
+    /** 中距離維持 (射撃・蘇生師共通): 近すぎれば離れ、遠すぎれば寄る。それ以外は停止 */
+    private static void keepDistance(Mob m, ServerPlayer target, double low, double high,
+                                     double retreatSpeed, double approachSpeed) {
+        double dx = m.getX() - target.getX();
+        double dz = m.getZ() - target.getZ();
+        double d = Math.sqrt(dx * dx + dz * dz);
+        if (d < low) {
+            double len = Math.max(d, 1e-3);
+            m.getNavigation().moveTo(m.getX() + dx / len * 8, m.getY(), m.getZ() + dz / len * 8, retreatSpeed);
+        } else if (d > high) {
+            m.getNavigation().moveTo(target, approachSpeed);
+        } else {
+            m.getNavigation().stop();
+        }
+    }
+
+    /** 射撃: 中距離を保つ (発射はバニラAI) */
     private static void tickShooter(ServerLevel level, Mob m, int now) {
         ServerPlayer target = nearestPlayer(level, m);
         if (target == null) {
             m.getNavigation().stop();
             return;
         }
-        double dx = m.getX() - target.getX();
-        double dz = m.getZ() - target.getZ();
-        double d = Math.sqrt(dx * dx + dz * dz);
-        if (d < 8) {
-            double len = Math.max(d, 1e-3);
-            m.getNavigation().moveTo(m.getX() + dx / len * 8, m.getY(), m.getZ() + dz / len * 8, 1.0);
-        } else if (d > 16) {
-            m.getNavigation().moveTo(target, 1.0);
-        } else {
-            m.getNavigation().stop();
-        }
+        keepDistance(m, target, 8, 16, 1.0, 1.0);
         m.setTarget(target);
     }
 
@@ -273,7 +280,8 @@ public final class EnemyAI {
         if (d < 4 || d > 20) {
             NEXT_CHARGE.put(m.getUUID(), now + 20);
             return;
-        }        // 予兆 (鈍足+煙 1秒) → 突進
+        }
+        // 予兆 (鈍足+煙 1秒) → 突進
         m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 3, false, false));
         level.sendParticles(ParticleTypes.SMOKE, m.getX(), m.getY() + 1, m.getZ(), 16, 0.8, 0.5, 0.8, 0.05);
         final double len = Math.max(d, 1e-3);
@@ -285,7 +293,7 @@ public final class EnemyAI {
             level.sendParticles(ParticleTypes.CLOUD, m.getX(), m.getY() + 0.5, m.getZ(), 20, 1, 0.5, 1, 0.1);
             CombatHandler.after(8, () -> {
                 if (!m.isAlive() || m.isRemoved()) return;
-                var atk = m.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+                var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
                 double dmg = atk != null ? atk.getValue() * 1.5 : 10;
                 WeaponArts.enemyPulse(level, m.position(), 3.5, dmg, ParticleTypes.EXPLOSION);
             });
@@ -338,7 +346,7 @@ public final class EnemyAI {
             if (d < 4.5) creeper.ignite();
             if (d > 3) m.getNavigation().moveTo(target, 1.3);
         } else if (d < 2.5) {
-            var atk = m.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+            var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
             double dmg = atk != null ? atk.getValue() * 2 : 20;
             WeaponArts.enemyPulse(level, m.position(), 4, dmg, ParticleTypes.EXPLOSION);
             m.hurtServer(level, level.damageSources().magic(), Float.MAX_VALUE);
@@ -354,17 +362,7 @@ public final class EnemyAI {
             return;
         }
         // 中距離を維持: 近すぎれば離れ、遠すぎれば寄る
-        double dx = m.getX() - target.getX();
-        double dz = m.getZ() - target.getZ();
-        double d = Math.sqrt(dx * dx + dz * dz);
-        if (d < 5) {
-            double len = Math.max(d, 1e-3);
-            m.getNavigation().moveTo(m.getX() + dx / len * 8, m.getY(), m.getZ() + dz / len * 8, 1.1);
-        } else if (d > 10) {
-            m.getNavigation().moveTo(target, 1.0);
-        } else {
-            m.getNavigation().stop();
-        }
+        keepDistance(m, target, 5, 10, 1.1, 1.0);
         m.setTarget(target);
 
         if (now < NEXT_SUMMON.getOrDefault(m.getUUID(), 0)) return;

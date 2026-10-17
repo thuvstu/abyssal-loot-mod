@@ -1,32 +1,16 @@
 package com.abyssalloot;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.BossEvent;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * ステータス計算式・属性・汎用ボーナス集計 (RunManager から分離)。
  */
 public final class StatCalc {
     private StatCalc() {}
-
 
     /* ---------------- 属性・祝福 ---------------- */
 
@@ -40,7 +24,6 @@ public final class StatCalc {
         return a;
     }
 
-
     public static void setAttrs(ServerPlayer player, int[] a) {
         var sb = new StringBuilder();
         for (int i = 0; i < 10; i++) {
@@ -49,7 +32,6 @@ public final class StatCalc {
         }
         player.setData(ModAttachments.ATTRS.get(), sb.toString());
     }
-
 
     /**
      * 属性の実効値 (職業適性は1.5倍)。計算式はすべてこちらを使う。
@@ -61,7 +43,6 @@ public final class StatCalc {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         return a[idx] * (GameData.ATTR_NAMES.length > idx && cls.affinityAttr() == idx ? 1.5 : 1.0);
     }
-
 
     /** 節目ボーナスの合算 (接辞キー)。extraStat に含まれる */
     public static double attrMilestone(ServerPlayer player, String key) {
@@ -75,19 +56,16 @@ public final class StatCalc {
         return v;
     }
 
-
     public static int attrSpent(ServerPlayer player) {
         int s = 0;
         for (int v : attrsOf(player)) s += v;
         return s;
     }
 
-
     /** 未配分の属性点 (Lv-1-配分済み) */
     public static int attrPointsLeft(ServerPlayer player) {
         return Math.max(0, player.getData(ModAttachments.LEVEL.get()) - 1 - attrSpent(player));
     }
-
 
     /** 属性1点配分 (成功でメッセージ・職業再適用・節目告知)。GUI/コマンド共通 */
     public static boolean addAttrPoint(ServerPlayer player, int idx) {
@@ -123,14 +101,12 @@ public final class StatCalc {
         return true;
     }
 
-
     private static int nextMile(int idx, int points) {
         for (GameData.Mile m : GameData.ATTR_MILESTONES.get(idx)) {
             if (points < m.at()) return m.at();
         }
         return 30;
     }
-
 
     /** 振り直し (欠片8個)。配分を全戻しし、職業を再適用する */
     public static void respec(ServerPlayer player) {
@@ -148,11 +124,9 @@ public final class StatCalc {
         player.sendSystemMessage(Component.literal("§b属性を振り直した (欠片-8)。再配分は /abyss attr かステータス画面で"));
     }
 
-
     public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level) {
         applyClass(player, cls, level, false);
     }
-
 
     /** 防具変更時の静かな再計算用 (quiet=true で告知なし) */
     public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level, boolean quiet) {
@@ -199,7 +173,7 @@ public final class StatCalc {
             double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
                     + wb0.moveSpeedPct() + StatCalc.affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
             // 防具スロット能力: 靴=疾走 (常時移動+3%)
-            if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).getItem()) != null) {
+            if (ModItems.slotOf(player.getItemBySlot(EquipmentSlot.FEET).getItem()) != null) {
                 movePct += 3;
             }
             if (passives.contains("swift")) movePct += 25;
@@ -219,7 +193,6 @@ public final class StatCalc {
         }
     }
 
-
     /** 攻速の合計% (迅風・武器クラス・接辞・技能・呪い)。applyClass と共有 */
     public static double attackSpeedPctOf(ServerPlayer player) {
         var held = player.getMainHandItem();
@@ -237,7 +210,6 @@ public final class StatCalc {
         return v;
     }
 
-
     /** 鎌の収穫スタックを攻速属性へ即時反映 (チャット告知なし) */
     public static void refreshAttackSpeed(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
@@ -250,14 +222,12 @@ public final class StatCalc {
         }
     }
 
-
     public static double attackDamageOf(ServerPlayer player) {
         return attackDamageWith(player, player.getMainHandItem()) * ArenaManager.arenaPowerMult(player);
     }
 
-
     /** 指定武器を持った場合の攻撃力 (装備比較GUI用)。affix/curse/forge/traitはheldで評価 */
-    public static double attackDamageWith(ServerPlayer player, net.minecraft.world.item.ItemStack held) {
+    public static double attackDamageWith(ServerPlayer player, ItemStack held) {
         var atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
         double base = atk != null ? atk.getValue() : 10;
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
@@ -307,16 +277,6 @@ public final class StatCalc {
         return Math.max(1, GameData.heroDamage(cls, level) * 0.35 + base * 0.15) * mult;
     }
 
-
-
-
-
-
-
-
-
-
-
     /* ---------------- 武器クラス・接辞 (原作 WEAPON_CLASSES / AFFIXES) ---------------- */
 
     /** 主手持ち武器のクラス特性 (なければゼロ) */
@@ -324,33 +284,29 @@ public final class StatCalc {
         return wbonusOf(player.getMainHandItem());
     }
 
-
     /** 指定スタックの武器クラス特性 (なければゼロ) */
-    public static GameData.WeaponBonus wbonusOf(net.minecraft.world.item.ItemStack stack) {
+    public static GameData.WeaponBonus wbonusOf(ItemStack stack) {
         var style = ModItems.styleOf(stack.getItem());
         return style == null ? GameData.weaponBonus("") : GameData.weaponBonus(style.id);
     }
-
 
     /** 主手持ち武器の接辞値 (なければ 0)。防具4部位の合算も含む */
     public static double affixOf(ServerPlayer player, String key) {
         return GearData.affixOf(player.getMainHandItem(), key) + armorAffix(player, key);
     }
 
-
     /** 装備中防具4部位の接辞合計 (原作の7スロット合算に相当) */
     public static double armorAffix(ServerPlayer player, String key) {
         double v = 0;
-        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-                net.minecraft.world.entity.EquipmentSlot.HEAD,
-                net.minecraft.world.entity.EquipmentSlot.CHEST,
-                net.minecraft.world.entity.EquipmentSlot.LEGS,
-                net.minecraft.world.entity.EquipmentSlot.FEET}) {
+        for (var slot : new EquipmentSlot[]{
+                EquipmentSlot.HEAD,
+                EquipmentSlot.CHEST,
+                EquipmentSlot.LEGS,
+                EquipmentSlot.FEET}) {
             v += GearData.affixMap(player.getItemBySlot(slot)).getOrDefault(key, 0.0);
         }
         return v;
     }
-
 
     /**
      * 追加コンテンツの汎用ステータス合算 (追加恩寵・追加技能・追加遺物・防具セット)。
@@ -375,15 +331,14 @@ public final class StatCalc {
         return v;
     }
 
-
     /** 装備中防具セットのボーナス (2部位・4部位)。setId -> 部位数で判定 */
     public static double armorSetBonus(ServerPlayer player, String key) {
         var count = new java.util.HashMap<String, Integer>();
-        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
-                net.minecraft.world.entity.EquipmentSlot.HEAD,
-                net.minecraft.world.entity.EquipmentSlot.CHEST,
-                net.minecraft.world.entity.EquipmentSlot.LEGS,
-                net.minecraft.world.entity.EquipmentSlot.FEET}) {
+        for (var slot : new EquipmentSlot[]{
+                EquipmentSlot.HEAD,
+                EquipmentSlot.CHEST,
+                EquipmentSlot.LEGS,
+                EquipmentSlot.FEET}) {
             var st = player.getItemBySlot(slot);
             if (st.isEmpty()) continue;
             var data = st.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
@@ -401,13 +356,6 @@ public final class StatCalc {
         return v;
     }
 
-
-
-
-
-
-
-
     /** 会心率 (原作crit + 幸運0.5%/点 + 心眼+5%/Lv + 深淵の目+12%) */
     public static double critOf(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
@@ -419,14 +367,12 @@ public final class StatCalc {
         return Math.min(0.95, crit);
     }
 
-
     /** 会心威力 (原作2.0倍 + 致命の刻印+45%/Lv) */
     public static double critDamageMult(ServerPlayer player) {
         return 2.0 + RunManager.boonLv(player, "critdmg") * 0.45
                 + wbonusOf(player).critDmgPct() / 100.0 + StatCalc.affixOf(player, "critDmgPct") / 100.0
                 + extraStat(player, "critDmgPct") / 100.0 + attrEff(player, 5) * 0.02;
     }
-
 
     /** 攻撃範囲 (恩寵「拡大の刻印」+22%/Lv。奥義・祝福の半径に適用) */
     public static double areaMult(ServerPlayer player) {
@@ -435,7 +381,6 @@ public final class StatCalc {
                 * (1 + (StatCalc.affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0)
                 * (1 + attrEff(player, 7) * 0.015);
     }
-
 
     /** 運 (幸運+7/点 + 知識の渇望+20/Lv + 呪いluckFlat) */
     public static int luckOf(ServerPlayer player) {
@@ -449,7 +394,6 @@ public final class StatCalc {
         if ("scourge".equals(RunManager.activeShrine(player))) luck += 100;
         return luck;
     }
-
 
     /** 奥義・必殺の威力倍率 (武の祝福+12%/Lv) */
     public static double artMultOf(ServerPlayer player) {

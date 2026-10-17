@@ -78,38 +78,21 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
         var inv = minecraft.player.getInventory();
         int shards = countIn(inv, ModItems.SOUL_SHARD.get().getDefaultInstance().getItem());
         g.drawString(font, "欠片×" + cost + " (所持" + shards + ")", 8, 60, shards >= cost ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
-        String top = topRarity(GearData.rarityOf(main), GearData.rarityOf(sub));
-        String matLine = matLine(top);
-        if (matLine != null) {
-            net.minecraft.world.item.Item matItem = matItem(top);
-            int have = matItem == null ? 0 : countIn(inv, matItem);
-            int need = top.equals("mythic") ? 2 : 1;
-            g.drawString(font, matLine + " (所持" + have + ")", 8, 70,
-                    have >= need ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
+        var mat = GameData.mergeMaterial(topRarity(GearData.rarityOf(main), GearData.rarityOf(sub)));
+        if (mat != null) {
+            net.minecraft.world.item.Item matItem = switch (mat.id()) {
+                case "void" -> ModItems.VOID_ESSENCE.get();
+                case "chaos" -> ModItems.CHAOS_GEM.get();
+                default -> ModItems.ANCIENT_STONE.get();
+            };
+            int have = countIn(inv, matItem);
+            g.drawString(font, mat.name() + " (所持" + have + ")", 8, 70,
+                    have >= mat.count() ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
         }
     }
 
     private static String topRarity(String a, String b) {
-        var order = java.util.List.of("normal", "magic", "rare", "legendary", "mythic");
-        return order.indexOf(b) > order.indexOf(a) ? b : a;
-    }
-
-    private static String matLine(String top) {
-        return switch (top) {
-            case "mythic" -> "虚空のエッセンス×2";
-            case "legendary" -> "混沌の宝石×1";
-            case "rare" -> "古代の石×1";
-            default -> null;
-        };
-    }
-
-    private static net.minecraft.world.item.Item matItem(String top) {
-        return switch (top) {
-            case "mythic" -> ModItems.VOID_ESSENCE.get();
-            case "legendary" -> ModItems.CHAOS_GEM.get();
-            case "rare" -> ModItems.ANCIENT_STONE.get();
-            default -> null;
-        };
+        return GameData.rarityRank(b) > GameData.rarityRank(a) ? b : a;
     }
 
     private static int countIn(Inventory inv, net.minecraft.world.item.Item item) {
