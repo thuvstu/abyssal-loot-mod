@@ -11,6 +11,7 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 /**
  * クライアント専用: 魂ゲージ・層・レベルのHUD.
  * 数値はサーバーからの HudSync で更新される (未受信時は表示しない).
+ * 小技/必殺のCTは残存時のみ表示 (CT中はサーバーが0.1秒ごとに再送する).
  */
 public final class ClientHud {
     private ClientHud() {}
@@ -23,8 +24,11 @@ public final class ClientHud {
     private static volatile int attrPoints;
     private static volatile int portalOpen;
     private static volatile int pendingBoons;
+    private static volatile float lightCd;
+    private static volatile float skillCd;
 
-    public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb) {
+    public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
+                              float lcd, float scd) {
         soul = s;
         floor = f;
         level = lv;
@@ -33,6 +37,8 @@ public final class ClientHud {
         attrPoints = ap;
         portalOpen = po;
         pendingBoons = pb;
+        lightCd = lcd;
+        skillCd = scd;
     }
 
     public static void init(IEventBus modBus) {
@@ -65,6 +71,15 @@ public final class ClientHud {
         }
         g.drawString(font, "撃破" + kills, x0, y, 0xFF9FB0C9);
         y += 12;
+        // 小技・必殺のCT (残存時のみ)
+        if (lightCd > 0) {
+            g.drawString(font, String.format("小技 %.1fs (右クリック)", lightCd), x0, y, 0xFF7CC8FF);
+            y += 12;
+        }
+        if (skillCd > 0) {
+            g.drawString(font, String.format("必殺 %.1fs (V)", skillCd), x0, y, 0xFFFFD23C);
+            y += 12;
+        }
         // 未配分の属性点と転移門の開放を見逃さないよう表示
         if (attrPoints > 0) {
             g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0, y, 0xFF7CFFB2);

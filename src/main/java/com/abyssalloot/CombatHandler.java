@@ -661,7 +661,9 @@ public final class CombatHandler {
                         player.getData(ModAttachments.COMBO.get()),
                         StatCalc.attrPointsLeft(player),
                         player.getData(ModAttachments.PORTAL_OPEN.get()),
-                        RunManager.pendingBoonsOf(player)));
+                        RunManager.pendingBoonsOf(player),
+                        player.getData(ModAttachments.LIGHT_CD.get()),
+                        player.getData(ModAttachments.SKILL_CD.get())));
     }
 
     /** 未選択の祝福を再提示 (上書きしない。GUIを開く・チャットにもボタンを出す) */
@@ -1476,7 +1478,10 @@ public final class CombatHandler {
                     && (last == null || tickCounter - last > 100)) {
                 player.setData(ModAttachments.COMBO.get(), 0);
             }
-            if (tickCounter % 20 == 0) {
+            // CT中は0.1秒ごとにHUDを再送して残り秒を滑らかに表示する
+            boolean anyCd = player.getData(ModAttachments.LIGHT_CD.get()) > 0
+                    || player.getData(ModAttachments.SKILL_CD.get()) > 0;
+            if (anyCd ? tickCounter % 2 == 0 : tickCounter % 20 == 0) {
                 sendHud(player);
             }
         }

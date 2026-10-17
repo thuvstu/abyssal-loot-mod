@@ -203,9 +203,10 @@ public final class ModPackets {
         }
     }
 
-    /** サーバー→クライアント: HUD表示用ステータス (1秒ごと) */
+    /** サーバー→クライアント: HUD表示用ステータス (1秒ごと。CT中は0.1秒ごと) */
     public record HudSync(float soul, int floor, int level, int kills, int combo,
-                          int attrPoints, int portalOpen, int pendingBoons)
+                          int attrPoints, int portalOpen, int pendingBoons,
+                          float lightCd, float skillCd)
             implements CustomPacketPayload {
         public static final Type<HudSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hud"));
@@ -219,10 +220,13 @@ public final class ModPackets {
                     buf.writeVarInt(p.attrPoints());
                     buf.writeVarInt(p.portalOpen());
                     buf.writeVarInt(p.pendingBoons());
+                    buf.writeFloat(p.lightCd());
+                    buf.writeFloat(p.skillCd());
                 },
                 buf -> new HudSync(buf.readFloat(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
-                        buf.readVarInt(), buf.readVarInt()));
+                        buf.readVarInt(), buf.readVarInt(),
+                        buf.readFloat(), buf.readFloat()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -233,7 +237,8 @@ public final class ModPackets {
         public static void handle(HudSync payload, IPayloadContext ctx) {
             ctx.enqueueWork(() -> ClientHud.update(
                     payload.soul(), payload.floor(), payload.level(), payload.kills(), payload.combo(),
-                    payload.attrPoints(), payload.portalOpen(), payload.pendingBoons()));
+                    payload.attrPoints(), payload.portalOpen(), payload.pendingBoons(),
+                    payload.lightCd(), payload.skillCd()));
         }
     }
 
