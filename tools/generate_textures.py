@@ -230,20 +230,6 @@ def tome(accent):
 
 # ---------------- 追加武器12種 (原作色・固有形状) ----------------
 
-def tome(accent):
-    img, d = canvas()
-    poly(d, [(1, 4), (12, 2), (14, 11), (3, 13)], (46, 28, 70, 255))  # 表紙
-    poly(d, [(2, 5), (11, 3), (12, 10), (3, 12)], accent)
-    d.line([(3, 6), (10, 4)], fill=(245, 240, 230, 255), width=1)  # 本文
-    d.line([(3, 8), (10, 6)], fill=(245, 240, 230, 255), width=1)
-    d.line([(4, 10), (9, 9)], fill=(245, 240, 230, 255), width=1)
-    line(d, [(2, 5), (1, 13)], GOLD, 1)  # 背・留金
-    d.rectangle([5, 6, 8, 9], fill=OUTLINE)  # 紋章枠
-    d.point((6, 7), fill=WHITE)
-    d.point((7, 8), fill=GOLD)
-    return img
-
-
 def rune_blade(accent):
     img, d = canvas()
     _dia_blade(d, 4, 12, 13, 3, accent)
@@ -1156,7 +1142,8 @@ def _mats3_tex(color):
     img, d = canvas()
     c = color
     import random as _rnd
-    rnd = _rnd.Random(hash(str(c)) & 0xffff)
+    # 色由来の決定的シード (Python の文字列 hash は実行ごとに変わるため使えない)
+    rnd = _rnd.Random((c[0] << 16) | (c[1] << 8) | c[2])
     poly(d, [(4, 2), (11, 4), (12, 11), (6, 14), (3, 9)], OUTLINE)
     poly(d, [(5, 4), (10, 6), (11, 10), (7, 12), (5, 9)], c)
     d.line([(6, 5), (8, 7)], fill=_shade(c, 1.25), width=1)
