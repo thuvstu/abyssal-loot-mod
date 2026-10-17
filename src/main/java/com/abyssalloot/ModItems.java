@@ -99,18 +99,26 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_EMBER_FLAIL = weapon("abyss_ember_flail", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_ASTRAL_LANCE = weapon("abyss_astral_lance", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_TIDE_TRIDENT = weapon("abyss_tide_trident", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_MOON_MACE = weapon("abyss_moon_mace", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_DEPTH_GUN = weapon("abyss_depth_gun", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_VENOM_WHIP = weapon("abyss_venom_whip", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_FLAME_GRIMOIRE = weapon("abyss_flame_grimoire", Rarity.EPIC);
+    public static final DeferredItem<Item> ABYSS_RIFT_BLADE = weapon("abyss_rift_blade", Rarity.EPIC);
+    public static final DeferredItem<Item> ABYSS_METEOR_LANCE = weapon("abyss_meteor_lance", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_ECHO_KATANA = weapon("abyss_echo_katana", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_HOWLING_CLAW = weapon("abyss_howling_claw", Rarity.COMMON);
 
     public static final DeferredItem<Item> ABYSS_HELM = armor("abyss_helm", Rarity.COMMON, EquipmentSlot.HEAD);
     public static final DeferredItem<Item> ABYSS_CHEST = armor("abyss_chest", Rarity.COMMON, EquipmentSlot.CHEST);
     public static final DeferredItem<Item> ABYSS_LEGS = armor("abyss_legs", Rarity.COMMON, EquipmentSlot.LEGS);
     public static final DeferredItem<Item> ABYSS_BOOTS = armor("abyss_boots", Rarity.COMMON, EquipmentSlot.FEET);
 
-    /** 深淵防具セット (blood/shadow/rock/star × 4部位)。接辞つき生成は GearFactory.makeSetArmor */
+    /** 深淵防具セット (blood/shadow/rock/star/frost/storm/moon/ember × 4部位)。接辞つき生成は GearFactory.makeSetArmor */
     public static final java.util.Map<String, DeferredItem<Item>> SET_PIECES = buildSetPieces();
 
     private static java.util.Map<String, DeferredItem<Item>> buildSetPieces() {
         var map = new java.util.LinkedHashMap<String, DeferredItem<Item>>();
-        for (String set : new String[]{"blood", "shadow", "rock", "star", "frost", "storm"}) {
+        for (String set : new String[]{"blood", "shadow", "rock", "star", "frost", "storm", "moon", "ember"}) {
             map.put(set + "_helm", armor("abyss_" + set + "_helm", Rarity.COMMON, EquipmentSlot.HEAD, set));
             map.put(set + "_chest", armor("abyss_" + set + "_chest", Rarity.COMMON, EquipmentSlot.CHEST, set));
             map.put(set + "_legs", armor("abyss_" + set + "_legs", Rarity.COMMON, EquipmentSlot.LEGS, set));
@@ -182,6 +190,103 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_BOMB_H = consumable("abyss_bomb_h", "bomb_blaze", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_FORTUNE = consumable("abyss_fortune", "fortune", Rarity.UNCOMMON);
     public static final DeferredItem<Item> ABYSS_RATION = consumable("abyss_ration", "ration", Rarity.COMMON);
+    // --- 第3弾 消耗品 (24種 再現) ---
+    public static final DeferredItem<Item> ABYSS_FLASK = consumable("abyss_flask", "heal_50", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_GUT = consumable("abyss_gut", "gorging", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_GRANDFEAST = consumable("abyss_grandfeast", "grand_feast", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_REGENX = consumable("abyss_regenx", "regen2", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_STRX = consumable("abyss_strx", "str2", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_RESX = consumable("abyss_resx", "res2", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_ABSX = consumable("abyss_absx", "abs2", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_STRIDE = consumable("abyss_stride", "spd3", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_NIGHTWARD = consumable("abyss_nightward", "nv10", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_SALAMANDER = consumable("abyss_salamander", "fire10", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_PEARLDIVE = consumable("abyss_pearldive", "water5", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_VEILNOTE = consumable("abyss_veilnote", "invis30", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_PURITY = consumable("abyss_purity", "purity", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_CHAINBOMB = consumable("abyss_chainbomb", "chain_bomb", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_ARTSCROLL = consumable("abyss_artscroll", "art_scroll", Rarity.EPIC);
+    public static final DeferredItem<Item> ABYSS_SKILLRESET = consumable("abyss_skillreset", "skill_reset", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_LLEAP = consumable("abyss_lleap", "leap", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_GOLDMIST = consumable("abyss_goldmist", "luck_rain", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_LEECHCANDY = consumable("abyss_leechcandy", "gum_leech", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_DEPTHBOMB = consumable("abyss_depthbomb", "depth_bomb", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_EAGLE = consumable("abyss_eagle", "eagle", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_OVERCHARGE = consumable("abyss_overcharge", "overcharge", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_PICKVEIN = consumable("abyss_pickvein", "haste2", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_GODSPEED = consumable("abyss_godspeed", "godspeed", Rarity.UNCOMMON);
+    // --- 職業必殺の巻物 (8種: 右クリックでその型の必殺技を即発動) ---
+    public static final DeferredItem<Item> ABYSS_SCROLL_SAMURAI = consumable("abyss_scroll_samurai", "skill_demo::samurai", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_MAGE = consumable("abyss_scroll_mage", "skill_demo::mage", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_NINJA = consumable("abyss_scroll_ninja", "skill_demo::ninja", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_PALADIN = consumable("abyss_scroll_paladin", "skill_demo::paladin", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_GUNNER = consumable("abyss_scroll_gunner", "skill_demo::gunner", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_BERSERKER = consumable("abyss_scroll_berserker", "skill_demo::berserker", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_MONK = consumable("abyss_scroll_monk", "skill_demo::monk", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SCROLL_ARCHER = consumable("abyss_scroll_archer", "skill_demo::archer", Rarity.RARE);
+
+    /** 新素材 (第3弾16種・レシピの核として消耗品に繋がる) */
+    public static final DeferredItem<Item> ABYSS_TEARDROP = ITEMS.registerSimpleItem("abyss_teardrop",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_EMBER = ITEMS.registerSimpleItem("abyss_ember",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_FROST_PRISM = ITEMS.registerSimpleItem("abyss_frost_prism",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_MOONSTONE = ITEMS.registerSimpleItem("abyss_moonstone",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> ABYSS_BONE_CHARM = ITEMS.registerSimpleItem("abyss_bone_charm",
+            () -> new Item.Properties().rarity(Rarity.COMMON));
+    public static final DeferredItem<Item> ABYSS_BLOODROOT = ITEMS.registerSimpleItem("abyss_bloodroot",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_THUNDER_THREAD = ITEMS.registerSimpleItem("abyss_thunder_thread",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> ABYSS_VENOM_SAC = ITEMS.registerSimpleItem("abyss_venom_sac",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_ASH_POWDER = ITEMS.registerSimpleItem("abyss_ash_powder",
+            () -> new Item.Properties().rarity(Rarity.COMMON));
+    public static final DeferredItem<Item> ABYSS_VOID_SPLINTER = ITEMS.registerSimpleItem("abyss_void_splinter",
+            () -> new Item.Properties().rarity(Rarity.EPIC));
+    public static final DeferredItem<Item> ABYSS_GOLD_VEIN = ITEMS.registerSimpleItem("abyss_gold_vein",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_IRON_ROSE = ITEMS.registerSimpleItem("abyss_iron_rose",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_NIGHT_PEARL = ITEMS.registerSimpleItem("abyss_night_pearl",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> ABYSS_LAVA_PEARL = ITEMS.registerSimpleItem("abyss_lava_pearl",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> ABYSS_MIST_WISP = ITEMS.registerSimpleItem("abyss_mist_wisp",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> ABYSS_STAR_SEED = ITEMS.registerSimpleItem("abyss_star_seed",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+
+    /** 魂の欠片圧縮 (9個→袋→包→核。欠片のインベントリを整える) */
+    public static final DeferredItem<Item> SOUL_SHARD_POUCH = ITEMS.registerSimpleItem("soul_shard_pouch",
+            () -> new Item.Properties().rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> SOUL_SHARD_BALE = ITEMS.registerSimpleItem("soul_shard_bale",
+            () -> new Item.Properties().rarity(Rarity.RARE));
+    public static final DeferredItem<Item> SOUL_SHARD_CORE = ITEMS.registerSimpleItem("soul_shard_core",
+            () -> new Item.Properties().rarity(Rarity.EPIC));
+
+    /** 奥義の断片 (武器種ごと33種。断片+古代石+欠片2でその武器を完成できる) */
+    public static final java.util.Map<GameData.WeaponStyle, DeferredItem<Item>> ART_SHARDS = buildArtShards();
+
+    private static java.util.Map<GameData.WeaponStyle, DeferredItem<Item>> buildArtShards() {
+        var map = new java.util.LinkedHashMap<GameData.WeaponStyle, DeferredItem<Item>>();
+        for (GameData.WeaponStyle style : GameData.WeaponStyle.values()) {
+            var shardId = "art_shard_" + style.id;
+            map.put(style, ITEMS.registerSimpleItem(shardId,
+                    () -> new Item.Properties().rarity(style == GameData.WeaponStyle.SWORD ? Rarity.COMMON
+                            : Rarity.UNCOMMON)));
+        }
+        return java.util.Collections.unmodifiableMap(map);
+    }
+
+    /** 欠片のランダム1個 (層主・番人の特別報酬用) */
+    public static ItemStack randomArtShard(net.minecraft.util.RandomSource rand) {
+        var styles = GameData.WeaponStyle.values();
+        var style = styles[rand.nextInt(styles.length)];
+        return new ItemStack(ART_SHARDS.get(style).get());
+    }
 
     /** 生活ツール用素材 (ネザライト級・高速・魂の欠片等で修繕可) */
     public static final net.minecraft.world.item.ToolMaterial ABYSS_TIER =
@@ -274,6 +379,14 @@ public final class ModItems {
                         output.accept(ABYSS_EMBER_FLAIL.get());
                         output.accept(ABYSS_ASTRAL_LANCE.get());
                         output.accept(ABYSS_TIDE_TRIDENT.get());
+                        output.accept(ABYSS_MOON_MACE.get());
+                        output.accept(ABYSS_DEPTH_GUN.get());
+                        output.accept(ABYSS_VENOM_WHIP.get());
+                        output.accept(ABYSS_FLAME_GRIMOIRE.get());
+                        output.accept(ABYSS_RIFT_BLADE.get());
+                        output.accept(ABYSS_METEOR_LANCE.get());
+                        output.accept(ABYSS_ECHO_KATANA.get());
+                        output.accept(ABYSS_HOWLING_CLAW.get());
                         output.accept(ABYSS_PICKAXE.get());
                         output.accept(ABYSS_TOOL_AXE.get());
                         output.accept(ABYSS_SHOVEL.get());
@@ -285,6 +398,26 @@ public final class ModItems {
                         output.accept(ABYSS_LEGS.get());
                         output.accept(ABYSS_BOOTS.get());
                         for (var piece : SET_PIECES.values()) output.accept(piece.get());
+                        output.accept(SOUL_SHARD_POUCH.get());
+                        output.accept(SOUL_SHARD_BALE.get());
+                        output.accept(SOUL_SHARD_CORE.get());
+                        for (var shard : ART_SHARDS.values()) output.accept(shard.get());
+                        output.accept(ABYSS_TEARDROP.get());
+                        output.accept(ABYSS_EMBER.get());
+                        output.accept(ABYSS_FROST_PRISM.get());
+                        output.accept(ABYSS_MOONSTONE.get());
+                        output.accept(ABYSS_BONE_CHARM.get());
+                        output.accept(ABYSS_BLOODROOT.get());
+                        output.accept(ABYSS_THUNDER_THREAD.get());
+                        output.accept(ABYSS_VENOM_SAC.get());
+                        output.accept(ABYSS_ASH_POWDER.get());
+                        output.accept(ABYSS_VOID_SPLINTER.get());
+                        output.accept(ABYSS_GOLD_VEIN.get());
+                        output.accept(ABYSS_IRON_ROSE.get());
+                        output.accept(ABYSS_NIGHT_PEARL.get());
+                        output.accept(ABYSS_LAVA_PEARL.get());
+                        output.accept(ABYSS_MIST_WISP.get());
+                        output.accept(ABYSS_STAR_SEED.get());
                         output.accept(ABYSS_HEAL_S.get());
                         output.accept(ABYSS_HEAL_M.get());
                         output.accept(ABYSS_HEAL_L.get());
@@ -314,6 +447,38 @@ public final class ModItems {
                         output.accept(ABYSS_BOMB_H.get());
                         output.accept(ABYSS_FORTUNE.get());
                         output.accept(ABYSS_RATION.get());
+                        output.accept(ABYSS_FLASK.get());
+                        output.accept(ABYSS_GUT.get());
+                        output.accept(ABYSS_GRANDFEAST.get());
+                        output.accept(ABYSS_REGENX.get());
+                        output.accept(ABYSS_STRX.get());
+                        output.accept(ABYSS_RESX.get());
+                        output.accept(ABYSS_ABSX.get());
+                        output.accept(ABYSS_STRIDE.get());
+                        output.accept(ABYSS_NIGHTWARD.get());
+                        output.accept(ABYSS_SALAMANDER.get());
+                        output.accept(ABYSS_PEARLDIVE.get());
+                        output.accept(ABYSS_VEILNOTE.get());
+                        output.accept(ABYSS_PURITY.get());
+                        output.accept(ABYSS_CHAINBOMB.get());
+                        output.accept(ABYSS_ARTSCROLL.get());
+                        output.accept(ABYSS_SKILLRESET.get());
+                        output.accept(ABYSS_LLEAP.get());
+                        output.accept(ABYSS_GOLDMIST.get());
+                        output.accept(ABYSS_LEECHCANDY.get());
+                        output.accept(ABYSS_DEPTHBOMB.get());
+                        output.accept(ABYSS_EAGLE.get());
+                        output.accept(ABYSS_OVERCHARGE.get());
+                        output.accept(ABYSS_PICKVEIN.get());
+                        output.accept(ABYSS_GODSPEED.get());
+                        output.accept(ABYSS_SCROLL_SAMURAI.get());
+                        output.accept(ABYSS_SCROLL_MAGE.get());
+                        output.accept(ABYSS_SCROLL_NINJA.get());
+                        output.accept(ABYSS_SCROLL_PALADIN.get());
+                        output.accept(ABYSS_SCROLL_GUNNER.get());
+                        output.accept(ABYSS_SCROLL_BERSERKER.get());
+                        output.accept(ABYSS_SCROLL_MONK.get());
+                        output.accept(ABYSS_SCROLL_ARCHER.get());
                         output.accept(ABYSS_BLOOD_CRYSTAL.get());
                         output.accept(ABYSS_SHADOW_STONE.get());
                         output.accept(ABYSS_STAR_DUST.get());
@@ -340,7 +505,9 @@ public final class ModItems {
             ABYSS_BOMB_F, ABYSS_BOMB_T, ABYSS_BOMB_I,
             ABYSS_TELE_A, ABYSS_TELE_S, ABYSS_CURE,
             ABYSS_MAGNET, ABYSS_REVEAL, ABYSS_FEAST, ABYSS_SMOKE,
-            ABYSS_BERSERK, ABYSS_BULWARK, ABYSS_BOMB_H, ABYSS_FORTUNE, ABYSS_RATION);
+            ABYSS_BERSERK, ABYSS_BULWARK, ABYSS_BOMB_H, ABYSS_FORTUNE, ABYSS_RATION,
+            ABYSS_FLASK, ABYSS_GUT, ABYSS_GRANDFEAST, ABYSS_LEECHCANDY,
+            ABYSS_STRIDE, ABYSS_PICKVEIN, ABYSS_GODSPEED, ABYSS_PURITY);
 
     public static ItemStack randomConsumable(net.minecraft.util.RandomSource rand) {
         return new ItemStack(DROP_CONSUMABLES.get(rand.nextInt(DROP_CONSUMABLES.size())).get());
@@ -404,6 +571,14 @@ public final class ModItems {
             case EMBER_FLAIL -> ABYSS_EMBER_FLAIL.get();
             case ASTRAL_LANCE -> ABYSS_ASTRAL_LANCE.get();
             case TIDE_TRIDENT -> ABYSS_TIDE_TRIDENT.get();
+            case MOON_MACE -> ABYSS_MOON_MACE.get();
+            case DEPTH_GUN -> ABYSS_DEPTH_GUN.get();
+            case VENOM_WHIP -> ABYSS_VENOM_WHIP.get();
+            case FLAME_GRIMOIRE -> ABYSS_FLAME_GRIMOIRE.get();
+            case RIFT_BLADE -> ABYSS_RIFT_BLADE.get();
+            case METEOR_LANCE -> ABYSS_METEOR_LANCE.get();
+            case ECHO_KATANA -> ABYSS_ECHO_KATANA.get();
+            case HOWLING_CLAW -> ABYSS_HOWLING_CLAW.get();
         };
     }
 }

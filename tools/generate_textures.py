@@ -537,6 +537,110 @@ def tide_trident(accent):
     return img
 
 
+def moon_mace(accent):
+    img, d = canvas()
+    line(d, [(5, 15), (9, 9)], WOOD, 2)  # 柄
+    line(d, [(5, 15), (9, 9)], WOOD_DARK, 1)
+    d.ellipse([6, 8, 14, 15], fill=OUTLINE)      # 三日月頭 (下弦)
+    d.ellipse([7, 9, 13, 14], fill=STEEL_LIGHT)
+    d.ellipse([4, 8, 13, 14], fill=OUTLINE)      # 二重で欠けを作る
+    d.ellipse([5, 9, 11, 13], fill=(10, 8, 20, 255))
+    d.point((13, 10), fill=accent)
+    d.point((13, 11), fill=accent)
+    d.point((12, 9), fill=WHITE)
+    d.point((10, 6), fill=accent)                # 月の輪
+    return img
+
+
+def depth_gun(accent):
+    img, d = canvas()
+    line(d, [(3, 13), (6, 10)], WOOD_DARK, 2)    # 握り
+    poly(d, [(5, 8), (14, 4), (15, 6), (7, 11)], STEEL_LIGHT)   # 銃身 (斜め)
+    poly(d, [(7, 9), (12, 6), (13, 7), (8, 10)], STEEL)
+    d.rectangle([12, 4, 14, 5], fill=accent)     # 銃口の照星
+    d.point((13, 6), fill=WHITE)
+    d.line([(6, 11), (8, 13)], fill=accent, width=1)  # 浮き彫りの紋
+    d.point((5, 9), fill=accent)
+    return img
+
+
+def venom_whip(accent):
+    img, d = canvas()
+    line(d, [(3, 14), (7, 9)], WOOD_DARK, 2)     # 柄
+    line(d, [(7, 9), (12, 6)], STEEL_DARK, 1)    # 鞭の骨
+    d.arc([5, 1, 15, 11], start=100, end=320, fill=STEEL_LIGHT, width=1)  # 蛇行
+    d.arc([6, 2, 14, 10], start=90, end=330, fill=accent, width=1)
+    d.arc([7, 3, 13, 9], start=90, end=340, fill=STEEL, width=1)
+    d.point((13, 2), fill=accent)                # 穂先 (毒珠)
+    d.point((10, 4), fill=WHITE)
+    d.point((12, 8), fill=accent)
+    d.point((4, 12), fill=accent)
+    return img
+
+
+def flame_grimoire(accent):
+    img, d = canvas()
+    poly(d, [(1, 4), (12, 2), (14, 11), (3, 13)], (70, 22, 10, 255))  # 焔典表紙
+    poly(d, [(2, 5), (11, 3), (12, 10), (3, 12)], accent)
+    for x, h in ((4, 2), (6, 3), (8, 2), (10, 3)):  # 連載架の火柱
+        d.rectangle([x, 8 - h, x, 7], fill=(255, 200, 80, 255))
+        d.point((x, 8), fill=WHITE)
+    d.line([(2, 5), (1, 13)], fill=GOLD, width=1)
+    d.point((11, 3), fill=WHITE)
+    return img
+
+
+def rift_blade(accent):
+    img, d = canvas()
+    line(d, [(5, 13), (7, 10)], WOOD_DARK, 2)
+    poly(d, [(7, 1), (14, 5), (11, 9), (6, 6)], STEEL_LIGHT)  # 不定形の刃
+    poly(d, [(9, 3), (12, 6), (10, 8), (8, 6)], accent)
+    d.line([(3, 10), (12, 3)], fill=accent, width=1)           # 断層の光
+    d.line([(5, 12), (13, 5)], fill=WHITE, width=1)
+    d.point((2, 6), fill=accent)   # 虚空の粒
+    d.point((14, 12), fill=accent)
+    return img
+
+
+def meteor_lance(accent):
+    img, d = canvas()
+    line(d, [(2, 15), (8, 9)], WOOD, 1)
+    line(d, [(3, 14), (8, 10)], WOOD_DARK, 1)
+    poly(d, [(8, 2), (13, 7), (9, 10)], STEEL_LIGHT)  # 槍身
+    poly(d, [(9, 4), (11, 7), (10, 8)], STEEL)
+    d.ellipse([11, 2, 15, 6], fill=accent, outline=OUTLINE)  # 落下の火玉
+    d.line([(13, 4), (15, 2)], fill=WHITE, width=1)          # 尾
+    d.point((8, 5), fill=accent)
+    d.point((6, 7), fill=WHITE)
+    return img
+
+
+def echo_katana(accent):
+    img, d = canvas()
+    poly(d, [(2, 10), (7, 6), (12, 2), (14, 1), (13, 4), (8, 8), (3, 12)], STEEL_LIGHT)
+    poly(d, [(3, 10), (7, 7), (11, 3), (12, 3), (11, 5), (7, 8), (4, 11)], STEEL)
+    d.line([(4, 10), (11, 3)], fill=accent, width=1)  # 残影の軌跡
+    d.point((6, 8), fill=WHITE)                       # 残影の粒
+    d.ellipse([0, 9, 4, 13], fill=OUTLINE)
+    d.ellipse([1, 10, 3, 12], fill=GOLD)
+    line(d, [(1, 12), (0, 15)], WOOD_DARK, 2)
+    d.point((12, 2), fill=accent)
+    return img
+
+
+def howling_claw(accent):
+    img, d = canvas()
+    d.rectangle([3, 10, 9, 14], fill=OUTLINE)     # 手甲
+    d.rectangle([4, 11, 8, 13], fill=STEEL_DARK)
+    for x, tip in ((5, 2), (7, 1), (9, 2), (11, 3)):  # 四爪 (曲がった爪)
+        d.line([(x, 10), (x + 1, 6)], fill=STEEL_LIGHT, width=1)
+        d.line([(x + 1, 6), (x + tip, 4)], fill=STEEL, width=2)
+        d.point((x + tip, 4), fill=accent)
+    d.rectangle([5, 11, 7, 12], fill=accent)      # 掌核
+    d.point((6, 11), fill=WHITE)
+    return img
+
+
 def aegis(color):
     """巨壁の粉 (盾紋章の袋。青の輪を太く見せる)"""
     img, d = canvas()
@@ -751,6 +855,14 @@ WEAPONS = {
     "abyss_ember_flail": (ember_flail, 0xff8a3c, "handheld"),
     "abyss_astral_lance": (astral_lance, 0xffe9a8, "handheld"),
     "abyss_tide_trident": (tide_trident, 0x7cd8ff, "handheld"),
+    "abyss_moon_mace": (moon_mace, 0xd8e8ff, "handheld"),
+    "abyss_depth_gun": (depth_gun, 0xff4d6d, "handheld"),
+    "abyss_venom_whip": (venom_whip, 0x8ff06e, "handheld"),
+    "abyss_flame_grimoire": (flame_grimoire, 0xff6a2b, "handheld"),
+    "abyss_rift_blade": (rift_blade, 0x8a5cff, "handheld"),
+    "abyss_meteor_lance": (meteor_lance, 0xffd23c, "handheld"),
+    "abyss_echo_katana": (echo_katana, 0xa8e8ff, "handheld"),
+    "abyss_howling_claw": (howling_claw, 0xffb03c, "handheld"),
     "abyss_fishing_rod": (fishing_rod, 0x7ce8ff, "handheld"),
     "abyss_shears": (shears, 0xb28ce0, "handheld"),
     "abyss_pickaxe": (pickaxe, 0xb28ce0, "handheld"),
@@ -914,6 +1026,70 @@ NEWMATS = {
     "abyss_ancient_core": 0xffd700,
     "abyss_void_piece": 0x2a0a3a,
 }
+
+# 第3弾の新素材 (gem と diffuse で見分けられるよう配置で描き分け)
+NEWMATS3 = {
+    "abyss_teardrop": 0x7ce8ff,
+    "abyss_ember": 0xff8a2b,
+    "abyss_frost_prism": 0xaee9ff,
+    "abyss_moonstone": 0xd8f0ff,
+    "abyss_bone_charm": 0xe8e8f2,
+    "abyss_bloodroot": 0xff4d6d,
+    "abyss_thunder_thread": 0xffe14a,
+    "abyss_venom_sac": 0x8ff06e,
+    "abyss_ash_powder": 0x8a8a95,
+    "abyss_void_splinter": 0x8a5cff,
+    "abyss_gold_vein": 0xffd23c,
+    "abyss_iron_rose": 0xd8b8c8,
+    "abyss_night_pearl": 0x9a8ecf,
+    "abyss_lava_pearl": 0xff5c2a,
+    "abyss_mist_wisp": 0x9fd8ff,
+    "abyss_star_seed": 0xffe9a8,
+}
+
+
+def _mats3_tex(color):
+    """新素材12x12のテクスチャ (塊 + 輝点. 色は冒険系の物性を反映)"""
+    img, d = canvas()
+    c = color
+    import random as _rnd
+    rnd = _rnd.Random(hash(str(c)) & 0xffff)
+    poly(d, [(4, 2), (11, 4), (12, 11), (6, 14), (3, 9)], OUTLINE)
+    poly(d, [(5, 4), (10, 6), (11, 10), (7, 12), (5, 9)], c)
+    d.line([(6, 5), (8, 7)], fill=_shade(c, 1.25), width=1)
+    for _ in range(3):
+        x = rnd.randrange(6, 11)
+        y = rnd.randrange(6, 11)
+        d.point((x, y), fill=_shade(c, 0.7))
+    d.point((7, 5), fill=WHITE)
+    d.point((9, 9), fill=_shade(c, 1.35))
+    return img
+
+
+def shard_bag(state):
+    """魂の欠片の束 (袋→包→核 と詰め増し)"""
+    img, d = canvas()
+    if state == 0:   # 袋
+        poly(d, [(4, 6), (12, 6), (13, 13), (8, 15), (3, 13)], OUTLINE)
+        poly(d, [(5, 7), (11, 7), (12, 12), (8, 13), (4, 12)], (150, 230, 255, 255))
+        d.line([(4, 6), (8, 3), (12, 6)], fill=OUTLINE, width=2)
+        d.point((7, 9), fill=WHITE)
+    elif state == 1:  # 包
+        poly(d, [(3, 5), (13, 5), (14, 12), (8, 15), (2, 12)], OUTLINE)
+        poly(d, [(4, 6), (12, 6), (13, 12), (8, 13), (3, 12)], (110, 200, 255, 255))
+        d.arc([5, 0, 11, 6], start=180, end=360, fill=GOLD, width=2)
+        d.line([(6, 8), (10, 11)], fill=WHITE, width=1)
+        d.point((6, 9), fill=WHITE)
+        d.point((9, 10), fill=WHITE)
+    else:            # 核
+        d.ellipse([2, 2, 14, 14], fill=OUTLINE)
+        d.ellipse([3, 3, 13, 13], fill=(150, 230, 255, 255))
+        d.ellipse([5, 5, 11, 11], fill=(200, 240, 255, 255))
+        d.ellipse([6, 6, 10, 10], fill=OUTLINE)
+        d.ellipse([7, 7, 9, 9], fill=(240, 250, 255, 255))
+        for x, y in ((3, 3), (12, 3), (3, 12), (12, 12)):
+            d.line([(x, y), (x, y)], fill=GOLD)
+    return img
 
 ARMORS = {
     "abyss_helm": (helm, 0xb28ce0, None, "generated"),
@@ -1187,6 +1363,12 @@ def main():
     for mat_id, color in NEWMATS.items():
         gem(hexcolor(color), (230, 240, 255, 255)).save(os.path.join(TEX_DIR, f"{mat_id}.png"))
         write_model(mat_id, "generated")
+    for mat_id, color in NEWMATS3.items():
+        _mats3_tex(hexcolor(color)).save(os.path.join(TEX_DIR, f"{mat_id}.png"))
+        write_model(mat_id, "generated")
+    for state, item_id in enumerate(("soul_shard_pouch", "soul_shard_bale", "soul_shard_core")):
+        shard_bag(state).save(os.path.join(TEX_DIR, f"{item_id}.png"))
+        write_model(item_id, "generated")
     shard().save(os.path.join(TEX_DIR, "soul_shard.png"))
     write_model("soul_shard", "generated")
     for item_id, color in MATERIALS.items():
@@ -1199,7 +1381,30 @@ def main():
     os.makedirs(ent_dir, exist_ok=True)
     for ent_id, (base, accent, pattern) in ENTITIES.items():
         entity_tex(hexcolor(base), hexcolor(accent), pattern).save(os.path.join(ent_dir, f"{ent_id}.png"))
-    print(f"generated {len(WEAPONS) + 1 + len(MATERIALS)} textures + {len(ENTITIES)} entity textures")
+    # 奥義の断片 (WeaponStyle の色を鍔元に、小さな欠片として生成)
+    with open(os.path.join(ROOT, "src", "main", "java", "com", "abyssalloot", "GameData.java"), encoding="utf-8") as f:
+        import re
+        styles = re.findall(r'(\w+)\("([\w_]+)", "[^"]+", "[^"]+", "[^"]+", (0x[0-9a-fA-F]+)\)', f.read())
+    for _, sid, col in styles:
+        # gem の上半分だけを欠片として切る: 左上半分の粒
+        c = hexcolor(int(col, 16))
+        img, d = canvas()
+        poly(d, [(3, 5), (8, 2), (13, 5), (13, 9), (8, 13), (3, 9)], (60, 50, 90, 255))
+        poly(d, [(5, 6), (8, 4), (11, 6), (11, 9), (8, 11), (5, 9)], OUTLINE)
+        poly(d, [(6, 7), (8, 5.8), (10, 7), (10, 8), (8, 9), (6, 8)], c)
+        pil_img = _flat_small(img, c)
+        d2 = ImageDraw.Draw(pil_img)
+        pil_img.save(os.path.join(TEX_DIR, f"art_shard_{sid}.png"))
+        write_model(f"art_shard_{sid}", "generated")
+    print(f"generated {len(WEAPONS) + 1 + len(MATERIALS) + len(NEWMATS3) + len(styles)} textures + {len(ENTITIES)} entity textures")
+
+
+def _flat_small(img, c):
+    """断片用: 中央に小さな輝石を重ねる"""
+    d = ImageDraw.Draw(img)
+    d.ellipse([6, 6, 10, 10], outline=(20, 14, 30, 255), width=1)
+    d.point((8, 7), fill=WHITE)
+    return img
 
 
 if __name__ == "__main__":

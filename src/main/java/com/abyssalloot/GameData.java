@@ -123,7 +123,15 @@ public final class GameData {
         WIND_BLADE("wind_blade", "風輪双刃", "千風乱舞", "3波の風輪が拡大して薙ぎ払う", 0x9fe8d8),
         EMBER_FLAIL("ember_flail", "焔鎖鞭", "炎獄旋回", "炎の鎖を左右に薙ぎ最後に爆気", 0xff8a3c),
         ASTRAL_LANCE("astral_lance", "星輝槍", "鋼星乱嵐", "星槍を乱れ打ち極大の一撃で締める", 0xffe9a8),
-        TIDE_TRIDENT("tide_trident", "潮王戟", "静潮・大渦", "渦で引き寄せ潮波で押し流す", 0x7cd8ff);
+        TIDE_TRIDENT("tide_trident", "潮王戟", "静潮・大渦", "渦で引き寄せ潮波で押し流す", 0x7cd8ff),
+        MOON_MACE("moon_mace", "月鱗鎚", "月砕", "周囲を打ち上げ鈍足にする", 0xd8e8ff),
+        DEPTH_GUN("depth_gun", "深銃", "急所乱舞", "6連の急所射撃を打ち込む", 0xff4d6d),
+        VENOM_WHIP("venom_whip", "猛毒鞭", "毒蛇百景", "広く薙ぎ払い猛毒を塗る", 0x8ff06e),
+        FLAME_GRIMOIRE("flame_grimoire", "焔典", "業火伽藍", "炎の連壁と発火で焼き尽くす", 0xff6a2b),
+        RIFT_BLADE("rift_blade", "虚刃", "虚空断層", "2段瞬移で空間ごと断つ", 0x8a5cff),
+        METEOR_LANCE("meteor_lance", "隕槍", "天斥落雁", "隕槍を1点に極大落下させる", 0xffd23c),
+        ECHO_KATANA("echo_katana", "残刀", "三影刻", "標的の周囲を3点瞬斬する", 0xa8e8ff),
+        HOWLING_CLAW("howling_claw", "哮爪", "裂空爪", "急所へ突進し三連爪を刻む", 0xffb03c);
 
         public final String id;
         public final String weaponName;
@@ -1078,7 +1086,15 @@ public final class GameData {
             java.util.Map.entry("wind_blade", wb(0, 14, 22, 0, 0, 2, 0, 0, 0, 0, 0)),
             java.util.Map.entry("ember_flail", wb(10, -6, 12, 0, 0, 0, 0, 0, 18, 0, 0)),
             java.util.Map.entry("astral_lance", wb(6, 0, 8, 30, 1, 0, 8, 0, 0, 0, 0)),
-            java.util.Map.entry("tide_trident", wb(-6, 0, 25, 0, 0, 1, 0, 0, 0, 6, 6)));
+            java.util.Map.entry("tide_trident", wb(-6, 0, 25, 0, 0, 1, 0, 0, 0, 6, 6)),
+            java.util.Map.entry("moon_mace", wb(6, -15, 15, 0, 0, 0, 0, 0, 10, 0, 10)),
+            java.util.Map.entry("depth_gun", wb(4, 6, 0, 0, 1, 0, 10, 30, 0, 0, 0)),
+            java.util.Map.entry("venom_whip", wb(0, 6, 10, 0, 0, 0, 0, 0, 0, 4, 0)),
+            java.util.Map.entry("flame_grimoire", wb(12, -20, 0, 20, 0, 0, 0, 0, 30, 0, 0)),
+            java.util.Map.entry("rift_blade", wb(10, 0, 0, 0, 0, 0, 12, 0, 0, 6, 0)),
+            java.util.Map.entry("meteor_lance", wb(20, -18, 8, 0, 0, 1, 0, 0, 12, 0, 0)),
+            java.util.Map.entry("echo_katana", wb(8, 12, 0, 0, 0, 0, 10, 0, 0, 0, 0)),
+            java.util.Map.entry("howling_claw", wb(-6, 22, 0, 0, 0, 0, 0, 25, 0, 10, 0)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
@@ -1110,11 +1126,19 @@ public final class GameData {
             java.util.Map.entry("war_horn", new ShapeBonus(0, 1, 0)),
             java.util.Map.entry("twin_dagger", new ShapeBonus(0, 0, 1)),
             java.util.Map.entry("gauntlet", new ShapeBonus(0, 0, 1)),
-            java.util.Map.entry("titan_gauntlet", new ShapeBonus(0, 0, 1)));
+            java.util.Map.entry("titan_gauntlet", new ShapeBonus(0, 0, 1)),
+            java.util.Map.entry("moon_mace", new ShapeBonus(0, 1, 1)),
+            java.util.Map.entry("depth_gun", new ShapeBonus(1, 0, 1)),
+            java.util.Map.entry("venom_whip", new ShapeBonus(0, 2, 0)),
+            java.util.Map.entry("flame_grimoire", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("rift_blade", new ShapeBonus(1, 0, 1)),
+            java.util.Map.entry("meteor_lance", new ShapeBonus(1, 0, 0)),
+            java.util.Map.entry("echo_katana", new ShapeBonus(0, 1, 1)),
+            java.util.Map.entry("howling_claw", new ShapeBonus(0, 0, 2)));
 
     /* ---------------- 全武器の固有能力 (命中・撃破・被弾で発動) ----------------
      * kind: CHAIN (確率連鎖) / FROST (確率凍結) / SOUL (命中で魂) /
-     *       EXECUTE (瀕死へ倍率) / BURST (確率爆発) / GUARD (被弾時反射)
+     *       EXECUTE (瀕死へ倍率) / BURST (確率爆発) / GUARD (被弾時反射) / POISON (確率猛毒)
      */
     public record WeaponAbility(String kind, double chance, double value, String desc) {}
 
@@ -1152,7 +1176,15 @@ public final class GameData {
                     java.util.Map.entry("wind_blade", new WeaponAbility("CHAIN", 0.3, 0.5, "命中時30%で連鎖")),
                     java.util.Map.entry("ember_flail", new WeaponAbility("BURST", 0.22, 1.6, "命中時22%で爆発")),
                     java.util.Map.entry("astral_lance", new WeaponAbility("SOUL", 0.5, 5, "命中時50%で魂+5")),
-                    java.util.Map.entry("tide_trident", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")));
+                    java.util.Map.entry("tide_trident", new WeaponAbility("GUARD", 0.3, 0.5, "被弾時30%で反射")),
+                    java.util.Map.entry("moon_mace", new WeaponAbility("BURST", 0.2, 1.2, "命中時20%で爆発")),
+                    java.util.Map.entry("depth_gun", new WeaponAbility("EXECUTE", 1.0, 0.45, "瀕死へ+45%")),
+                    java.util.Map.entry("venom_whip", new WeaponAbility("POISON", 0.3, 1.0, "命中時30%で猛毒")),
+                    java.util.Map.entry("flame_grimoire", new WeaponAbility("BURST", 0.25, 1.5, "命中時25%で爆発")),
+                    java.util.Map.entry("rift_blade", new WeaponAbility("CHAIN", 0.3, 0.6, "命中時30%で連鎖")),
+                    java.util.Map.entry("meteor_lance", new WeaponAbility("BURST", 0.3, 2.2, "命中時30%で爆発")),
+                    java.util.Map.entry("echo_katana", new WeaponAbility("SOUL", 0.4, 4, "命中時40%で魂+4")),
+                    java.util.Map.entry("howling_claw", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")));
 
     /* ---------------- ダンジョン特性 (層ごとに65%で1つ。異変とは別枠) ---------------- */
     public record DungeonTrait(String id, String name, String desc,
@@ -1310,7 +1342,13 @@ public final class GameData {
                     java.util.Map.of("freezePct", 8.0, "armorPct", 10.0)),
             new ArmorSet("storm", "嵐装", 0xffe14a, 0xfff2c9,
                     java.util.Map.of("attackSpeedPct", 8.0),
-                    java.util.Map.of("attackSpeedPct", 8.0, "chain", 1.0)));
+                    java.util.Map.of("attackSpeedPct", 8.0, "chain", 1.0)),
+            new ArmorSet("moon", "月装", 0xa8e8ff, 0xeaffff,
+                    java.util.Map.of("energyPct", 15.0),
+                    java.util.Map.of("energyPct", 15.0, "critDmgPct", 15.0)),
+            new ArmorSet("ember", "焔装", 0xff6a2b, 0xffd0a0,
+                    java.util.Map.of("explodePct", 8.0),
+                    java.util.Map.of("explodePct", 8.0, "damagePct", 8.0)));
 
     public static ArmorSet armorSetById(String id) {
         for (ArmorSet s : ARMOR_SETS) {

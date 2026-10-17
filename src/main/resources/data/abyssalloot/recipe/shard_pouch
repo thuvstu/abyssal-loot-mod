@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:soul_shard_pouch",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_iron_rose"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_resx",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_void_splinter"
+    },
+    {
+      "item": "abyssalloot:abyss_teardrop"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_skillreset",
+    "count": 1
+  }
+}

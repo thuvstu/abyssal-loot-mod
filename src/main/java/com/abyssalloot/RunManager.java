@@ -296,6 +296,31 @@ public final class RunManager {
             case "bomb_blaze" -> "前方に業火の爆発";
             case "fortune" -> "幸運の加護5分";
             case "ration" -> "満腹+8・小回復";
+            case "heal_50" -> "HPを50%回復";
+            case "gorging" -> "満腹全快・再生10秒";
+            case "grand_feast" -> "満腹全快・HP40%・再生20秒";
+            case "regen2" -> "再生II 45秒";
+            case "str2" -> "攻撃力II 45秒";
+            case "res2" -> "耐性II 45秒";
+            case "abs2" -> "守護II 45秒";
+            case "spd3" -> "移動III 30秒";
+            case "nv10" -> "暗視10分";
+            case "fire10" -> "防炎10分";
+            case "water5" -> "水中呼吸5分";
+            case "invis30" -> "隠形30秒・移動II";
+            case "purity" -> "悪しざまを一括解除";
+            case "chain_bomb" -> "前方に3連の爆発";
+            case "art_scroll" -> "魂ゲージが満タンに";
+            case "skill_reset" -> "必殺CT リセット";
+            case "leap" -> "跳躍II・緩降下60秒";
+            case "luck_rain" -> "砂金の加護2分";
+            case "gum_leech" -> "即回復30";
+            case "depth_bomb" -> "原地に大爆発";
+            case "eagle" -> "周囲10m看破15秒";
+            case "overcharge" -> "魂ゲージ+60";
+            case "haste2" -> "採掘II 45秒";
+            case "godspeed" -> "移動III・採掘II 20秒";
+            case "skill_demo" -> "対応する型の必殺技を即発動";
             default -> kind;
         };
     }
@@ -426,7 +451,91 @@ public final class RunManager {
                 player.getFoodData().eat(8, 0.6F);
                 heal(player, 10);
             }
+            case "heal_50" -> heal(player, player.getMaxHealth() * 0.5);
+            case "gorging" -> {
+                player.getFoodData().eat(20, 1.0F);
+                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0));
+            }
+            case "grand_feast" -> {
+                player.getFoodData().eat(20, 1.2F);
+                heal(player, player.getMaxHealth() * 0.4);
+                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 0));
+            }
+            case "regen2" -> player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 1));
+            case "str2" -> player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 900, 1));
+            case "res2" -> player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 900, 1));
+            case "abs2" -> player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 900, 2));
+            case "spd3" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 600, 2));
+            case "nv10" -> player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 12000, 0));
+            case "fire10" -> player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 12000, 0));
+            case "water5" -> player.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 6000, 0));
+            case "invis30" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 600, 0));
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 600, 1));
+            }
+            case "purity" -> {
+                java.util.List.of(MobEffects.WITHER, MobEffects.POISON, MobEffects.SLOWNESS,
+                        MobEffects.WEAKNESS, MobEffects.MINING_FATIGUE, MobEffects.DARKNESS,
+                        MobEffects.HUNGER, MobEffects.BLINDNESS, MobEffects.UNLUCK,
+                        MobEffects.NAUSEA, MobEffects.LEVITATION).forEach(player::removeEffect);
+            }
+            case "chain_bomb" -> {
+                Vec3 look = player.getLookAngle();
+                for (int i = 0; i < 3; i++) {
+                    Vec3 at = origin.add(look.scale(4 + i * 3));
+                    final Vec3 target = at;
+                    final boolean last = (i == 2);
+                    CombatHandler.after(4 + i * 4, () -> {
+                        if (!player.isAlive()) return;
+                        WeaponArts.pulse((ServerLevel) player.level(), player, target, 3.5, 2.2,
+                                last, ParticleTypes.EXPLOSION);
+                    });
+                }
+            }
+            case "art_scroll" -> {
+                player.setData(ModAttachments.SOUL.get(), 100f);
+                player.displayClientMessage(Component.literal("§d奥義の符が燃え上がる — 魂ゲージ満タン！"), true);
+            }
+            case "skill_reset" -> {
+                player.setData(ModAttachments.SKILL_CD.get(), 0f);
+                player.displayClientMessage(Component.literal("§d必殺技の呼吸が整った — CT リセット！"), true);
+            }
+            case "leap" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 1200, 1));
+                player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 1200, 0));
+            }
+            case "luck_rain" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.LUCK, 2400, 0));
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, origin.x, origin.y + 2, origin.z,
+                        40, 2, 2, 2, 0.2);
+            }
+            case "gum_leech" -> heal(player, 30);
+            case "depth_bomb" -> WeaponArts.pulse(level, player, origin, 6, 3.5, true,
+                    ParticleTypes.EXPLOSION_EMITTER);
+            case "eagle" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300, 0, false, false));
+                for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                        player.getBoundingBox().inflate(10), e -> e.isAlive())) {
+                    e.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300, 0, false, false));
+                }
+                player.displayClientMessage(Component.literal("§b鷹の眼が開いた — 周囲10mを見破る (15秒)"), true);
+            }
+            case "overcharge" -> addGauge(player, 60);
+            case "haste2" -> player.addEffect(new MobEffectInstance(MobEffects.HASTE, 900, 1));
+            case "godspeed" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 2));
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 400, 1));
+            }
             default -> {
+                if (kind.startsWith("skill_demo::")) {
+                    // 職業の必殺巻物: その型の必殺技をCTなしで1度だけ発動
+                    var castCls = GameData.HeroClass.byId(kind.substring("skill_demo::".length()));
+                    WeaponArts.executeSkill(player, castCls,
+                            StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player));
+                    player.sendSystemMessage(Component.literal(
+                            "§d「" + castCls.skillName() + "」の型をなぞった！"));
+                    return true;
+                }
                 return false;
             }
         }

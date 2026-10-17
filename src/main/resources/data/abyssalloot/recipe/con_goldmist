@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "minecraft:golden_nugget"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_goldmist",
+    "count": 1
+  }
+}

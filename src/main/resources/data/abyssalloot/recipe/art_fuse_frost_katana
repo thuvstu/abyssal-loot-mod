@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:art_shard_frost_katana"
+    },
+    {
+      "item": "abyssalloot:ancient_stone"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:soul_shard"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_frost_katana",
+    "count": 1
+  }
+}

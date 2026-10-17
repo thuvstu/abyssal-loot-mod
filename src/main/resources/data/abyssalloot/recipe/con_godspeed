@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_thunder_thread"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_godspeed",
+    "count": 1
+  }
+}

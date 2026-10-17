@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard_core"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:soul_shard_bale",
+    "count": 9
+  }
+}

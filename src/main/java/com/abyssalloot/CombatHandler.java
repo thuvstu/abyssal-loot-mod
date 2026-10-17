@@ -195,7 +195,12 @@ public final class CombatHandler {
             if (rand.nextFloat() < 0.5) giveOrDrop(player, randomMaterial(rand));
             giveOrDrop(player, randomMaterial(rand));
             giveOrDrop(player, randomMaterial(rand));
-            player.sendSystemMessage(Component.literal("§5素材: 虚空のエッセンス×1 を得た"));
+            // 奥義の断片: 層主は1個以上を必ず落とす (武器の決まった入手経路になる)
+            int artShards = 1 + (rand.nextFloat() < 0.4 ? 1 : 0);
+            for (int i = 0; i < artShards; i++) {
+                giveOrDrop(player, ModItems.randomArtShard(rand));
+            }
+            player.sendSystemMessage(Component.literal("§5素材: 虚空のエッセンスと奥義の断片 ×" + artShards + " を得た"));
         } else if (isWarden && rand.nextFloat() < 0.8) {
             giveOrDrop(player, randomMaterial(rand));
             player.sendSystemMessage(Component.literal("§5素材: 番人の落とし物を得た"));
@@ -1087,6 +1092,13 @@ public final class CombatHandler {
                             if (rand.nextFloat() < wab.chance()) {
                                 WeaponArts.pulse(level, player, target.position(), 3, wab.value(), false,
                                         net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+                            }
+                        }
+                        case "POISON" -> {
+                            if (rand.nextFloat() < wab.chance()) {
+                                target.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 0));
+                                level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
+                                        target.getX(), target.getY() + 1, target.getZ(), 6, 0.4, 0.6, 0.4, 0.05);
                             }
                         }
                         default -> {
