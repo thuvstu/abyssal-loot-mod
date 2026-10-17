@@ -32,5 +32,5 @@ NeoForged Discord: https://discord.neoforged.net/
    - 武器: `sword` `axe` `spear` `staff` `bow` `dagger` `hammer` `katana` `scythe` `gauntlet` `chakram` `tome`
    - 進行中の冒険は破棄されます。
 3. 操作説明は `/abyss help` です（クリックできるボタン付き）。
-   - 移動 WASD / 攻撃 左クリック / **E** 武器奥義 / **Q** 必殺技 / **C** 回避
+   - 移動 WASD / 攻撃 左クリック / **右クリック** 武器小技 (CT1~3秒) / **R** 武器奥義 / **V** 必殺技 (スニーク+右クリックでも可) / **X** 回避
 4. 開発者向け: `./gradlew runClient`（または `runServer`）で起動します。

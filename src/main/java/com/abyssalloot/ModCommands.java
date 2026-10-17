@@ -101,7 +101,8 @@ public final class ModCommands {
                                     var stack = GearFactory.makeWeapon(style, p.getRandom());
                                     p.getInventory().add(stack);
                                     p.sendSystemMessage(Component.literal(
-                                            "§b武器: " + style.weaponName + " / 奥義: " + style.artName + " — " + style.artDesc));
+                                            "§b武器: " + style.weaponName + " / 奥義: " + style.artName + " — " + style.artDesc
+                                                    + " / 小技: " + GameData.WEAPON_LIGHTS.get(style.id).name()));
                                     return 1;
                                 })))
                 .then(Commands.literal("sigil")
@@ -441,7 +442,7 @@ public final class ModCommands {
     static void showHelp(ServerPlayer p) {
         p.sendSystemMessage(Component.literal("§6━━━ Abyssal Loot 操作説明 ━━━"));
         p.sendSystemMessage(Component.literal("§f移動 WASD / 攻撃 左クリック / 照準 マウス"));
-        p.sendSystemMessage(Component.literal("§bR 武器奥義（右クリックでも可） / §dV 職業の必殺技 (CT25秒) / §aX 回避ダッシュ"));
+        p.sendSystemMessage(Component.literal("§b右クリック 武器小技 (CT1~3秒) / §dR 武器奥義 (魂100) / §dスニーク+右クリック=必殺技 (CT25秒) / §aX 回避ダッシュ"));
         p.sendSystemMessage(Component.literal("§eG 操作ハブ（出撃・次層・各GUIへのボタン集）"));
         p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでRの奥義。"));
         p.sendSystemMessage(Component.literal("§7倒すと武器・防具や魂の欠片が出る。全滅で転移門が開く → /abyss next"));

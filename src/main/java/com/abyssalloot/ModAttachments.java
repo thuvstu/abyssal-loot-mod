@@ -66,6 +66,9 @@ public final class ModAttachments {
     /** 必殺技の残りCT (秒)。発動で25秒、毎tick減衰 */
     public static final Supplier<AttachmentType<Float>> SKILL_CD =
             reg("skill_cd", 0f, Codec.FLOAT);
+    /** 武器小技の残りCT (秒)。右クリック発動・1~3秒、毎tick減衰 */
+    public static final Supplier<AttachmentType<Float>> LIGHT_CD =
+            reg("light_cd", 0f, Codec.FLOAT);
     /** 進行モード standard/bossrush/endless/covenant */
     public static final Supplier<AttachmentType<String>> MODE =
             reg("mode", "standard", Codec.STRING);

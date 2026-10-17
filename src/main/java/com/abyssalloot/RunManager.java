@@ -154,7 +154,7 @@ public final class RunManager {
         float next = (float) Math.min(100.0, cur + raw * rate);
         player.setData(ModAttachments.SOUL.get(), next);
         if (cur < 100f && next >= 100f) {
-            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！右クリックで武器奥義！"), true);
+            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！Rキーで武器奥義！"), true);
             // 恩寵「絶対領域」: ゲージ100%で3秒の無敵バリア
             if (boonLv(player, "absolute_domain") > 0) {
                 player.setData(ModAttachments.IFRAME.get(), 3.0f);

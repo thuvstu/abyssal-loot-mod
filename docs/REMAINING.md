@@ -115,6 +115,8 @@ orbit (周囲を周回)・bomber (接近で即点火) を `EnemyAI` に実装。
 ## 9. 職業・武器 (原作 `CLASSES` 5、`WEAPON_CLASSES` 12、`WEAPON_ARTS` 12)
 
 - 職業 5 種、武器種 12 種、武器奥義 12 種: **済** (`GameData.HeroClass` / `WeaponStyle` / `WeaponArts`)。
+- 武器小技 (右クリックの連発技・Mod独自拡張): **済** (全武器種に名前・説明・CT1~3秒・倍率を定義
+  `GameData.WEAPON_LIGHTS` / 実行 `WeaponArts.executeLight`。奥義はRキー集約、右クリックは小技)。
 - 奥義の判定形状: **済** (55px/block換算で原作 `planWeaponArt` の半径・倍率・遅延・矢数・角度に合わせた。
   剣±0.18rad・斧半径5・杖遅延12tick・弓13矢の時差連射・短剣背後瞬移・鎚3.5・刀7・鎌5.5・拳6連・輪刃2周・書遅延15tick。
   槍の突進距離のみ遊びのため6ブロックに丸め)。

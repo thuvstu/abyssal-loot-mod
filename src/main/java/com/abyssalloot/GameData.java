@@ -88,6 +88,20 @@ public final class GameData {
                 case ARCHER -> "天矢雨";
             };
         }
+
+        /** 武器小技のCT補正。近接職ほど短く、魔法・遠距離職ほど長い (威力は据え置き) */
+        public float lightCdMult() {
+            return switch (this) {
+                case NINJA -> 0.80f;
+                case MONK -> 0.90f;
+                case SAMURAI -> 0.95f;
+                case BERSERKER -> 1.00f;
+                case GUNNER -> 1.05f;
+                case PALADIN -> 1.10f;
+                case ARCHER -> 1.15f;
+                case MAGE -> 1.20f;
+            };
+        }
     }
 
     public enum WeaponStyle {
@@ -1213,6 +1227,64 @@ public final class GameData {
                     java.util.Map.entry("meteor_lance", new WeaponAbility("BURST", 0.3, 2.2, "命中時30%で爆発")),
                     java.util.Map.entry("echo_katana", new WeaponAbility("SOUL", 0.4, 4, "命中時40%で魂+4")),
                     java.util.Map.entry("howling_claw", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")));
+
+    /* ---------------- 武器小技 (右クリック。CT1~3秒で連発できる軽い技) ----------------
+     * mult は攻撃力倍率 (複数ヒットは合計値)。cd は基底CT (秒) で、
+     * 最終CTは職業補正 {@link HeroClass#lightCdMult()} を掛けて 1.0~3.0秒にクランプする。
+     * 近接軽量=低CT低威力、重量・魔法・遠距離=高CT中威力 (職業の持ち味に合わせた配分)。
+     */
+    public record LightSkill(String name, String desc, float cd, double mult) {}
+
+    public static final java.util.Map<String, LightSkill> WEAPON_LIGHTS =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("sword", new LightSkill("疾刃", "前方を素早く斬る", 1.2f, 0.9)),
+                    java.util.Map.entry("axe", new LightSkill("裂砕打", "前方を砕き吹き飛ばす", 2.6f, 1.8)),
+                    java.util.Map.entry("spear", new LightSkill("穿突", "直線を貫いて突く", 1.8f, 1.3)),
+                    java.util.Map.entry("staff", new LightSkill("星弾", "最も近い敵へ小隕石", 2.0f, 1.2)),
+                    java.util.Map.entry("bow", new LightSkill("三連矢", "3本の矢を自動照準で放つ", 1.5f, 1.35)),
+                    java.util.Map.entry("dagger", new LightSkill("影刺", "最寄り敵へ2連の急所突き", 1.0f, 1.1)),
+                    java.util.Map.entry("hammer", new LightSkill("粉砕落とし", "単体に極大の一撃", 2.8f, 2.2)),
+                    java.util.Map.entry("katana", new LightSkill("居合", "前方を一閃し敵弾を斬る", 1.3f, 1.1)),
+                    java.util.Map.entry("scythe", new LightSkill("小刈り", "周囲を軽く刈る", 1.6f, 0.85)),
+                    java.util.Map.entry("gauntlet", new LightSkill("震掌", "前方へ3連の掌打", 1.1f, 1.5)),
+                    java.util.Map.entry("chakram", new LightSkill("旋輪", "周囲に輪刃を回す", 1.7f, 0.8)),
+                    java.util.Map.entry("tome", new LightSkill("呪言", "敵位置を呪い爆縮する", 2.2f, 1.3)),
+                    java.util.Map.entry("rune_blade", new LightSkill("刻印斬", "3方向にルーン斬撃", 1.4f, 1.0)),
+                    java.util.Map.entry("blood_axe", new LightSkill("血啜り", "斬りつけ生命を吸う", 2.4f, 1.6)),
+                    java.util.Map.entry("storm_spear", new LightSkill("雷槍", "直線を雷で貫く", 1.9f, 1.25)),
+                    java.util.Map.entry("void_staff", new LightSkill("虚無弾", "虚無の弾を落とす", 2.0f, 1.1)),
+                    java.util.Map.entry("moon_bow", new LightSkill("月影矢", "3本の月矢を連射する", 1.6f, 1.65)),
+                    java.util.Map.entry("fang_dagger", new LightSkill("牙突き", "最寄りへ2連の牙", 1.0f, 1.0)),
+                    java.util.Map.entry("quake_hammer", new LightSkill("地割れ", "地面を割って鈍足にする", 2.8f, 1.7)),
+                    java.util.Map.entry("frost_katana", new LightSkill("氷一閃", "凍てつく一閃", 1.4f, 1.0)),
+                    java.util.Map.entry("soul_scythe", new LightSkill("魂削り", "刈って魂を削り取る", 1.7f, 0.85)),
+                    java.util.Map.entry("titan_gauntlet", new LightSkill("岩砕拳", "岩をも砕く大拳", 2.2f, 1.8)),
+                    java.util.Map.entry("eclipse_chakram", new LightSkill("蝕回し", "蝕の輪を回す", 1.8f, 0.9)),
+                    java.util.Map.entry("chaos_tome", new LightSkill("混沌の言葉", "混沌の弾で無作為に弱体", 2.2f, 1.3)),
+                    java.util.Map.entry("rod", new LightSkill("嵐の弾", "嵐の魔弾を3連で放つ", 1.8f, 2.1)),
+                    java.util.Map.entry("wand", new LightSkill("小魔弾", "1発の魔弾を放つ", 1.2f, 0.8)),
+                    java.util.Map.entry("greatsword", new LightSkill("大薙ぎ", "広く薙ぎ払う", 2.4f, 1.7)),
+                    java.util.Map.entry("twin_dagger", new LightSkill("双牙乱れ", "前方を3連で突く", 1.0f, 1.35)),
+                    java.util.Map.entry("war_horn", new LightSkill("威嚇咆哮", "咆哮で押し退け力を得る", 2.5f, 0.8)),
+                    java.util.Map.entry("wind_blade", new LightSkill("風輪斬", "風の輪を放つ", 1.5f, 0.9)),
+                    java.util.Map.entry("ember_flail", new LightSkill("焔鞭撃", "炎の鞭で薙ぎ発火", 1.8f, 1.0)),
+                    java.util.Map.entry("astral_lance", new LightSkill("星槍一撃", "星の槍を落とす", 1.9f, 1.3)),
+                    java.util.Map.entry("tide_trident", new LightSkill("潮突き", "潮と共に突いて押し流す", 1.8f, 1.2)),
+                    java.util.Map.entry("moon_mace", new LightSkill("月打ち上げ", "打ち上げて殴る", 2.6f, 1.9)),
+                    java.util.Map.entry("depth_gun", new LightSkill("急所射撃", "最も近い敵を狙撃する", 1.4f, 0.85)),
+                    java.util.Map.entry("venom_whip", new LightSkill("毒鞭薙ぎ", "毒の鞭で薙ぎ払う", 1.7f, 0.85)),
+                    java.util.Map.entry("flame_grimoire", new LightSkill("焔弾", "炎の弾で焼き尽くす", 2.0f, 1.2)),
+                    java.util.Map.entry("rift_blade", new LightSkill("虚斬", "空間ごと斬り裂く", 1.5f, 1.1)),
+                    java.util.Map.entry("meteor_lance", new LightSkill("隕落撃", "隕石の槍を落とす", 2.8f, 2.0)),
+                    java.util.Map.entry("echo_katana", new LightSkill("残影二刀", "残影が追い斬る", 1.4f, 1.2)),
+                    java.util.Map.entry("howling_claw", new LightSkill("哮爪撃", "3連の爪で引き裂く", 1.2f, 1.65)));
+
+    /** 武器小技のCT (秒)。職業補正を掛け 1.0~3.0秒にクランプ */
+    public static double lightCooldown(HeroClass cls, WeaponStyle style) {
+        LightSkill l = WEAPON_LIGHTS.get(style.id);
+        if (l == null) return 2.0;
+        return Math.max(1.0, Math.min(3.0, l.cd() * cls.lightCdMult()));
+    }
 
     /* ---------------- ダンジョン特性 (層ごとに65%で1つ。異変とは別枠) ---------------- */
     public record DungeonTrait(String id, String name, String desc,

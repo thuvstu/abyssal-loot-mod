@@ -195,6 +195,10 @@ public final class GearData {
         if (isWeapon && style != null) {
             out.add(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
             out.add(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
+            var light = GameData.WEAPON_LIGHTS.get(style.id);
+            if (light != null) {
+                out.add(Component.literal("§b小技「" + light.name() + "」: " + light.desc() + " §7(右クリック)"));
+            }
             var ab = GameData.WEAPON_ABILITIES.get(style.id);
             if (ab != null) out.add(Component.literal("§e能力: " + ab.desc()));
         } else if (!isWeapon) {

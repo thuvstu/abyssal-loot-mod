@@ -19,11 +19,12 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * 魂ゲージ・奥義/必殺/回避の発動・見切り・独自ダメージ式.
- * 操作 (v0.1, キー不要):
- *  - 素手/武器で右クリック: 魂100で武器奥義
- *  - スニーク+右クリック: 必殺技 (魂不要, 60秒CTなしの簡易版)
- *  - /abyss dash: 回避ダッシュ (0.5秒無敵, 見切り延長あり)
+ * 魂ゲージ・奥義/必殺/小技/回避の発動・見切り・独自ダメージ式.
+ * 操作:
+ *  - 武器で右クリック: 武器小技 (CT1~3秒で連発)
+ *  - スニーク+右クリック: 必殺技 (魂不要, CT25秒)
+ *  - Rキー / /abyss art: 武器奥義 (魂ゲージ100で発動)
+ *  - Xキー / /abyss dash: 回避ダッシュ (0.5秒無敵, 見切り延長あり)
  */
 public final class CombatHandler {
     private CombatHandler() {}
@@ -1316,7 +1317,7 @@ public final class CombatHandler {
         }
     }
 
-    /** 右クリック=奥義 / スニーク+右クリック=必殺 / 魂の欠片=魂+25 */
+    /** 右クリック=武器小技 / スニーク+右クリック=必殺技 / 魂の欠片=魂+25 */
     @SubscribeEvent
     public static void onRightClick(PlayerInteractEvent.RightClickItem event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -1333,20 +1334,42 @@ public final class CombatHandler {
         }
         GameData.WeaponStyle style = ModItems.styleOf(stack.getItem());
         if (style == null) return;
-        // 武器を持ち替えたらその武器種の奥義になる (原作仕様)
+        // 武器を持ち替えたらその武器種の小技になる
         if (player.isShiftKeyDown()) {
             trySkill(player);
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
             return;
         }
-        if (tryArt(player)) {
+        if (tryLightSkill(player)) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
         }
     }
 
-    /** 武器奥義の発動判定 (右クリック / Rキー / コマンド共通) */
+    /** 武器小技の発動 (右クリック共通。CT1~3秒で連発できる) */
+    public static boolean tryLightSkill(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel)) return false;
+        GameData.WeaponStyle style = ModItems.styleOf(player.getMainHandItem().getItem());
+        if (style == null) {
+            player.displayClientMessage(Component.literal("§cAbyss武器を手に持ってね"), true);
+            return false;
+        }
+        float cd = player.getData(ModAttachments.LIGHT_CD.get());
+        if (cd > 0) {
+            player.displayClientMessage(
+                    Component.literal(String.format("§7小技CT %.1fs", cd)), true);
+            return false;
+        }
+        GameData.HeroClass cls =
+                GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        WeaponArts.executeLight(player, style, StatCalc.attackDamageOf(player));
+        player.setData(ModAttachments.LIGHT_CD.get(),
+                (float) GameData.lightCooldown(cls, style));
+        return true;
+    }
+
+    /** 武器奥義の発動判定 (Rキー / コマンド共通) */
     public static boolean tryArt(ServerPlayer player) {
         GameData.WeaponStyle style = ModItems.styleOf(player.getMainHandItem().getItem());
         if (style == null) {
@@ -1384,7 +1407,7 @@ public final class CombatHandler {
         return false;
     }
 
-    /** 必殺技の発動 (スニーク+右クリック / Fキー / コマンド共通。CT25秒) */
+    /** 必殺技の発動 (スニーク+右クリック / Vキー / コマンド共通。CT25秒) */
     public static void trySkill(ServerPlayer player) {
         float cd = player.getData(ModAttachments.SKILL_CD.get());
         if (cd > 0) {
@@ -1442,6 +1465,8 @@ public final class CombatHandler {
             if (fortify > 0) player.setData(ModAttachments.FORTIFY.get(), Math.max(0, fortify - 0.05f));
             float skillCd = player.getData(ModAttachments.SKILL_CD.get());
             if (skillCd > 0) player.setData(ModAttachments.SKILL_CD.get(), Math.max(0, skillCd - 0.05f));
+            float lightCd = player.getData(ModAttachments.LIGHT_CD.get());
+            if (lightCd > 0) player.setData(ModAttachments.LIGHT_CD.get(), Math.max(0, lightCd - 0.05f));
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
             if (tickCounter % 20 == 0) tickAbilityBoons(player);
             if (tickCounter % 20 == 0) RunManager.tickRunEffects(player);

@@ -670,4 +670,28 @@ public class GameDataTest {
             assertTrue(known, "未知の接辞: " + af.key());
         }
     }
+
+    @Test
+    void weaponLightSkillsCoverAllStylesWithSaneCooldowns() {
+        // 全武器種に小技があり、基底CTは1~3秒・倍率は常識範囲
+        assertEquals(GameData.WEAPON_ABILITIES.size(), GameData.WEAPON_LIGHTS.size());
+        for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
+            var l = GameData.WEAPON_LIGHTS.get(w.id);
+            assertNotNull(l, "light missing: " + w.id);
+            assertFalse(l.name().isBlank());
+            assertFalse(l.desc().isBlank());
+            assertTrue(l.cd() >= 1.0f && l.cd() <= 3.0f, "cd out of range: " + w.id);
+            assertTrue(l.mult() >= 0.3 && l.mult() <= 3.0, "mult out of range: " + w.id);
+        }
+        // 職業補正: 忍者が最短・魔導士が最長、最終CTは1~3秒にクランプ
+        for (var c : GameData.HeroClass.values()) {
+            for (var w : GameData.WeaponStyle.values()) {
+                double cd = GameData.lightCooldown(c, w);
+                assertTrue(cd >= 1.0 && cd <= 3.0, "light cd out of range: " + c.id + "/" + w.id);
+            }
+        }
+        assertTrue(GameData.HeroClass.NINJA.lightCdMult() < GameData.HeroClass.MAGE.lightCdMult());
+        assertEquals(0.80f, GameData.HeroClass.NINJA.lightCdMult(), 1e-9);
+        assertEquals(1.20f, GameData.HeroClass.MAGE.lightCdMult(), 1e-9);
+    }
 }
