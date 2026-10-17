@@ -321,6 +321,13 @@ public final class RunManager {
             case "haste2" -> "採掘II 45秒";
             case "godspeed" -> "移動III・採掘II 20秒";
             case "skill_demo" -> "対応する型の必殺技を即発動";
+            case "breacher" -> "軽量爆薬を前方に爆発させる";
+            case "netsnare" -> "索縛の網を撒き周囲を鈍足+弱体化";
+            case "reapple" -> "全回復・守護II 60秒";
+            case "shard_fling" -> "欠片3個を弾いて周囲に大打撃";
+            case "bell_collect" -> "拾い込み: 12m内の落し物を直接回収";
+            case "care_box" -> "応急救急箱: HP60%回復・満腹";
+            case "war_drums" -> "戦鼓の杯: 攻撃II・採掘II 20秒";
             default -> kind;
         };
     }
@@ -525,6 +532,59 @@ public final class RunManager {
             case "godspeed" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 2));
                 player.addEffect(new MobEffectInstance(MobEffects.HASTE, 400, 1));
+            }
+            case "breacher" -> {
+                Vec3 at = origin.add(player.getLookAngle().scale(5));
+                WeaponArts.pulse(level, player, at, 3, 1.5, true, ParticleTypes.EXPLOSION);
+            }
+            case "netsnare" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        player.getBoundingBox().inflate(8),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 2));
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
+                }
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.ITEM_COBWEB, origin.x, origin.y + 1, origin.z,
+                        40, 3, 1, 3, 0.1);
+                player.displayClientMessage(Component.literal("§7索縛の網が絡みついた"), true);
+            }
+            case "reapple" -> {
+                heal(player, player.getMaxHealth());
+                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 1200, 1));
+            }
+            case "shard_fling" -> {
+                if (countShards(player) < 3) {
+                    player.displayClientMessage(Component.literal("§c欠片3個が無いと魂を弾けない (所持" + countShards(player) + ")"), true);
+                    return false;
+                }
+                takeShards(player, 3);
+                WeaponArts.pulse(level, player, origin.add(player.getLookAngle().scale(4)), 4, 0.0, true,
+                        ParticleTypes.SOUL);
+                level.sendParticles(ParticleTypes.SOUL, origin.x, origin.y + 1, origin.z, 30, 2, 1, 2, 0.2);
+            }
+            case "bell_collect" -> {
+                int got = 0;
+                for (ItemEntity it : level.getEntitiesOfClass(ItemEntity.class,
+                        player.getBoundingBox().inflate(12), e -> e.isAlive())) {
+                    CombatHandler.giveOrDrop(player, it.getItem().copy());
+                    it.discard();
+                    got++;
+                }
+                if (got == 0) {
+                    player.displayClientMessage(Component.literal("§7鐘が響くが回収するものは無い"), true);
+                } else {
+                    level.sendParticles(ParticleTypes.NOTE, origin.x, origin.y + 2, origin.z, 16, 1, 1, 1, 1.0);
+                    player.displayClientMessage(Component.literal("§e鐘の音に呼ばれ " + got + " 種が飛んできた！"), true);
+                }
+            }
+            case "care_box" -> {
+                heal(player, player.getMaxHealth() * 0.6);
+                player.getFoodData().eat(10, 0.5F);
+            }
+            case "war_drums" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 400, 1));
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 400, 1));
+                heal(player, player.getMaxHealth() * 0.1);
             }
             default -> {
                 if (kind.startsWith("skill_demo::")) {
@@ -1913,6 +1973,11 @@ public final class RunManager {
             player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 120, 0, false, false));
         }
         var feet = player.getItemBySlot(EquipmentSlot.FEET);
+        // 靴スキル「跳上げの靴」: 常時跳躍力II
+        if ("b_charge".equals(GearData.skillOf(feet))
+                && !player.hasEffect(MobEffects.JUMP_BOOST) && t % 40 == 0) {
+            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 240, 1, false, false));
+        }
         // 靴スキル「磁石の靴」: 8m内の落とし物を吸い寄せる (2秒ごと)
         if ("b_magnet".equals(GearData.skillOf(feet)) && t % 40 == 0) {
             Vec3 pos = player.position();

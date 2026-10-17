@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "minecraft:bell"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_soundbell",
+    "count": 1
+  }
+}

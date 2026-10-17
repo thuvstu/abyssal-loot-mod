@@ -172,4 +172,7 @@ public final class ModAttachments {
     /** 放浪の討伐カウンタ (試練外でのバニラ敵討伐数。25体ごとに欠片) */
     public static final Supplier<AttachmentType<Integer>> ROAM_KILLS =
             reg("roam_kills", 0, Codec.INT);
+    /** 武器の左クリック追撃カウンタ (WEAPON_FOLLOWUP 用) */
+    public static final Supplier<AttachmentType<Integer>> FOLLOW_HIT =
+            reg("follow_hit", 0, Codec.INT);
 }

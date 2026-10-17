@@ -580,7 +580,7 @@ public final class CombatHandler {
         return (level - 1) * (level + 4);
     }
 
-    private static void giveOrDrop(ServerPlayer player, ItemStack stack) {
+    static void giveOrDrop(ServerPlayer player, ItemStack stack) {
         if (!player.getInventory().add(stack)) {
             var level = (ServerLevel) player.level();
             var e = new net.minecraft.world.entity.item.ItemEntity(
@@ -808,6 +808,15 @@ public final class CombatHandler {
             if ("c_soul".equals(GearData.skillOf(chest))) {
                 RunManager.addGauge(player, 4);
             }
+            // 防具スキル「鉄壁の鎧」: 被ダメ追加軽減 -8%
+            if ("c_guard".equals(GearData.skillOf(chest))) {
+                event.setNewDamage(event.getNewDamage() * 0.92f);
+            }
+            var legsF = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.LEGS);
+            if ("l_rock".equals(GearData.skillOf(legsF))
+                    && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                event.setNewDamage(event.getNewDamage() * 0.2f);
+            }
             // 全武器の固有能力 (GUARD系は被弾時反射)
             var gheld = player.getMainHandItem();
             var gstyle = ModItems.styleOf(gheld.getItem());
@@ -987,6 +996,11 @@ public final class CombatHandler {
                 event.setNewDamage(dmg);
                 // 一打の連撃・横斬り (通常武器命中のみ。奥義ヒット側は inArtHit で対象外)
                 applyShapeStrikes(player, level, target, dmg);
+                // 武器ごとの左クリック追撃 (N打ごとの固有ボーナス)
+                var styleOfHit = ModItems.styleOf(held.getItem());
+                if (styleOfHit != null) {
+                    applyFollowup(player, level, target, dmg, styleOfHit.id);
+                }
                 // スコア用: 累積与ダメ (切り捨て)
                 player.setData(ModAttachments.DMG_DEALT.get(),
                         player.getData(ModAttachments.DMG_DEALT.get()) + (int) dmg);
@@ -1184,6 +1198,66 @@ public final class CombatHandler {
         while (a > Math.PI) a -= Math.PI * 2;
         while (a < -Math.PI) a += Math.PI * 2;
         return a;
+    }
+
+    /**
+     * 武器の左クリック追撃 (GameData.WEAPON_FOLLOWUP)。
+     * FOLLOW_HIT 添付で通常攻撃をカウントし、規定回数に達するたびに追加効果を発火する。
+     * artHurt 経由なので inArtHit ガードが再帰を遮断する。
+     */
+    private static void applyFollowup(ServerPlayer player, ServerLevel level,
+                                      LivingEntity target, float dmg, String styleId) {
+        String kind = GameData.WEAPON_FOLLOWUP.get(styleId);
+        if (kind == null) return;
+        int hits = player.getData(ModAttachments.FOLLOW_HIT.get()) + 1;
+        player.setData(ModAttachments.FOLLOW_HIT.get(), hits);
+        Vec3 look = player.getLookAngle();
+        switch (kind) {
+            case "pierce3" -> {
+                if (hits % 3 != 0) return;
+                Vec3 at = player.position().add(look.scale(4));
+                WeaponArts.pulse(level, player, at, 2.5, 0.7, false, net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK);
+            }
+            case "burst4" -> {
+                if (hits % 4 != 0) return;
+                WeaponArts.pulse(level, player, target.position(), 3, 0.8, true, net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+            }
+            case "backflip4" -> {
+                if (hits % 4 != 0) return;
+                player.push(-look.x * 0.9, 0.5, -look.z * 0.9);
+                RunManager.addGauge(player, 2);
+                player.displayClientMessage(Component.literal("§7跳ね返った"), true);
+            }
+            case "soul3" -> {
+                if (hits % 3 != 0) return;
+                RunManager.addGauge(player, 3);
+            }
+            case "swipe5" -> {
+                if (hits % 5 != 0) return;
+                WeaponArts.pulse(level, player, player.position().add(look.scale(3)), 4, 0.9, false,
+                        net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK);
+            }
+            case "thorn3" -> {
+                if (hits % 3 != 0) return;
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        target.getBoundingBox().inflate(3),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    Vec3 kb = e.position().subtract(player.position()).normalize().scale(1.4);
+                    e.push(kb.x, 0.4, kb.z);
+                }
+            }
+            case "heal6" -> {
+                if (hits % 6 != 0) return;
+                RunManager.heal(player, 3);
+            }
+            case "crit3" -> {
+                if (hits % 3 != 0) return;
+                WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player), dmg * 0.5f);
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT,
+                        target.getX(), target.getY() + 1, target.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
+            }
+            default -> { }
+        }
     }
 
     /** 遺物「嵐召喚者の冠」: 見切りのたび、空から落雷が3体の敵を焼く */    private static void stormStrike(ServerLevel level, ServerPlayer player) {
@@ -1576,6 +1650,45 @@ public final class CombatHandler {
             case "w_hymn" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 80, 0));
                 RunManager.heal(player, player.getMaxHealth() * 0.02);
+            }
+            case "w_warcry" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 100, 0));
+            }
+            case "w_avalanche" -> {
+                var cands = level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
+                                pos.x + 6, pos.y + 4, pos.z + 6),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer));
+                cands.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
+                int n = 0;
+                for (LivingEntity e : cands) {
+                    if (n++ >= 3) break;
+                    Vec3 pull = pos.subtract(e.position()).normalize().scale(2.0);
+                    e.push(pull.x, 0.2, pull.z);
+                }
+            }
+            case "w_storm" -> {
+                var target = level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 12, pos.y - 6, pos.z - 12,
+                                pos.x + 12, pos.y + 6, pos.z + 12),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer)).stream()
+                        .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
+                        .orElse(null);
+                if (target != null) {
+                    WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
+                            (float) (StatCalc.attackDamageOf(player) * 1.2));
+                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
+                            target.getX(), target.getY() + 1, target.getZ(), 16, 0.4, 0.8, 0.4, 0.1);
+                }
+            }
+            case "w_rend" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                                pos.x + 5, pos.y + 4, pos.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 0));
+                }
             }
             default -> {
             }

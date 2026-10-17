@@ -508,6 +508,26 @@ public class GameDataTest {
     }
 
     @Test
+    void weaponFollowupTableIsSound() {
+        assertNotNull(GameData.WEAPON_FOLLOWUP.get("spear"));
+        // 追撃の種別は8通りに収束する
+        var kinds = new java.util.HashSet<String>();
+        for (var kind : GameData.WEAPON_FOLLOWUP.values()) addToSet(kinds, kind);
+        assertEquals(8, kinds.size());
+        for (var kind : GameData.WEAPON_FOLLOWUP.values()) {
+            assertTrue(kind.matches("pierce3|burst4|backflip4|soul3|swipe5|thorn3|heal6|crit3"),
+                    "未知の追撃種: " + kind);
+        }
+        // 武器スキル一覧がリなり含まれている
+        assertNotNull(GameData.gearSkillById("w_warcry"));
+        assertNotNull(GameData.gearSkillById("b_charge"));
+    }
+
+    private static void addToSet(java.util.Set<String> set, String v) {
+        set.add(v);
+    }
+
+    @Test
     void extraContentIsSound() {
         assertEquals(31, GameData.EXTRA_BOON_MODS.size());
         assertEquals(24, GameData.EXTRA_PASSIVE_MODS.size());
@@ -542,8 +562,8 @@ public class GameDataTest {
         assertEquals("血爆", GameData.HeroClass.byId("berserker").skillName());
         assertEquals("禅定結界", GameData.HeroClass.byId("monk").skillName());
         // 装備スキル6+6
-        assertEquals(12, GameData.WEAPON_SKILLS.size());
-        assertEquals(15, GameData.ARMOR_SKILLS.size());
+        assertEquals(16, GameData.WEAPON_SKILLS.size());
+        assertEquals(19, GameData.ARMOR_SKILLS.size());
         assertNotNull(GameData.gearSkillById("w_soul"));
         assertNotNull(GameData.gearSkillById("b_dash"));
         // 全武器に能力・全通常モブに能力・ダンジョン特性8種

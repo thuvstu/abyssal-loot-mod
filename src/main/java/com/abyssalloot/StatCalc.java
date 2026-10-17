@@ -173,8 +173,12 @@ public final class StatCalc {
             double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
                     + wb0.moveSpeedPct() + StatCalc.affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
             // 防具スロット能力: 靴=疾走 (常時移動+3%)
-            if (ModItems.slotOf(player.getItemBySlot(EquipmentSlot.FEET).getItem()) != null) {
+            if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).getItem()) != null) {
                 movePct += 3;
+            }
+            // 防具スキル「迅径の兜」: 常時移動 +8%
+            if ("h_swift".equals(GearData.skillOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD)))) {
+                movePct += 8;
             }
             if (passives.contains("swift")) movePct += 25;
             if (passives.contains("slow_burn")) movePct -= 12;

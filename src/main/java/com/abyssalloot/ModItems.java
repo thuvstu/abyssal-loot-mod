@@ -215,6 +215,14 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_OVERCHARGE = consumable("abyss_overcharge", "overcharge", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_PICKVEIN = consumable("abyss_pickvein", "haste2", Rarity.COMMON);
     public static final DeferredItem<Item> ABYSS_GODSPEED = consumable("abyss_godspeed", "godspeed", Rarity.UNCOMMON);
+    // --- アクティブ道具 (右クリック発動・使い捨て) ---
+    public static final DeferredItem<Item> ABYSS_BREACHER = consumable("abyss_breacher", "breacher", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_NETSNARE = consumable("abyss_netsnare", "netsnare", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_REAPPLE = consumable("abyss_reapple", "reapple", Rarity.EPIC);
+    public static final DeferredItem<Item> ABYSS_SHARDFLING = consumable("abyss_shardfling", "shard_fling", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SOUNDBELL = consumable("abyss_soundbell", "bell_collect", Rarity.UNCOMMON);
+    public static final DeferredItem<Item> ABYSS_CAREBOX = consumable("abyss_carebox", "care_box", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_WARDRUMS = consumable("abyss_wardrums", "war_drums", Rarity.RARE);
     // --- 職業必殺の巻物 (8種: 右クリックでその型の必殺技を即発動) ---
     public static final DeferredItem<Item> ABYSS_SCROLL_SAMURAI = consumable("abyss_scroll_samurai", "skill_demo::samurai", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_SCROLL_MAGE = consumable("abyss_scroll_mage", "skill_demo::mage", Rarity.RARE);
@@ -479,6 +487,13 @@ public final class ModItems {
                         output.accept(ABYSS_SCROLL_BERSERKER.get());
                         output.accept(ABYSS_SCROLL_MONK.get());
                         output.accept(ABYSS_SCROLL_ARCHER.get());
+                        output.accept(ABYSS_BREACHER.get());
+                        output.accept(ABYSS_NETSNARE.get());
+                        output.accept(ABYSS_REAPPLE.get());
+                        output.accept(ABYSS_SHARDFLING.get());
+                        output.accept(ABYSS_SOUNDBELL.get());
+                        output.accept(ABYSS_CAREBOX.get());
+                        output.accept(ABYSS_WARDRUMS.get());
                         output.accept(ABYSS_BLOOD_CRYSTAL.get());
                         output.accept(ABYSS_SHADOW_STONE.get());
                         output.accept(ABYSS_STAR_DUST.get());

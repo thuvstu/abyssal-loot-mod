@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_bone_charm"
+    },
+    {
+      "item": "minecraft:leather"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_wardrums",
+    "count": 1
+  }
+}

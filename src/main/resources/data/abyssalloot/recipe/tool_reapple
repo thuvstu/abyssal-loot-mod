@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_teardrop"
+    },
+    {
+      "item": "abyssalloot:abyss_gold_vein"
+    },
+    {
+      "item": "minecraft:golden_apple"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_reapple",
+    "count": 1
+  }
+}

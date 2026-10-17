@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    {
+      "item": "abyssalloot:soul_shard"
+    },
+    {
+      "item": "abyssalloot:abyss_thunder_thread"
+    },
+    {
+      "item": "minecraft:ender_pearl"
+    }
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_shardfling",
+    "count": 1
+  }
+}

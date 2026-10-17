@@ -1136,6 +1136,34 @@ public final class GameData {
             java.util.Map.entry("echo_katana", new ShapeBonus(0, 1, 1)),
             java.util.Map.entry("howling_claw", new ShapeBonus(0, 0, 2)));
 
+    /* ---------------- 武器の左クリック追撃 (WEAPON_FOLLOWUP) ----------------
+     * 武器種ごとの固有連打ボーナス。一定回数の通常攻撃ごとに追加効果が発動する。
+     * 発動ロジックは CombatHandler.applyFollowup (FOLLOW_HIT 添付でカウント)。
+     */
+    public static final java.util.Map<String, String> WEAPON_FOLLOWUP = java.util.Map.ofEntries(
+            java.util.Map.entry("spear", "pierce3"),           // 毎3打目: 前方貫通衝撃波
+            java.util.Map.entry("storm_spear", "pierce3"),
+            java.util.Map.entry("tide_trident", "pierce3"),
+            java.util.Map.entry("meteor_lance", "pierce3"),
+            java.util.Map.entry("hammer", "burst4"),           // 毎4打目: 周囲爆発
+            java.util.Map.entry("quake_hammer", "burst4"),
+            java.util.Map.entry("moon_mace", "burst4"),
+            java.util.Map.entry("dagger", "backflip4"),        // 毎4打目: 後方跳ね返し
+            java.util.Map.entry("twin_dagger", "backflip4"),
+            java.util.Map.entry("fang_dagger", "backflip4"),
+            java.util.Map.entry("gauntlet", "soul3"),          // 毎3打目: 魂+3
+            java.util.Map.entry("titan_gauntlet", "soul3"),
+            java.util.Map.entry("depth_gun", "soul3"),
+            java.util.Map.entry("greatsword", "swipe5"),       // 毎5打目: 太い横薙ぎ
+            java.util.Map.entry("rune_blade", "swipe5"),
+            java.util.Map.entry("war_horn", "thorn3"),         // 毎3打目: 周囲ノックバック
+            java.util.Map.entry("staff", "heal6"),             // 毎6打目: 小回復
+            java.util.Map.entry("void_staff", "heal6"),
+            java.util.Map.entry("scythe", "crit3"),            // 毎3打目: 追加打撃
+            java.util.Map.entry("ember_flail", "crit3"),
+            java.util.Map.entry("echo_katana", "crit3"),
+            java.util.Map.entry("howling_claw", "crit3"));
+
     /* ---------------- 全武器の固有能力 (命中・撃破・被弾で発動) ----------------
      * kind: CHAIN (確率連鎖) / FROST (確率凍結) / SOUL (命中で魂) /
      *       EXECUTE (瀕死へ倍率) / BURST (確率爆発) / GUARD (被弾時反射) / POISON (確率猛毒)
@@ -1373,7 +1401,12 @@ public final class GameData {
             new GearSkill("w_gale", "追風の銘", "撃破時に移動速度3秒+魂+6"),
             new GearSkill("w_ignite", "火種の銘", "撃破時に周囲の敵を発火"),
             new GearSkill("w_greed", "強奪の銘", "撃破時 20%で魂の欠片+1"),
-            new GearSkill("w_hymn", "鎮魂の銘", "撃破で守護4秒・小回復"));
+            new GearSkill("w_hymn", "鎮魂の銘", "撃破で守護4秒・小回復"),
+            new GearSkill("w_warcry", "戦の銘", "撃破で攻撃・採掘5秒"),
+            new GearSkill("w_avalanche", "雪崩の銘", "撃破で周囲3体を引き寄せる"),
+            new GearSkill("w_storm", "稲妻の銘", "撃破で最寄りの敵に落雷"),
+            new GearSkill("w_rend", "撕裂の銘", "撃破で周囲に凋み5秒"));
+
     /** 防具スキル (部位ごと)。abyss_skill に刻印 */
     public static final java.util.List<GearSkill> ARMOR_SKILLS = java.util.List.of(
             new GearSkill("h_danger", "危険感知", "兜: 10m内の敵を発光表示"),
@@ -1390,7 +1423,11 @@ public final class GameData {
             new GearSkill("b_vigor", "敏捷の靴", "靴: 回避CT -10%"),
             new GearSkill("h_hawk", "鷹眼の兜", "兜: 攻撃射程 +1"),
             new GearSkill("l_sweep", "横薙の脚", "脚: 横斬り (薙ぎ幅) +1"),
-            new GearSkill("b_barrage", "連撃の靴", "靴: 一打の連撃 +1"));
+            new GearSkill("b_barrage", "連撃の靴", "靴: 一打の連撃 +1"),
+            new GearSkill("h_swift", "迅径の兜", "兜: 常時移動速度 +8%"),
+            new GearSkill("c_guard", "鉄壁の鎧", "鎧: 被ダメ -8% (追加軽減)"),
+            new GearSkill("l_rock", "磐座の脚", "脚: 落下ダメージを8割軽減"),
+            new GearSkill("b_charge", "跳上げの靴", "靴: 常時跳躍力II"));
 
     public static GearSkill gearSkillById(String id) {
         for (GearSkill s : WEAPON_SKILLS) {

@@ -682,6 +682,101 @@ def ration(_c=None):
     return img
 
 
+def mine_tool(color):
+    """采矿お道具の台形"""
+    img, d = canvas()
+    line(d, [(7, 14), (11, 5)], WOOD, 2)
+    poly(d, [(8, 1), (14, 3), (13, 9), (9, 7)], STEEL_LIGHT)
+    poly(d, [(10, 4), (12, 6), (11, 8), (9, 6)], color)
+    d.point((12, 3), fill=WHITE)
+    return img
+
+
+def bell(color):
+    """収集の鐘 (ぶら下がりの鐘)"""
+    img, d = canvas()
+    poly(d, [(4, 4), (12, 4), (13, 11), (3, 11)], OUTLINE)
+    poly(d, [(5, 5), (11, 5), (12, 10), (4, 10)], color)
+    d.rectangle([6, 11, 10, 13], fill=OUTLINE)  # 振り子
+    d.rectangle([7, 12, 9, 13], fill=GOLD)
+    d.line([(2, 2), (4, 4)], fill=OUTLINE, width=2)
+    d.line([(14, 2), (12, 4)], fill=OUTLINE, width=2)
+    d.point((8, 6), fill=WHITE)
+    d.point((8, 12), fill=accent_hl(color))
+    return img
+
+
+def accent_hl(c):
+    return (min(255, c[0] + 60), min(255, c[1] + 60), min(255, c[2] + 60), 255)
+
+
+def bomblet(color):
+    """小型爆薬 (軽量爆薬・深爆弾・連鎖爆弾で共有)"""
+    img, d = canvas()
+    d.ellipse([4, 6, 13, 14], fill=OUTLINE)
+    d.ellipse([5, 7, 12, 13], fill=(40, 32, 50, 255))
+    d.ellipse([6, 8, 11, 12], fill=OUTLINE)
+    d.ellipse([7, 9, 10, 11], fill=color)
+    d.line([(8, 6), (12, 2)], fill=WOOD, width=1)
+    d.point((12, 2), fill=(255, 200, 80, 255))
+    d.point((6, 8), fill=WHITE)
+    return img
+
+
+def scroll_tool(color):
+    """系統の巻物・ポーション粉用 (縦長の袋)"""
+    img, d = canvas()
+    poly(d, [(4, 3), (12, 3), (13, 12), (8, 15), (3, 12)], OUTLINE)
+    poly(d, [(5, 4), (11, 4), (12, 11), (8, 13), (4, 11)], (238, 230, 210, 255))
+    d.line([(5, 4), (8, 1), (11, 4)], fill=OUTLINE, width=2)
+    d.line([(6, 4), (8, 2), (10, 4)], fill=color, width=1)
+    d.line([(6, 6), (10, 7)], fill=color, width=1)
+    d.line([(6, 9), (10, 10)], fill=color, width=1)
+    d.point((7, 5), fill=WHITE)
+    return img
+
+
+def firstaid(color):
+    """応急箱 (白十字の箱)"""
+    img, d = canvas()
+    d.rectangle([2, 5, 13, 14], fill=OUTLINE)
+    d.rectangle([3, 6, 12, 13], fill=color)
+    d.rectangle([7, 4, 11, 5], fill=OUTLINE)  # 取っ手
+    d.rectangle([8, 5, 10, 5], fill=accent_hl(color))
+    d.rectangle([7, 7, 9, 12], fill=OUTLINE)  # 十字の縦
+    d.rectangle([7, 7, 9, 12], fill=(245, 70, 80, 255))
+    d.rectangle([5, 9, 11, 10], fill=(245, 70, 80, 255))
+    d.point((4, 7), fill=WHITE)
+    return img
+
+
+def drum(color):
+    """戦鼓 (すばやい太鼓)"""
+    img, d = canvas()
+    d.ellipse([3, 7, 13, 13], fill=OUTLINE)
+    d.ellipse([4, 4, 12, 12], fill=OUTLINE)
+    d.ellipse([5, 5, 11, 11], fill=(40, 30, 50, 255))
+    d.ellipse([6, 6, 10, 10], fill=color)
+    d.line([(5, 4), (5, 14)], fill=OUTLINE, width=1)
+    d.line([(11, 4), (11, 14)], fill=OUTLINE, width=1)
+    d.line([(4, 9), (6, 9)], fill=accent_hl(color), width=2)
+    d.line([(10, 9), (12, 9)], fill=accent_hl(color), width=2)
+    d.point((8, 7), fill=WHITE)
+    return img
+
+
+def net_orb(color):
+    """索縛の網 (絡まった糸)"""
+    img, d = canvas()
+    for stroke in ([(3, 2), (13, 9)], [(3, 9), (13, 2)], [(3, 5), (13, 5)],
+                   [(5, 2), (5, 9)], [(8, 2), (8, 13)], [(11, 2), (11, 9)]):
+        d.line(stroke, fill=color, width=1)
+    for cx, cy in ((5, 5), (8, 7), (11, 5), (8, 3)):
+        d.point((cx, cy), fill=WHITE)
+    d.ellipse([2, 2, 14, 10], outline=OUTLINE, width=1)
+    return img
+
+
 def fishing_rod(accent):
     img, d = canvas()
     line(d, [(2, 14), (12, 2)], WOOD, 1)  # 竿
@@ -1015,7 +1110,15 @@ CONSUMABLES = {
     "abyss_bomb_h": None,  # 炎の冠つき (下で差し替え)
     "abyss_fortune": (pouch, 0xffd23c, "generated"),
     "abyss_ration": (ration, 0xffffff, "generated"),
+    "abyss_breacher": (bomblet, 0xffa53c, "generated"),
+    "abyss_netsnare": (net_orb, 0x8ff06e, "generated"),
+    "abyss_reapple": None,  # later assigned below
+    "abyss_shardfling": (bomblet, 0x7cd8ff, "generated"),
+    "abyss_soundbell": (bell, 0xffd23c, "generated"),
+    "abyss_carebox": (firstaid, 0xececf2, "generated"),
+    "abyss_wardrums": (drum, 0xff4d6d, "generated"),
 }
+CONSUMABLES["abyss_reapple"] = (scroll_tool, 0x4bd07a, "generated")
 CONSUMABLES["abyss_bomb_h"] = (lambda c: bomb(c, crown=True), 0xff4a2a, "generated")
 
 NEWMATS = {
