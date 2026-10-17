@@ -252,6 +252,15 @@ public final class GearData {
         if (!isWeapon && !isArmor) return;
         stack.set(net.minecraft.core.component.DataComponents.LORE,
                 new net.minecraft.world.item.component.ItemLore(loreLines(stack, isWeapon)));
+        applyGlint(stack);
+    }
+
+    /** レア度を光らせる (レジェンド/神話は虹色グリント、呪縛品は呪いの合図として光る) */
+    private static void applyGlint(ItemStack stack) {
+        String rarity = rarityOf(stack);
+        boolean glint = rarity.equals("legend") || rarity.equals("mythic")
+                || curseOf(stack) != null;
+        stack.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, glint);
     }
 
     /** 武器の呪い種別 (なければ null)。原作 CURSED_MODS のキー */
