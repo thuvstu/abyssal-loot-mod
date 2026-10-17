@@ -22,8 +22,9 @@ public final class ClientHud {
     private static volatile int combo;
     private static volatile int attrPoints;
     private static volatile int portalOpen;
+    private static volatile int pendingBoons;
 
-    public static void update(float s, int f, int lv, int k, int c, int ap, int po) {
+    public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb) {
         soul = s;
         floor = f;
         level = lv;
@@ -31,6 +32,7 @@ public final class ClientHud {
         combo = c;
         attrPoints = ap;
         portalOpen = po;
+        pendingBoons = pb;
     }
 
     public static void init(IEventBus modBus) {
@@ -66,6 +68,11 @@ public final class ClientHud {
         // 未配分の属性点と転移門の開放を見逃さないよう表示
         if (attrPoints > 0) {
             g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0, y, 0xFF7CFFB2);
+            y += 12;
+        }
+        // 未選択の祝福 (点滅して注意を促す)
+        if (pendingBoons > 0 && (System.currentTimeMillis() / 400) % 2 == 0) {
+            g.drawString(font, "◆祝福が未選択! 残" + pendingBoons + "件 (G→祝福を選ぶ)", x0, y, 0xFFE14AFF);
             y += 12;
         }
         if (portalOpen != 0) {

@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
- * クライアントキー -> サーバーの操作パケット (art/skill/dash/forge)。
+ * クライアントキー -> サーバーの操作パケット (art/skill/dash/forge/boon)。
  */
 public final class ModPackets {
     private ModPackets() {}
@@ -52,6 +52,8 @@ public final class ModPackets {
         reg.playToClient(StatusSync.TYPE, StatusSync.CODEC, StatusSync::handle);
         reg.playToServer(AttrPacket.TYPE, AttrPacket.CODEC, ModPackets::handleAttr);
         reg.playToClient(HubSync.TYPE, HubSync.CODEC, HubSync::handle);
+        reg.playToClient(BoonSync.TYPE, BoonSync.CODEC, BoonSync::handle);
+        reg.playToServer(BoonPacket.TYPE, BoonPacket.CODEC, ModPackets::handleBoon);
     }
 
     /** 商店GUIの購入ボタン (1-3) */
@@ -148,6 +150,41 @@ public final class ModPackets {
         }
     }
 
+    /** 祝福選択GUIの決定ボタン (祝福ID) */
+    public record BoonPacket(String id) implements CustomPacketPayload {
+        public static final Type<BoonPacket> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "boon_choose"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, BoonPacket> CODEC = StreamCodec.of(
+                (buf, p) -> buf.writeUtf(p.id(), 64),
+                buf -> new BoonPacket(buf.readUtf(64)));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** サーバー→クライアント: 祝福の3択表示 (選択GUIを開く)。remaining = 未選択の残数 */
+    public record BoonSync(java.util.List<String> choices, int remaining) implements CustomPacketPayload {
+        public static final Type<BoonSync> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "boon_sync"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, BoonSync> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    writeLines(buf, p.choices());
+                    buf.writeVarInt(p.remaining());
+                },
+                buf -> new BoonSync(readLines(buf), buf.readVarInt()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(BoonSync payload, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> ClientGui.showBoonChoices(payload.choices(), payload.remaining()));
+        }
+    }
+
     /** サーバー→クライアント: 操作ハブを開く (中身なし) */
     public record HubSync() implements CustomPacketPayload {
         public static final Type<HubSync> TYPE =
@@ -168,7 +205,7 @@ public final class ModPackets {
 
     /** サーバー→クライアント: HUD表示用ステータス (1秒ごと) */
     public record HudSync(float soul, int floor, int level, int kills, int combo,
-                          int attrPoints, int portalOpen)
+                          int attrPoints, int portalOpen, int pendingBoons)
             implements CustomPacketPayload {
         public static final Type<HudSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hud"));
@@ -181,9 +218,11 @@ public final class ModPackets {
                     buf.writeVarInt(p.combo());
                     buf.writeVarInt(p.attrPoints());
                     buf.writeVarInt(p.portalOpen());
+                    buf.writeVarInt(p.pendingBoons());
                 },
                 buf -> new HudSync(buf.readFloat(), buf.readVarInt(), buf.readVarInt(),
-                        buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt()));
+                        buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                        buf.readVarInt(), buf.readVarInt()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -194,7 +233,7 @@ public final class ModPackets {
         public static void handle(HudSync payload, IPayloadContext ctx) {
             ctx.enqueueWork(() -> ClientHud.update(
                     payload.soul(), payload.floor(), payload.level(), payload.kills(), payload.combo(),
-                    payload.attrPoints(), payload.portalOpen()));
+                    payload.attrPoints(), payload.portalOpen(), payload.pendingBoons()));
         }
     }
 
@@ -220,6 +259,15 @@ public final class ModPackets {
                     net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
                             new StatusSync(RunManager.statusLines(sp)));
                 }
+            }
+        });
+    }
+
+    /** 祝福選択GUIの決定 (サーバー側で3択からの選択かを再検証) */
+    private static void handleBoon(BoonPacket payload, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer sp) {
+                CombatHandler.chooseBoon(sp, payload.id());
             }
         });
     }

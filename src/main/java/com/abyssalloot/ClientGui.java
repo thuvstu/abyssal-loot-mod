@@ -25,6 +25,9 @@ public final class ClientGui {
     private static List<String> compareLeft = List.of("Aに武器を置いて「比較する」");
     private static List<String> compareRight = List.of("Bに武器を置いて「比較する」");
     private static List<String> statusLines = List.of();
+    /** 祝福の提示中の3択 (BoonSelectScreen の再描画用) */
+    private static List<String> boonChoices = List.of();
+    private static int boonRemaining;
 
     public static void init(IEventBus modBus) {
         modBus.addListener((RegisterMenuScreensEvent event) -> {
@@ -126,6 +129,22 @@ public final class ClientGui {
     public static void openHub() {
         if (Minecraft.getInstance() != null) {
             Minecraft.getInstance().setScreen(new HubScreen());
+        }
+    }
+
+    /**
+     * 祝福の3択を受け取り、選択画面を開く。既に選択画面が開いている場合は内容だけ差し替える
+     * (連続レベルアップで次の提示に平滑に移る)。他のGUIが開いていれば上書きする。
+     */
+    public static void showBoonChoices(List<String> choices, int remaining) {
+        boonChoices = choices == null ? List.of() : List.copyOf(choices);
+        boonRemaining = remaining;
+        var mc = Minecraft.getInstance();
+        if (mc == null) return;
+        if (mc.screen instanceof BoonSelectScreen bs) {
+            bs.refresh(boonChoices, boonRemaining);
+        } else {
+            mc.setScreen(new BoonSelectScreen(boonChoices, boonRemaining));
         }
     }
 }

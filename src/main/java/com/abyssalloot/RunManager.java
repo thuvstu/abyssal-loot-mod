@@ -241,6 +241,21 @@ public final class RunManager {
         return boonsOf(player).getOrDefault(id, 0);
     }
 
+    /** 未選択の祝福選択の残数 (原作 engine.ts pendingBoons) */
+    public static int pendingBoonsOf(ServerPlayer player) {
+        return Math.max(0, player.getData(ModAttachments.PENDING_BOONS.get()));
+    }
+
+    /** 未選択の祝福選択を n 回追加 (レベルアップなど)。盟約モードでは無効 */
+    public static void addPendingBoons(ServerPlayer player, int n) {
+        if (n <= 0 || isCovenant(player)) return;
+        player.setData(ModAttachments.PENDING_BOONS.get(), pendingBoonsOf(player) + n);
+    }
+
+    public static void setPendingBoons(ServerPlayer player, int n) {
+        player.setData(ModAttachments.PENDING_BOONS.get(), Math.max(0, n));
+    }
+
 
 
 
@@ -551,7 +566,7 @@ public final class RunManager {
             player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
             player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
             player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると選択肢が出る → 転移門へ → §b/abyss next §fで次層"));
-            player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択・属性1点 (8属性・適性★1.5倍・節目有)。5層ごとに層主が待つ"));
+            player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
             player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
         }
     }
@@ -722,7 +737,6 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR.get(), 26);        player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.WAVE_TOTAL.get(), 1);
-        player.setData(ModAttachments.OFFER.get(), "");
         player.setData(ModAttachments.EVENT_DONE.get(), 0);
         ArenaManager.buildArena(player);
         double hpMult = GameData.enemyHpMult(sigilsOf(player)) * diffHpMult(player);
@@ -851,7 +865,6 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.WAVE_TOTAL.get(), 1);
-        player.setData(ModAttachments.OFFER.get(), "");
         player.setData(ModAttachments.EVENT_DONE.get(), 0);
         ArenaManager.buildArena(player);
         var def = GameData.bossForFloor(GameData.PINNACLE_FLOOR);
@@ -1001,7 +1014,14 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
-        player.setData(ModAttachments.OFFER.get(), "");
+        // 未選択の祝福は層移動しても絶対に消さない (原作 pendingBoons は新出撃まで保存される).
+        // ここで OFFER を消すと「選択できないまま次の層に上がる」不具合の原因になったため提示だけやり直す.
+        if (pendingBoonsOf(player) > 0
+                || !player.getData(ModAttachments.OFFER.get()).isBlank()) {
+            player.sendSystemMessage(Component.literal(
+                    "§e◆ レベルアップの祝福が未選択だ (" + Math.max(1, pendingBoonsOf(player)) + "件)"));
+            CombatHandler.resendBoonOffer(player);
+        }
         player.setData(ModAttachments.EVENT_DONE.get(), 0);
         player.setData(ModAttachments.SHOP.get(), "");
         player.setData(ModAttachments.TRAPS.get(), "");
@@ -1289,7 +1309,15 @@ public final class RunManager {
                             player.level().damageSources().magic(), cost);
                 }
                 player.sendSystemMessage(Component.literal("§5血の誓約… 最大HP18%を捧げた。祝福を選べ"));
-                CombatHandler.offerBoons(player);
+                // 既に祝福の選択中 (提示済み or 未選択残数が残る) なら上書きせず後回しにする
+                if (!player.getData(ModAttachments.OFFER.get()).isBlank()
+                        || pendingBoonsOf(player) > 0) {
+                    addPendingBoons(player, 1);
+                    player.sendSystemMessage(Component.literal(
+                            "§7現在の選択のあとに (残り" + (pendingBoonsOf(player) + 1) + "件)"));
+                } else {
+                    CombatHandler.offerBoons(player);
+                }
             }
             case "shop" -> {
                 String raw = player.getData(ModAttachments.SHOP.get());

@@ -57,6 +57,9 @@ public final class ModAttachments {
     /** 提示中の祝福3択 "id,id,id" */
     public static final Supplier<AttachmentType<String>> OFFER =
             reg("offer", "", Codec.STRING);
+    /** 未選択の祝福選択の残数 (原作 engine.ts pendingBoons。レベルアップごとに+1) */
+    public static final Supplier<AttachmentType<Integer>> PENDING_BOONS =
+            reg("pending_boons", 0, Codec.INT);
     /** 反撃窓タイマー (回避後の初撃×1.5) */
     public static final Supplier<AttachmentType<Float>> COUNTER =
             reg("counter", 0f, Codec.FLOAT);

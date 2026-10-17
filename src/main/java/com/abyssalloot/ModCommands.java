@@ -235,29 +235,17 @@ public final class ModCommands {
                         })
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
+                                    ServerPlayer p = ctx.getSource().getPlayer();
+                                    String offer = p != null ? p.getData(ModAttachments.OFFER.get()) : "";
+                                    if (offer != null && !offer.isBlank()) {
+                                        for (var id : offer.split(",")) b.suggest(id);
+                                    }
                                     for (var boon : Boons.BOON_POOL) b.suggest(boon.id());
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                                    String id = StringArgumentType.getString(ctx, "id");
-                                    var def = Boons.boonById(id);
-                                    if (def == null) {
-                                        p.sendSystemMessage(Component.literal("§c不明な祝福: " + id));
-                                        return 0;
-                                    }
-                                    String offer = p.getData(ModAttachments.OFFER.get());
-                                    if (offer == null || !java.util.List.of(offer.split(",")).contains(id)) {
-                                        p.sendSystemMessage(Component.literal("§c今はその祝福を選べない (レベルアップ時の3択から選んでね)"));
-                                        return 0;
-                                    }
-                                    RunManager.addBoon(p, id);
-                                    p.setData(ModAttachments.OFFER.get(), "");
-                                    GameData.HeroClass cls = GameData.HeroClass.byId(
-                                            p.getData(ModAttachments.HERO_CLASS.get()));
-                                    StatCalc.applyClass(p, cls, p.getData(ModAttachments.LEVEL.get()));
-                                    p.sendSystemMessage(Component.literal(
-                                            "§e祝福を得た: " + def.name() + " (" + def.desc() + ")"));
+                                    CombatHandler.chooseBoon(p, StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
                 .then(Commands.literal("attr")

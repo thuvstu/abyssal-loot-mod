@@ -14,7 +14,7 @@ public class HubScreen extends Screen {
     private static final String[][] BUTTONS = {
             {"出撃する", "abyss start"},
             {"次の層へ", "abyss next"},
-            {"祝福の再提示", "abyss boon"},
+            {"祝福を選ぶ", "abyss boon"},
             {"技能の再提示", "abyss passive"},
             {"鍛造", "abyss forge"},
             {"商店", "abyss shop"},
