@@ -431,6 +431,8 @@ public final class ModCommands {
                 .append(button("§e[職業・条件を選ぶ]", "/abyss menu"))
                 .append(button("§d[操作ハブ]", "/abyss hub"))
                 .append(button("§b[操作説明]", "/abyss help")));
+        // HUDの初期同期 (参加直後の魂ゲージ・層を即時表示する)
+        CombatHandler.sendHud(p);
     }
 
     /** 職業と武器を配備して即出撃 (進行中の冒険は破棄される) */

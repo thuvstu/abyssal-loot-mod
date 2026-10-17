@@ -213,3 +213,19 @@ MOD 側の数値・規則はこの文書の対応表に従い、純粋な計算�
 - ツールチップ・`/abyss weapon` 表示に小技名を追加。`help` の操作説明を更新。
 - `GameDataTest` に小技テーブルの完全性 (全武器種・CT/倍率の範囲・職業クランプ) を追加。
 - 未検証: 実機での体感 (CT感覚・威力) は従来どおり未実施。
+
+## 第15段 (GUI・状態遷移の厳格化)
+
+- 出撃終了 (endRun/retire) で提示中の祝福 (OFFER/PENDING_BOONS)・遺物/技能の3択・商店・異変・地相・fateを
+  必ず消す (`clearLingeringRunState`)。旧版は PENDING_BOONS が残り、新出撃に前ランの未選択祝福が浮上した。
+- resetRunState に PENDING_BOONS・小技/必殺CTの初期化を追加。
+- 層移動 (nextFloor)・出撃 (startRun)・リタイア・勝利で openMenu 中のGUIを `closeContainer` で強制クローズ。
+  商店GUIは層移動後に前層の商品を表示したまま残る問題があった。
+- ShopMenu.stillValid はこの層の SHOP データが消えたら false を返し自動クローズ。
+- `/abyss start` に出撃中ガード (retire か quick での再出撃を促す。条件固定の趣旨どおり)。
+- doBuy に EVENT_DONE チェック (パケット連打による二重購入を防止)。
+- BoonSelectScreen に送信済みフラグ (数字キー連打で選択パケットが二重送信されるのを防止)。
+- HUD即時反映: 魂ゲージ変動 (addGauge) と撃破 (onKill) で `sendHudSoon` (0.2秒のレート制限つき間引き送信)。
+  撃破数・コンボ・魂ゲージ・転移門開放が1秒待たずに表示される。
+- 参加時 (onJoin) にHUD初期同期を送る (参加直後のゲージ・層が即時表示)。
+- 未検証: 実機でのGUI挙動の目視確認は従来どおり未実施。
