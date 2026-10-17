@@ -49,7 +49,7 @@ public final class WeaponArts {
         return (ServerLevel) player.level();
     }
 
-    /** 遅延実行 (CombatHandler.after の安全版)。発動者が既に倒れていたら何もしない */
+    /** 遅延実行 (DelayRunner.after の安全版)。発動者が既に倒れていたら何もしない */
     private static void later(ServerPlayer player, int ticks, java.util.function.Consumer<ServerLevel> action) {
         DelayRunner.after(ticks, () -> {
             if (!player.isAlive()) return;
@@ -399,7 +399,7 @@ public final class WeaponArts {
             case WAND -> {
                 // 魔弾連星: 10連の自動魔弾
                 for (int i = 0; i < 10; i++) {
-                    later(player, i * 2, lv -> CombatHandler.castWandBolt(player, 18, 1.1, 1));
+                    later(player, i * 2, lv -> SkillHandler.castWandBolt(player, 18, 1.1, 1));
                 }
                 burst(player, "魔弾連星！", style);
                 return true;
@@ -647,7 +647,7 @@ public final class WeaponArts {
     }
 
     /**
-     * 武器小技 (右クリック) の実行. CTは呼び出し側 (CombatHandler.tryLightSkill) で管理.
+     * 武器小技 (右クリック) の実行. CTは呼び出し側 (SkillHandler.tryLightSkill) で管理.
      * 威力倍率は GameData.WEAPON_LIGHTS の mult (複数ヒットは合計値) を使い、
      * ゲージ蓄積なし (artHurt 経由)。奥義と違い告知なしの軽い演出.
      */

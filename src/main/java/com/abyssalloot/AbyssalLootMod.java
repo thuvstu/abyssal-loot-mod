@@ -31,6 +31,8 @@ public class AbyssalLootMod {
         NeoForge.EVENT_BUS.register(ModCommands.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);
         NeoForge.EVENT_BUS.register(LootHandler.class);
+        NeoForge.EVENT_BUS.register(WeaponHitHandler.class);
+        NeoForge.EVENT_BUS.register(SkillHandler.class);
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientKeys.init(modEventBus);

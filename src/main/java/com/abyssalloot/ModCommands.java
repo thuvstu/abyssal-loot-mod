@@ -222,11 +222,11 @@ public final class ModCommands {
                     return 1;
                 }))
                 .then(Commands.literal("art").executes(ctx -> {
-                    CombatHandler.tryArt(ctx.getSource().getPlayerOrException());
+                    SkillHandler.tryArt(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("skill").executes(ctx -> {
-                    CombatHandler.trySkill(ctx.getSource().getPlayerOrException());
+                    SkillHandler.trySkill(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("boon")
@@ -384,7 +384,7 @@ public final class ModCommands {
                     return 1;
                 }))
                 .then(Commands.literal("dash").executes(ctx -> {
-                    CombatHandler.dash(ctx.getSource().getPlayerOrException());
+                    SkillHandler.dash(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("status").executes(ctx -> {

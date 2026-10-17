@@ -1,7 +1,9 @@
 package com.abyssalloot;
 
 /**
- * 遁E��実行キュー (絶対tickで発火). 隕石・爁E��・罠演�E・突E��の段打ちに使用する、E * CombatHandler.onServerTick から {@link #tick()} を呼ぶと到達�Eを実行する、E */
+ * 遅延実行キュー (絶対tickで発火). 隕石・爆縮・罠演出・突進の段打ちに使用する。
+ * CombatHandler.onServerTick から {@link #tick()} を呼ぶと到達分を実行する。
+ */
 public final class DelayRunner {
     private DelayRunner() {}
 
@@ -12,7 +14,7 @@ public final class DelayRunner {
 
     private static int current = 0;
 
-    /** ticks 後に task を実行すめE(サーバtick基溁E */
+    /** ticks 後に task を実行する (サーバtick基準) */
     public static void after(int ticks, Runnable task) {
         PENDING.add(new DelayTask(current + Math.max(0, ticks), task));
     }

@@ -246,9 +246,9 @@ public final class ModPackets {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {
                 switch (payload.kind()) {
-                    case "art" -> CombatHandler.tryArt(sp);
-                    case "skill" -> CombatHandler.trySkill(sp);
-                    case "dash" -> CombatHandler.dash(sp);
+                    case "art" -> SkillHandler.tryArt(sp);
+                    case "skill" -> SkillHandler.trySkill(sp);
+                    case "dash" -> SkillHandler.dash(sp);
                     case "hub" -> net.neoforged.neoforge.network.PacketDistributor
                             .sendToPlayer(sp, new HubSync());
                     case "next" -> RunManager.tryNextFloor(sp);
