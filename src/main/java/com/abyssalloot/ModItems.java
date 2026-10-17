@@ -143,7 +143,7 @@ public final class ModItems {
             }
             ItemStack held = player.getItemInHand(hand);
             if (held.isEmpty() || held.getItem() != this) return InteractionResult.PASS;
-            if (RunManager.useConsumable(sp, kind)) {
+            if (Consumables.useConsumable(sp, kind)) {
                 if (!level.isClientSide()) held.shrink(1);
                 return InteractionResult.SUCCESS;
             }
@@ -157,7 +157,7 @@ public final class ModItems {
                         .component(net.minecraft.core.component.DataComponents.LORE,
                                 new net.minecraft.world.item.component.ItemLore(java.util.List.of(
                                         Component.literal("§7右クリックで使用 (使い切り)"),
-                                        Component.literal("§b" + RunManager.consumableDesc(kind))))),
+                                        Component.literal("§b" + Consumables.consumableDesc(kind))))),
                         kind));
     }
 

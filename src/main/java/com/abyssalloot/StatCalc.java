@@ -114,8 +114,8 @@ public final class StatCalc {
             player.sendSystemMessage(Component.literal("§c振り直す点が無い"));
             return;
         }
-        if (!RunManager.takeShards(player, 8)) {
-            player.sendSystemMessage(Component.literal("§c欠片8個が足りない (所持" + RunManager.countShards(player) + ")"));
+        if (!FloorEvents.takeShards(player, 8)) {
+            player.sendSystemMessage(Component.literal("§c欠片8個が足りない (所持" + FloorEvents.countShards(player) + ")"));
             return;
         }
         setAttrs(player, new int[10]);

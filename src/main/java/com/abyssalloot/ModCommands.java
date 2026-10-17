@@ -189,13 +189,13 @@ public final class ModCommands {
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
-                                    RunManager.doRelic(ctx.getSource().getPlayerOrException(),
+                                    FloorEvents.doRelic(ctx.getSource().getPlayerOrException(),
                                             StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
                 .then(Commands.literal("passive")
                         .executes(ctx -> {
-                            RunManager.resendPassiveOffer(ctx.getSource().getPlayerOrException());
+                            FloorEvents.resendPassiveOffer(ctx.getSource().getPlayerOrException());
                             return 1;
                         })
                         .then(Commands.argument("id", StringArgumentType.word())
@@ -204,7 +204,7 @@ public final class ModCommands {
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
-                                    RunManager.doPassive(ctx.getSource().getPlayerOrException(),
+                                    FloorEvents.doPassive(ctx.getSource().getPlayerOrException(),
                                             StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
@@ -336,19 +336,19 @@ public final class ModCommands {
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
-                                    RunManager.doEvent(ctx.getSource().getPlayerOrException(),
+                                    FloorEvents.doEvent(ctx.getSource().getPlayerOrException(),
                                             StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
                 .then(Commands.literal("buy")
                         .then(Commands.argument("n", IntegerArgumentType.integer(1, 3))
                                 .executes(ctx -> {
-                                    RunManager.doBuy(ctx.getSource().getPlayerOrException(),
+                                    FloorEvents.doBuy(ctx.getSource().getPlayerOrException(),
                                             IntegerArgumentType.getInteger(ctx, "n"));
                                     return 1;
                                 })))
                 .then(Commands.literal("merge").executes(ctx -> {
-                    RunManager.doMerge(ctx.getSource().getPlayerOrException());
+                    FloorEvents.doMerge(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("forge").executes(ctx -> {

@@ -281,7 +281,7 @@ public final class ModPackets {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp
                     && sp.containerMenu instanceof ForgeMenu fm) {
-                RunManager.doMergeStacks(sp,
+                FloorEvents.doMergeStacks(sp,
                         fm.getSlot(ForgeMenu.SLOT_WEAPON).getItem(),
                         fm.getSlot(ForgeMenu.SLOT_MATERIAL).getItem());
             }
@@ -293,7 +293,7 @@ public final class ModPackets {
             if (ctx.player() instanceof ServerPlayer sp
                     && sp.containerMenu instanceof ShopMenu sm) {
                 boolean before = sp.getData(ModAttachments.EVENT_DONE.get()) != 0;
-                RunManager.doBuy(sp, payload.index());
+                FloorEvents.doBuy(sp, payload.index());
                 // 購入成功 (イベント消費) したら売約済み表示に更新
                 if (!before && sp.getData(ModAttachments.EVENT_DONE.get()) != 0) {
                     sm.markSold(payload.index());

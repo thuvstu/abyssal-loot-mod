@@ -244,9 +244,9 @@ public final class CombatHandler {
             }
             String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
             if (pendingPassive == null || pendingPassive.isBlank()) {
-                RunManager.offerPassives(player);
+                FloorEvents.offerPassives(player);
             } else {
-                RunManager.resendPassiveOffer(player);
+                FloorEvents.resendPassiveOffer(player);
             }
         }
         // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発) / 血の契約 (祝福・撃破回復)
@@ -357,7 +357,7 @@ public final class CombatHandler {
         // 精鋭撃破の10%で遺物の3択 (原作の遺物拾いに対応)
         if (deadName != null && deadName.getString().contains("エリート")
                 && player.getRandom().nextFloat() < 0.10) {
-            RunManager.offerRelics(player);
+            FloorEvents.offerRelics(player);
         }
         // 層クリア判定
         // 蘇生師・門の子は層のウェーブに含めない (数えると転移門が早く開いてしまう)
@@ -378,7 +378,7 @@ public final class CombatHandler {
                             .withUnderlined(true))));
             level.playSound(null, player.blockPosition(),
                     net.minecraft.sounds.SoundEvents.PORTAL_TRIGGER, net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.2f);
-            RunManager.offerEvent(player);
+            FloorEvents.offerEvent(player);
             // 層の締め前に未選択の祝福を確実に提示 (消える前に選ばせる)
             if (RunManager.pendingBoonsOf(player) > 0
                     && player.getData(ModAttachments.OFFER.get()).isBlank()) {
