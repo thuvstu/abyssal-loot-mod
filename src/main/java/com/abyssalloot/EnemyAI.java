@@ -334,11 +334,11 @@ public final class EnemyAI {
         final double len = Math.max(d, 1e-3);
         final double vx = dx / len;
         final double vz = dz / len;
-        CombatHandler.after(20, () -> {
+        DelayRunner.after(20, () -> {
             if (!m.isAlive() || m.isRemoved()) return;
             m.push(vx * 2.4, 0.15, vz * 2.4);
             level.sendParticles(ParticleTypes.CLOUD, m.getX(), m.getY() + 0.5, m.getZ(), 20, 1, 0.5, 1, 0.1);
-            CombatHandler.after(8, () -> {
+            DelayRunner.after(8, () -> {
                 if (!m.isAlive() || m.isRemoved()) return;
                 var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
                 double dmg = atk != null ? atk.getValue() * 1.5 : 10;

@@ -272,7 +272,7 @@ public final class ModPackets {
     private static void handleBoon(BoonPacket payload, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {
-                CombatHandler.chooseBoon(sp, payload.id());
+                BoonHandler.chooseBoon(sp, payload.id());
             }
         });
     }

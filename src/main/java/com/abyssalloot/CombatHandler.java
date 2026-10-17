@@ -29,40 +29,9 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 public final class CombatHandler {
     private CombatHandler() {}
 
-    /** 遅延実行キュー (絶対tickで発火。WeaponArtsの隕石・爆縮用) */
-    private record DelayTask(long targetTick, Runnable task) {}
-    private static final java.util.List<DelayTask> PENDING =
-            java.util.Collections.synchronizedList(new java.util.ArrayList<>());
     /** 最終撃破tick (コンボ減衰用) */
     private static final java.util.Map<java.util.UUID, Long> LAST_KILL_TICK =
             new java.util.HashMap<>();
-
-    /** 深淵タグ持ちか (ドロップ抑止・放浪判定の共用) */
-    private static boolean hasAbyssTag(net.minecraft.world.entity.Entity e) {
-        for (String t : e.getTags()) {
-            if (t.startsWith("abyss_")) return true;
-        }
-        return false;
-    }
-
-    /**
-     * 深淵MOBのバニラドロップを消す (骨・矢・火薬などのゴミ拾い防止).
-     * Mod の報酬 (武器・欠片) は直接配布のため影響なし。経験値オーブは残る.
-     */
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onMobDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event) {
-        LivingEntity e = event.getEntity();
-        if (e instanceof ServerPlayer) return;
-        boolean ours = RunManager.BOSS_BARS.containsKey(e) || hasAbyssTag(e);
-        if (ours) {
-            event.getDrops().clear();
-            event.setCanceled(true);
-        }
-    }
-
-    public static void after(int ticks, Runnable task) {
-        PENDING.add(new DelayTask(tickCounter + Math.max(0, ticks), task));
-    }
 
     /** 装備変更で即時ステータス再計算 (防具の着脱・持替でHP等が追従する) */
     @SubscribeEvent
@@ -106,13 +75,13 @@ public final class CombatHandler {
         // 放浪の討伐: 試練外でのバニラ敵討伐もカウントし、25体ごとに欠片が戻る
         if (event.getEntity() instanceof net.minecraft.world.entity.monster.Monster
                 && !RunManager.BOSS_BARS.containsKey(event.getEntity())
-                && !hasAbyssTag(event.getEntity())) {
+                && !LootHandler.hasAbyssTag(event.getEntity())) {
             int roam = player.getData(ModAttachments.ROAM_KILLS.get()) + 1;
             if (roam >= 25) {
                 roam = 0;
                 int shards = RunManager.materialCount(player, 1);
                 if (shards > 0) {
-                    giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+                    LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
                     player.sendSystemMessage(Component.literal(
                             "§7放浪の討伐 ×25 — 魂が欠片となって戻った +" + shards));
                     RunManager.addGauge(player, 15);
@@ -140,19 +109,19 @@ public final class CombatHandler {
             // 原作 rollRarity: 運・層で上位が出やすい。武器65%・防具35%
             var drop = GearFactory.makeEquipment(rand, luck,
                     Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0);
-            giveOrDrop(player, drop);
+            LootHandler.giveOrDrop(player, drop);
             player.sendSystemMessage(Component.literal(
                     "§b戦利品: " + drop.getHoverName().getString()
                             + (ModItems.slotOf(drop.getItem()) != null ? " (右クリックで装備)" : " (持ち替えで奥義が変わる)")));
             if ("mythic".equals(GearData.rarityOf(drop))) {
                 var a = GameData.achievementById("mythic-hunter");
-                grantAch(player, "mythic-hunter", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "mythic-hunter", a.title(), GameData.shardsForReward(a.reward()));
             }
         } else if (rand.nextDouble() < 0.20) {
             int shards = RunManager.materialCount(player, 1.0);
-            if (shards > 0) giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+            if (shards > 0) LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         } else if (rand.nextDouble() < 0.08) {
-            giveOrDrop(player, ModItems.randomConsumable(rand));
+            LootHandler.giveOrDrop(player, ModItems.randomConsumable(rand));
         }
         // 満腹度: 深淵の討伐でも食料が手に入る (バニラの食料システムとの融合)
         // バニラのドロップ消去 (onMobDrops) で腹は満たせないためここで補う
@@ -163,7 +132,7 @@ public final class CombatHandler {
                     net.minecraft.world.item.Items.COOKED_PORKCHOP,
                     net.minecraft.world.item.Items.COOKED_CHICKEN,
                     net.minecraft.world.item.Items.COOKED_MUTTON};
-            giveOrDrop(player, new ItemStack(foods[rand.nextInt(foods.length)], 1 + rand.nextInt(2)));
+            LootHandler.giveOrDrop(player, new ItemStack(foods[rand.nextInt(foods.length)], 1 + rand.nextInt(2)));
         }
         // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
         if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {
@@ -192,27 +161,27 @@ public final class CombatHandler {
         boolean isWarden = deadTags.contains(Enemies.WARDEN_TAG);
         boolean isBoss = RunManager.BOSS_BARS.containsKey(event.getEntity());
         if (isBoss) {
-            giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
-            if (rand.nextFloat() < 0.5) giveOrDrop(player, randomMaterial(rand));
-            giveOrDrop(player, randomMaterial(rand));
-            giveOrDrop(player, randomMaterial(rand));
+            LootHandler.giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
+            if (rand.nextFloat() < 0.5) LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
+            LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
+            LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
             // 奥義の断片: 層主は1個以上を必ず落とす (武器の決まった入手経路になる)
             int artShards = 1 + (rand.nextFloat() < 0.4 ? 1 : 0);
             for (int i = 0; i < artShards; i++) {
-                giveOrDrop(player, ModItems.randomArtShard(rand));
+                LootHandler.giveOrDrop(player, ModItems.randomArtShard(rand));
             }
             player.sendSystemMessage(Component.literal("§5素材: 虚空のエッセンスと奥義の断片 ×" + artShards + " を得た"));
         } else if (isWarden && rand.nextFloat() < 0.8) {
-            giveOrDrop(player, randomMaterial(rand));
+            LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
             player.sendSystemMessage(Component.literal("§5素材: 番人の落とし物を得た"));
         } else if (isElite && rand.nextFloat() < 0.3) {
-            giveOrDrop(player, randomMaterial(rand));
-            eliteMaterialDrop(player, rand);
+            LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
+            LootHandler.eliteMaterialDrop(player, rand);
             if (rand.nextFloat() < 0.06) {
                 var setDrop = GearFactory.makeSetArmor(null, null, rand,
                         StatCalc.luckOf(player),
                         Math.max(1, player.getData(ModAttachments.FLOOR.get())), 0);
-                giveOrDrop(player, setDrop);
+                LootHandler.giveOrDrop(player, setDrop);
                 player.sendSystemMessage(Component.literal(
                         "§b戦利品: " + setDrop.getHoverName().getString() + " (右クリックで装備)"));
             }
@@ -231,7 +200,7 @@ public final class CombatHandler {
                     0.8f, 1.2f);
             if (lv >= 20) {
                 var a = GameData.achievementById("level-twenty");
-                grantAch(player, "level-twenty", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "level-twenty", a.title(), GameData.shardsForReward(a.reward()));
             }
             // 原作 engine.ts: レベル1につき祝福選択が1回 pend する (盟約モードでは無し)
             if (!RunManager.isCovenant(player)) {
@@ -243,7 +212,7 @@ public final class CombatHandler {
         // 未選択の祝福が残っていれば1度だけ提示 (既に提示中なら上書きしない)
         if (RunManager.pendingBoonsOf(player) > 0
                 && player.getData(ModAttachments.OFFER.get()).isBlank()) {
-            offerBoons(player);
+            BoonHandler.offerBoons(player);
         }
         // 層主撃破の記録 + ボスバー除去
         var bars = RunManager.BOSS_BARS;
@@ -261,20 +230,20 @@ public final class CombatHandler {
             // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ。未選択があれば再提示)
             if (floor == 5) {
                 var a = GameData.achievementById("floor-five");
-                grantAch(player, "floor-five", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "floor-five", a.title(), GameData.shardsForReward(a.reward()));
             }
             if (floor == 20) {
                 var a = GameData.achievementById("floor-twenty");
-                grantAch(player, "floor-twenty", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "floor-twenty", a.title(), GameData.shardsForReward(a.reward()));
             }
             int bossCount = player.getData(ModAttachments.BOSSES.get()).split(",").length;
             if (bossCount >= 3) {
                 var a = GameData.achievementById("boss-three");
-                grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
             }
             if (bossCount >= 5) {
                 var a = GameData.achievementById("boss-five");
-                grantAch(player, "boss-five", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "boss-five", a.title(), GameData.shardsForReward(a.reward()));
             }
             String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
             if (pendingPassive == null || pendingPassive.isBlank()) {
@@ -289,7 +258,7 @@ public final class CombatHandler {
             RunManager.heal(player, player.getMaxHealth() * 0.03);
         }
         // 武器スキル (撃破時) + 靴スキル (撃破で回避CTリセット)
-        triggerWeaponSkill(player, level, event.getEntity());
+        LootHandler.triggerWeaponSkill(player, level, event.getEntity());
         var boots = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET);
         if ("b_dash".equals(GearData.skillOf(boots))) {
             player.setData(ModAttachments.DASH_CD.get(), 0f);
@@ -334,36 +303,36 @@ public final class CombatHandler {
         }
         // 実績
         LAST_KILL_TICK.put(player.getUUID(), (long) tickCounter);
-        grantAch(player, "first-blood", "深淵への第一歩", 2);
+        Achievements.grantAch(player, "first-blood", "深淵への第一歩", 2);
         if (player.getData(ModAttachments.KILLS.get()) >= 100) {
-            grantAch(player, "hundred-kills", "百鬼夜行", 8);
+            Achievements.grantAch(player, "hundred-kills", "百鬼夜行", 8);
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 1000) {
             var a = GameData.achievementById("thousand-kills");
-            grantAch(player, "thousand-kills", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "thousand-kills", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (player.getData(ModAttachments.COMBO.get()) >= 50) {
             var a = GameData.achievementById("combo-fifty");
-            grantAch(player, "combo-fifty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "combo-fifty", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (player.getData(ModAttachments.COMBO.get()) >= 100) {
             var a = GameData.achievementById("combo-hundred");
-            grantAch(player, "combo-hundred", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "combo-hundred", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (player.getData(ModAttachments.PERFECT.get()) >= 20) {
             var a = GameData.achievementById("perfect-twenty");
-            grantAch(player, "perfect-twenty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "perfect-twenty", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (player.getData(ModAttachments.HARVEST.get()) >= 10) {
             var a = GameData.achievementById("harvest-ten");
-            grantAch(player, "harvest-ten", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "harvest-ten", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 5000) {
             var a = GameData.achievementById("kills-five-thousand");
-            grantAch(player, "kills-five-thousand", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "kills-five-thousand", a.title(), GameData.shardsForReward(a.reward()));
         }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
-        if (bossRec.contains("10")) grantAch(player, "floor-ten", "深層探査者", 10);
+        if (bossRec.contains("10")) Achievements.grantAch(player, "floor-ten", "深層探査者", 10);
         // 真ボス・頂点ボス撃破判定
         var deadName = event.getEntity().getCustomName();
         if (deadName != null && deadName.getString().contains("ニヒル")) {
@@ -400,7 +369,7 @@ public final class CombatHandler {
         }
         // 呪われた召喚門の破壊 (原作: 戦績に保存され実績「門を断つ者」)
         if (event.getEntity().getTags().contains(Enemies.GATE_TAG)) {
-            grantAch(player, "gate-breaker", "門を断つ者", 8);
+            Achievements.grantAch(player, "gate-breaker", "門を断つ者", 8);
         }
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0
@@ -418,9 +387,9 @@ public final class CombatHandler {
                     && player.getData(ModAttachments.OFFER.get()).isBlank()) {
                 player.sendSystemMessage(Component.literal(
                         "§e◆ レベルアップの祝福が未選択だ (" + RunManager.pendingBoonsOf(player) + "件)"));
-                offerBoons(player);
+                BoonHandler.offerBoons(player);
             } else if (!player.getData(ModAttachments.OFFER.get()).isBlank()) {
-                resendBoonOffer(player);
+                BoonHandler.resendBoonOffer(player);
             }
         }
     }
@@ -445,7 +414,7 @@ public final class CombatHandler {
                 int x = Integer.parseInt(p[1]), y = Integer.parseInt(p[2]), z = Integer.parseInt(p[3]);
                 if (!hit && x == pos.getX() && y == pos.getY() && z == pos.getZ()) {
                     hit = true;
-                    triggerDestructible(player, level, p[0], pos);
+                    LootHandler.triggerDestructible(player, level, p[0], pos);
                 } else {
                     keep.add(d);
                 }
@@ -462,7 +431,7 @@ public final class CombatHandler {
                 .getKey(level.getBlockState(pos).getBlock()).getPath();
         var rand = player.getRandom();
         Runnable bonus = () -> {
-            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
+            LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
             player.displayClientMessage(Component.literal("§b深淵の恵み: 魂の欠片+1"), true);
         };
         if (held == ModItems.ABYSS_PICKAXE.get()) {
@@ -485,14 +454,14 @@ public final class CombatHandler {
             if ((path.contains("wheat") || path.contains("carrot") || path.contains("potato")
                     || path.contains("beetroot") || path.contains("melon") || path.contains("pumpkin"))
                     && rand.nextDouble() < 0.25) {
-                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.WHEAT_SEEDS));
+                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.WHEAT_SEEDS));
             }
         } else if (held == ModItems.ABYSS_SHEARS.get()) {
             // 蜘蛛の巣から50%で糸+2、葉から10%で棒
             if (path.contains("cobweb") && rand.nextDouble() < 0.5) {
-                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STRING, 2));
+                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STRING, 2));
             } else if (path.contains("leaves") && rand.nextDouble() < 0.10) {
-                giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STICK));
+                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STICK));
             }
         }
     }
@@ -512,142 +481,8 @@ public final class CombatHandler {
         }
     }
 
-    private static void triggerDestructible(ServerPlayer player, ServerLevel level, String kind,
-                                            net.minecraft.core.BlockPos pos) {
-        var at = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        switch (kind) {
-            case "red" -> {
-                // 赤水晶: 原作通り 攻撃×4.2 の爆発 (220px ≒ 半径4)。自分にも当たる
-                WeaponArts.pulse(level, player, at, 4, 4.2, true,
-                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
-                player.sendSystemMessage(Component.literal("§c赤水晶が爆発した！"));
-            }
-            case "blue" -> {
-                // 青瓶: 原作通り 周囲の敵を凍結 (250px ≒ 半径5)。回復はしない
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
-                        at.x, at.y + 1, at.z, 30, 2, 1.5, 2, 0.1);
-                for (var e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(at.x - 5, at.y - 4, at.z - 5,
-                                at.x + 5, at.y + 4, at.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
-                    e.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 100, 1));
-                }
-                player.sendSystemMessage(Component.literal("§b青の霊薬！ 周囲の敵が凍結した"));
-            }
-            default -> {
-                // 運命の祭壇: 原作の5 fate から1つ (rage/gold/haste/armor/scourge)
-                String[] fates = {"rage", "gold", "haste", "armor", "scourge"};
-                String fate = fates[player.getRandom().nextInt(fates.length)];
-                int dur = fate.equals("scourge") ? 400 : fate.equals("gold") || fate.equals("haste") ? 600 : 500;
-                RunManager.setShrine(player, fate, dur);
-                String label = switch (fate) {
-                    case "rage" -> "§c怒りの加護: 与ダメ+60%・被ダメ+20% (25秒)";
-                    case "gold" -> "§6黄金の祝福: 素材+150%・最大HP-20 (30秒)";
-                    case "haste" -> "§a風の加護: 攻速・移動が上昇 (30秒)";
-                    case "armor" -> "§7大地の加護: 被ダメ-50%・回避不可 (25秒)";
-                    default -> "§5深淵の試練: 毎秒2損耗・運+100 (20秒)";
-                };
-                player.sendSystemMessage(Component.literal("§e【運命の祭壇】" + label));
-            }
-        }
-    }
-
-    /** 素材の抽選 (古代50/混沌30/虚空20。原作 MATERIALS の重みに対応) */
-    private static ItemStack randomMaterial(net.minecraft.util.RandomSource rand) {
-        float r = rand.nextFloat();
-        if (r < 0.12f) return new ItemStack(ModItems.VOID_ESSENCE.get());
-        if (r < 0.30f) return new ItemStack(ModItems.CHAOS_GEM.get());
-        if (r < 0.48f) return new ItemStack(ModItems.ANCIENT_STONE.get());
-        var extra = new ItemStack[]{
-                new ItemStack(ModItems.ABYSS_BLOOD_CRYSTAL.get()),
-                new ItemStack(ModItems.ABYSS_SHADOW_STONE.get()),
-                new ItemStack(ModItems.ABYSS_STAR_DUST.get()),
-                new ItemStack(ModItems.ABYSS_WYRM_SCALE.get()),
-                new ItemStack(ModItems.ABYSS_ANCIENT_CORE.get()),
-                new ItemStack(ModItems.ABYSS_VOID_PIECE.get())};
-        return extra[rand.nextInt(extra.length)];
-    }
-
-    /** 精鋭の追加ドロップ: 新素材1〜2個 (18%) */
-    private static void eliteMaterialDrop(ServerPlayer player, net.minecraft.util.RandomSource rand) {
-        if (rand.nextFloat() < 0.18f) {
-            giveOrDrop(player, randomMaterial(rand));
-            if (rand.nextFloat() < 0.4f) giveOrDrop(player, randomMaterial(rand));
-        }
-    }
-
     private static int needFor(int level) {
         return (level - 1) * (level + 4);
-    }
-
-    static void giveOrDrop(ServerPlayer player, ItemStack stack) {
-        if (!player.getInventory().add(stack)) {
-            var level = (ServerLevel) player.level();
-            var e = new net.minecraft.world.entity.item.ItemEntity(
-                    level, player.getX(), player.getY() + 1, player.getZ(), stack);
-            level.addFreshEntity(e);
-        }
-    }
-
-    /** 実績付与 (重複なし・欠片報酬)。レベルアップ音で確実な存在感を出す */
-    public static void grantAch(ServerPlayer player, String id, String title, int shards) {
-        String raw = player.getData(ModAttachments.ACH.get());
-        var have = new java.util.HashSet<String>();
-        if (raw != null && !raw.isBlank()) have.addAll(java.util.List.of(raw.split(",")));
-        if (have.contains(id)) return;
-        have.add(id);
-        player.setData(ModAttachments.ACH.get(), String.join(",", have));
-        player.sendSystemMessage(Component.literal("§e★ 実績解除: " + title + " (欠片+" + shards + ")"));
-        player.level().playSound(null, player.blockPosition(),
-                net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.PLAYERS,
-                0.7f, 1.5f);
-        if (shards > 0) {
-            giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
-        }
-    }
-
-    /* ---------------- 祝福3択 ---------------- */
-
-    /**
-     * 祝福3択の提示。原作 engine.ts drainRewards 相当:
-     * 未選択の祝福 (PENDING_BOONS) がある間、1回ずつ選択画面 (GUI+チャット) で提示し、
-     * 選ぶまで消えない (層移動などで消される前に PENDING_BOONS が保存される)。
-     */
-    public static void offerBoons(ServerPlayer player) {
-        if (RunManager.isCovenant(player)) return;
-        var rand = player.getRandom();
-        var pick = Boons.rollBoons(rand::nextDouble, 3);
-        var ids = new java.util.ArrayList<String>();
-        var msg = Component.literal("§e◆ 祝福を選べ (画面のボタンかクリック): ");
-        for (var b : pick) {
-            ids.add(b.id());
-            var btn = Component.literal("§6[" + b.name() + " " + b.desc() + "] ")
-                    .withStyle(s -> s.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss boon " + b.id()))
-                            .withUnderlined(true));
-            msg.append(btn);
-        }
-        player.setData(ModAttachments.OFFER.get(), String.join(",", ids));
-        player.sendSystemMessage(msg);
-        presentBoonGui(player);
-    }
-
-    /** 未選択分から祝福3択を提示する (既に提示中なら何もしない)。盟約モードでは無視 */
-    static void drainPendingBoons(ServerPlayer player) {
-        if (RunManager.isCovenant(player)) return;
-        if (RunManager.pendingBoonsOf(player) <= 0
-                || !player.getData(ModAttachments.OFFER.get()).isBlank()) return;
-        offerBoons(player);
-    }
-
-    /** 選択GUI + フラッシュHUDをクライアントへ送る */
-    private static void presentBoonGui(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.OFFER.get());
-        if (raw == null || raw.isBlank()) return;
-        var ids = new java.util.ArrayList<String>(java.util.List.of(raw.split(",")));
-        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
-                new ModPackets.BoonSync(ids, RunManager.pendingBoonsOf(player)));
-        sendHud(player);
     }
 
     /** HUDの即時更新 (未選択カウントを出すため) */
@@ -664,58 +499,6 @@ public final class CombatHandler {
                         RunManager.pendingBoonsOf(player),
                         player.getData(ModAttachments.LIGHT_CD.get()),
                         player.getData(ModAttachments.SKILL_CD.get())));
-    }
-
-    /** 未選択の祝福を再提示 (上書きしない。GUIを開く・チャットにもボタンを出す) */
-    public static void resendBoonOffer(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.OFFER.get());
-        if (raw != null && !raw.isBlank()) {
-            var msg = Component.literal("§e祝福を選べ (再提示): ");
-            for (String id : raw.split(",")) {
-                var b = Boons.boonById(id);
-                if (b == null) continue;
-                var btn = Component.literal("§6[" + b.name() + " " + b.desc() + "] ")
-                        .withStyle(s -> s.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss boon " + b.id()))
-                                .withUnderlined(true));
-                msg.append(btn);
-            }
-            player.sendSystemMessage(msg);
-            presentBoonGui(player);
-            return;
-        }
-        // 提示分が無い場合は未選択残数から再ロール (startRun・startTrue で OFFER を消去済みでも復元できる)
-        if (RunManager.pendingBoonsOf(player) > 0 && !RunManager.isCovenant(player)) {
-            offerBoons(player);
-            return;
-        }
-        player.sendSystemMessage(Component.literal("§7選択待ちの祝福は無い"));
-    }
-
-    /**
-     * 祝福の決定 (GUI・コマンド共通)。提示中の3択からの選択のみ有効。
-     * 決定で未選択カウントを消費し、まだ残っていれば次の3択を提示する (原作 drainRewards の逐次開示)。
-     */
-    public static boolean chooseBoon(ServerPlayer player, String id) {
-        var def = Boons.boonById(id);
-        if (def == null) return false;
-        String offer = player.getData(ModAttachments.OFFER.get());
-        if (offer == null || !java.util.List.of(offer.split(",")).contains(id)) {
-            player.sendSystemMessage(Component.literal("§c今はその祝福を選べない (レベルアップ時の3択から選んでね)"));
-            return false;
-        }
-        RunManager.addBoon(player, id);
-        player.setData(ModAttachments.OFFER.get(), "");
-        int left = Math.max(0, RunManager.pendingBoonsOf(player) - 1);
-        RunManager.setPendingBoons(player, left);
-        GameData.HeroClass cls = GameData.HeroClass.byId(
-                player.getData(ModAttachments.HERO_CLASS.get()));
-        StatCalc.applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()));
-        player.sendSystemMessage(Component.literal(
-                "§e祝福を得た: " + def.name() + " (" + def.desc() + ")"
-                        + (left > 0 ? " — 残り" + left + "件の選択待ち" : "")));
-        sendHud(player);
-        if (left > 0) drainPendingBoons(player);
-        return true;
     }
 
     /**
@@ -760,7 +543,7 @@ public final class CombatHandler {
                 player.setData(ModAttachments.PERFECT.get(), perfect);
                 if (perfect >= 10) {
                     var a = GameData.achievementById("perfect-ten");
-                    grantAch(player, "perfect-ten", a.title(), GameData.shardsForReward(a.reward()));
+                    Achievements.grantAch(player, "perfect-ten", a.title(), GameData.shardsForReward(a.reward()));
                 }
                 // 見切りの成立時刻 (恩寵「完全主義」の3秒窓)
                 player.setData(ModAttachments.PARRY_TICK.get(), player.level().getGameTime());
@@ -1402,7 +1185,7 @@ public final class CombatHandler {
             }
             if (uses >= 10) {
                 var a = GameData.achievementById("art-master");
-                grantAch(player, "art-master", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "art-master", a.title(), GameData.shardsForReward(a.reward()));
             }
             return true;
         }
@@ -1438,22 +1221,7 @@ public final class CombatHandler {
         var server = event.getServer();
         tickCounter++;
         // 遅延タスク (絶対tick到達で発火・除去)
-        if (!PENDING.isEmpty()) {
-            var done = new java.util.ArrayList<DelayTask>();
-            synchronized (PENDING) {
-                for (DelayTask d : PENDING) {
-                    if (d.targetTick() <= tickCounter) done.add(d);
-                }
-                PENDING.removeAll(done);
-            }
-            for (DelayTask d : done) {
-                try {
-                    d.task().run();
-                } catch (Exception ex) {
-                    AbyssalLootMod.LOGGER.warn("delayed task failed", ex);
-                }
-            }
-        }
+        DelayRunner.tick();
         EnemyAI.tickGuards(server, tickCounter);
         EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -1619,108 +1387,6 @@ public final class CombatHandler {
                 Vec3 p = origin.lerp(tp, (double) i / steps);
                 level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
                         p.x, p.y, p.z, 1, 0, 0, 0, 0);
-            }
-        }
-    }
-
-    /** 武器スキル (撃破時発動)。主手持ちの abyss_skill を読む */
-    private static void triggerWeaponSkill(ServerPlayer player, ServerLevel level, LivingEntity dead) {
-        String skill = GearData.skillOf(player.getMainHandItem());
-        if (skill == null) return;
-        Vec3 pos = dead.position();
-        switch (skill) {
-            case "w_soul" -> RunManager.addGauge(player, 8);
-            case "w_feast" -> RunManager.heal(player, player.getMaxHealth() * 0.05);
-            case "w_chain" -> WeaponArts.pulse(level, player, pos, 4, 0.8, false,
-                    net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK);
-            case "w_break" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
-                                pos.x + 5, pos.y + 4, pos.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
-                }
-            }
-            case "w_swift" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 0));
-            case "w_burst" -> WeaponArts.pulse(level, player, pos, 3, 1.5, true,
-                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
-            case "w_venge" -> player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
-            case "w_tide" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
-                                pos.x + 6, pos.y + 4, pos.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    Vec3 pull = pos.subtract(e.position()).normalize().scale(1.6);
-                    e.push(pull.x, 0.2, pull.z);
-                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
-                }
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,
-                        pos.x, pos.y + 1, pos.z, 20, 2, 1, 2, 0.1);
-            }
-            case "w_gale" -> {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1));
-                RunManager.addGauge(player, 6);
-            }
-            case "w_ignite" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
-                                pos.x + 5, pos.y + 4, pos.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
-                }
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.FLAME,
-                        pos.x, pos.y + 1, pos.z, 20, 1.5, 1, 1.5, 0.1);
-            }
-            case "w_greed" -> {
-                if (player.getRandom().nextFloat() < 0.20f) {
-                    giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
-                    player.displayClientMessage(Component.literal("§6強奪！ 魂の欠片を奪った"), true);
-                }
-            }
-            case "w_hymn" -> {
-                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 80, 0));
-                RunManager.heal(player, player.getMaxHealth() * 0.02);
-            }
-            case "w_warcry" -> {
-                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
-                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 100, 0));
-            }
-            case "w_avalanche" -> {
-                var cands = level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
-                                pos.x + 6, pos.y + 4, pos.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer));
-                cands.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
-                int n = 0;
-                for (LivingEntity e : cands) {
-                    if (n++ >= 3) break;
-                    Vec3 pull = pos.subtract(e.position()).normalize().scale(2.0);
-                    e.push(pull.x, 0.2, pull.z);
-                }
-            }
-            case "w_storm" -> {
-                var target = level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 12, pos.y - 6, pos.z - 12,
-                                pos.x + 12, pos.y + 6, pos.z + 12),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer)).stream()
-                        .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
-                        .orElse(null);
-                if (target != null) {
-                    WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
-                            (float) (StatCalc.attackDamageOf(player) * 1.2));
-                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
-                            target.getX(), target.getY() + 1, target.getZ(), 16, 0.4, 0.8, 0.4, 0.1);
-                }
-            }
-            case "w_rend" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
-                                pos.x + 5, pos.y + 4, pos.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 0));
-                }
-            }
-            default -> {
             }
         }
     }

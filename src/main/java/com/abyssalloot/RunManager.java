@@ -492,7 +492,7 @@ public final class RunManager {
                     Vec3 at = origin.add(look.scale(4 + i * 3));
                     final Vec3 target = at;
                     final boolean last = (i == 2);
-                    CombatHandler.after(4 + i * 4, () -> {
+                    DelayRunner.after(4 + i * 4, () -> {
                         if (!player.isAlive()) return;
                         WeaponArts.pulse((ServerLevel) player.level(), player, target, 3.5, 2.2,
                                 last, ParticleTypes.EXPLOSION);
@@ -566,7 +566,7 @@ public final class RunManager {
                 int got = 0;
                 for (ItemEntity it : level.getEntitiesOfClass(ItemEntity.class,
                         player.getBoundingBox().inflate(12), e -> e.isAlive())) {
-                    CombatHandler.giveOrDrop(player, it.getItem().copy());
+                    LootHandler.giveOrDrop(player, it.getItem().copy());
                     it.discard();
                     got++;
                 }
@@ -682,7 +682,7 @@ public final class RunManager {
             var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
             if (atkSpd != null) {
                 atkSpd.setBaseValue(atkSpd.getBaseValue() * 1.4);
-                CombatHandler.after(ticks, () -> {
+                DelayRunner.after(ticks, () -> {
                     var a2 = player.getAttribute(Attributes.ATTACK_SPEED);
                     if (player.isAlive() && a2 != null) a2.setBaseValue(a2.getBaseValue() / 1.4);
                 });
@@ -827,10 +827,10 @@ public final class RunManager {
         player.getInventory().add(GearFactory.makePrizeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom(), StatCalc.luckOf(player), 25));
         sendSoulSummary(player, false);
-        CombatHandler.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
+        Achievements.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
         if (isCovenant(player)) {
             var a = GameData.achievementById("covenant-kept");
-            CombatHandler.grantAch(player, "covenant-kept", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "covenant-kept", a.title(), GameData.shardsForReward(a.reward()));
         }
         // 出撃終了: 条件固定を解除
         endRun(player);
@@ -1085,7 +1085,7 @@ public final class RunManager {
         player.getInventory().add(mythicWeapon(player));
         player.getInventory().add(GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 26, 130));
         sendSoulSummary(player, true);
-        CombatHandler.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
+        Achievements.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
         player.sendSystemMessage(Component.literal("§c終焉の座が開いた… /abyss pinnacle で《タルタロス・オメガ》に挑め"));
         endRun(player);
     }
@@ -1122,7 +1122,7 @@ public final class RunManager {
         withRarity(setDrop, "mythic", setDrop.getHoverName().getString());
         player.getInventory().add(setDrop);
         var a = GameData.achievementById("pinnacle-god");
-        CombatHandler.grantAch(player, "pinnacle-god", a.title(), GameData.shardsForReward(a.reward()));
+        Achievements.grantAch(player, "pinnacle-god", a.title(), GameData.shardsForReward(a.reward()));
         endRun(player);
     }
 
@@ -1165,7 +1165,7 @@ public final class RunManager {
         // 踏破判定 (原作FINAL_FLOOR=25 / 巡礼は8層主 / 終焉の座は27単層)
         if ("bossrush".equals(mode) && floor > 8) {
             var a = GameData.achievementById("rush-master");
-            CombatHandler.grantAch(player, "rush-master", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "rush-master", a.title(), GameData.shardsForReward(a.reward()));
             victory(player);
             return;
         }
@@ -1182,24 +1182,24 @@ public final class RunManager {
         if (floor == 10) {
             if (isDaily(player)) {
                 var a = GameData.achievementById("daily-depth");
-                CombatHandler.grantAch(player, "daily-depth", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "daily-depth", a.title(), GameData.shardsForReward(a.reward()));
             }
             if (sigilsOf(player).size() >= 8) {
                 var a = GameData.achievementById("eight-sigils");
-                CombatHandler.grantAch(player, "eight-sigils", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grantAch(player, "eight-sigils", a.title(), GameData.shardsForReward(a.reward()));
             }
         }
         if (floor == 15 && "inferno".equals(player.getData(ModAttachments.DIFF.get()))) {
             var a = GameData.achievementById("inferno-slayer");
-            CombatHandler.grantAch(player, "inferno-slayer", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "inferno-slayer", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (floor == 35 && "endless".equals(mode)) {
             var a = GameData.achievementById("endless-diver");
-            CombatHandler.grantAch(player, "endless-diver", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "endless-diver", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (floor == 50 && "endless".equals(mode)) {
             var a = GameData.achievementById("endless-fifty");
-            CombatHandler.grantAch(player, "endless-fifty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "endless-fifty", a.title(), GameData.shardsForReward(a.reward()));
         }
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -1210,7 +1210,7 @@ public final class RunManager {
                 || !player.getData(ModAttachments.OFFER.get()).isBlank()) {
             player.sendSystemMessage(Component.literal(
                     "§e◆ レベルアップの祝福が未選択だ (" + Math.max(1, pendingBoonsOf(player)) + "件)"));
-            CombatHandler.resendBoonOffer(player);
+            BoonHandler.resendBoonOffer(player);
         }
         player.setData(ModAttachments.EVENT_DONE.get(), 0);
         player.setData(ModAttachments.SHOP.get(), "");
@@ -1481,7 +1481,7 @@ public final class RunManager {
                     player.sendSystemMessage(Component.literal(
                             "§7現在の選択のあとに (残り" + (pendingBoonsOf(player) + 1) + "件)"));
                 } else {
-                    CombatHandler.offerBoons(player);
+                    BoonHandler.offerBoons(player);
                 }
             }
             case "shop" -> {
@@ -1623,7 +1623,7 @@ public final class RunManager {
         GearData.setForgeLv(main, lv + 1);
         if (lv + 1 >= 5) {
             var a = GameData.achievementById("forge-max");
-            CombatHandler.grantAch(player, "forge-max", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "forge-max", a.title(), GameData.shardsForReward(a.reward()));
         }
         String nowTrait = GearData.traitOf(main);
         String hover = main.getHoverName().getString().replaceAll("^[§0-9a-f]+(覚醒|神錬)・", "");
@@ -1650,11 +1650,11 @@ public final class RunManager {
         player.setData(ModAttachments.EVENT_TOTAL.get(), total);
         if (total >= 5) {
             var a = GameData.achievementById("event-five");
-            CombatHandler.grantAch(player, "event-five", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "event-five", a.title(), GameData.shardsForReward(a.reward()));
         }
         if (total >= 10) {
             var a = GameData.achievementById("event-ten");
-            CombatHandler.grantAch(player, "event-ten", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grantAch(player, "event-ten", a.title(), GameData.shardsForReward(a.reward()));
         }
     }
 

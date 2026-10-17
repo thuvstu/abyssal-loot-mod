@@ -378,10 +378,10 @@ public final class ArenaManager {
                     if ("spike".equals(fkind)) {
                         // 針罠: 短い予兆 (0.5秒) の後に小範囲の直撃 + 鈍足
                         for (int k = 0; k < 2; k++) {
-                            CombatHandler.after(5 * k, () -> level.sendParticles(ParticleTypes.CRIT,
+                            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.CRIT,
                                     x, y + 0.2, z, 8, 0.8, 0.1, 0.8, 0.02));
                         }
-                        CombatHandler.after(10, () -> {
+                        DelayRunner.after(10, () -> {
                             if (!player.isAlive()) return;
                             player.hurtServer(level, level.damageSources().cactus(), 6f);
                             player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 1, false, false));
@@ -390,10 +390,10 @@ public final class ArenaManager {
                     } else {
                         // 岩罠: 予兆 (約1秒) を経て範囲爆発. 予兆の間は煙を出す
                         for (int k = 0; k < 4; k++) {
-                            CombatHandler.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
+                            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
                                     x, y + 0.2, z, 10, 1.0, 0.1, 1.0, 0.02));
                         }
-                        CombatHandler.after(20, () -> WeaponArts.trapBlast(level, player, at));
+                        DelayRunner.after(20, () -> WeaponArts.trapBlast(level, player, at));
                         player.sendSystemMessage(Component.literal("§c岩罠が起動… 1秒後に爆発！"));
                     }
                     changed = true;

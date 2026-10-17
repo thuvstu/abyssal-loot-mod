@@ -51,7 +51,7 @@ public final class WeaponArts {
 
     /** 遅延実行 (CombatHandler.after の安全版)。発動者が既に倒れていたら何もしない */
     private static void later(ServerPlayer player, int ticks, java.util.function.Consumer<ServerLevel> action) {
-        CombatHandler.after(ticks, () -> {
+        DelayRunner.after(ticks, () -> {
             if (!player.isAlive()) return;
             action.accept(slevel(player));
         });

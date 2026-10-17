@@ -231,7 +231,7 @@ public final class ModCommands {
                 }))
                 .then(Commands.literal("boon")
                         .executes(ctx -> {
-                            CombatHandler.resendBoonOffer(ctx.getSource().getPlayerOrException());
+                            BoonHandler.resendBoonOffer(ctx.getSource().getPlayerOrException());
                             return 1;
                         })
                         .then(Commands.argument("id", StringArgumentType.word())
@@ -246,7 +246,7 @@ public final class ModCommands {
                                 })
                                 .executes(ctx -> {
                                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                                    CombatHandler.chooseBoon(p, StringArgumentType.getString(ctx, "id"));
+                                    BoonHandler.chooseBoon(p, StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
                 .then(Commands.literal("attr")
