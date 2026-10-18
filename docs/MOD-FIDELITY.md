@@ -291,3 +291,15 @@ MOD 側の数値・規則はこの文書の対応表に従い、純粋な計算�
   静的Mapのログアウト掃除・マジックナンバー定数化・脆弱なsubstring判定のトークン比較化 など。
 - 未検証: 実機での通し確認は従来どおり未実施。MAX_HEALTH 属性の実効上限 (1024) と BossDef 数値の
   整合は要確認 (高精度なHP設定は実効値に丸められる MC 仕様)。
+
+### 第19段 補足 (整合性確認 — 属性上限の実効値)
+
+- バニラ 1.21.11 の属性範囲を decompiled ソースで確認: MAX_HEALTH=1〜1024 / ATTACK_DAMAGE=0〜2048。
+  setBaseValue は sanitize せず、getValue() でクランプされるため setBaseValue(min(1000000,...)) は無意味。
+- 実効HPの検算結果: 5層≈346 / 10層≈477 / 15層≈656 / 20層≈884 / 25層=1364→1024 / 終焉の座=19000→1024 /
+  超越者=3191→1024 (真ボスは startTrue で 4000/20=200 に圧縮済み)。25層以降は実質同HPのため、
+  難易度差別化は攻撃力 (2048上限内) とフェーズ弾幕で担保されている。
+- 対応: setMobStats・spawnFloorBoss・spawnAscensionBoss の min(1000000,...) を min(1024,...) に修正し、
+  実効値の目安を GameData.BOSSES と BossHandler.setMobStats の注釈に明記。
+- プレイヤー最大HPも 1024 上限 (剣聖なら Lv84+ でクランプ) — 長期 endless の制約として注釈に明記。
+- attackDamageWith の「heroDamage*0.35 + 属性値*0.15」は原作ダメージの1/2スケール調整である旨を注釈に明記。
