@@ -34,7 +34,7 @@ public class CompareScreen extends AbstractContainerScreen<CompareMenu> {
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF26262E);
+        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF5C6E8B);
         g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF5C6E8B);
         g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);

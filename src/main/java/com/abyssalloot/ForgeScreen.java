@@ -36,7 +36,7 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
         // 背景パネル (バニラの作業台に寄せた暗色)
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF2A2A34);
+        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF555566);
         g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF555566);
         g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);

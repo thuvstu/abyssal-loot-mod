@@ -13,6 +13,10 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
  * 数値はサーバーからの HudSync で更新される (未受信時は表示しない).
  * 区域名は GameData (MC非依存) から層番号で引くため追加パケットは不要.
  * 小技/必殺のCTは残存時のみ表示 (CT中はサーバーが0.1秒ごとに再送する).
+ *
+ * レイアウト方針: 全情報を画面左上 (x=10, y=10 から縦に流す) に集約する。
+ * バニラHUDの既存ゾーン — 上中央=ボスバー / 右上=効果アイコン / 下中央=ホットバー・体力・
+ * 経験値 / 左下=チャット — との被りを避けるため、左上 (通常は空いている領域) のみを使用する.
  */
 public final class ClientHud {
     private ClientHud() {}
@@ -30,7 +34,7 @@ public final class ClientHud {
     private static volatile boolean relicPending;
     private static volatile boolean passivePending;
 
-    /** CTバーの満 tara 基準 (受信した最大値。CTが尽きたら0.2秒後にリセット) */
+    /** CTバーの満タン基準 (受信した最大値。CTが尽きて0.3秒経ったらリセット) */
     private static float lightCdMax;
     private static float skillCdMax;
     private static long lastCdSeen;
@@ -66,6 +70,7 @@ public final class ClientHud {
                 ClientHud::render));
     }
 
+    /** 共通バー (背景・枠・明部ハイライト)。MOD内の全HUDバーで同じ見た目にする */
     private static void bar(GuiGraphics g, int x, int y, int w, int h,
                             float pct, int color, boolean segments) {
         pct = Math.max(0f, Math.min(1f, pct));
@@ -167,18 +172,12 @@ public final class ClientHud {
             y += 12;
         }
 
-        // ---- 転移門OPEN (画面中央上に点滅バナー) ----
-        if (portalOpen != 0) {
-            String msg = "◆ 転移門OPEN — G → 次の層へ ◆";
-            int w = font.width(msg);
-            int cx = mc.getWindow().getGuiScaledWidth() / 2;
-            int by = 34;
-            if (blink) {
-                g.fill(cx - w / 2 - 5, by - 3, cx + w / 2 + 5, by + 11, 0x90000000);
-                g.fill(cx - w / 2 - 5, by - 3, cx + w / 2 + 5, by - 2, 0xFF7CFFB2);
-                g.fill(cx - w / 2 - 5, by + 10, cx + w / 2 + 5, by + 11, 0xFF7CFFB2);
-                g.drawCenteredString(font, msg, cx, by, 0xFF7CFFB2);
-            }
+        // ---- 転移門OPEN (点滅) ----
+        // 画面上中央はバニラのボスバー (層主戦)、右上は効果アイコンと被るため
+        // 左上のこのゾーンに集約する。バニラHUDと被らない位置は左上 (通常空き) のみ。
+        if (portalOpen != 0 && blink) {
+            g.drawString(font, "◆転移門OPEN! (G→次の層へ)", x0, y, 0xFF7CFFB2);
+            y += 12;
         }
     }
 }

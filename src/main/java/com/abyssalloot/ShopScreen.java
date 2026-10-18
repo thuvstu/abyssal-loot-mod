@@ -36,7 +36,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF2A2A30);
+        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF665544);
         g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF665544);
         g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
