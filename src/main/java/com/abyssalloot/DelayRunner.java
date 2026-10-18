@@ -25,10 +25,15 @@ public final class DelayRunner {
         if (PENDING.isEmpty()) return;
         var done = new java.util.ArrayList<DelayTask>();
         synchronized (PENDING) {
-            for (DelayTask d : PENDING) {
-                if (d.targetTick() <= current) done.add(d);
+            // 1パスで到達分を取り除く (removeAll は O(到達数×総数) になるため)
+            var it = PENDING.iterator();
+            while (it.hasNext()) {
+                DelayTask d = it.next();
+                if (d.targetTick() <= current) {
+                    it.remove();
+                    done.add(d);
+                }
             }
-            PENDING.removeAll(done);
         }
         for (DelayTask d : done) {
             try {

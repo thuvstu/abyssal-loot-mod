@@ -109,8 +109,7 @@ public final class SkillHandler {
                 player.displayClientMessage(Component.literal("§d奥義解放" + artTier + "！"), true);
             }
             if (uses >= 10) {
-                var a = GameData.achievementById("art-master");
-                Achievements.grantAch(player, "art-master", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "art-master");
             }
             return true;
         }

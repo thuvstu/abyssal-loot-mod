@@ -12,7 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * クライアント専用: R=武器奥義 / V=必殺技 / X=回避ダッシュ / G=操作ハブ / N=次の層へ.
+ * クライアント専用: R=武器奥義 / V=必殺技 / X=回避ダッシュ / G=操作ハブ / N=次の層へ / C=特殊スキル.
  * 右クリック=武器小技 (サーバー側イベントで発動、キー不要)。
  * E(インベントリ)・Q(ドロップ)・F(持ち替え)・C と被らない配置。
  * サーバー側では決して読み込まれない (Distチェック経由でのみ初期化).
@@ -43,6 +43,8 @@ public final class ClientKeys {
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, category);
             nextKey = new KeyMapping("key.abyssalloot.next", KeyConflictContext.IN_GAME,
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, category);
+            subKey = new KeyMapping("key.abyssalloot.sub", KeyConflictContext.IN_GAME,
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category);
             event.register(artKey);
             event.register(skillKey);
             event.register(dashKey);
@@ -68,6 +70,9 @@ public final class ClientKeys {
             }
             if (nextKey != null && nextKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("next")));
+            }
+            if (subKey != null && subKey.consumeClick()) {
+                conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("sub")));
             }
         });
     }

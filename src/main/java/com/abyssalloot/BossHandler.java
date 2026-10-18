@@ -228,8 +228,8 @@ public final class BossHandler {
     /** 真ボス撃破 */
     public static void trueVictory(ServerPlayer player) {
         player.sendSystemMessage(Component.literal("§f★ 虚無を_zeroに還した！ ★"));
-        player.getInventory().add(mythicWeapon(player));
-        player.getInventory().add(GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 26, 130));
+        LootHandler.giveOrDrop(player, mythicWeapon(player));
+        LootHandler.giveOrDrop(player, GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 26, 130));
         RunManager.sendSoulSummary(player, true);
         Achievements.grantAch(player, "true-clear", "虚無を_zeroに還した者", 32);
         player.sendSystemMessage(Component.literal("§c終焉の座が開いた… /abyss pinnacle で《タルタロス・オメガ》に挑め"));
@@ -262,13 +262,12 @@ public final class BossHandler {
     public static void pinnacleVictory(ServerPlayer player) {
         player.sendSystemMessage(Component.literal("§6★ 終焉を穿った！タルタロス・オメガ討伐！ ★"));
         for (int i = 0; i < 3; i++) {
-            player.getInventory().add(mythicWeapon(player));
+            LootHandler.giveOrDrop(player, mythicWeapon(player));
         }
         var setDrop = GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 27, 130);
         withRarity(setDrop, "mythic", setDrop.getHoverName().getString());
-        player.getInventory().add(setDrop);
-        var a = GameData.achievementById("pinnacle-god");
-        Achievements.grantAch(player, "pinnacle-god", a.title(), GameData.shardsForReward(a.reward()));
+        LootHandler.giveOrDrop(player, setDrop);
+        Achievements.grant(player, "pinnacle-god");
         RunManager.endRun(player);
     }
 
@@ -276,12 +275,12 @@ public final class BossHandler {
     public static void ascensionVictory(ServerPlayer player) {
         player.sendSystemMessage(Component.literal("§e★ 超越者を越えた！深淵の果てに名を刻んだ！ ★"));
         for (int i = 0; i < 2; i++) {
-            player.getInventory().add(mythicWeapon(player));
+            LootHandler.giveOrDrop(player, mythicWeapon(player));
         }
-        player.getInventory().add(GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 28, 130));
+        LootHandler.giveOrDrop(player, GearFactory.makeSetArmor(null, null, player.getRandom(), StatCalc.luckOf(player), 28, 130));
         int shards = RunManager.materialCount(player, 32);
         if (shards > 0) {
-            player.getInventory().add(new ItemStack(
+            LootHandler.giveOrDrop(player, new ItemStack(
                     ModItems.SOUL_SHARD.get(), shards));
         }
         RunManager.sendSoulSummary(player, true);

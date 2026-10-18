@@ -299,14 +299,9 @@ public final class ModPackets {
 
         /** クライアント側で受信 (ClientHudへ反映) */
         public static void handle(HudSync payload, IPayloadContext ctx) {
-            ctx.enqueueWork(() -> ClientHud.update(
-                    payload.soul(), payload.floor(), payload.level(), payload.kills(), payload.combo(),
-                    payload.attrPoints(), payload.portalOpen(), payload.pendingBoons(),
-                    payload.lightCd(), payload.skillCd(),
-                    payload.relicPending(), payload.passivePending(),
-                    payload.subSkill(), payload.subCd()));        }
+            ctx.enqueueWork(() -> ClientHud.update(payload));
+        }
     }
-
     private static void handle(ActPacket payload, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {

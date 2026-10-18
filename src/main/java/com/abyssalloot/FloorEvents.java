@@ -161,7 +161,7 @@ public final class FloorEvents {
             drop = GearFactory.makeWeapon(st, player.getRandom(), StatCalc.luckOf(player), floor + 1,
                     bossFloor ? 130 : 65);
         }
-        player.getInventory().add(drop);
+        LootHandler.giveOrDrop(player, drop);
         player.sendSystemMessage(Component.literal(
                 "§b宝箱を開けた: " + drop.getHoverName().getString()));
         if ("mythic".equals(GearData.rarityOf(drop)) || "legendary".equals(GearData.rarityOf(drop))) {
@@ -226,11 +226,15 @@ public final class FloorEvents {
         }
         takeShards(player, cost);
         if (matItem != null) RunManager.takeMats(player, matItem, matCount);
+        // 素材側の接辞・希少度・特性は shrink の前に読む (武器は stacksTo(1) のため
+        // shrink 後は空スタックになり、合成効果が全て失われるため)
+        var ma = GearData.affixMap(main);
+        var sa = GearData.affixMap(sub);
+        String subRarityMerged = GearData.rarityOf(sub);
+        String subTrait = GearData.traitOf(sub);
         sub.shrink(1);
         // 原作のモジュラー合成: 両方の接辞から最善値を採用し ×1.05 (上位8件まで)
         var merged = new LinkedHashMap<String, Double>();
-        var ma = GearData.affixMap(main);
-        var sa = GearData.affixMap(sub);
         var keys = new LinkedHashSet<String>();
         keys.addAll(ma.keySet());
         keys.addAll(sa.keySet());
@@ -254,17 +258,15 @@ public final class FloorEvents {
             tag.putString("abyss_affixes", sb.toString());
         }
         // 原作の高ランク採用: 素材側の希少度が高ければ引き継ぐ。特性も本体優先・無ければ継承
-        if (GameData.rarityRank(GearData.rarityOf(sub)) > GameData.rarityRank(GearData.rarityOf(main))) {
-            tag.putString("abyss_rarity", GearData.rarityOf(sub));
+        if (GameData.rarityRank(subRarityMerged) > GameData.rarityRank(GearData.rarityOf(main))) {
+            tag.putString("abyss_rarity", subRarityMerged);
         }
-        String subTrait = GearData.traitOf(sub);
         if (GearData.traitOf(main) == null && subTrait != null) tag.putString("abyss_trait", subTrait);
         main.set(DataComponents.CUSTOM_DATA,
                 CustomData.of(tag));
         GearData.setForgeLv(main, lv + 1);
         if (lv + 1 >= 5) {
-            var a = GameData.achievementById("forge-max");
-            Achievements.grantAch(player, "forge-max", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "forge-max");
         }
         String nowTrait = GearData.traitOf(main);
         String hover = main.getHoverName().getString().replaceAll("^[§0-9a-f]+(覚醒|神錬)・", "");
@@ -290,12 +292,10 @@ public final class FloorEvents {
         int total = player.getData(ModAttachments.EVENT_TOTAL.get()) + 1;
         player.setData(ModAttachments.EVENT_TOTAL.get(), total);
         if (total >= 5) {
-            var a = GameData.achievementById("event-five");
-            Achievements.grantAch(player, "event-five", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "event-five");
         }
         if (total >= 10) {
-            var a = GameData.achievementById("event-ten");
-            Achievements.grantAch(player, "event-ten", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "event-ten");
         }
     }
 
@@ -331,7 +331,8 @@ public final class FloorEvents {
             player.sendSystemMessage(Component.literal("§c欠片" + price + "個が足りない (所持" + countShards(player) + ")"));
             return;
         }
-        player.getInventory().add(GearFactory.makePrizeWeapon(st, player.getRandom(), StatCalc.luckOf(player),
+        // インベントリ満杯時は足元に落とす (欠片を消費した後なので消失させない)
+        LootHandler.giveOrDrop(player, GearFactory.makePrizeWeapon(st, player.getRandom(), StatCalc.luckOf(player),
                 Math.max(1, player.getData(ModAttachments.FLOOR.get()))));
         completeEvent(player);
         player.sendSystemMessage(Component.literal("§6購入: " + st.weaponName + " (奥義「" + st.artName + "」)"));
@@ -367,7 +368,7 @@ public final class FloorEvents {
                 }
                 int bet = have / 2;
                 if (player.getRandom().nextBoolean()) {
-                    player.getInventory().add(new ItemStack(
+                    LootHandler.giveOrDrop(player, new ItemStack(
                             ModItems.SOUL_SHARD.get(), bet));
                     player.sendSystemMessage(Component.literal("§6当たり！ 欠片+" + bet));
                 } else {
@@ -398,7 +399,7 @@ public final class FloorEvents {
                 RunManager.heal(player, player.getMaxHealth());
                 int shards = RunManager.materialCount(player, 3.0);
                 if (shards > 0) {
-                    player.getInventory().add(new ItemStack(
+                    LootHandler.giveOrDrop(player, new ItemStack(
                             ModItems.SOUL_SHARD.get(), shards));
                 }
                 player.sendSystemMessage(Component.literal("§a全回復！ 欠片+" + shards));
@@ -514,57 +515,52 @@ public final class FloorEvents {
         }
     }
 
-    /** 未選択の遺物を再提示 (選択画面GUI + チャットボタン)。ESCで後回しにした分を開ける導線 */
-    public static void resendRelicOffer(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.RELIC_OFFER.get());
+    /** 未選択の提示を再表示する共通処理 (遺物・技能の再提示で共有) */
+    private static void resendOffer(ServerPlayer player,
+                                    java.util.function.Supplier<net.neoforged.neoforge.attachment.AttachmentType<String>> offerKey,
+                                    String kind, String title, String header, String cmdPrefix) {
+        String raw = player.getData(offerKey.get());
         if (raw == null || raw.isBlank()) {
-            player.sendSystemMessage(Component.literal("§7選択待ちの遺物は無い"));
+            player.sendSystemMessage(Component.literal("§7選択待ちの" + kind + "は無い"));
             return;
         }
         var ids = new ArrayList<String>();
         var names = new ArrayList<String>();
         var descs = new ArrayList<String>();
         for (String id : raw.split(",")) {
-            var r = GameData.relicById(id);
-            if (r == null) continue;
+            String name = selectionLabel(id);
+            if (name.equals(id)) continue; // 未定義IDは除外
             ids.add(id);
-            names.add(r.name());
-            descs.add(r.desc());
+            names.add(name);
+            descs.add(descOf(id));
         }
         if (ids.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§7選択待ちの遺物は無い"));
+            player.sendSystemMessage(Component.literal("§7選択待ちの" + kind + "は無い"));
             return;
         }
-        player.sendSystemMessage(Component.literal("§d遺物を選べ (再提示): ")
-                .append(btn("§6[選択画面を開く]", "/abyss relic")));
-        openEventScreen(player, "relic", "◆ 遺物を選べ (最大2つまで) ◆",
-                ids, names, descs, "ESCで後で選ぶ (選ばないと消えない)", false);
+        player.sendSystemMessage(Component.literal(header)
+                .append(btn("§6[選択画面を開く]", cmdPrefix)));
+        openEventScreen(player, kind, title, ids, names, descs,
+                "ESCで後で選ぶ (選ばないと消えない)", false);
+    }
+
+    /** 未選択の遺物を再提示 (選択画面GUI + チャットボタン)。ESCで後回しにした分を開ける導線 */
+    public static void resendRelicOffer(ServerPlayer player) {
+        resendOffer(player, ModAttachments.RELIC_OFFER, "relic",
+                "◆ 遺物を選べ (最大2つまで) ◆", "§d遺物を選べ (再提示): ", "/abyss relic");
     }
 
     /** 未選択の技能を再提示 (選択画面GUI + チャットボタン)。上書きしない。選ばず進んでも失われない */
     public static void resendPassiveOffer(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.PASSIVE_OFFER.get());
-        if (raw == null || raw.isBlank()) {
-            player.sendSystemMessage(Component.literal("§7選択待ちの技能は無い"));
-            return;
-        }
-        var ids = new ArrayList<String>();
-        var names = new ArrayList<String>();
-        var descs = new ArrayList<String>();
-        for (String id : raw.split(",")) {
-            var p = GameData.passiveById(id);
-            if (p == null) continue;
-            ids.add(id);
-            names.add(p.name());
-            descs.add(p.desc());
-        }
-        if (ids.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§7選択待ちの技能は無い"));
-            return;
-        }
-        player.sendSystemMessage(Component.literal("§b技能を選べ (再提示): ")
-                .append(btn("§6[選択画面を開く]", "/abyss passive")));
-        openEventScreen(player, "passive", "◆ 技能を選べ (代償付き) ◆",
-                ids, names, descs, "ESCで後で選ぶ (選ばないと消えない)", false);
+        resendOffer(player, ModAttachments.PASSIVE_OFFER, "passive",
+                "◆ 技能を選べ (代償付き) ◆", "§b技能を選べ (再提示): ", "/abyss passive");
+    }
+
+    /** 遺物・技能の説明文 (selectionLabel と対になる) */
+    private static String descOf(String id) {
+        var r = GameData.relicById(id);
+        if (r != null) return r.desc();
+        var p = GameData.passiveById(id);
+        return p == null ? "" : p.desc();
     }
 }

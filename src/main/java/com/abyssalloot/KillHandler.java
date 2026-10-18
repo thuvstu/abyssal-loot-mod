@@ -94,8 +94,7 @@ public final class KillHandler {
                     "§b戦利品: " + drop.getHoverName().getString()
                             + (ModItems.slotOf(drop.getItem()) != null ? " (右クリックで装備)" : " (持ち替えで奥義が変わる)")));
             if ("mythic".equals(GearData.rarityOf(drop))) {
-                var a = GameData.achievementById("mythic-hunter");
-                Achievements.grantAch(player, "mythic-hunter", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "mythic-hunter");
             }
         } else if (rand.nextDouble() < 0.20) {
             int shards = RunManager.materialCount(player, 1.0);
@@ -203,8 +202,7 @@ public final class KillHandler {
                     net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.PLAYERS,
                     0.8f, 1.2f);
             if (lv >= 20) {
-                var a = GameData.achievementById("level-twenty");
-                Achievements.grantAch(player, "level-twenty", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "level-twenty");
             }
             // 原作 engine.ts: レベル1につき祝福選択が1回 pend する (盟約モードでは無し)
             if (!RunManager.isCovenant(player)) {
@@ -233,21 +231,17 @@ public final class KillHandler {
             RunManager.addGauge(player, 30);
             // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ。未選択があれば再提示)
             if (floor == 5) {
-                var a = GameData.achievementById("floor-five");
-                Achievements.grantAch(player, "floor-five", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "floor-five");
             }
             if (floor == 20) {
-                var a = GameData.achievementById("floor-twenty");
-                Achievements.grantAch(player, "floor-twenty", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "floor-twenty");
             }
             int bossCount = player.getData(ModAttachments.BOSSES.get()).split(",").length;
             if (bossCount >= 3) {
-                var a = GameData.achievementById("boss-three");
-                Achievements.grantAch(player, "boss-three", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "boss-three");
             }
             if (bossCount >= 5) {
-                var a = GameData.achievementById("boss-five");
-                Achievements.grantAch(player, "boss-five", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "boss-five");
             }
             String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
             if (pendingPassive == null || pendingPassive.isBlank()) {
@@ -307,40 +301,34 @@ public final class KillHandler {
         }
         // 実績
         markKillTick(player, CombatHandler.tickCounter());
-        var ach1 = GameData.achievementById("first-blood");
-        Achievements.grantAch(player, "first-blood", ach1.title(), GameData.shardsForReward(ach1.reward()));
+        if (player.getData(ModAttachments.KILLS.get()) == 1) {
+            // 毎撃破で付与を呼ぶと実績添付のCSVパースが走るため、初撃のみで判定する
+            Achievements.grant(player, "first-blood");
+        }
         if (player.getData(ModAttachments.KILLS.get()) >= 100) {
-            var ach2 = GameData.achievementById("hundred-kills");
-            Achievements.grantAch(player, "hundred-kills", ach2.title(), GameData.shardsForReward(ach2.reward()));
+            Achievements.grant(player, "hundred-kills");
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 1000) {
-            var a = GameData.achievementById("thousand-kills");
-            Achievements.grantAch(player, "thousand-kills", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "thousand-kills");
         }
         if (player.getData(ModAttachments.COMBO.get()) >= 50) {
-            var a = GameData.achievementById("combo-fifty");
-            Achievements.grantAch(player, "combo-fifty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "combo-fifty");
         }
         if (player.getData(ModAttachments.COMBO.get()) >= 100) {
-            var a = GameData.achievementById("combo-hundred");
-            Achievements.grantAch(player, "combo-hundred", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "combo-hundred");
         }
         if (player.getData(ModAttachments.PERFECT.get()) >= 20) {
-            var a = GameData.achievementById("perfect-twenty");
-            Achievements.grantAch(player, "perfect-twenty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "perfect-twenty");
         }
         if (player.getData(ModAttachments.HARVEST.get()) >= 10) {
-            var a = GameData.achievementById("harvest-ten");
-            Achievements.grantAch(player, "harvest-ten", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "harvest-ten");
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 5000) {
-            var a = GameData.achievementById("kills-five-thousand");
-            Achievements.grantAch(player, "kills-five-thousand", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "kills-five-thousand");
         }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
         if (java.util.List.of(bossRec.split(",")).contains("10")) {
-            var ach4 = GameData.achievementById("floor-ten");
-            Achievements.grantAch(player, "floor-ten", ach4.title(), GameData.shardsForReward(ach4.reward()));
+            Achievements.grant(player, "floor-ten");
         }        // 真ボス・頂点ボス撃破判定
         var deadName = event.getEntity().getCustomName();
         if (event.getEntity().getTags().contains("abyss_true_boss")) {
@@ -377,8 +365,7 @@ public final class KillHandler {
         }
         // 呪われた召喚門の破壊 (原作: 戦績に保存され実績「門を断つ者」)
         if (event.getEntity().getTags().contains(Enemies.GATE_TAG)) {
-            var ach3 = GameData.achievementById("gate-breaker");
-            Achievements.grantAch(player, "gate-breaker", ach3.title(), GameData.shardsForReward(ach3.reward()));
+            Achievements.grant(player, "gate-breaker");
         }
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0

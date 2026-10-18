@@ -1192,7 +1192,8 @@ public final class WeaponArts {
                 SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.8f, 1.1f);
     }
 
-    private static double normAng(double a) {
+    /** 角度差の正規化 (-PI..PI)。WeaponHitHandler と共通の角度計算 */
+    static double normAng(double a) {
         while (a > Math.PI) a -= Math.PI * 2;
         while (a < -Math.PI) a += Math.PI * 2;
         return a;

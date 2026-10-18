@@ -15,15 +15,15 @@ public final class GameData {
     private GameData() {}
 
     public enum HeroClass {
-        //                 id         名前    称号        HP   HP/Lv  攻撃 攻速  会心  弾数 移動 回避CT
-        SAMURAI("samurai", "剣聖", "孤高の一刀", 94, 11, 20, 1.55f, 0.08f, 1, 250, 1.10f),
-        MAGE("mage", "魔導士", "星詠みの術者", 60, 7, 16, 2.0f, 0.10f, 1, 244, 1.25f),
-        NINJA("ninja", "忍者", "影縫いの刃", 69, 8, 12, 3.1f, 0.20f, 1, 300, 0.62f),
-        PALADIN("paladin", "聖騎士", "不滅の盾", 137, 15, 16, 1.25f, 0.05f, 1, 226, 1.50f),
-        GUNNER("gunner", "銃魔", "鉛の嵐", 72, 9, 11, 3.4f, 0.14f, 2, 256, 1.00f),
-        BERSERKER("berserker", "狂戦士", "血路の王", 108, 13, 24, 1.30f, 0.12f, 1, 260, 1.20f),
-        MONK("monk", "僧兵", "静寂の拳", 101, 12, 15, 2.60f, 0.10f, 1, 270, 0.90f),
-        ARCHER("archer", "弓使い", "月下の狙撃手", 78, 9, 13, 2.40f, 0.16f, 3, 265, 1.00f);
+        //                 id         名前    称号        HP   HP/Lv  攻撃 攻速  会心  弾数 移動 回避CT  適性属性 技能名        小技CT倍率
+        SAMURAI("samurai", "剣聖", "孤高の一刀", 94, 11, 20, 1.55f, 0.08f, 1, 250, 1.10f, 0, "絶空斬", 0.95f),
+        MAGE("mage", "魔導士", "星詠みの術者", 60, 7, 16, 2.0f, 0.10f, 1, 244, 1.25f, 5, "メテオフォール", 1.20f),
+        NINJA("ninja", "忍者", "影縫いの刃", 69, 8, 12, 3.1f, 0.20f, 1, 300, 0.62f, 2, "影分身乱舞", 0.80f),
+        PALADIN("paladin", "聖騎士", "不滅の盾", 137, 15, 16, 1.25f, 0.05f, 1, 226, 1.50f, 3, "ジャッジメント", 1.10f),
+        GUNNER("gunner", "銃魔", "鉛の嵐", 72, 9, 11, 3.4f, 0.14f, 2, 256, 1.00f, 4, "バレットヘル", 1.05f),
+        BERSERKER("berserker", "狂戦士", "血路の王", 108, 13, 24, 1.30f, 0.12f, 1, 260, 1.20f, 0, "血爆", 1.00f),
+        MONK("monk", "僧兵", "静寂の拳", 101, 12, 15, 2.60f, 0.10f, 1, 270, 0.90f, 1, "禅定結界", 0.90f),
+        ARCHER("archer", "弓使い", "月下の狙撃手", 78, 9, 13, 2.40f, 0.16f, 3, 265, 1.00f, 5, "天矢雨", 1.15f);
 
         public final String id;
         public final String name;
@@ -38,22 +38,33 @@ public final class GameData {
         public final double moveSpeed;
         /** 原作 base.dashCd (秒) */
         public final double dashCd;
+        /** 職業適性: この属性の効果が1.5倍になる */
+        private final int affinity;
+        /** 原作 skillName 対応 */
+        private final String skill;
+        /** 武器小技のCT補正。近接職ほど短く、魔法・遠距離職ほど長い (威力は据え置き) */
+        private final float lightCd;
 
         HeroClass(String id, String name, String title, double baseHp, double hpPerLevel,
                   double baseDamage, float attackSpeed, float crit, int projectiles,
-                  double moveSpeed, double dashCd) {
+                  double moveSpeed, double dashCd, int affinity, String skill, float lightCd) {
             this.id = id; this.name = name; this.title = title;
             this.baseHp = baseHp; this.hpPerLevel = hpPerLevel;
             this.baseDamage = baseDamage; this.attackSpeed = attackSpeed;
             this.crit = crit; this.projectiles = projectiles;
             this.moveSpeed = moveSpeed; this.dashCd = dashCd;
+            this.affinity = affinity; this.skill = skill; this.lightCd = lightCd;
+        }
+
+        private static final HeroClass[] VALUES = values();
+        private static final java.util.Map<String, HeroClass> INDEX = new java.util.HashMap<>();
+        static {
+            for (HeroClass c : VALUES) INDEX.put(c.id, c);
         }
 
         public static HeroClass byId(String id) {
-            for (HeroClass c : values()) {
-                if (c.id.equals(id)) return c;
-            }
-            return SAMURAI;
+            HeroClass c = INDEX.get(id);
+            return c != null ? c : SAMURAI;
         }
 
         /** MCの移動速度属性 (既定0.1 ≒ 原作 250px/s) への換算 */
@@ -63,44 +74,17 @@ public final class GameData {
 
         /** 職業適性: この属性の効果が1.5倍になる */
         public int affinityAttr() {
-            return switch (this) {
-                case SAMURAI -> 0;
-                case MAGE -> 5;
-                case NINJA -> 2;
-                case PALADIN -> 3;
-                case GUNNER -> 4;
-                case BERSERKER -> 0;
-                case MONK -> 1;
-                case ARCHER -> 5;
-            };
+            return affinity;
         }
 
         /** 原作 skillName 対応 */
         public String skillName() {
-            return switch (this) {
-                case SAMURAI -> "絶空斬";
-                case MAGE -> "メテオフォール";
-                case NINJA -> "影分身乱舞";
-                case PALADIN -> "ジャッジメント";
-                case GUNNER -> "バレットヘル";
-                case BERSERKER -> "血爆";
-                case MONK -> "禅定結界";
-                case ARCHER -> "天矢雨";
-            };
+            return skill;
         }
 
         /** 武器小技のCT補正。近接職ほど短く、魔法・遠距離職ほど長い (威力は据え置き) */
         public float lightCdMult() {
-            return switch (this) {
-                case NINJA -> 0.80f;
-                case MONK -> 0.90f;
-                case SAMURAI -> 0.95f;
-                case BERSERKER -> 1.00f;
-                case GUNNER -> 1.05f;
-                case PALADIN -> 1.10f;
-                case ARCHER -> 1.15f;
-                case MAGE -> 1.20f;
-            };
+            return lightCd;
         }
     }
 
@@ -158,11 +142,15 @@ public final class GameData {
             this.artName = artName; this.artDesc = artDesc; this.color = color;
         }
 
+        public static final WeaponStyle[] VALUES = values();
+        private static final java.util.Map<String, WeaponStyle> INDEX = new java.util.HashMap<>();
+        static {
+            for (WeaponStyle w : VALUES) INDEX.put(w.id, w);
+        }
+
         public static WeaponStyle byId(String id) {
-            for (WeaponStyle w : values()) {
-                if (w.id.equals(id)) return w;
-            }
-            return SWORD;
+            WeaponStyle w = INDEX.get(id);
+            return w != null ? w : SWORD;
         }
     }
 
@@ -186,11 +174,14 @@ public final class GameData {
             this.id = id; this.name = name; this.effect = effect; this.reward = reward;
         }
 
+        private static final Sigil[] VALUES = values();
+        private static final java.util.Map<String, Sigil> INDEX = new java.util.HashMap<>();
+        static {
+            for (Sigil s : VALUES) INDEX.put(s.id, s);
+        }
+
         public static Sigil byId(String id) {
-            for (Sigil s : values()) {
-                if (s.id.equals(id)) return s;
-            }
-            return null;
+            return INDEX.get(id);
         }
     }
 
@@ -236,8 +227,10 @@ public final class GameData {
     }
 
     /** 奥義・必殺技の段階名 ("", "・改", "・極", "・神") */
+    private static final String[] TIER_NAMES = {"", "・改", "・極", "・神"};
+
     public static String skillTierName(int level) {
-        return new String[]{"", "・改", "・極", "・神"}[skillTier(level)];
+        return TIER_NAMES[skillTier(level)];
     }
 
     public static double heroMaxHp(HeroClass cls, int level) {
@@ -405,11 +398,11 @@ public final class GameData {
             new Mutation("vendetta", "因縁の刻", "宿敵たちが殺到する。精鋭率が跳ね上がる。",
                     0.95, 1.10, 1.15, 1.00, 2.20, 1.30, 1.30, false));
 
+    public static final java.util.Map<String, Mutation> MUTATION_INDEX =
+            MUTATIONS.stream().collect(java.util.stream.Collectors.toMap(Mutation::id, m -> m));
+
     public static Mutation mutationById(String id) {
-        for (Mutation m : MUTATIONS) {
-            if (m.id().equals(id)) return m;
-        }
-        return null;
+        return MUTATION_INDEX.get(id);
     }
 
     /**
@@ -436,11 +429,12 @@ public final class GameData {
             new Difficulty("inferno", "阿鼻叫喚", 2.7, 2.3, 3.2, 3.8),
             new Difficulty("omega", "終焉の契約", 3.8, 3.0, 7.56, 5.0));
 
+    public static final java.util.Map<String, Difficulty> DIFFICULTY_INDEX =
+            DIFFICULTIES.stream().collect(java.util.stream.Collectors.toMap(Difficulty::id, d -> d));
+
     public static Difficulty difficultyById(String id) {
-        for (Difficulty d : DIFFICULTIES) {
-            if (d.id().equals(id)) return d;
-        }
-        return DIFFICULTIES.get(0);
+        Difficulty d = DIFFICULTY_INDEX.get(id);
+        return d != null ? d : DIFFICULTIES.get(0);
     }
 
     /* ---------------- 原作 progression.ts RUN_MODES (8種) ---------------- */
@@ -457,20 +451,19 @@ public final class GameData {
             new RunMode("omega", "終焉の契約", 7.56, 5.0),
             new RunMode("daily", "日替わり深淵", 1.0, 1.0));
 
+    public static final java.util.Map<String, RunMode> RUN_MODE_INDEX =
+            RUN_MODES.stream().collect(java.util.stream.Collectors.toMap(RunMode::id, m -> m));
+
     public static double modeSoulMult(String mode) {
-        for (RunMode m : RUN_MODES) {
-            if (m.id().equals(mode)) return m.soulMul();
-        }
-        return 1.0;
+        RunMode m = RUN_MODE_INDEX.get(mode);
+        return m != null ? m.soulMul() : 1.0;
     }
 
     /** 原作 summarize のモード倍率 (daily は standard 扱い) */
     public static double modeScoreMult(String mode) {
         String key = "daily".equals(mode) ? "standard" : mode;
-        for (RunMode m : RUN_MODES) {
-            if (m.id().equals(key)) return m.scoreMul();
-        }
-        return 1.0;
+        RunMode m = RUN_MODE_INDEX.get(key);
+        return m != null ? m.scoreMul() : 1.0;
     }
 
     /* ---------------- 原作 DAILY_MODIFIERS (7種) ---------------- */
@@ -488,11 +481,11 @@ public final class GameData {
             new DailyMod("void-storm", "虚空嵐", 1.18, 1.22, 1.12, 1.22, 2.10, 1.25, 1.18, 1.55, 1.75, false),
             new DailyMod("starfall", "星墜ちの夜", 1.25, 1.10, 1.05, 1.10, 1.40, 1.25, 1.80, 1.55, 1.65, false));
 
+    public static final java.util.Map<String, DailyMod> DAILY_MOD_INDEX =
+            DAILY_MODS.stream().collect(java.util.stream.Collectors.toMap(DailyMod::id, m -> m));
+
     public static DailyMod dailyModById(String id) {
-        for (DailyMod m : DAILY_MODS) {
-            if (m.id().equals(id)) return m;
-        }
-        return null;
+        return DAILY_MOD_INDEX.get(id);
     }
 
     /** 原作 getDailyRun と同じく UTC 日で 7種ローテ */
@@ -572,11 +565,11 @@ public final class GameData {
             new Relic("r_tide", "潮の腕輪", "ダメージ軽減 +8% / 最大HP +10%", null),
             new Relic("r_grail", "残響の聖杯", "魂ゲージ増加 +35% / HP回復 +1/秒", null));
 
+    public static final java.util.Map<String, Relic> RELIC_INDEX =
+            RELICS.stream().collect(java.util.stream.Collectors.toMap(Relic::id, r -> r));
+
     public static Relic relicById(String id) {
-        for (Relic r : RELICS) {
-            if (r.id().equals(id)) return r;
-        }
-        return null;
+        return RELIC_INDEX.get(id);
     }
 
     /** 未所持から n 件引く (原作 rollRelics) */
@@ -648,11 +641,11 @@ public final class GameData {
             new Passive("plague", "疫病", "氷結 +30% / 攻撃力 -12%", "minor", null),
             new Passive("titan_heart", "巨心", "最大HP +30% / 攻撃力 -8%", "minor", null));
 
+    public static final java.util.Map<String, Passive> PASSIVE_INDEX =
+            PASSIVES.stream().collect(java.util.stream.Collectors.toMap(Passive::id, p -> p));
+
     public static Passive passiveById(String id) {
-        for (Passive p : PASSIVES) {
-            if (p.id().equals(id)) return p;
-        }
-        return null;
+        return PASSIVE_INDEX.get(id);
     }
 
     /** 主撃破後の3候補 (原作 rollPassives: 既取得除外・呪は1つまで) */
@@ -816,11 +809,11 @@ public final class GameData {
             new Achievement("endless-fifty", "無限の果て", "無限深淵で第50層へ到達", 2600, "mythic"),
             new Achievement("forge-max", "覚醒の銘", "鍛造を最高段階まで鍛え上げる", 500, "gold"));
 
+    public static final java.util.Map<String, Achievement> ACHIEVEMENT_INDEX =
+            ACHIEVEMENTS.stream().collect(java.util.stream.Collectors.toMap(Achievement::id, a -> a));
+
     public static Achievement achievementById(String id) {
-        for (Achievement a : ACHIEVEMENTS) {
-            if (a.id().equals(id)) return a;
-        }
-        return null;
+        return ACHIEVEMENT_INDEX.get(id);
     }
 
     /** 原作の魂報酬を欠片に換算 (魂25=欠片1、最低1) */
@@ -850,11 +843,13 @@ public final class GameData {
             new BossDef(27, "b_pinnacle", "終焉神 《タルタロス・オメガ》", 380000, 280, 132),
             new BossDef(28, "b_ascension", "超越者", 850000, 380, 165));
 
+    public static final java.util.Map<Integer, BossDef> BOSS_INDEX = new java.util.HashMap<>();
+    static {
+        for (BossDef b : BOSSES) BOSS_INDEX.put(b.floor(), b);
+    }
+
     public static BossDef bossForFloor(int floor) {
-        for (BossDef b : BOSSES) {
-            if (b.floor() == floor) return b;
-        }
-        return null;
+        return BOSS_INDEX.get(floor);
     }
 
     /* ---------------- 真・最終決戦フェーズ (原作 TRUE_BOSS_PHASES) ---------------- */
@@ -907,11 +902,11 @@ public final class GameData {
             new RandomEvent("timewarp", "時の歪み", "15秒間 敵が半分の速さ。魂ゲージ2倍。", "fate", "timewarp"),
             new RandomEvent("swarm_call", "群れの呼び声", "大量の敵が押し寄せる。", "swarm", null));
 
+    public static final java.util.Map<String, RandomEvent> RANDOM_EVENT_INDEX =
+            RANDOM_EVENTS.stream().collect(java.util.stream.Collectors.toMap(RandomEvent::id, e -> e));
+
     public static RandomEvent randomEventById(String id) {
-        for (RandomEvent e : RANDOM_EVENTS) {
-            if (e.id().equals(id)) return e;
-        }
-        return null;
+        return RANDOM_EVENT_INDEX.get(id);
     }
 
     /* ---------------- 地脈の共鳴 (バニラバイオームとの融合要素) ----------------

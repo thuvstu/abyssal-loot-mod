@@ -222,11 +222,11 @@ public final class CombatHandler {
             }
             // コンボ減衰 (5秒撃破なしでリセット。KillHandler が撃破時刻を管理)
             KillHandler.tickComboDecay(player, tickCounter);
-            // CT中は0.1秒ごとにHUDを再送して残り秒を滑らかに表示する
+            // CT中は0.2秒ごとにHUDを再送して残り秒を表示する (0.1秒ごとの送信はパケット過多のため間引き)
             boolean anyCd = player.getData(ModAttachments.LIGHT_CD.get()) > 0
                     || player.getData(ModAttachments.SKILL_CD.get()) > 0
                     || player.getData(ModAttachments.SUB_CD.get()) > 0;
-            if (anyCd ? tickCounter % 2 == 0 : tickCounter % 20 == 0) {
+            if (anyCd ? tickCounter % 4 == 0 : tickCounter % 20 == 0) {
                 sendHud(player);
             }
         }

@@ -1,8 +1,6 @@
 package com.abyssalloot;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.GlobalPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
@@ -12,8 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.BossEvent;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -27,8 +23,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,14 +35,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * 層進行・ウェーブ・ボス・職業適用.
@@ -250,6 +240,7 @@ public final class RunManager {
             sb.append(e.getKey()).append(":").append(e.getValue());
         }
         player.setData(ModAttachments.BOONS.get(), sb.toString());
+        StatCalc.invalidateCaches(player);
     }
 
     public static int boonLv(ServerPlayer player, String id) {
@@ -294,6 +285,7 @@ public final class RunManager {
         if (GameData.relicById(id) == null) return false;
         owned.add(id);
         player.setData(ModAttachments.RELICS.get(), String.join(",", owned));
+        StatCalc.invalidateCaches(player);
         return true;
     }
 
@@ -391,7 +383,8 @@ public final class RunManager {
         // 継承装備があれば受け取る
         var heirloom = player.getData(ModAttachments.HEIRLOOM.get());
         if (heirloom != null && !heirloom.isEmpty()) {
-            player.getInventory().add(heirloom.copy());
+            // インベントリ満杯時は足元に落とす (継承装備を消失させない)
+            LootHandler.giveOrDrop(player, heirloom.copy());
             player.sendSystemMessage(Component.literal("§6血脈の装備を受け継いだ: " + heirloom.getHoverName().getString()));
             player.setData(ModAttachments.HEIRLOOM.get(), ItemStack.EMPTY.copy());
         }
@@ -499,16 +492,15 @@ public final class RunManager {
         player.sendSystemMessage(Component.literal("§e報酬: 魂の欠片×16 / Abyss武器 / 手持ち武器1点を /abyss keep で継承可能"));
         player.sendSystemMessage(Component.literal("§5真の深淵が開いた… /abyss true で《ニヒル・ゼロ》に挑め"));
         int shards = materialCount(player, 16);
-        player.getInventory().add(new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         player.sendSystemMessage(Component.literal("§e魂の欠片 ×" + shards + " (呪印・難易度・幸運の倍率込み)"));
         var styles = GameData.WeaponStyle.values();
-        player.getInventory().add(GearFactory.makePrizeWeapon(styles[player.getRandom().nextInt(styles.length)],
+        LootHandler.giveOrDrop(player, GearFactory.makePrizeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom(), StatCalc.luckOf(player), 25));
         sendSoulSummary(player, false);
         Achievements.grantAch(player, "full-clear", "深淵を終わらせた者", 16);
         if (isCovenant(player)) {
-            var a = GameData.achievementById("covenant-kept");
-            Achievements.grantAch(player, "covenant-kept", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "covenant-kept");
         }
         // 出撃終了: 条件固定を解除
         endRun(player);
@@ -539,24 +531,16 @@ public final class RunManager {
                     ? new AABB(center).inflate(64)
                     : player.getBoundingBox().inflate(64);
             for (Mob m : level.getEntitiesOfClass(Mob.class, box, e -> e.isAlive())) {
-                boolean abyss = RunManager.BOSS_BARS.containsKey(m);
-                if (!abyss) {
-                    for (String t : m.getTags()) {
-                        if (t.startsWith("abyss_")) {
-                            abyss = true;
-                            break;
-                        }
-                    }
-                }
+                boolean abyss = RunManager.BOSS_BARS.containsKey(m) || LootHandler.hasAbyssTag(m);
                 if (abyss) m.discard();
             }
-            for (var e : BOSS_BARS.entrySet()) {
-                e.getValue().removePlayer(player);
+            synchronized (BOSS_BARS) {
+                for (var e : BOSS_BARS.entrySet()) {
+                    e.getValue().removePlayer(player);
+                }
             }
         }
-    }
-
-    public static boolean isTrueFloor(ServerPlayer player) {
+    }    public static boolean isTrueFloor(ServerPlayer player) {
         return player.getData(ModAttachments.FLOOR.get()) == 26;
     }
 
@@ -670,8 +654,7 @@ public final class RunManager {
         int floor = cur + 1;
         // 踏破判定 (原作FINAL_FLOOR=25 / 巡礼は8層主 / 終焉の座は27単層)
         if ("bossrush".equals(mode) && floor > 8) {
-            var a = GameData.achievementById("rush-master");
-            Achievements.grantAch(player, "rush-master", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "rush-master");
             victory(player);
             return;
         }
@@ -687,25 +670,20 @@ public final class RunManager {
         // 層到達の実績
         if (floor == 10) {
             if (isDaily(player)) {
-                var a = GameData.achievementById("daily-depth");
-                Achievements.grantAch(player, "daily-depth", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "daily-depth");
             }
             if (sigilsOf(player).size() >= 8) {
-                var a = GameData.achievementById("eight-sigils");
-                Achievements.grantAch(player, "eight-sigils", a.title(), GameData.shardsForReward(a.reward()));
+                Achievements.grant(player, "eight-sigils");
             }
         }
         if (floor == 15 && "inferno".equals(player.getData(ModAttachments.DIFF.get()))) {
-            var a = GameData.achievementById("inferno-slayer");
-            Achievements.grantAch(player, "inferno-slayer", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "inferno-slayer");
         }
         if (floor == 35 && "endless".equals(mode)) {
-            var a = GameData.achievementById("endless-diver");
-            Achievements.grantAch(player, "endless-diver", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "endless-diver");
         }
         if (floor == 50 && "endless".equals(mode)) {
-            var a = GameData.achievementById("endless-fifty");
-            Achievements.grantAch(player, "endless-fifty", a.title(), GameData.shardsForReward(a.reward()));
+            Achievements.grant(player, "endless-fifty");
         }
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -792,13 +770,7 @@ public final class RunManager {
         }
         // rollFloor=false は追加の襲来 (swarm 等) なので総数に加算する
         if (rollFloor) {
-        // rollFloor=false は追加の襲来 (swarm 等) なので総数に加算する
-        if (rollFloor) {
             player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
-        } else {
-            player.setData(ModAttachments.WAVE_TOTAL.get(),
-                    player.getData(ModAttachments.WAVE_TOTAL.get()) + count);
-        }
         } else {
             player.setData(ModAttachments.WAVE_TOTAL.get(),
                     player.getData(ModAttachments.WAVE_TOTAL.get()) + count);
@@ -872,7 +844,8 @@ public final class RunManager {
                         pos.x + 64, pos.y + 32, pos.z + 64),
                 e -> e.isAlive() && (e.getTags().contains(Enemies.WARDEN_TAG)
                         || (e.getCustomName() != null && e.getCustomName().getString().contains("エリート"))
-                        || BOSS_BARS.keySet().stream().anyMatch(b -> b.getUUID().equals(e.getUUID())))).stream()
+                        // containsKey は synchronizedMap でスレッドセーフかつ O(1) (旧実装は keySet を毎回 stream 走査)
+                        || BOSS_BARS.containsKey(e))).stream()
                 .min(Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
                 .orElse(null);
         if (target == null) {
@@ -897,12 +870,15 @@ public final class RunManager {
     /** 防具変更検出用 (UUID -> 4部位の署名) */
     private static final Map<UUID, String> ARMOR_SIG = new HashMap<>();
 
-    /** ログアウトで防具署名キャッシュを掃除 (CombatHandler.onPlayerLoggedOut から呼ぶ) */
+    /** ログアウトで防具署名・ステータスキャッシュを掃除 (CombatHandler.onPlayerLoggedOut から呼ぶ) */
     static void onLogout(ServerPlayer player) {
         ARMOR_SIG.remove(player.getUUID());
+        StatCalc.invalidateCaches(player);
     }
 
     private static String armorSig(ServerPlayer player) {
+        // NBT→文字列変換は高価 (毎秒×4部位) のため、ItemStack のハッシュで変更を検出する
+        // (hash は全コンポーネントを走査するがコピー・文字列化より大幅に軽い)
         var sb = new StringBuilder();
         for (var slot : new EquipmentSlot[]{
                 EquipmentSlot.HEAD,
@@ -912,8 +888,7 @@ public final class RunManager {
             var st = player.getItemBySlot(slot);
             if (!sb.isEmpty()) sb.append("|");
             sb.append(BuiltInRegistries.ITEM.getKey(st.getItem()));
-            sb.append(st.getOrDefault(DataComponents.CUSTOM_DATA,
-                    CustomData.EMPTY).copyTag().toString());
+            sb.append(':').append(st.hashCode());
         }
         return sb.toString();
     }

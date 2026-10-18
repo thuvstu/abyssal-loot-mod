@@ -94,16 +94,18 @@ public final class EnemyAI {
         ORBIT_ANG.keySet().removeIf(id -> !seen.contains(id));
         SHOOT_DIR.keySet().removeIf(id -> !seen.contains(id));
         NEXT_FAN.keySet().removeIf(id -> !seen.contains(id));
-        // 脱走収容 (壁を越えたMOBをアリーナ内へ戻す)
-        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-            if (p.level() instanceof ServerLevel level) containMobs(p, level);
+        // 脱走収容 (壁を越えたMOBをアリーナ内へ戻す)。重いAABB走査なので 1秒周期 (元は0.5秒) に間引く
+        if (now % 20 == 0) {
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                if (p.level() instanceof ServerLevel level) containMobs(p, level);
+            }
         }
     }
 
     /**
      * 脱走収容: アリーナ半径+3 を超えた深淵MOBを内側へ戻す.
      * 壁3段で地上MOBは防げるが、飛行 (VEX/PHANTOM/BLAZE)・登攀 (SPIDER)・
-     * テレポート (ENDERMAN)・奥義の吹き飛びは壁を越えるため、0.5秒ごとに引き戻す.
+     * テレポート (ENDERMAN)・奥義の吹き飛びは壁を越えるため、1秒ごとに引き戻す.
      */
     private static void containMobs(ServerPlayer player, ServerLevel level) {
         BlockPos center = ArenaManager.arenaCenterOf(player);
@@ -138,10 +140,7 @@ public final class EnemyAI {
     }
 
     private static boolean hasAbyssTag(Mob m) {
-        for (String t : m.getTags()) {
-            if (t.startsWith("abyss_")) return true;
-        }
-        return false;
+        return LootHandler.hasAbyssTag(m);
     }
 
     /**
@@ -168,7 +167,8 @@ public final class EnemyAI {
             level.sendParticles(new net.minecraft.core.particles.DustParticleOptions(0xffd700, 1.0f),
                     m.getX(), m.getY() + m.getBbHeight() + 0.4, m.getZ(), 4, 0.5, 0.3, 0.5, 0.02);
         }
-        if (!boss && m.getCustomName() != null) {
+        // 名札HP表示は深淵MOB限定 (他MOD・バニラ由来の名札付きMOBを加工しない)
+        if (!boss && hasAbyssTag(m) && m.getCustomName() != null) {
             String cur = m.getCustomName().getString();
             String base = cur.contains(HP_SUFFIX_HEAD)
                     ? cur.substring(0, cur.indexOf(HP_SUFFIX_HEAD)) : cur;

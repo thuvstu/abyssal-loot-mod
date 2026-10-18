@@ -27,4 +27,10 @@ public final class Achievements {
             LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         }
     }
+
+    /** IDのみで付与する1行ヘルパー (タイトル・欠片は定義から自動解決)。未定義IDは無視 */
+    public static void grant(ServerPlayer player, String id) {
+        var a = GameData.achievementById(id);
+        if (a != null) grantAch(player, id, a.title(), GameData.shardsForReward(a.reward()));
+    }
 }

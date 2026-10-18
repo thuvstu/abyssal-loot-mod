@@ -31,6 +31,7 @@ public final class StatCalc {
             sb.append(i < a.length ? Math.max(0, a[i]) : 0);
         }
         player.setData(ModAttachments.ATTRS.get(), sb.toString());
+        invalidateCaches(player);
     }
 
     /**
@@ -130,6 +131,8 @@ public final class StatCalc {
 
     /** 防具変更時の静かな再計算用 (quiet=true で告知なし) */
     public static void applyClass(ServerPlayer player, GameData.HeroClass cls, int level, boolean quiet) {
+        // クラス・レベル・装備の適用はステータスの導出元が変わるため、キャッシュを先に無効化する
+        invalidateCaches(player);
         player.setData(ModAttachments.HERO_CLASS.get(), cls.id);
         player.setData(ModAttachments.LEVEL.get(), level);
         var passives = RunManager.passivesOf(player);
@@ -325,8 +328,39 @@ public final class StatCalc {
     /**
      * 追加コンテンツの汎用ステータス合算 (追加恩寵・追加技能・追加遺物・防具セット)。
      * すべて接辞キーで表し、各計算式に加算する。
+     *
+     * 呼び出し頻度が非常に高い (1ヒットで複数回) ため、同一tick内の結果をプレイヤー単位で
+     * キャッシュする。添付データ・装備の変更は {@link #invalidateCaches(ServerPlayer)} で無効化する
+     * (未呼び出しでも寿命は1tickなので最大1tickの遅れで自己修復する)。
      */
     public static double extraStat(ServerPlayer player, String key) {
+        long t = player.level().getGameTime();
+        var uuid = player.getUUID();
+        var c = EXTRA_CACHE.get(uuid);
+        if (c == null || c.tick() != t) {
+            if (EXTRA_CACHE.size() > 256) EXTRA_CACHE.clear();
+            c = new ExtraCache(t, new java.util.HashMap<>());
+            EXTRA_CACHE.put(uuid, c);
+        }
+        Double v = c.vals().get(key);
+        if (v == null) {
+            v = computeExtraStat(player, key);
+            c.vals().put(key, v);
+        }
+        return v;
+    }
+
+    private record ExtraCache(long tick, java.util.HashMap<String, Double> vals) {}
+
+    private static final java.util.Map<java.util.UUID, ExtraCache> EXTRA_CACHE = new java.util.HashMap<>();
+
+    /** ステータスの導出元 (祝福・技能・遺物・属性・装備) が変わったときに呼ぶ (StatCalc/RunManager の書き込み系から) */
+    public static void invalidateCaches(ServerPlayer player) {
+        EXTRA_CACHE.remove(player.getUUID());
+        ECHO_CACHE.remove(player.getUUID());
+    }
+
+    private static double computeExtraStat(ServerPlayer player, String key) {
         double v = 0;
         for (var e : RunManager.boonsOf(player).entrySet()) {
             var m = GameData.EXTRA_BOON_MODS.get(e.getKey());

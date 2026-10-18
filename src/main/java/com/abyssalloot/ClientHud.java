@@ -11,8 +11,9 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 /**
  * クライアント専用: 魂ゲージ・層・レベルのHUD.
  * 数値はサーバーからの HudSync で更新される (未受信時は表示しない).
+ * サーバー値は HudSync record を丸ごと保持する (個別volatileフィールドの分散を避ける).
  * 区域名は GameData (MC非依存) から層番号で引くため追加パケットは不要.
- * 小技/必殺のCTは残存時のみ表示 (CT中はサーバーが0.1秒ごとに再送する).
+ * 小技/必殺のCTは残存時のみ表示 (CT中はサーバーが0.2秒ごとに再送する).
  *
  * レイアウト方針: 全情報を画面左上 (x=10, y=10 から縦に流す) に集約する。
  * バニラHUDの既存ゾーン — 上中央=ボスバー / 右上=効果アイコン / 下中央=ホットバー・体力・
@@ -21,20 +22,8 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 public final class ClientHud {
     private ClientHud() {}
 
-    private static volatile float soul = -1;
-    private static volatile int floor;
-    private static volatile int level;
-    private static volatile int kills;
-    private static volatile int combo;
-    private static volatile int attrPoints;
-    private static volatile int portalOpen;
-    private static volatile int pendingBoons;
-    private static volatile float lightCd;
-    private static volatile float skillCd;
-    private static volatile boolean relicPending;
-    private static volatile boolean passivePending;
-    private static volatile String subSkill = "";
-    private static volatile float subCd;
+    /** サーバーからの最新HUD状態 (未受信は null)。受信のたびに record を差し替える */
+    private static volatile ModPackets.HudSync last;
 
     /** CTバーの満タン基準 (受信した最大値。CTが尽きて0.3秒経ったらリセット) */
     private static float lightCdMax;
@@ -46,22 +35,11 @@ public final class ClientHud {
     private static float lastSubCd;
     private static long lastCdSeen;
 
-    public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
-                              float lcd, float scd, int rp, int pp, String ss, float sc) {
-        soul = s;
-        floor = f;
-        level = lv;
-        kills = k;
-        combo = c;
-        attrPoints = ap;
-        portalOpen = po;
-        pendingBoons = pb;
-        lightCd = lcd;
-        skillCd = scd;
-        relicPending = rp != 0;
-        passivePending = pp != 0;
-        subSkill = ss == null ? "" : ss;
-        subCd = sc;
+    public static void update(ModPackets.HudSync p) {
+        last = p;
+        float lcd = p.lightCd();
+        float scd = p.skillCd();
+        float sc = p.subCd();
         if (lcd > 0) {
             // 前回受信0→今回>0 は新しいCTの開始。古い最大値が残らないよう今回値で上書きする
             lightCdMax = lastLightCd <= 0 ? lcd : Math.max(lightCdMax, lcd);
@@ -119,7 +97,8 @@ public final class ClientHud {
     }
 
     private static void render(GuiGraphics g, DeltaTracker delta) {
-        if (soul < 0) return;
+        var hud = last;
+        if (hud == null || hud.soul() < 0) return;
         var mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
         var font = mc.font;
@@ -128,6 +107,10 @@ public final class ClientHud {
         int bw = 160;
         long t = System.currentTimeMillis();
         boolean blink = (t / 400) % 2 == 0;
+        float soul = hud.soul();
+        float lightCd = hud.lightCd();
+        float skillCd = hud.skillCd();
+        float subCd = hud.subCd();
 
         // ---- 魂ゲージ (枠・刻線つき。MAX時は脈動) ----
         int gaugeColor;
@@ -147,8 +130,8 @@ public final class ClientHud {
         }
 
         // ---- 層・レベル (区域名つき) ----
-        var zone = GameData.zoneForFloor(Math.max(1, floor));
-        g.drawString(font, "第" + floor + "層 [" + zone.name() + "] Lv" + level,
+        var zone = GameData.zoneForFloor(Math.max(1, hud.floor()));
+        g.drawString(font, "第" + hud.floor() + "層 [" + zone.name() + "] Lv" + hud.level(),
                 x0, y0 + 24, 0xFFFFFFFF);
         int y = y0 + 38;
 
@@ -165,7 +148,7 @@ public final class ClientHud {
             y += 11;
         }
         // sub skill (C key), CD shown while active
-        var sub = SubSkills.byId(subSkill);
+        var sub = SubSkills.byId(hud.subSkill());
         g.drawString(font, "Sub: " + sub.name() + " (C)", x0, y, 0xFF9FD8FF);
         if (subCd > 0) {
             float max = Math.max(1f, subCdMax);
@@ -181,8 +164,9 @@ public final class ClientHud {
         }
 
         // ---- 撃破・コンボ ----
-        g.drawString(font, "撃破 " + kills, x0, y, 0xFF9FB0C9);
+        g.drawString(font, "撃破 " + hud.kills(), x0, y, 0xFF9FB0C9);
         y += 12;
+        int combo = hud.combo();
         if (combo >= 10) {
             int comboColor = combo >= 50 ? 0xFFFF8A3C : combo >= 30 ? 0xFFFFD23C : 0xFFFFFFFF;
             g.drawString(font, combo + " 連撃！", x0, y, comboColor);
@@ -190,27 +174,27 @@ public final class ClientHud {
         }
 
         // ---- 未選択の提示 (点滅) ----
-        if (pendingBoons > 0 && blink) {
-            g.drawString(font, "◆祝福未選択 ×" + pendingBoons + " (G→祝福)", x0, y, 0xFFE14AFF);
+        if (hud.pendingBoons() > 0 && blink) {
+            g.drawString(font, "◆祝福未選択 ×" + hud.pendingBoons() + " (G→祝福)", x0, y, 0xFFE14AFF);
             y += 12;
         }
-        if (relicPending && blink) {
+        if (hud.relicPending() != 0 && blink) {
             g.drawString(font, "◆遺物未選択 (G→遺物)", x0, y, 0xFFB44BFF);
             y += 12;
         }
-        if (passivePending && blink) {
+        if (hud.passivePending() != 0 && blink) {
             g.drawString(font, "◆技能未選択 (G→技能)", x0, y, 0xFF4BA8FF);
             y += 12;
         }
-        if (attrPoints > 0 && blink) {
-            g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0, y, 0xFF7CFFB2);
+        if (hud.attrPoints() > 0 && blink) {
+            g.drawString(font, "属性+" + hud.attrPoints() + " (G→ステータス)", x0, y, 0xFF7CFFB2);
             y += 12;
         }
 
         // ---- 転移門OPEN (点滅) ----
         // 画面上中央はバニラのボスバー (層主戦)、右上は効果アイコンと被るため
         // 左上のこのゾーンに集約する。バニラHUDと被らない位置は左上 (通常空き) のみ。
-        if (portalOpen != 0 && blink) {
+        if (hud.portalOpen() != 0 && blink) {
             g.drawString(font, "◆転移門OPEN! (G→次の層へ)", x0, y, 0xFF7CFFB2);
             y += 12;
         }

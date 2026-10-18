@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -128,10 +129,13 @@ public final class Enemies {
      */
     public static final double SPEED_PARITY = 0.23;
 
+    /** バニラ MAX_HEALTH 属性の上限。これを超える値はサイレントに丸められるため明示的にクランプする */
+    public static final int MAX_MOB_HP = 1024;
+
     public static void apply(Mob m, Spec spec, Scale s, double hpExtra) {
         var hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
-            hp.setBaseValue(Math.min(2048, spec.hp() * s.hp() * hpExtra));
+            hp.setBaseValue(Math.min(MAX_MOB_HP, spec.hp() * s.hp() * hpExtra));
             m.setHealth(m.getMaxHealth());
         }
         var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -142,27 +146,31 @@ public final class Enemies {
         if (fol != null) fol.setBaseValue(GameData.BASE_FOLLOW_RANGE * s.detection());
     }
 
-    public static Spec byId(String id) {
+    private static final Map<String, Spec> BY_ID = new java.util.HashMap<>();
+    private static final Map<Role, Spec> BY_ROLE = new java.util.EnumMap<>(Role.class);
+    private static final Map<EntityType<?>, Spec> BY_TYPE = new java.util.IdentityHashMap<>();
+    static {
         for (Spec s : ROSTER) {
-            if (s.id().equals(id)) return s;
+            BY_ID.put(s.id(), s);
+            BY_ROLE.putIfAbsent(s.role(), s);
+            BY_TYPE.putIfAbsent(s.type(), s);
         }
-        return ROSTER.get(3);
+    }
+
+    public static Spec byId(String id) {
+        Spec s = BY_ID.get(id);
+        return s != null ? s : ROSTER.get(3);
     }
 
     public static Spec byRole(Role role) {
-        for (Spec s : ROSTER) {
-            if (s.role() == role) return s;
-        }
-        throw new IllegalStateException("no spec for " + role);
+        Spec s = BY_ROLE.get(role);
+        if (s == null) throw new IllegalStateException("no spec for " + role);
+        return s;
     }
 
     /** EntityType から通常 Spec を逆引き (ボス等は null) */
     public static Spec specOf(Mob m) {
-        if (m == null) return null;
-        for (Spec s : ROSTER) {
-            if (s.type() == m.getType()) return s;
-        }
-        return null;
+        return m == null ? null : BY_TYPE.get(m.getType());
     }
 
     /** モブの能力種 (なければ null)。表は GameData.MOB_ABILITIES */
@@ -322,7 +330,7 @@ public final class Enemies {
         var pre = GameData.elitePrefix(rand::nextDouble);
         var h2 = m.getAttribute(Attributes.MAX_HEALTH);
         if (h2 != null) {
-            h2.setBaseValue(Math.min(2048, h2.getBaseValue() * 2 * pre.hp()));
+            h2.setBaseValue(Math.min(MAX_MOB_HP, h2.getBaseValue() * 2 * pre.hp()));
             m.setHealth(m.getMaxHealth());
         }
         var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -355,7 +363,7 @@ public final class Enemies {
     public static void makeNightmare(Mob m) {
         var hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
-            hp.setBaseValue(Math.min(1024, hp.getBaseValue() * 1.5));
+            hp.setBaseValue(Math.min(MAX_MOB_HP, hp.getBaseValue() * 1.5));
             m.setHealth(m.getMaxHealth());
         }
         var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -381,7 +389,7 @@ public final class Enemies {
     public static void makeWarden(Mob m, GameData.Warden w) {
         var hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
-            hp.setBaseValue(Math.min(4096, hp.getBaseValue() * w.hpMul()));
+            hp.setBaseValue(Math.min(MAX_MOB_HP, hp.getBaseValue() * w.hpMul()));
             m.setHealth(m.getMaxHealth());
         }
         var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);

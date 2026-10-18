@@ -60,8 +60,7 @@ public final class WeaponHitHandler {
                 int perfect = player.getData(ModAttachments.PERFECT.get()) + 1;
                 player.setData(ModAttachments.PERFECT.get(), perfect);
                 if (perfect >= 10) {
-                    var a = GameData.achievementById("perfect-ten");
-                    Achievements.grantAch(player, "perfect-ten", a.title(), GameData.shardsForReward(a.reward()));
+                    Achievements.grant(player, "perfect-ten");
                 }
                 // 見切りの成立時刻 (恩寵「完全主義」の3秒窓)
                 player.setData(ModAttachments.PARRY_TICK.get(), player.level().getGameTime());
@@ -251,6 +250,9 @@ public final class WeaponHitHandler {
             }
             ItemStack held = player.getMainHandItem();
             if (ModItems.styleOf(held.getItem()) != null) {
+                // 命中パスで何度も参照する添付データは冒頭で1回だけ取得する (CSVパースのコスト削減)
+                var passives = RunManager.passivesOf(player);
+                var pflags = RunManager.passiveFlagsOf(player);
                 double atk = StatCalc.attackDamageOf(player);
                 boolean crit = player.getRandom().nextFloat() < StatCalc.critOf(player);
                 // 致命の刻印: 会心威力 +45%/Lv
@@ -262,7 +264,7 @@ public final class WeaponHitHandler {
                 String trait = GearData.traitOf(held);
                 // 反撃窓: 回避直後の初撃×1.5 (技能「完全主義」は×1.9・原作カウンター)
                 if (player.getData(ModAttachments.COUNTER.get()) > 0) {
-                    boolean perfection = RunManager.passivesOf(player).contains("perfection");
+                    boolean perfection = passives.contains("perfection");
                     dmg *= perfection ? 1.9f : 1.5f;
                     player.setData(ModAttachments.COUNTER.get(), 0f);
                     player.displayClientMessage(Component.literal("§e反撃！"), true);
@@ -289,7 +291,6 @@ public final class WeaponHitHandler {
                     dmg *= 1.25f;
                 }
                 // 技能「巨人殺し」: エリート・層主へ+45%、雑魚へ-15%
-                var pflags = RunManager.passiveFlagsOf(player);
                 if (pflags.contains("giant_slayer")) {
                     boolean big = target.getTags().contains(Enemies.WARDEN_TAG)
                             || RunManager.BOSS_BARS.containsKey(target)
@@ -330,7 +331,7 @@ public final class WeaponHitHandler {
                 double affixLeech = StatCalc.affixOf(player, "lifestealPct")
                         + StatCalc.extraStat(player, "lifestealPct");
                 if (affixLeech > 0 && dmg > 0) RunManager.heal(player, dmg * affixLeech / 100.0);
-                if (RunManager.passivesOf(player).contains("blood_pact") && dmg > 0) {
+                if (passives.contains("blood_pact") && dmg > 0) {
                     RunManager.heal(player, dmg * 0.06);
                 }
                 // 不壊の付与
@@ -340,7 +341,7 @@ public final class WeaponHitHandler {
                 if ("infernus".equals(trait) && rand.nextFloat() < 0.15f) {
                     target.setRemainingFireTicks(60);
                 }
-                if (RunManager.passivesOf(player).contains("slow_burn") && rand.nextFloat() < 0.35f) {
+                if (passives.contains("slow_burn") && rand.nextFloat() < 0.35f) {
                     target.setRemainingFireTicks(40);
                 }
                 // 恩寵「凍牙の刻印」・接辞: 命中時に氷結鈍足
@@ -352,7 +353,7 @@ public final class WeaponHitHandler {
                     level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
                             target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.05);
                 }
-                if (RunManager.passivesOf(player).contains("frostbound") && rand.nextFloat() < 0.40f) {
+                if (passives.contains("frostbound") && rand.nextFloat() < 0.40f) {
                     target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
                 }
                 if ("venomous".equals(trait) && rand.nextFloat() < 0.12f) {
@@ -384,7 +385,7 @@ public final class WeaponHitHandler {
                     thunderStrike(level, player, target);
                 }
                 // 技能「残響の型」: 15%でフィニッシャーが再放される
-                if (RunManager.passiveFlagsOf(player).contains("echo_strike")
+                if (pflags.contains("echo_strike")
                         && rand.nextFloat() < 0.15f) {
                     WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player), dmg);
                 }
@@ -521,7 +522,7 @@ public final class WeaponHitHandler {
                     x -> x.isAlive() && x != target && !(x instanceof ServerPlayer))) {
                 Vec3 d = e.position().subtract(player.position());
                 if (d.length() > reach) continue;
-                double diff = Math.abs(normAngle(Math.atan2(d.z, d.x) - baseAng));
+                double diff = Math.abs(WeaponArts.normAng(Math.atan2(d.z, d.x) - baseAng));
                 if (diff < arc) {
                     WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), dmg * 0.4f);
                     level.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK,
@@ -529,13 +530,6 @@ public final class WeaponHitHandler {
                 }
             }
         }
-    }
-
-    /** 角度差の正規化 (-PI..PI) */
-    private static double normAngle(double a) {
-        while (a > Math.PI) a -= Math.PI * 2;
-        while (a < -Math.PI) a += Math.PI * 2;
-        return a;
     }
 
     /**
