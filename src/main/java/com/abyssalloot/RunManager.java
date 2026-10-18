@@ -411,26 +411,26 @@ public final class RunManager {
         }
     }
 
-    /** 出撃の初期化: 層・撃破数・報酬・提示・ゲージ類を既定値に戻す (出撃開始時) */
+    /**
+     * 出撃の初期化: 全ラン依存状態を既定値に戻す (出撃開始時).
+     * データ区分: ①ラン依存の提示・イベント (clearLingeringRunState で消える) /
+     * ②ラン中の集計・スタック・CT (ここで消える) /
+     * ③永続 (レベル・実績・HEIRLOOM・装備 — ここでは触らない).
+     */
     private static void resetRunState(ServerPlayer player, int floor) {
+        // ① 提示・イベント・層状態 (endRun/retire と共通のクリア処理)
+        clearLingeringRunState(player);
+        // ② 進行カウンタ・ラン中スタック・CT
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.KILLS.get(), 0);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
+        player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
         player.setData(ModAttachments.SOUL.get(), 0f);
         player.setData(ModAttachments.COMBO.get(), 0);
-        player.setData(ModAttachments.OFFER.get(), "");
         player.setData(ModAttachments.BOSSES.get(), "");
-        player.setData(ModAttachments.EVENT_DONE.get(), 0);
-        player.setData(ModAttachments.SHOP.get(), "");
-        player.setData(ModAttachments.TRAPS.get(), "");
-        player.setData(ModAttachments.DESTRUCT.get(), "");
         player.setData(ModAttachments.RELICS.get(), "");
         player.setData(ModAttachments.PASSIVES.get(), "");
-        player.setData(ModAttachments.RELIC_OFFER.get(), "");
-        player.setData(ModAttachments.PASSIVE_OFFER.get(), "");
-        player.setData(ModAttachments.FATE_MIST.get(), 0L);
-        player.setData(ModAttachments.FATE_TIME.get(), 0L);
         player.setData(ModAttachments.ART_USES.get(), 0);
         player.setData(ModAttachments.PERFECT.get(), 0);
         player.setData(ModAttachments.EVENT_TOTAL.get(), 0);
@@ -441,9 +441,12 @@ public final class RunManager {
         player.setData(ModAttachments.SCYTHE.get(), 0);
         player.setData(ModAttachments.GCNT.get(), 0);
         player.setData(ModAttachments.PARRY_TICK.get(), -1000L);
-        player.setData(ModAttachments.PENDING_BOONS.get(), 0);
         player.setData(ModAttachments.LIGHT_CD.get(), 0f);
         player.setData(ModAttachments.SKILL_CD.get(), 0f);
+        player.setData(ModAttachments.DASH_CD.get(), 0f);
+        player.setData(ModAttachments.IFRAME.get(), 0f);
+        player.setData(ModAttachments.COUNTER.get(), 0f);
+        player.setData(ModAttachments.FORTIFY.get(), 0f);
     }
 
     /** 原作の魂の内訳をチャットに出す (勝利時の要約). 報酬の欠片とは別の換算値 */
@@ -683,7 +686,7 @@ public final class RunManager {
         player.closeContainer();
     }
 
-    /** ラン中のみ有効な提示・イベント状態を消す (endRun / retire 共通) */
+    /** ラン中のみ有効な提示・イベント状態を消す (endRun / retire / resetRunState 共通) */
     private static void clearLingeringRunState(ServerPlayer player) {
         player.setData(ModAttachments.OFFER.get(), "");
         player.setData(ModAttachments.PENDING_BOONS.get(), 0);
@@ -695,6 +698,8 @@ public final class RunManager {
         player.setData(ModAttachments.DUNGEON.get(), "");
         player.setData(ModAttachments.FATE_MIST.get(), 0L);
         player.setData(ModAttachments.FATE_TIME.get(), 0L);
+        player.setData(ModAttachments.TRAPS.get(), "");
+        player.setData(ModAttachments.DESTRUCT.get(), "");
     }
 
     /** カスタムデータにレアリティを刻印し、銘を付け替えてloreを更新する */

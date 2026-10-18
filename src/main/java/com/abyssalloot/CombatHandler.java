@@ -501,7 +501,9 @@ public final class CombatHandler {
                         player.getData(ModAttachments.PORTAL_OPEN.get()),
                         RunManager.pendingBoonsOf(player),
                         player.getData(ModAttachments.LIGHT_CD.get()),
-                        player.getData(ModAttachments.SKILL_CD.get())));
+                        player.getData(ModAttachments.SKILL_CD.get()),
+                        player.getData(ModAttachments.RELIC_OFFER.get()).isBlank() ? 0 : 1,
+                        player.getData(ModAttachments.PASSIVE_OFFER.get()).isBlank() ? 0 : 1));
     }
 
     /**

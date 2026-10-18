@@ -26,9 +26,11 @@ public final class ClientHud {
     private static volatile int pendingBoons;
     private static volatile float lightCd;
     private static volatile float skillCd;
+    private static volatile boolean relicPending;
+    private static volatile boolean passivePending;
 
     public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
-                              float lcd, float scd) {
+                              float lcd, float scd, int rp, int pp) {
         soul = s;
         floor = f;
         level = lv;
@@ -39,6 +41,8 @@ public final class ClientHud {
         pendingBoons = pb;
         lightCd = lcd;
         skillCd = scd;
+        relicPending = rp != 0;
+        passivePending = pp != 0;
     }
 
     public static void init(IEventBus modBus) {
@@ -88,6 +92,16 @@ public final class ClientHud {
         // 未選択の祝福 (点滅して注意を促す)
         if (pendingBoons > 0 && (System.currentTimeMillis() / 400) % 2 == 0) {
             g.drawString(font, "◆祝福が未選択! 残" + pendingBoons + "件 (G→祝福を選ぶ)", x0, y, 0xFFE14AFF);
+            y += 12;
+        }
+        // 未選択の遺物・技能 (点滅して注意を促す)
+        boolean blink = (System.currentTimeMillis() / 400) % 2 == 0;
+        if (relicPending && blink) {
+            g.drawString(font, "◆遺物が未選択! (G→遺物を選ぶ)", x0, y, 0xFFB44BFF);
+            y += 12;
+        }
+        if (passivePending && blink) {
+            g.drawString(font, "◆技能が未選択! (G→技能の再提示)", x0, y, 0xFF4BA8FF);
             y += 12;
         }
         if (portalOpen != 0) {

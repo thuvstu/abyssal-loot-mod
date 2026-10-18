@@ -513,19 +513,58 @@ public final class FloorEvents {
         }
     }
 
-    /** 未選択の技能を再提示 (上書きしない。選ばず進んでも失われない) */
+    /** 未選択の遺物を再提示 (選択画面GUI + チャットボタン)。ESCで後回しにした分を開ける導線 */
+    public static void resendRelicOffer(ServerPlayer player) {
+        String raw = player.getData(ModAttachments.RELIC_OFFER.get());
+        if (raw == null || raw.isBlank()) {
+            player.sendSystemMessage(Component.literal("§7選択待ちの遺物は無い"));
+            return;
+        }
+        var ids = new ArrayList<String>();
+        var names = new ArrayList<String>();
+        var descs = new ArrayList<String>();
+        for (String id : raw.split(",")) {
+            var r = GameData.relicById(id);
+            if (r == null) continue;
+            ids.add(id);
+            names.add(r.name());
+            descs.add(r.desc());
+        }
+        if (ids.isEmpty()) {
+            player.sendSystemMessage(Component.literal("§7選択待ちの遺物は無い"));
+            return;
+        }
+        player.sendSystemMessage(Component.literal("§d遺物を選べ (再提示): ")
+                .append(btn("§6[選択画面を開く]", "/abyss relic")));
+        openEventScreen(player, "relic", "◆ 遺物を選べ (最大2つまで) ◆",
+                ids, names, descs, "ESCで後で選ぶ (選ばないと消えない)", false);
+    }
+
+    /** 未選択の技能を再提示 (選択画面GUI + チャットボタン)。上書きしない。選ばず進んでも失われない */
     public static void resendPassiveOffer(ServerPlayer player) {
         String raw = player.getData(ModAttachments.PASSIVE_OFFER.get());
         if (raw == null || raw.isBlank()) {
             player.sendSystemMessage(Component.literal("§7選択待ちの技能は無い"));
             return;
         }
-        var msg = Component.literal("§b技能を選べ (再提示): ");
+        var ids = new ArrayList<String>();
+        var names = new ArrayList<String>();
+        var descs = new ArrayList<String>();
         for (String id : raw.split(",")) {
-            if (GameData.passiveById(id) == null) continue;
-            msg.append(btn("§6[" + selectionLabel(id) + "] ", "/abyss passive " + id));
+            var p = GameData.passiveById(id);
+            if (p == null) continue;
+            ids.add(id);
+            names.add(p.name());
+            descs.add(p.desc());
         }
-        player.sendSystemMessage(msg);
+        if (ids.isEmpty()) {
+            player.sendSystemMessage(Component.literal("§7選択待ちの技能は無い"));
+            return;
+        }
+        player.sendSystemMessage(Component.literal("§b技能を選べ (再提示): ")
+                .append(btn("§6[選択画面を開く]", "/abyss passive")));
+        openEventScreen(player, "passive", "◆ 技能を選べ (代償付き) ◆",
+                ids, names, descs, "ESCで後で選ぶ (選ばないと消えない)", false);
     }
 
     /** 深羅針盤: 最寄りの強敵 (精鋭・番人・層主) を発光させて指し示す */

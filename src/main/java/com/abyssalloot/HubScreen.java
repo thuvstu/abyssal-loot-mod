@@ -16,6 +16,7 @@ public class HubScreen extends Screen {
             {"次の層へ", "abyss next"},
             {"祝福を選ぶ", "abyss boon"},
             {"層間イベントを選ぶ", "abyss event_screen"},
+            {"遺物を選ぶ", "abyss relic"},
             {"技能の再提示", "abyss passive"},
             {"鍛造", "abyss forge"},
             {"商店", "abyss shop"},

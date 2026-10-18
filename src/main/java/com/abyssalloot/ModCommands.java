@@ -189,8 +189,17 @@ public final class ModCommands {
                     return 1;
                 }))
                 .then(Commands.literal("relic")
+                        .executes(ctx -> {
+                            FloorEvents.resendRelicOffer(ctx.getSource().getPlayerOrException());
+                            return 1;
+                        })
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
+                                    ServerPlayer p = ctx.getSource().getPlayer();
+                                    String offer = p != null ? p.getData(ModAttachments.RELIC_OFFER.get()) : "";
+                                    if (offer != null && !offer.isBlank()) {
+                                        for (var id : offer.split(",")) b.suggest(id);
+                                    }
                                     for (var r : GameData.RELICS) b.suggest(r.id());
                                     return b.buildFuture();
                                 })
