@@ -15,6 +15,7 @@ import java.util.List;
  * サーバーから {@link ModPackets.FloorEventSync} が届くと開く。数字キー 1〜4 かクリックで選び、
  * {@link ModPackets.FloorEventPacket} で送る (サーバー側で提示中かを再検証)。
  * ESC で後回し (選択は保存され、再提示やチャットボタン / 操作ハブから選び直せる)。
+ * レイアウト: パネル背景 + カード群 + 転移門OPEN時は「次の層へ進む」ボタン。
  */
 public class FloorEventScreen extends Screen {
     private final String mode;
@@ -65,7 +66,7 @@ public class FloorEventScreen extends Screen {
     }
 
     private int cardY() {
-        return Math.max(64, height / 2 - 40 - ids.size() * 14);
+        return Math.max(74, height / 2 - 30 - ids.size() * 17);
     }
 
     /** 枠の色 (mode 別) */
@@ -99,25 +100,39 @@ public class FloorEventScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.drawCenteredString(font, title, width / 2, cardY() - 26, 0xFFFFD23C);
-        int y = cardY();
+        super.render(g, mouseX, mouseY, partialTick);
+        int cx = width / 2;
+        int cy = cardY();
+        int ch = ids.size() * 34 + (footer != null && !footer.isEmpty() ? 18 : 4)
+                + (portalOpen ? 30 : 0);
+        // パネル背景 (カード群を囲む)
+        int px0 = cx - 200;
+        int px1 = cx + 200;
+        int py0 = cy - 36;
+        int py1 = cy + ch + 16;
+        g.fill(px0, py0, px1, py1, 0xC010141E);
+        g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
+        g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
+        g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
+        g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
+        g.drawCenteredString(font, title, cx, py0 + 6, frameColor());
+        int y = cy;
         for (int i = 0; i < ids.size(); i++) {
             drawChoice(g, i, cardX(), y, cardW(), mouseX, mouseY);
             y += 34;
         }
         if (footer != null && !footer.isEmpty()) {
-            g.drawCenteredString(font, footer, width / 2, y + 4, 0xFF9FB0C9);
+            g.drawCenteredString(font, footer, cx, y + 4, 0xFF9FB0C9);
             y += 14;
         }
         if (portalOpen) {
-            boolean hover = mouseX >= width / 2 - 90 && mouseX < width / 2 + 90
+            boolean hover = mouseX >= cx - 90 && mouseX < cx + 90
                     && mouseY >= y + 8 && mouseY < y + 28;
-            g.fill(width / 2 - 90, y + 8, width / 2 + 90, y + 28, hover ? 0xFF2F5B33 : 0xFF26382A);
-            g.fill(width / 2 - 90, y + 8, width / 2 + 90, y + 9, 0xFF7CFFB2);
-            g.fill(width / 2 - 90, y + 27, width / 2 + 90, y + 28, 0xFF7CFFB2);
-            g.drawCenteredString(font, "▶ 次の層へ進む", width / 2, y + 13, 0xFF7CFFB2);
+            g.fill(cx - 90, y + 8, cx + 90, y + 28, hover ? 0xFF2F5B33 : 0xFF26382A);
+            g.fill(cx - 90, y + 8, cx + 90, y + 9, 0xFF7CFFB2);
+            g.fill(cx - 90, y + 27, cx + 90, y + 28, 0xFF7CFFB2);
+            g.drawCenteredString(font, "▶ 次の層へ進む", cx, y + 13, 0xFF7CFFB2);
         }
-        super.render(g, mouseX, mouseY, partialTick);
     }
 
     private void drawChoice(GuiGraphics g, int i, int x, int y, int w, int mouseX, int mouseY) {
