@@ -35,7 +35,10 @@ public final class SubSkills {
             new SubSkill("thornshield", "棘の盾", "6秒間 被ダメ-30%と反射を得る", 20f),
             new SubSkill("blinkswap", "錯影", "最寄りの敵と位置を交換して足止め", 14f),
             new SubSkill("soulfeed", "魂の供物", "HP20%を捧げて魂ゲージ+35", 10f),
-            new SubSkill("gravitywell", "重力井戸", "照準地点に4秒間の吸引フィールドを作る", 22f));
+            new SubSkill("gravitywell", "重力井戸", "照準地点に4秒間の吸引フィールドを作る", 22f),
+            new SubSkill("bloodrush", "血の覚醒", "HP10%を捧げて8秒間 移動・攻撃速度が大幅に上がる", 16f),
+            new SubSkill("soulcannon", "魂砲", "魂ゲージ30を消費し、最寄り敵に強力な一撃 (攻撃力×7)", 20f),
+            new SubSkill("skyfall", "天墜撃", "前方へ跳躍し、着地地点で周囲を爆砕する", 22f));
 
     public static SubSkill byId(String id) {
         for (SubSkill s : SUB_SKILLS) {
@@ -60,6 +63,9 @@ public final class SubSkills {
             case "soulfeed" -> soulFeed(player, level);
             case "gravitywell" -> gravityWell(player, level);
             case "thornshield" -> thornShield(player);
+            case "bloodrush" -> bloodRush(player, level);
+            case "soulcannon" -> soulCannon(player, level);
+            case "skyfall" -> skyFall(player, level);
             default -> placeDecoy(player, level);
         };
     }
@@ -194,6 +200,74 @@ public final class SubSkills {
         WELL_UNTIL.put(player.getUUID(), (long) 4 * 20);
         level.playSound(null, player.blockPosition(), SoundEvents.PORTAL_AMBIENT,
                 SoundSource.PLAYERS, 0.8f, 0.5f);
+        return true;
+    }
+
+    /** 血の覚醒: HP10%を捧げて移動・攻撃速度が大幅に上がる (8秒)。魂の供物の戦闘版 */
+    private static boolean bloodRush(ServerPlayer player, ServerLevel level) {
+        float cost = player.getMaxHealth() * 0.1f;
+        if (player.getHealth() <= cost + 1) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c覚醒には命が足りない"), true);
+            return false;
+        }
+        player.hurtServer(level, level.damageSources().magic(), cost);
+        player.addEffect(new MobEffectInstance(MobEffects.SPEED, 160, 1, false, false));
+        player.addEffect(new MobEffectInstance(MobEffects.HASTE, 160, 1, false, false));
+        level.sendParticles(ParticleTypes.DAMAGE_INDICATOR,
+                player.getX(), player.getY() + 1, player.getZ(), 16, 0.5, 0.8, 0.5, 0.2);
+        level.playSound(null, player.blockPosition(), SoundEvents.RAVAGER_ROAR,
+                SoundSource.PLAYERS, 0.5f, 1.6f);
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                "§c血の覚醒！ 移動・攻撃速度上昇 (8秒)"), true);
+        return true;
+    }
+
+    /** 魂砲: 魂ゲージ30を消費し、最寄り敵に強力な一撃 (魂の供物の逆換算) */
+    private static boolean soulCannon(ServerPlayer player, ServerLevel level) {
+        float soul = player.getData(ModAttachments.SOUL.get());
+        if (soul < 30f) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                    "§c魂ゲージが足りない (30必要)"), true);
+            return false;
+        }
+        LivingEntity t = nearest(player.position(), level, 16);
+        if (t == null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c魂砲: 敵がいない"), true);
+            return false;
+        }
+        // addGauge は加算専用のため直接減算 (悪夢「魂蝕」と同じ扱い)
+        player.setData(ModAttachments.SOUL.get(), Math.max(0, soul - 30f));
+        Vec3 from = player.position().add(0, 1.5, 0);
+        Vec3 to = t.position().add(0, t.getBbHeight() / 2, 0);
+        int steps = Math.max(1, (int) (from.distanceTo(to) * 2));
+        for (int i = 1; i <= steps; i++) {
+            Vec3 p = from.lerp(to, (double) i / steps);
+            level.sendParticles(ParticleTypes.WITCH, p.x, p.y, p.z, 1, 0, 0, 0, 0);
+        }
+        WeaponArts.artHurt(level, t, level.damageSources().playerAttack(player),
+                (float) (7.0 * StatCalc.attackDamageOf(player)));
+        level.sendParticles(ParticleTypes.SOUL, to.x, to.y, to.z, 24, 0.8, 0.8, 0.8, 0.2);
+        level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE,
+                SoundSource.PLAYERS, 0.8f, 1.4f);
+        return true;
+    }
+
+    /** 天墜撃: 前方へ跳躍し、着地地点で周囲を爆砕 (緩落下つきで落下ダメージは出ない) */
+    private static boolean skyFall(ServerPlayer player, ServerLevel level) {
+        Vec3 look = player.getLookAngle();
+        player.push(look.x * 1.3, 0.55, look.z * 1.3);
+        player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 80, 0, false, false));
+        level.sendParticles(ParticleTypes.CLOUD,
+                player.getX(), player.getY(), player.getZ(), 12, 0.4, 0.2, 0.4, 0.05);
+        level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
+                SoundSource.PLAYERS, 0.7f, 0.8f);
+        DelayRunner.after(10, () -> {
+            if (!player.isAlive()) return;
+            Vec3 at = player.position();
+            WeaponArts.pulse(level, player, at, 4.5, 3.0, true, ParticleTypes.EXPLOSION);
+            level.playSound(null, player.blockPosition(), SoundEvents.MACE_SMASH_GROUND,
+                    SoundSource.PLAYERS, 0.9f, 1.0f);
+        });
         return true;
     }
 
