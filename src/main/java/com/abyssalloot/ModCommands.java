@@ -255,6 +255,17 @@ public final class ModCommands {
                                     BoonHandler.chooseBoon(p, StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
+                .then(Commands.literal("event_screen")
+                        .executes(ctx -> {
+                            // 層間イベント選択画面の再提示 (ESCで後回しにした分をハブから開ける)
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            if (p.getData(ModAttachments.EVENT_DONE.get()) != 0) {
+                                p.sendSystemMessage(Component.literal("§cこの層のイベントは使用済み"));
+                                return 0;
+                            }
+                            FloorEvents.offerEvent(p);
+                            return 1;
+                        }))
                 .then(Commands.literal("attr")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
