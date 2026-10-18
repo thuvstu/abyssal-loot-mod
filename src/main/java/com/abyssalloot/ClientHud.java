@@ -11,6 +11,7 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 /**
  * クライアント専用: 魂ゲージ・層・レベルのHUD.
  * 数値はサーバーからの HudSync で更新される (未受信時は表示しない).
+ * 区域名は GameData (MC非依存) から層番号で引くため追加パケットは不要.
  * 小技/必殺のCTは残存時のみ表示 (CT中はサーバーが0.1秒ごとに再送する).
  */
 public final class ClientHud {
@@ -29,6 +30,11 @@ public final class ClientHud {
     private static volatile boolean relicPending;
     private static volatile boolean passivePending;
 
+    /** CTバーの満 tara 基準 (受信した最大値。CTが尽きたら0.2秒後にリセット) */
+    private static float lightCdMax;
+    private static float skillCdMax;
+    private static long lastCdSeen;
+
     public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
                               float lcd, float scd, int rp, int pp) {
         soul = s;
@@ -43,6 +49,14 @@ public final class ClientHud {
         skillCd = scd;
         relicPending = rp != 0;
         passivePending = pp != 0;
+        if (lcd > 0) {
+            lightCdMax = Math.max(lightCdMax, lcd);
+            lastCdSeen = System.currentTimeMillis();
+        }
+        if (scd > 0) {
+            skillCdMax = Math.max(skillCdMax, scd);
+            lastCdSeen = System.currentTimeMillis();
+        }
     }
 
     public static void init(IEventBus modBus) {
@@ -52,60 +66,119 @@ public final class ClientHud {
                 ClientHud::render));
     }
 
+    private static void bar(GuiGraphics g, int x, int y, int w, int h,
+                            float pct, int color, boolean segments) {
+        pct = Math.max(0f, Math.min(1f, pct));
+        g.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xB010141E);          // 背景
+        g.fill(x - 1, y - 1, x + w + 1, y, 0xFF5A6478);                   // 枠 (上)
+        g.fill(x - 1, y + h, x + w + 1, y + h + 1, 0xFF5A6478);           // 枠 (下)
+        g.fill(x - 1, y, x, y + h, 0xFF5A6478);                           // 枠 (左)
+        g.fill(x + w, y, x + w + 1, y + h, 0xFF5A6478);                   // 枠 (右)
+        int fill = (int) ((w - 2) * pct);
+        if (fill > 0) {
+            g.fill(x + 1, y + 1, x + 1 + fill, y + h - 1, color);
+            // 明部 (上端ハイライト)
+            g.fill(x + 1, y + 1, x + 1 + fill, y + 2, 0x40FFFFFF);
+        }
+        if (segments) {
+            // 25/50/75 の刻線
+            for (int i = 1; i <= 3; i++) {
+                int sx = x + w * i / 4;
+                g.fill(sx, y + 1, sx + 1, y + h - 1, 0x70000000);
+            }
+        }
+    }
+
     private static void render(GuiGraphics g, DeltaTracker delta) {
         if (soul < 0) return;
         var mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
-        // 左上に寄せる (ホットバーと被らないように)
-        int x0 = 6;
-        int y0 = 6;
-        int bw = 120;
-        // 背景
-        g.fill(x0 - 1, y0 - 1, x0 + bw + 1, y0 + 9, 0x80000000);
-        // 魂ゲージ (100で発光色に)
-        int fill = (int) (bw * Math.min(1, soul / 100f));
-        int color = soul >= 100 ? 0xFFE14AFF : 0xFFB14BFF;
-        g.fill(x0, y0, x0 + fill, y0 + 8, color);
         var font = mc.font;
-        g.drawString(font, String.format("魂%.0f/100 第%d層 Lv%d", soul, floor, level), x0, y0 + 12, 0xFFFFFFFF);
-        int y = y0 + 24;
-        if (combo >= 10) {
-            g.drawString(font, combo + "連撃！", x0, y, 0xFFFFD23C);
-            y += 12;
+        int x0 = 10;
+        int y0 = 10;
+        int bw = 160;
+        long t = System.currentTimeMillis();
+        boolean blink = (t / 400) % 2 == 0;
+
+        // ---- 魂ゲージ (枠・刻線つき。MAX時は脈動) ----
+        int gaugeColor;
+        if (soul >= 100f) {
+            int wave = (int) (Math.sin(t / 160.0) * 30);
+            gaugeColor = 0xFFC0FF7A + (wave << 8);   // 緑〜黄の脈動
+        } else {
+            gaugeColor = 0xFFB14BFF;
         }
-        g.drawString(font, "撃破" + kills, x0, y, 0xFF9FB0C9);
-        y += 12;
-        // 小技・必殺のCT (残存時のみ)
+        bar(g, x0, y0, bw, 8, soul / 100f, gaugeColor, true);
+        String gaugeText = String.format("魂 %.0f/100", soul);
+        g.drawString(font, gaugeText, x0, y0 + 12, soul >= 100 ? 0xFFE14AFF : 0xFFC9CFDE);
+        // MAX時の奥義促し (ゲージ右側に点滅)
+        if (soul >= 100 && blink) {
+            g.drawString(font, "R!", x0 + bw + 6, y0 + 12, 0xFFE14AFF);
+        }
+
+        // ---- 層・レベル (区域名つき) ----
+        var zone = GameData.zoneForFloor(Math.max(1, floor));
+        g.drawString(font, "第" + floor + "層 [" + zone.name() + "] Lv" + level,
+                x0, y0 + 24, 0xFFFFFFFF);
+        int y = y0 + 38;
+
+        // ---- CT (バー+秒数) ----
+        if (t - lastCdSeen > 300) {  // CTが尽きてしばらく経ったら基準を戻す
+            if (lightCd <= 0) lightCdMax = 0;
+            if (skillCd <= 0) skillCdMax = 0;
+        }
         if (lightCd > 0) {
-            g.drawString(font, String.format("小技 %.1fs (右クリック)", lightCd), x0, y, 0xFF7CC8FF);
-            y += 12;
+            float max = Math.max(1f, lightCdMax);
+            bar(g, x0, y, 90, 5, lightCd / max, 0xFF7CC8FF, false);
+            g.drawString(font, String.format("小技 %.1fs", lightCd), x0 + 96, y - 1, 0xFF7CC8FF);
+            y += 11;
         }
         if (skillCd > 0) {
-            g.drawString(font, String.format("必殺 %.1fs (V)", skillCd), x0, y, 0xFFFFD23C);
+            float max = Math.max(1f, skillCdMax);
+            bar(g, x0, y, 90, 5, skillCd / max, 0xFFFFD23C, false);
+            g.drawString(font, String.format("必殺 %.1fs", skillCd), x0 + 96, y - 1, 0xFFFFD23C);
+            y += 11;
+        }
+
+        // ---- 撃破・コンボ ----
+        g.drawString(font, "撃破 " + kills, x0, y, 0xFF9FB0C9);
+        y += 12;
+        if (combo >= 10) {
+            int comboColor = combo >= 50 ? 0xFFFF8A3C : combo >= 30 ? 0xFFFFD23C : 0xFFFFFFFF;
+            g.drawString(font, combo + " 連撃！", x0, y, comboColor);
             y += 12;
         }
-        // 未配分の属性点と転移門の開放を見逃さないよう表示
-        if (attrPoints > 0) {
-            g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0, y, 0xFF7CFFB2);
+
+        // ---- 未選択の提示 (点滅) ----
+        if (pendingBoons > 0 && blink) {
+            g.drawString(font, "◆祝福未選択 ×" + pendingBoons + " (G→祝福)", x0, y, 0xFFE14AFF);
             y += 12;
         }
-        // 未選択の祝福 (点滅して注意を促す)
-        if (pendingBoons > 0 && (System.currentTimeMillis() / 400) % 2 == 0) {
-            g.drawString(font, "◆祝福が未選択! 残" + pendingBoons + "件 (G→祝福を選ぶ)", x0, y, 0xFFE14AFF);
-            y += 12;
-        }
-        // 未選択の遺物・技能 (点滅して注意を促す)
-        boolean blink = (System.currentTimeMillis() / 400) % 2 == 0;
         if (relicPending && blink) {
-            g.drawString(font, "◆遺物が未選択! (G→遺物を選ぶ)", x0, y, 0xFFB44BFF);
+            g.drawString(font, "◆遺物未選択 (G→遺物)", x0, y, 0xFFB44BFF);
             y += 12;
         }
         if (passivePending && blink) {
-            g.drawString(font, "◆技能が未選択! (G→技能の再提示)", x0, y, 0xFF4BA8FF);
+            g.drawString(font, "◆技能未選択 (G→技能)", x0, y, 0xFF4BA8FF);
             y += 12;
         }
+        if (attrPoints > 0 && blink) {
+            g.drawString(font, "属性+" + attrPoints + " (G→ステータス)", x0, y, 0xFF7CFFB2);
+            y += 12;
+        }
+
+        // ---- 転移門OPEN (画面中央上に点滅バナー) ----
         if (portalOpen != 0) {
-            g.drawString(font, "◆転移門OPEN (G→次の層へ)", x0, y, 0xFF7CFFB2);
+            String msg = "◆ 転移門OPEN — G → 次の層へ ◆";
+            int w = font.width(msg);
+            int cx = mc.getWindow().getGuiScaledWidth() / 2;
+            int by = 34;
+            if (blink) {
+                g.fill(cx - w / 2 - 5, by - 3, cx + w / 2 + 5, by + 11, 0x90000000);
+                g.fill(cx - w / 2 - 5, by - 3, cx + w / 2 + 5, by - 2, 0xFF7CFFB2);
+                g.fill(cx - w / 2 - 5, by + 10, cx + w / 2 + 5, by + 11, 0xFF7CFFB2);
+                g.drawCenteredString(font, msg, cx, by, 0xFF7CFFB2);
+            }
         }
     }
 }

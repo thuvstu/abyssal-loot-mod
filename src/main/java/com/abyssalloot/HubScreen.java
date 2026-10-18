@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 /**
  * 操作ハブ (クライアント専用)。全GUI・主要操作へのボタン集約。
  * 各ボタンはチャットコマンドを送信するため、サーバー側の検証は各コマンド側で行われる。
+ * レイアウトは 2列グリッド + パネル背景 (左列=進行と選択 / 右列=装備と情報)。
  */
 public class HubScreen extends Screen {
     private static final String[][] BUTTONS = {
@@ -32,21 +33,37 @@ public class HubScreen extends Screen {
 
     @Override
     protected void init() {
-        int cx = width / 2 - 100;
-        int y = height / 2 - 80;
-        for (String[] b : BUTTONS) {
+        // 2列グリッド (左: 進行と選択 / 右: 装備と情報)
+        int bw = 150;
+        int colX0 = width / 2 - bw - 6;
+        int colX1 = width / 2 + 6;
+        int y = height / 2 - 60;
+        for (int i = 0; i < BUTTONS.length; i++) {
+            String[] b = BUTTONS[i];
+            int x = i % 2 == 0 ? colX0 : colX1;
+            int by = y + i / 2 * 24;
             addRenderableWidget(Button.builder(Component.literal(b[0]), btn -> {
                 var conn = Minecraft.getInstance().getConnection();
                 if (conn != null) conn.sendCommand(b[1]);
-            }).bounds(cx, y, 200, 20).build());
-            y += 24;
+            }).bounds(x, by, bw, 20).build());
         }
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        g.drawCenteredString(font, title.getString(), width / 2, height / 2 - 96, 0xFFFFD23C);
+        // パネル背景 (ボタングリッドを囲む。6行×2列)
+        int px0 = width / 2 - 162;
+        int px1 = width / 2 + 162;
+        int py0 = height / 2 - 84;
+        int py1 = height / 2 + 78;
+        g.fill(px0, py0, px1, py1, 0xD010141E);
+        g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
+        g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
+        g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
+        g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
+        g.drawCenteredString(font, title.getString(), width / 2, py0 + 6, 0xFFFFD23C);
+        g.drawCenteredString(font, "ESC で閉じる", width / 2, py1 - 12, 0xFF6E7686);
     }
 
     @Override

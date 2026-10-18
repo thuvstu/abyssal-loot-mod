@@ -46,10 +46,21 @@ public class StatusScreen extends Screen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         var lines = ClientGui.statusLines();
-        int y = Math.max(20, height / 2 - (lines.size() + 1) * 6);
-        g.drawString(font, title.getString(), width / 2 - 110, y - 14, 0xFFFFD23C, false);
+        int x = width / 2 - 110;
+        int y = Math.max(30, height / 2 - (lines.size() + 1) * 6);
+        // パネル背景 (テキスト块と属性ボタン列を囲む)
+        int px0 = x - 10;
+        int px1 = width / 2 + 118 + 76;
+        int py0 = y - 22;
+        int py1 = Math.max(height - 36, y + lines.size() * 12 + 8);
+        g.fill(px0, py0, px1, py1, 0xD010141E);
+        g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
+        g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
+        g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
+        g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
+        g.drawString(font, "◆ " + title.getString(), x, y - 14, 0xFFFFD23C, false);
         for (String s : lines) {
-            g.drawString(font, s, width / 2 - 110, y, 0xFFE8E8F0, false);
+            g.drawString(font, s, x, y, 0xFFE8E8F0, false);
             y += 12;
         }
     }
