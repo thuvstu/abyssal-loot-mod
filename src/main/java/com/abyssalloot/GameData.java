@@ -497,7 +497,7 @@ public final class GameData {
 
     /** 原作 getDailyRun と同じく UTC 日で 7種ローテ */
     public static DailyMod dailyModForDay(long epochDay) {
-        int i = (int) (Math.abs(epochDay) % DAILY_MODS.size());
+        int i = (int) (Math.floorMod(epochDay, DAILY_MODS.size()));
         return DAILY_MODS.get(i);
     }
 

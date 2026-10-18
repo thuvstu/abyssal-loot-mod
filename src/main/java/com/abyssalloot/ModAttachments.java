@@ -82,7 +82,7 @@ public final class ModAttachments {
     public static final Supplier<AttachmentType<net.minecraft.world.item.ItemStack>> HEIRLOOM =
             ATTACHMENTS.register("heirloom", () -> AttachmentType.builder(
                     () -> net.minecraft.world.item.ItemStack.EMPTY.copy())
-                    .serialize(net.minecraft.world.item.ItemStack.CODEC.fieldOf("value")).build());
+                    .serialize(net.minecraft.world.item.ItemStack.OPTIONAL_CODEC.fieldOf("value")).build());
     /** 層間イベント使用済み (0/1) */
     public static final Supplier<AttachmentType<Integer>> EVENT_DONE =
             reg("event_done", 0, Codec.INT);

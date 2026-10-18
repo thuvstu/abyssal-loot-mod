@@ -187,9 +187,11 @@ public final class StatCalc {
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
         if (atkSpd != null) {
             double asPct = attackSpeedPctOf(player);
+            // 鎌の収穫スタック (+6%/枚) も含める (refreshAttackSpeed と同一式)
             atkSpd.setBaseValue(cls.attackSpeed
                     * (1 + attrEff(player, 1) * 0.02)
-                    * (1 + asPct / 100.0));
+                    * (1 + asPct / 100.0)
+                    * (1 + player.getData(ModAttachments.SCYTHE.get()) * 0.06));
         }
         // 攻撃射程 (バニラの ENTITY_INTERACTION_RANGE。素値3m + 射程0.6m/点, 上限8m)
         var reach = player.getAttribute(Attributes.ENTITY_INTERACTION_RANGE);
@@ -391,7 +393,7 @@ public final class StatCalc {
         return v;
     }
 
-    /** 会心率 (原作crit + 幸運0.5%/点 + 心眼+5%/Lv + 深淵の目+12%) */
+    /** 会心率 (原作crit + 心眼の刻印+5%/Lv + 深淵の目+12%)。幸運はドロップ側で使うため不含 */
     public static double critOf(ServerPlayer player) {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ

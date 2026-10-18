@@ -258,7 +258,7 @@ public final class GearData {
     /** レア度を光らせる (レジェンド/神話は虹色グリント、呪縛品は呪いの合図として光る) */
     private static void applyGlint(ItemStack stack) {
         String rarity = rarityOf(stack);
-        boolean glint = rarity.equals("legend") || rarity.equals("mythic")
+        boolean glint = rarity.equals("legendary") || rarity.equals("mythic")
                 || curseOf(stack) != null;
         stack.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, glint);
     }

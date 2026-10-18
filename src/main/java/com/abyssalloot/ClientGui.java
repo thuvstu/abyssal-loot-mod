@@ -112,13 +112,25 @@ public final class ClientGui {
         compareRight = List.copyOf(right);
     }
 
+
+    /** Switching screens while a container (shop/forge/compare) is open leaves the server
+     *  side menu behind; call closeContainer first so the ClosePacket is sent. */
+    private static void replaceScreen(net.minecraft.client.gui.screens.Screen next) {
+        var mc = Minecraft.getInstance();
+        if (mc == null) return;
+        if (mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+                && mc.player != null) {
+            mc.player.closeContainer();
+        }
+        mc.setScreen(next);
+    }
     public static void showStatus(List<String> lines) {
         statusLines = List.copyOf(lines);
         var mc = Minecraft.getInstance();
         if (mc == null) return;
         // 開き済みなら内容だけ更新 (属性ボタン連打に対応)
         if (!(mc.screen instanceof StatusScreen)) {
-            mc.setScreen(new StatusScreen());
+            replaceScreen(new StatusScreen());
         }
     }
 
@@ -128,7 +140,7 @@ public final class ClientGui {
 
     public static void openHub() {
         if (Minecraft.getInstance() != null) {
-            Minecraft.getInstance().setScreen(new HubScreen());
+            replaceScreen(new HubScreen());
         }
     }
 
@@ -144,7 +156,7 @@ public final class ClientGui {
         if (mc.screen instanceof BoonSelectScreen bs) {
             bs.refresh(boonChoices, boonRemaining);
         } else {
-            mc.setScreen(new BoonSelectScreen(boonChoices, boonRemaining));
+            replaceScreen(new BoonSelectScreen(boonChoices, boonRemaining));
         }
     }
 
@@ -160,7 +172,7 @@ public final class ClientGui {
         if (mc.screen instanceof FloorEventScreen fs && fs.mode().equals(mode)) {
             fs.refresh(mode, title, ids, names, descs, footer, portalOpen);
         } else {
-            mc.setScreen(new FloorEventScreen(mode, title, ids, names, descs, footer, portalOpen));
+            replaceScreen(new FloorEventScreen(mode, title, ids, names, descs, footer, portalOpen));
         }
     }
 }

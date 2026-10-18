@@ -38,7 +38,7 @@ public final class BossHandler {
         var bar = spawnBoss(ModEntities.ZERO.get(), level, player,
                 Component.literal("§f原初虚無 《ニヒル・ゼロ》"),
                 4000 * hpMult, 30 * dmgMult, Enemies.SPEED_PARITY * 118 / 100.0,
-                BossEvent.BossBarColor.WHITE);
+                BossEvent.BossBarColor.WHITE, "abyss_true_boss");
         if (bar == null) throw new IllegalStateException("true boss create failed");
         player.sendSystemMessage(Component.literal("§f◆ 真・最終決戦 — 3フェーズの弾幕を耐え抜け！"));
     }
@@ -50,13 +50,14 @@ public final class BossHandler {
     private static ServerBossEvent spawnBoss(EntityType<? extends Monster> type, ServerLevel level,
                                              ServerPlayer player, Component name,
                                              double hp, double dmg, double speed,
-                                             BossEvent.BossBarColor color) {
+                                             BossEvent.BossBarColor color, String tag) {
         Monster boss = (Monster) type.create(level, EntitySpawnReason.EVENT);
         if (boss == null) return null;
         BlockPos bp = player.blockPosition();
         int sy = ArenaManager.safeSpawnY(level, bp.getX(), bp.getZ() - 10, bp.getY() + 1);
         boss.setPos(bp.getX() + 0.5, sy, bp.getZ() - 10 + 0.5);
         setMobStats(boss, hp, dmg, speed);
+        if (tag != null) boss.addTag(tag);
         boss.setCustomName(name);
         boss.setCustomNameVisible(true);
         boss.setTarget(player);
@@ -68,7 +69,7 @@ public final class BossHandler {
         return bar;
     }
 
-    /** MOBのHP・攻撃・移動速度を絶対設定する (属性上限1e6で圧縮するう。呼び出し側はHP満タンの心持で) */
+    /** MOBのHP・攻撃・移動速度を絶対設定する (属性上限1000000で圧縮するう。呼び出し側はHP満タンの心持で) */
     private static void setMobStats(Mob mob, double hp, double dmg, double speed) {
         var maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
         if (maxHp != null) {
@@ -110,7 +111,7 @@ public final class BossHandler {
     /** 真ボスのフェーズ弾幕 (原作 TRUE_BOSS_PHASES の3段階。5秒ごとに残HP割合で変化) */
     public static void tickTrueBoss(ServerLevel level, Monster boss) {
         String name = boss.getCustomName() != null ? boss.getCustomName().getString() : "";
-        if (!name.contains("ニヒル")) return;
+        if (!boss.getTags().contains("abyss_true_boss")) return;
         double ratio = boss.getHealth() / Math.max(1, boss.getMaxHealth());
         var ph = GameData.truePhaseFor(ratio);
         var at = boss.position();
@@ -159,6 +160,9 @@ public final class BossHandler {
         var target = level.getNearestPlayer(boss.getX(), boss.getY(), boss.getZ(), 48, false);
         if (target instanceof ServerPlayer sp) m.setTarget(sp);
         else if (target != null) m.setTarget(target);
+        // 召喚扱い (ウェーブ数に数えない) + 深淵タグ (retire 時の掃除対象に)
+        m.addTag(Enemies.SUMMON_TAG);
+        m.addTag("abyss_boss_minion");
         level.addFreshEntity(m);
     }
 
@@ -190,7 +194,7 @@ public final class BossHandler {
                 Component.literal("§c" + def.name()),
                 def.hp() * hpMult / 20, def.dmg() * dmgMult / 4,
                 Enemies.SPEED_PARITY * def.speed() / 100.0,
-                BossEvent.BossBarColor.RED);
+                BossEvent.BossBarColor.RED, null);
         if (bar == null) throw new IllegalStateException("pinnacle boss create failed");
         player.sendSystemMessage(Component.literal("§c◆ 終焉の座 — 4フェーズの審判を耐え抜け！ (MC向けにHP・攻撃を圧縮)"));
     }
@@ -256,8 +260,9 @@ public final class BossHandler {
             bar.addPlayer(player);
             bar.setProgress(1f);
             RunManager.BOSS_BARS.put(monster, bar);
-        }
     }
+
+        }
 
     /** 超越者 (原作 b_ascension・28層。無限深淵で到達する裏決戦) */
     static void spawnAscensionBoss(ServerPlayer player, ServerLevel level, BlockPos center,
@@ -285,11 +290,11 @@ public final class BossHandler {
         level.addFreshEntity(boss);
         player.setData(ModAttachments.WAVE_TOTAL.get(),
                 player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
-        var bar = new ServerBossEvent(Component.literal("§e" + def.name()),
-                BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
-        bar.addPlayer(player);
-        bar.setProgress(1f);
         if (boss instanceof Monster monster) {
+            var bar = new ServerBossEvent(Component.literal("\u00a7e" + def.name()),
+                    BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
+            bar.addPlayer(player);
+            bar.setProgress(1f);
             RunManager.BOSS_BARS.put(monster, bar);
         }
         player.sendSystemMessage(Component.literal("§e◆ 超越者 — 真の深淵と終焉の座を制した者だけが立てる相手！"));

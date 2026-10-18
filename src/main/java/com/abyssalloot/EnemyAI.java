@@ -49,7 +49,7 @@ public final class EnemyAI {
             if (!(p.level() instanceof ServerLevel level)) continue;
             var found = level.getEntitiesOfClass(Mob.class,
                     p.getBoundingBox().inflate(64),
-                    e -> e.isAlive() && !e.getTags().isEmpty());
+                    e -> e.isAlive() && (!e.getTags().isEmpty() || RunManager.BOSS_BARS.containsKey(e)));
             for (Mob m : found) {
                 if (!seen.add(m.getUUID())) continue;
                 var tags = m.getTags();
@@ -396,7 +396,7 @@ public final class EnemyAI {
             var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
             double dmg = atk != null ? atk.getValue() * 2 : 20;
             WeaponArts.enemyPulse(level, m.position(), 4, dmg, ParticleTypes.EXPLOSION);
-            m.hurtServer(level, level.damageSources().magic(), Float.MAX_VALUE);
+            m.discard();  // 自爆: 実体を消す (ドロップなし)
         } else {
             m.getNavigation().moveTo(target, 1.3);
         }

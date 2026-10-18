@@ -440,6 +440,7 @@ public final class RunManager {
         player.setData(ModAttachments.DMG_DEALT.get(), 0);
         player.setData(ModAttachments.SCYTHE.get(), 0);
         player.setData(ModAttachments.GCNT.get(), 0);
+        player.setData(ModAttachments.FOLLOW_HIT.get(), 0);
         player.setData(ModAttachments.PARRY_TICK.get(), -1000L);
         player.setData(ModAttachments.LIGHT_CD.get(), 0f);
         player.setData(ModAttachments.SKILL_CD.get(), 0f);
@@ -614,7 +615,11 @@ public final class RunManager {
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
+        player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
         clearLingeringRunState(player);
+        // bossrush の Lv10 ステータスなど、ラン中の適用を本来レベルに戻す
+        var clsE = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        StatCalc.applyClass(player, clsE, player.getData(ModAttachments.LEVEL.get()), true);
         player.level().playSound(null, player.blockPosition(),
                 net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1f);
         ArenaManager.clearArenaBarriers(player);
@@ -635,6 +640,10 @@ public final class RunManager {
         player.setData(ModAttachments.FATE_TIME.get(), 0L);
         player.setData(ModAttachments.TRAPS.get(), "");
         player.setData(ModAttachments.DESTRUCT.get(), "");
+        // 祝福・祭壇効果はラン依存 (次の出撃に持ち越さない)
+        player.setData(ModAttachments.BOONS.get(), "");
+        player.setData(ModAttachments.SHRINE_FATE.get(), "");
+        player.setData(ModAttachments.SHRINE_UNTIL.get(), 0L);
     }
 
     /** カスタムデータにレアリティを刻印し、銘を付け替えてloreを更新する */
@@ -782,7 +791,19 @@ public final class RunManager {
                 player.sendSystemMessage(Component.literal("§c溶鉄の炉: 火の粉が降り注ぐ！"));
             }
         }
-        player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
+        // rollFloor=false は追加の襲来 (swarm 等) なので総数に加算する
+        if (rollFloor) {
+        // rollFloor=false は追加の襲来 (swarm 等) なので総数に加算する
+        if (rollFloor) {
+            player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
+        } else {
+            player.setData(ModAttachments.WAVE_TOTAL.get(),
+                    player.getData(ModAttachments.WAVE_TOTAL.get()) + count);
+        }
+        } else {
+            player.setData(ModAttachments.WAVE_TOTAL.get(),
+                    player.getData(ModAttachments.WAVE_TOTAL.get()) + count);
+        }
         // 湧き中心はアリーナ中心 (プレイヤー位置だと場外に湧くため)
         BlockPos arena = ArenaManager.arenaCenterOf(player);
         BlockPos center = arena != null ? arena : player.blockPosition();

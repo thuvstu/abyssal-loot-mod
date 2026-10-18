@@ -27,6 +27,13 @@ public final class SkillHandler {
         if (!(player.level() instanceof ServerLevel)) return;
         ItemStack stack = event.getItemStack();
         if (stack.is(ModItems.SOUL_SHARD.get())) {
+            // すでに満タンなら消さない (欠片の無駄遣いを防ぐ)
+            if (player.getData(ModAttachments.SOUL.get()) >= 100f) {
+                player.displayClientMessage(Component.literal("§7魂ゲージは満タンだ"), true);
+                event.setCanceled(true);
+                event.setCancellationResult(InteractionResult.SUCCESS);
+                return;
+            }
             RunManager.addGauge(player, 25);
             float soul = player.getData(ModAttachments.SOUL.get());
             stack.shrink(1);

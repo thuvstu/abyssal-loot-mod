@@ -163,6 +163,11 @@ public final class ModCommands {
                 }))
                 .then(Commands.literal("daily").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    if (RunManager.isRunLocked(p)) {
+                        p.sendSystemMessage(Component.literal(
+                                "§c出撃中はモードを変更できません (retire か quick で再出撃してね)"));
+                        return 0;
+                    }
                     p.setData(ModAttachments.MODE.get(), "daily");
                     var dm = RunManager.dailyMod();
                     p.sendSystemMessage(Component.literal(

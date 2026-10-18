@@ -155,7 +155,13 @@ public final class Consumables {
                         Set.<Relative>of(), rd.yaw(), rd.pitch(), true);
             }
             case "cure" -> {
-                player.removeAllEffects();
+                var bad = java.util.List.of(MobEffects.WITHER, MobEffects.POISON,
+                        MobEffects.SLOWNESS, MobEffects.WEAKNESS, MobEffects.HUNGER,
+                        MobEffects.BLINDNESS, MobEffects.UNLUCK, MobEffects.MINING_FATIGUE,
+                        MobEffects.DARKNESS, MobEffects.BAD_OMEN);
+                for (var eff : java.util.List.copyOf(player.getActiveEffects())) {
+                    if (bad.contains(eff.getEffect())) player.removeEffect(eff.getEffect());
+                }
                 player.displayClientMessage(Component.literal("§a浄化した"), true);
             }
             case "magnet" -> {
@@ -171,6 +177,7 @@ public final class Consumables {
                 int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
                 player.sendSystemMessage(Component.literal("§e看破: 残り " + Math.max(0, total - kills) + "体"));
                 for (var e : RunManager.BOSS_BARS.entrySet()) {
+                    if (e.getKey().level() != level || e.getKey().distanceTo(player) > 64) continue;
                     if (e.getKey().isAlive()) {
                         player.sendSystemMessage(Component.literal("§c層主 HP "
                                 + Math.max(0, Math.round(e.getKey().getHealth())) + "/"
@@ -261,8 +268,8 @@ public final class Consumables {
                 }
             }
             case "art_scroll" -> {
-                player.setData(ModAttachments.SOUL.get(), 100f);
-                player.displayClientMessage(Component.literal("§d奥義の符が燃え上がる — 魂ゲージ満タン！"), true);
+                // addGauge 経由にして MAX到達時の効果も発動させる
+                RunManager.addGauge(player, 100);
             }
             case "skill_reset" -> {
                 player.setData(ModAttachments.SKILL_CD.get(), 0f);
@@ -319,7 +326,7 @@ public final class Consumables {
                     return false;
                 }
                 FloorEvents.takeShards(player, 3);
-                WeaponArts.pulse(level, player, origin.add(player.getLookAngle().scale(4)), 4, 0.0, true,
+                WeaponArts.pulse(level, player, origin.add(player.getLookAngle().scale(4)), 4, 4.0, true,
                         ParticleTypes.SOUL);
                 level.sendParticles(ParticleTypes.SOUL, origin.x, origin.y + 1, origin.z, 30, 2, 1, 2, 0.2);
             }

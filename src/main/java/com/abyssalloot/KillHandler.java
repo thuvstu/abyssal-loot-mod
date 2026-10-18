@@ -38,7 +38,7 @@ public final class KillHandler {
     public static void onKill(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        // 奥義ゲージは撃破では増えない (原作: 与ダメ・被ダメで蓄積, onDamage 側で処理)
+        // 奥義ゲージは撃破では基本増えない (原作: 与ダメ・被ダメで蓄積)。以下は特殊条件のみ加算
         player.setData(ModAttachments.KILLS.get(), player.getData(ModAttachments.KILLS.get()) + 1);
         player.setData(ModAttachments.COMBO.get(), player.getData(ModAttachments.COMBO.get()) + 1);
         // スコア用: 最大コンボを記録
@@ -110,13 +110,14 @@ public final class KillHandler {
             LootHandler.giveOrDrop(player, new ItemStack(foods[rand.nextInt(foods.length)], 1 + rand.nextInt(2)));
         }
         // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
-        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob && deadMob.isDeadOrDying()) {
+        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob) {
             String dmab = Enemies.mobAbility(deadMob);
             Vec3 dp = deadMob.position();
             if ("BURST".equals(dmab)) {
                 WeaponArts.enemyPulse(level, dp, 3, Math.max(4, deadMob.getMaxHealth() * 0.08),
                         net.minecraft.core.particles.ParticleTypes.EXPLOSION);
-            } else if ("SPLIT".equals(dmab) && rand.nextFloat() < 0.4f) {
+            } else if ("SPLIT".equals(dmab) && !deadMob.getTags().contains(Enemies.SUMMON_TAG)
+                    && rand.nextFloat() < 0.4f) {
                 var child = ModEntities.SLIME.get().create(level,
                         net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
                 if (child instanceof net.minecraft.world.entity.Mob cm) {
@@ -124,6 +125,8 @@ public final class KillHandler {
                     cm.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5, dp.z + (rand.nextDouble() - 0.5) * 2);
                     Enemies.apply(cm, Enemies.byId("slime"), Enemies.scaleFor(player, floor), 0.5);
                     Enemies.tagByRole(cm, Enemies.byId("slime"));
+                    // summon-typed: not counted for floor clear, splitting stops at generation 1
+                    cm.addTag(Enemies.SUMMON_TAG);
                     cm.setTarget(player);
                     level.addFreshEntity(cm);
                 }
@@ -278,9 +281,11 @@ public final class KillHandler {
         }
         // 実績
         markKillTick(player, CombatHandler.tickCounter());
-        Achievements.grantAch(player, "first-blood", "深淵への第一歩", 2);
+        var ach1 = GameData.achievementById("first-blood");
+        Achievements.grantAch(player, "first-blood", ach1.title(), GameData.shardsForReward(ach1.reward()));
         if (player.getData(ModAttachments.KILLS.get()) >= 100) {
-            Achievements.grantAch(player, "hundred-kills", "百鬼夜行", 8);
+            var ach2 = GameData.achievementById("hundred-kills");
+            Achievements.grantAch(player, "hundred-kills", ach2.title(), GameData.shardsForReward(ach2.reward()));
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 1000) {
             var a = GameData.achievementById("thousand-kills");
@@ -307,10 +312,12 @@ public final class KillHandler {
             Achievements.grantAch(player, "kills-five-thousand", a.title(), GameData.shardsForReward(a.reward()));
         }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
-        if (bossRec.contains("10")) Achievements.grantAch(player, "floor-ten", "深層探査者", 10);
-        // 真ボス・頂点ボス撃破判定
+        if (java.util.List.of(bossRec.split(",")).contains("10")) {
+            var ach4 = GameData.achievementById("floor-ten");
+            Achievements.grantAch(player, "floor-ten", ach4.title(), GameData.shardsForReward(ach4.reward()));
+        }        // 真ボス・頂点ボス撃破判定
         var deadName = event.getEntity().getCustomName();
-        if (deadName != null && deadName.getString().contains("ニヒル")) {
+        if (event.getEntity().getTags().contains("abyss_true_boss")) {
             BossHandler.trueVictory(player);
         }
         if (deadName != null && deadName.getString().contains("タルタロス")) {
@@ -344,7 +351,8 @@ public final class KillHandler {
         }
         // 呪われた召喚門の破壊 (原作: 戦績に保存され実績「門を断つ者」)
         if (event.getEntity().getTags().contains(Enemies.GATE_TAG)) {
-            Achievements.grantAch(player, "gate-breaker", "門を断つ者", 8);
+            var ach3 = GameData.achievementById("gate-breaker");
+            Achievements.grantAch(player, "gate-breaker", ach3.title(), GameData.shardsForReward(ach3.reward()));
         }
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0

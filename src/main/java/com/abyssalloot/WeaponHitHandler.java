@@ -298,6 +298,10 @@ public final class WeaponHitHandler {
                     if (near >= 3) dmg *= 1.35f;
                 }
                 event.setNewDamage(dmg);
+                // 魔盾の軽減を再適用 (本メソッドの威力上書きで打ち消されないように)
+                if (target.getTags().contains(Enemies.ET_SHIELD)) {
+                    event.setNewDamage(event.getNewDamage() * 0.7f);
+                }
                 // 一打の連撃・横斬り (通常武器命中のみ。奥義ヒット側は inArtHit で対象外)
                 applyShapeStrikes(player, level, target, dmg);
                 // 武器ごとの左クリック追撃 (N打ごとの固有ボーナス)
