@@ -173,12 +173,12 @@ public final class ModCommands {
                 }))
                 .then(Commands.literal("true").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    RunManager.startTrue(p);
+                    BossHandler.startTrue(p);
                     return 1;
                 }))
                 .then(Commands.literal("pinnacle").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    RunManager.startPinnacle(p);
+                    BossHandler.startPinnacle(p);
                     return 1;
                 }))
                 .then(Commands.literal("zone").executes(ctx -> {

@@ -311,13 +311,13 @@ public final class KillHandler {
         // 真ボス・頂点ボス撃破判定
         var deadName = event.getEntity().getCustomName();
         if (deadName != null && deadName.getString().contains("ニヒル")) {
-            RunManager.trueVictory(player);
+            BossHandler.trueVictory(player);
         }
         if (deadName != null && deadName.getString().contains("タルタロス")) {
-            RunManager.pinnacleVictory(player);
+            BossHandler.pinnacleVictory(player);
         }
         if (deadName != null && deadName.getString().contains("超越者")) {
-            RunManager.ascensionVictory(player);
+            BossHandler.ascensionVictory(player);
         }
         // 分裂スライム母: 死亡時に子を2体残す (原作 split)
         if (event.getEntity().getTags().contains(Enemies.SPLIT_TAG)

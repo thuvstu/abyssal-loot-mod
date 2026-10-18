@@ -228,8 +228,8 @@ public final class CombatHandler {
                 }
                 e.getValue().setProgress((float) (boss.getHealth() / Math.max(1, boss.getMaxHealth())));
                 if (tickCounter % 100 == 0 && boss.level() instanceof ServerLevel sl) {
-                    RunManager.tickTrueBoss(sl, boss);
-                    RunManager.tickPinnacleBoss(sl, boss);
+                    BossHandler.tickTrueBoss(sl, boss);
+                    BossHandler.tickPinnacleBoss(sl, boss);
                 }
             }
         }
