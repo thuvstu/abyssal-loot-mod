@@ -40,15 +40,36 @@ public final class WeaponHitHandler {
         event.setNewDamage(event.getNewDamage() * (float) mult);
     }
 
-    /** 無敵時間の適用 + 武器ダメージの原作式上書き */
+    /** ダメージイベント処理: 魔盾軽減 → 被ダメ側 (軽減・見切り・蘇生) → 攻撃側 (原作式威力上書き) → モブ加害側の順に処理 */
     @SubscribeEvent
     public static void onDamage(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event) {
-        // エリート「魔盾」: 盾持ちの被ダメ軽減 (原作のシールドエリート)
+        applyEliteShield(event);
+        if (event.getEntity() instanceof ServerPlayer player
+                && player.level() instanceof ServerLevel level
+                && handleDefenderDamage(event, player, level)) {
+            return;
+        }
+        if (event.getSource().getEntity() instanceof ServerPlayer player
+                && player.level() instanceof ServerLevel level) {
+            handleAttackerHit(event, player, level);
+        }
+        handleMobAttackerAbilities(event);
+    }
+
+    /** エリート「魔盾」: 盾持ちの被ダメ軽減 (原作のシールドエリート) */
+    private static void applyEliteShield(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event) {
         if (event.getEntity().getTags().contains(Enemies.ET_SHIELD)
                 && !(event.getEntity() instanceof ServerPlayer)) {
             event.setNewDamage(event.getNewDamage() * 0.7f);
         }
-        if (event.getEntity() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
+    }
+
+    /**
+     * 被ダメ側の処理: 無敵/見切り・各種軽減・反射・致死回避 (不滅の誓い・呪われた鏡)。
+     * 戻り値 true = 後続処理を打ち切る (元の return; に相当する見切りと蘇生の2箇所)。
+     */
+    private static boolean handleDefenderDamage(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event,
+                                                ServerPlayer player, ServerLevel level) {
             float iframe = player.getData(ModAttachments.IFRAME.get());
             if (iframe > 0) {
                 event.setNewDamage(0f);
@@ -69,7 +90,7 @@ public final class WeaponHitHandler {
                     stormStrike(level, player);
                 }
                 player.displayClientMessage(Component.literal("§a見切り！"), true);
-                return;
+                return true;
             }
             // 特殊スキル「棘の盾」: 被ダメ-30% + 攻撃者へ反射
             if (player.getData(ModAttachments.SUB_SHIELD.get()) > 0
@@ -92,8 +113,8 @@ public final class WeaponHitHandler {
                         * (float) (1 - GearData.curseValueOf(heldDef) / 100.0));
             }
             // 接辞 (armorPct): 被ダメ軽減
-            double affixArmor = StatCalc.affixOf(player, "armorPct")
-                    + StatCalc.extraStat(player, "armorPct") + StatCalc.attrEff(player, 6) * 0.5;
+            double affixArmor = StatCalc.affixPlusExtra(player, "armorPct")
+                    + StatCalc.attrEff(player, 6) * 0.5;
             if (affixArmor != 0) {
                 event.setNewDamage(event.getNewDamage()
                         * (float) Math.max(0.3, 1 - affixArmor / 100.0));
@@ -209,7 +230,7 @@ public final class WeaponHitHandler {
                     player.setHealth(player.getMaxHealth() * 0.5f);
                     player.displayClientMessage(Component.literal(
                             undying ? "§f不滅の誓いが発動！ HP50%で復活" : "§b呪われた鏡が身代わりになった！"), false);
-                    return;
+                    return true;
                 }
             }
             // 技能「棘の王」: 棘+80を反射
@@ -238,9 +259,12 @@ public final class WeaponHitHandler {
             // 被ダメ由来の奥義ゲージ (原作: 残HPまでの被害 / 最大HP * 35)
             float taken = Math.min(event.getNewDamage(), player.getHealth());
             RunManager.addGauge(player, GameData.damageTakenCharge(taken, player.getMaxHealth()));
-        }
-        if (event.getSource().getEntity() instanceof ServerPlayer player
-                && player.level() instanceof ServerLevel level) {
+            return false;
+    }
+
+    /** 攻撃側: 武器ダメージの原作式上書き + 命中時の各種発動 (反撃・連鎖雷・固有能力など) */
+    private static void handleAttackerHit(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event,
+                                          ServerPlayer player, ServerLevel level) {
             // 奥義・罠・二次反応の命中は威力を上書きせず、ゲージも増やさない
             if (WeaponArts.inArtHit()) {
                 // スコア用: 奥義等の与ダメも累積する
@@ -294,8 +318,7 @@ public final class WeaponHitHandler {
                 if (pflags.contains("giant_slayer")) {
                     boolean big = target.getTags().contains(Enemies.WARDEN_TAG)
                             || RunManager.BOSS_BARS.containsKey(target)
-                            || (target.getCustomName() != null
-                                    && target.getCustomName().getString().contains("エリート"));
+                            || Enemies.isElite(target);
                     dmg *= big ? 1.45f : 0.85f;
                 }
                 // 技能「群れの克星」: 標的の周囲8mに3体以上いれば+35%
@@ -328,8 +351,7 @@ public final class WeaponHitHandler {
                 // 吸血の刻印 (祝福) / 血の盟約 (技能・+6%/自然回復喪失は回復量で近似) / 接辞
                 int life = RunManager.boonLv(player, "life");
                 if (life > 0 && dmg > 0) RunManager.heal(player, dmg * 0.04 * life);
-                double affixLeech = StatCalc.affixOf(player, "lifestealPct")
-                        + StatCalc.extraStat(player, "lifestealPct");
+                double affixLeech = StatCalc.affixPlusExtra(player, "lifestealPct");
                 if (affixLeech > 0 && dmg > 0) RunManager.heal(player, dmg * affixLeech / 100.0);
                 if (passives.contains("blood_pact") && dmg > 0) {
                     RunManager.heal(player, dmg * 0.06);
@@ -346,7 +368,7 @@ public final class WeaponHitHandler {
                 }
                 // 恩寵「凍牙の刻印」・接辞: 命中時に氷結鈍足
                 double freezeChance = RunManager.boonLv(player, "freeze") * 0.20
-                        + (StatCalc.affixOf(player, "freezePct") + StatCalc.extraStat(player, "freezePct")) / 100.0;
+                        + StatCalc.affixPlusExtra(player, "freezePct") / 100.0;
                 if (freezeChance > 0 && rand.nextFloat() < freezeChance) {
                     target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
                     target.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 40, 0));
@@ -364,14 +386,13 @@ public final class WeaponHitHandler {
                 }
                 // 連鎖雷 (武器特性 / 祝福): 他の敵へ飛び移る
                 int chainLv = RunManager.boonLv(player, "chain");
-                boolean weaponChain = "chain_l".equals(trait) || StatCalc.affixOf(player, "chain") > 0
-                        || StatCalc.extraStat(player, "chain") > 0;
+                boolean weaponChain = "chain_l".equals(trait) || StatCalc.affixPlusExtra(player, "chain") > 0;
                 if ((weaponChain || chainLv > 0) && rand.nextFloat() < (weaponChain ? 1f : 0.25f)) {
                     float chainDmg = (float) (atk * (weaponChain ? 0.5 : 0.6));
                     // 貫通の刻印・弓・輪刃: 飛移り +2/個
                     int jumps = 2 + RunManager.boonLv(player, "pierce") * 2
                             + StatCalc.wbonusOf(player).pierce() * 2
-                            + (int) (StatCalc.affixOf(player, "pierce") + StatCalc.extraStat(player, "pierce")) * 2;
+                            + (int) StatCalc.affixPlusExtra(player, "pierce") * 2;
                     chainStrike(level, player, target, chainDmg, jumps);
                 }
                 // 恩寵「渦刃」: 命中のたびに刃の渦が飛ぶ (周囲に小斬撃)
@@ -461,7 +482,9 @@ public final class WeaponHitHandler {
                 }
             }
         }
-        // モブの固有能力 (加害時): LEECH=吸収 / SNARE=鈍足
+
+    /** モブの固有能力 (加害時): LEECH=吸収 / SNARE=鈍足 / 悪夢「魂蝕」・「衰弱」 */
+    private static void handleMobAttackerAbilities(net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event) {
         if (event.getSource().getEntity() instanceof net.minecraft.world.entity.Mob m
                 && event.getEntity() instanceof ServerPlayer p2
                 && p2.level() instanceof ServerLevel lv2 && event.getNewDamage() > 0) {

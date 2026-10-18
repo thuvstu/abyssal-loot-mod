@@ -44,6 +44,15 @@ public final class Enemies {
     public static final String BOMBER_TAG = "abyss_bomber";
     /** 番人 (原作 WARDENS のミニボス) */
     public static final String WARDEN_TAG = "abyss_warden";
+    /** エリート化の目印 (判定は {@link #isElite} に集約。名札の文字列依存を解消する) */
+    public static final String ELITE_TAG = "abyss_elite";
+
+    /** エリート判定 (タグ優先・旧セーブの名札もフォールバックで認識)。表示名変更に壊れない */
+    public static boolean isElite(net.minecraft.world.entity.Entity e) {
+        if (e.getTags().contains(ELITE_TAG)) return true;
+        var name = e.getCustomName();
+        return name != null && name.getString().contains("エリート");
+    }
 
     /** 画面内の敵の上限 (原作 42〜48 相当) */
     public static final int SCREEN_CAP = 48;
@@ -356,6 +365,7 @@ public final class Enemies {
             }
         }
         m.addEffect(new MobEffectInstance(MobEffects.GLOWING, EFFECT_FOREVER, 0, false, false));
+        m.addTag(ELITE_TAG);
         m.setCustomName(Component.literal("§6" + pre.name() + "エリート " + m.getName().getString() + traitSuffix));
     }
 

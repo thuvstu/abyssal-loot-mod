@@ -3,7 +3,9 @@ package com.abyssalloot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -12,6 +14,10 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
  * 撃破処理 (CombatHandler から分離): ゲージ・コンボ・レベルアップ・戦利品・実績・
  * 層主撃破判定・層クリア (転移門)・祝福/技能の提示までの撃破1連を担う。
  * コンボの減衰 (5秒撃破なしでリセット) もここで管理する。
+ *
+ * onKill はオーケストレーションのみで、段は:
+ *   計上 → 放浪討伐 → 戦利品抽選 → モブ死亡時能力 → 素材ドロップ → レベルアップ →
+ *   層主撃破 → 武器/祝福の撃破時効果 → 実績 → ボス撃破判定 → 層クリア判定。
  */
 public final class KillHandler {
     private KillHandler() {}
@@ -43,7 +49,26 @@ public final class KillHandler {
     public static void onKill(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        // 奥義ゲージは撃破では基本増えない (原作: 与ダメ・被ダメで蓄積)。以下は特殊条件のみ加算
+        var rand = player.getRandom();
+
+        countKill(player, level);
+        roamKillBonus(player, event, level);
+        rollKillDrops(player, level, rand);
+        handleMobDeathAbilities(player, event, level, rand);
+        rollMaterialDrops(player, event, rand);
+        applyLevelUps(player, level);
+        handleBossKill(player, event, level);
+        applyOnKillEffects(player, event, level, rand);
+        grantKillAchievements(player);
+        handleBossVictories(player, event);
+        handleDeadMobTraits(player, event, level);
+        checkFloorClear(player, event, level);
+        // 撃破数・コンボ・転移門の開放をHUDに即時反映 (0.2秒に1回に間引き)
+        CombatHandler.sendHudSoon(player);
+    }
+
+    /** 撃破数・コンボの計上 (奥義ゲージは撃破では基本増えない。特殊条件は各段で加算) */
+    private static void countKill(ServerPlayer player, ServerLevel level) {
         player.setData(ModAttachments.KILLS.get(), player.getData(ModAttachments.KILLS.get()) + 1);
         player.setData(ModAttachments.COMBO.get(), player.getData(ModAttachments.COMBO.get()) + 1);
         // スコア用: 最大コンボを記録
@@ -52,30 +77,35 @@ public final class KillHandler {
         }
         // 雷天の共闘: 雷雨中の討伐は深淵に響く (バニラの天候との融合)
         if (level.isThundering()) RunManager.addGauge(player, 5);
-        // 放浪の討伐: 試練外でのバニラ敵討伐もカウントし、25体ごとに欠片が戻る
-        if (event.getEntity() instanceof net.minecraft.world.entity.monster.Monster
-                && !RunManager.BOSS_BARS.containsKey(event.getEntity())
-                && !LootHandler.hasAbyssTag(event.getEntity())) {
-            int roam = player.getData(ModAttachments.ROAM_KILLS.get()) + 1;
-            if (roam >= 25) {
-                roam = 0;
-                int shards = RunManager.materialCount(player, 1);
-                if (shards > 0) {
-                    LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
-                    player.sendSystemMessage(Component.literal(
-                            "§7放浪の討伐 ×25 — 魂が欠片となって戻った +" + shards));
-                    RunManager.addGauge(player, 15);
-                }
-            }
-            player.setData(ModAttachments.ROAM_KILLS.get(), roam);
+    }
+
+    /** 放浪の討伐: 試練外でのバニラ敵討伐もカウントし、25体ごとに欠片が戻る */
+    private static void roamKillBonus(ServerPlayer player, LivingDeathEvent event, ServerLevel level) {
+        if (!(event.getEntity() instanceof net.minecraft.world.entity.monster.Monster)
+                || RunManager.BOSS_BARS.containsKey(event.getEntity())
+                || LootHandler.hasAbyssTag(event.getEntity())) {
+            return;
         }
-        // 遺物「魂喰いの爪」: 撃破ごとに魂+8
+        int roam = player.getData(ModAttachments.ROAM_KILLS.get()) + 1;
+        if (roam >= 25) {
+            roam = 0;
+            int shards = RunManager.materialCount(player, 1);
+            if (shards > 0) {
+                LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+                player.sendSystemMessage(Component.literal(
+                        "§7放浪の討伐 ×25 — 魂が欠片となって戻った +" + shards));
+                RunManager.addGauge(player, 15);
+            }
+        }
+        player.setData(ModAttachments.ROAM_KILLS.get(), roam);
+    }
+
+    /** 遺物「魂喰いの爪」とドロップ抽選: 6%で深淵武器 / 20%で欠片 / 8%で消耗品 / 12%で食料 */
+    private static void rollKillDrops(ServerPlayer player, ServerLevel level, net.minecraft.util.RandomSource rand) {
         if (RunManager.relicFlagsOf(player).contains("soulfang")) {
             RunManager.addGauge(player, 8);
         }
-        // ドロップ: 6%で深淵武器 / 20%で魂の欠片. 幸運の運(+7/点)で武器率が上がり、
-        // 魂の欠片は報酬倍率(呪印・難易度・契約)と幸運の素材倍率(+4%/点)を受ける
-        var rand = player.getRandom();
+        // 幸運の運(+7/点)で武器率が上がり、欠片は報酬倍率(呪印・難易度・契約)と幸運の素材倍率(+4%/点)を受ける
         var mut = RunManager.currentMutation(player);
         double loot = mut != null ? mut.loot() : 1.0;
         var dun = RunManager.currentDungeon(player);
@@ -102,66 +132,65 @@ public final class KillHandler {
         } else if (rand.nextDouble() < 0.08) {
             LootHandler.giveOrDrop(player, ModItems.randomConsumable(rand));
         }
-        // 満腹度: 深淵の討伐でも食料が手に入る (バニラの食料システムとの融合)
+        // 満腹度: 深淵の討伐でも食料が手に入る (バニラの食料システムとの融合)。
         // バニラのドロップ消去 (onMobDrops) で腹は満たせないためここで補う
         if (rand.nextDouble() < 0.12) {
-            var foods = new net.minecraft.world.item.Item[]{
-                    net.minecraft.world.item.Items.COOKED_BEEF,
-                    net.minecraft.world.item.Items.BREAD,
-                    net.minecraft.world.item.Items.COOKED_PORKCHOP,
-                    net.minecraft.world.item.Items.COOKED_CHICKEN,
-                    net.minecraft.world.item.Items.COOKED_MUTTON};
+            var foods = new Item[]{Items.COOKED_BEEF, Items.BREAD, Items.COOKED_PORKCHOP,
+                    Items.COOKED_CHICKEN, Items.COOKED_MUTTON};
             LootHandler.giveOrDrop(player, new ItemStack(foods[rand.nextInt(foods.length)], 1 + rand.nextInt(2)));
         }
-        // モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム
-        if (event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob) {
-            String dmab = Enemies.mobAbility(deadMob);
-            Vec3 dp = deadMob.position();
-            if ("BURST".equals(dmab)) {
-                WeaponArts.enemyPulse(level, dp, 3, Math.max(4, deadMob.getMaxHealth() * 0.08),
-                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
-            } else if ("SPLIT".equals(dmab) && !deadMob.getTags().contains(Enemies.SUMMON_TAG)
-                    && rand.nextFloat() < 0.4f) {
-                var child = ModEntities.SLIME.get().create(level,
-                        net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
-                if (child instanceof net.minecraft.world.entity.Mob cm) {
-                    int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
-                    cm.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5, dp.z + (rand.nextDouble() - 0.5) * 2);
-                    Enemies.apply(cm, Enemies.byId("slime"), Enemies.scaleFor(player, floor), 0.5);
-                    Enemies.tagByRole(cm, Enemies.byId("slime"));
-                    // summon-typed: not counted for floor clear, splitting stops at generation 1
-                    cm.addTag(Enemies.SUMMON_TAG);
-                    cm.setTarget(player);
-                    level.addFreshEntity(cm);
-                }
+    }
+
+    /** モブの固有能力 (死亡時): BURST=爆発 / SPLIT=子スライム / 悪夢「影分身」=残像 */
+    private static void handleMobDeathAbilities(ServerPlayer player, LivingDeathEvent event,
+                                                ServerLevel level, net.minecraft.util.RandomSource rand) {
+        if (!(event.getEntity() instanceof net.minecraft.world.entity.Mob deadMob)) return;
+        String dmab = Enemies.mobAbility(deadMob);
+        Vec3 dp = deadMob.position();
+        if ("BURST".equals(dmab)) {
+            WeaponArts.enemyPulse(level, dp, 3, Math.max(4, deadMob.getMaxHealth() * 0.08),
+                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+        } else if ("SPLIT".equals(dmab) && !deadMob.getTags().contains(Enemies.SUMMON_TAG)
+                && rand.nextFloat() < 0.4f) {
+            var child = ModEntities.SLIME.get().create(level,
+                    net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+            if (child instanceof net.minecraft.world.entity.Mob cm) {
+                int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
+                cm.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5, dp.z + (rand.nextDouble() - 0.5) * 2);
+                Enemies.apply(cm, Enemies.byId("slime"), Enemies.scaleFor(player, floor), 0.5);
+                Enemies.tagByRole(cm, Enemies.byId("slime"));
+                // summon-typed: not counted for floor clear, splitting stops at generation 1
+                cm.addTag(Enemies.SUMMON_TAG);
+                cm.setTarget(player);
+                level.addFreshEntity(cm);
             }
-            // 悪夢「影分身」: 撃破時50%で高攻撃の残像を1体残す (層クリアには数えない)
-            if (deadMob.getTags().contains(Enemies.NT_CLONE) && rand.nextFloat() < 0.5f) {
-                var spec = Enemies.specOf(deadMob);
-                if (spec != null) {
-                    var afterimage = spec.type().create(level,
-                            net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
-                    if (afterimage != null) {
-                        afterimage.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5,
-                                dp.z + (rand.nextDouble() - 0.5) * 2);
-                        int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
-                        Enemies.apply(afterimage, spec, Enemies.scaleFor(player, floor), 0.3);
-                        var catk = afterimage.getAttribute(
-                                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
-                        if (catk != null) catk.setBaseValue(catk.getBaseValue() * 1.5);
-                        afterimage.setCustomName(Component.literal("§5残像"));
-                        afterimage.addTag(Enemies.SUMMON_TAG);
-                        afterimage.setTarget(player);
-                        level.addFreshEntity(afterimage);
-                    }
+        }
+        // 悪夢「影分身」: 撃破時50%で高攻撃の残像を1体残す (層クリアには数えない)
+        if (deadMob.getTags().contains(Enemies.NT_CLONE) && rand.nextFloat() < 0.5f) {
+            var spec = Enemies.specOf(deadMob);
+            if (spec != null) {
+                var afterimage = spec.type().create(level,
+                        net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+                if (afterimage != null) {
+                    afterimage.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5,
+                            dp.z + (rand.nextDouble() - 0.5) * 2);
+                    int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
+                    Enemies.apply(afterimage, spec, Enemies.scaleFor(player, floor), 0.3);
+                    var catk = afterimage.getAttribute(
+                            net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+                    if (catk != null) catk.setBaseValue(catk.getBaseValue() * 1.5);
+                    afterimage.setCustomName(Component.literal("§5残像"));
+                    afterimage.addTag(Enemies.SUMMON_TAG);
+                    afterimage.setTarget(player);
+                    level.addFreshEntity(afterimage);
                 }
             }
         }
-        // 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加
-        var deadTags = event.getEntity().getTags();
-        var deadNm = event.getEntity().getCustomName();
-        boolean isElite = deadNm != null && deadNm.getString().contains("エリート");
-        boolean isWarden = deadTags.contains(Enemies.WARDEN_TAG);
+    }
+
+    /** 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加 */
+    private static void rollMaterialDrops(ServerPlayer player, LivingDeathEvent event, net.minecraft.util.RandomSource rand) {
+        boolean isWarden = event.getEntity().getTags().contains(Enemies.WARDEN_TAG);
         boolean isBoss = RunManager.BOSS_BARS.containsKey(event.getEntity());
         if (isBoss) {
             LootHandler.giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
@@ -177,7 +206,7 @@ public final class KillHandler {
         } else if (isWarden && rand.nextFloat() < 0.8) {
             LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
             player.sendSystemMessage(Component.literal("§5素材: 番人の落とし物を得た"));
-        } else if (isElite && rand.nextFloat() < 0.3) {
+        } else if (Enemies.isElite(event.getEntity()) && rand.nextFloat() < 0.3) {
             LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));
             LootHandler.eliteMaterialDrop(player, rand);
             if (rand.nextFloat() < 0.06) {
@@ -189,7 +218,10 @@ public final class KillHandler {
                         "§b戦利品: " + setDrop.getHoverName().getString() + " (右クリックで装備)"));
             }
         }
-        // レベルアップ: LvL→L+1 に (L-1)(L+4) 撃破
+    }
+
+    /** レベルアップ: LvL→L+1 に (L-1)(L+4) 撃破 */
+    private static void applyLevelUps(ServerPlayer player, ServerLevel level) {
         int kills = player.getData(ModAttachments.KILLS.get());
         int lv = player.getData(ModAttachments.LEVEL.get());
         while (kills >= needFor(lv + 1)) {
@@ -216,41 +248,49 @@ public final class KillHandler {
                 && player.getData(ModAttachments.OFFER.get()).isBlank()) {
             BoonHandler.offerBoons(player);
         }
-        // 層主撃破の記録 + ボスバー除去
+    }
+
+    /** 層主撃破の記録 + ボスバー除去 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ) */
+    private static void handleBossKill(ServerPlayer player, LivingDeathEvent event, ServerLevel level) {
         var bars = RunManager.BOSS_BARS;
-        if (bars.containsKey(event.getEntity())) {
-            var bar = bars.remove(event.getEntity());
-            for (ServerPlayer p : level.players()) bar.removePlayer(p);
-            int floor = player.getData(ModAttachments.FLOOR.get());
-            String rec = player.getData(ModAttachments.BOSSES.get());
-            player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
-            player.sendSystemMessage(Component.literal("§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
-            level.playSound(null, player.blockPosition(),
-                    net.minecraft.sounds.SoundEvents.ENDER_DRAGON_DEATH, net.minecraft.sounds.SoundSource.PLAYERS,
-                    0.4f, 1.2f);
-            RunManager.addGauge(player, 30);
-            // 層主撃破の実績 + 技能の3択 (原作: 主撃破ごとにパッシブ1つ。未選択があれば再提示)
-            if (floor == 5) {
-                Achievements.grant(player, "floor-five");
-            }
-            if (floor == 20) {
-                Achievements.grant(player, "floor-twenty");
-            }
-            int bossCount = player.getData(ModAttachments.BOSSES.get()).split(",").length;
-            if (bossCount >= 3) {
-                Achievements.grant(player, "boss-three");
-            }
-            if (bossCount >= 5) {
-                Achievements.grant(player, "boss-five");
-            }
-            String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
-            if (pendingPassive == null || pendingPassive.isBlank()) {
-                FloorEvents.offerPassives(player);
-            } else {
-                FloorEvents.resendPassiveOffer(player);
-            }
+        if (!bars.containsKey(event.getEntity())) return;
+        var bar = bars.remove(event.getEntity());
+        for (ServerPlayer p : level.players()) bar.removePlayer(p);
+        int floor = player.getData(ModAttachments.FLOOR.get());
+        String rec = player.getData(ModAttachments.BOSSES.get());
+        player.setData(ModAttachments.BOSSES.get(), rec.isBlank() ? String.valueOf(floor) : rec + "," + floor);
+        player.sendSystemMessage(Component.literal(
+                "§6◆ 層主を撃破！ 第" + floor + "層 (記録: " + player.getData(ModAttachments.BOSSES.get()) + ")"));
+        level.playSound(null, player.blockPosition(),
+                net.minecraft.sounds.SoundEvents.ENDER_DRAGON_DEATH, net.minecraft.sounds.SoundSource.PLAYERS,
+                0.4f, 1.2f);
+        RunManager.addGauge(player, 30);
+        // 層主撃破の実績 + 技能の3択 (未選択があれば再提示)
+        if (floor == 5) {
+            Achievements.grant(player, "floor-five");
         }
-        // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発) / 血の契約 (祝福・撃破回復)
+        if (floor == 20) {
+            Achievements.grant(player, "floor-twenty");
+        }
+        int bossCount = player.getData(ModAttachments.BOSSES.get()).split(",").length;
+        if (bossCount >= 3) {
+            Achievements.grant(player, "boss-three");
+        }
+        if (bossCount >= 5) {
+            Achievements.grant(player, "boss-five");
+        }
+        String pendingPassive = player.getData(ModAttachments.PASSIVE_OFFER.get());
+        if (pendingPassive == null || pendingPassive.isBlank()) {
+            FloorEvents.offerPassives(player);
+        } else {
+            FloorEvents.resendPassiveOffer(player);
+        }
+    }
+
+    /** 武器特性・スキル・祝福の撃破時効果 (吸血鬼/血の契約/爆砕/刈り取り/鎌の収穫) */
+    private static void applyOnKillEffects(ServerPlayer player, LivingDeathEvent event,
+                                           ServerLevel level, net.minecraft.util.RandomSource rand) {
+        // 武器特性: 吸血鬼 (撃破時HP3%回復) / 爆砕 (周囲爆発)
         String killTrait = GearData.traitOf(player.getMainHandItem());
         if ("vampiric".equals(killTrait)) {
             RunManager.heal(player, player.getMaxHealth() * 0.03);
@@ -267,15 +307,14 @@ public final class KillHandler {
         // 恩寵「爆砕の刻印」・槌・魔導書・接辞: 撃破時に爆裂
         double explodeChance = RunManager.boonLv(player, "explode") * 0.18
                 + StatCalc.wbonusOf(player).explodePct() / 100.0
-                + (StatCalc.affixOf(player, "explodePct") + StatCalc.extraStat(player, "explodePct")) / 100.0
+                + StatCalc.affixPlusExtra(player, "explodePct") / 100.0
                 + StatCalc.attrEff(player, 7) * 0.008;
         if (explodeChance > 0 && rand.nextFloat() < explodeChance) {
             WeaponArts.pulse(level, player, event.getEntity().position(), 4, 1.0, true,
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
         }
         // 恩寵「刈り取り」: 強敵 (精鋭・番人・層主) の撃破で全ステータス強化 (+2%攻撃/+1%HP・上限20)
-        var deadName0 = event.getEntity().getCustomName();
-        boolean strong = (deadName0 != null && deadName0.getString().contains("エリート"))
+        boolean strong = Enemies.isElite(event.getEntity())
                 || event.getEntity().getTags().contains(Enemies.WARDEN_TAG)
                 || RunManager.BOSS_BARS.containsKey(event.getEntity());
         if (strong && RunManager.boonLv(player, "harvest") > 0
@@ -295,11 +334,13 @@ public final class KillHandler {
                     player.getData(ModAttachments.SCYTHE.get()) + " (攻速上昇)"), true);
         }
         if ("explosive".equals(killTrait)) {
-            var at = event.getEntity().position();
-            WeaponArts.pulse(level, player, at, 4, 1.2, false,
+            WeaponArts.pulse(level, player, event.getEntity().position(), 4, 1.2, false,
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
         }
-        // 実績
+    }
+
+    /** 撃破関連の実績 (初撃・撃破数・コンボ・見切り・刈り取り・層主記録) */
+    private static void grantKillAchievements(ServerPlayer player) {
         markKillTick(player, CombatHandler.tickCounter());
         if (player.getData(ModAttachments.KILLS.get()) == 1) {
             // 毎撃破で付与を呼ぶと実績添付のCSVパースが走るため、初撃のみで判定する
@@ -310,6 +351,9 @@ public final class KillHandler {
         }
         if (player.getData(ModAttachments.KILLS.get()) >= 1000) {
             Achievements.grant(player, "thousand-kills");
+        }
+        if (player.getData(ModAttachments.KILLS.get()) >= 5000) {
+            Achievements.grant(player, "kills-five-thousand");
         }
         if (player.getData(ModAttachments.COMBO.get()) >= 50) {
             Achievements.grant(player, "combo-fifty");
@@ -323,26 +367,31 @@ public final class KillHandler {
         if (player.getData(ModAttachments.HARVEST.get()) >= 10) {
             Achievements.grant(player, "harvest-ten");
         }
-        if (player.getData(ModAttachments.KILLS.get()) >= 5000) {
-            Achievements.grant(player, "kills-five-thousand");
-        }
         String bossRec = player.getData(ModAttachments.BOSSES.get());
         if (java.util.List.of(bossRec.split(",")).contains("10")) {
             Achievements.grant(player, "floor-ten");
-        }        // 真ボス・頂点ボス撃破判定
-        var deadName = event.getEntity().getCustomName();
+        }
+    }
+
+    /** 真ボス・頂点ボス・超越者の撃破判定 (特殊勝利ルート) */
+    private static void handleBossVictories(ServerPlayer player, LivingDeathEvent event) {
         if (event.getEntity().getTags().contains("abyss_true_boss")) {
             BossHandler.trueVictory(player);
+            return;
         }
-        if (deadName != null && deadName.getString().contains("タルタロス")) {
+        var name = event.getEntity().getCustomName();
+        if (name != null && name.getString().contains("タルタロス")) {
             BossHandler.pinnacleVictory(player);
-        }
-        if (deadName != null && deadName.getString().contains("超越者")) {
+        } else if (name != null && name.getString().contains("超越者")) {
             BossHandler.ascensionVictory(player);
         }
-        // 分裂スライム母: 死亡時に子を2体残す (原作 split)
+    }
+
+    /** 死亡したMOB固有の後始末: 分裂スライム母の子・精鋭「爆砕」・精鋭撃破の遺物提示 */
+    private static void handleDeadMobTraits(ServerPlayer player, LivingDeathEvent event, ServerLevel level) {
         if (event.getEntity().getTags().contains(Enemies.SPLIT_TAG)
                 && event.getEntity() instanceof net.minecraft.world.entity.Mob dead) {
+            // 分裂スライム母: 死亡時に子を2体残す (原作 split)
             Enemies.handleSplit(level, dead, player);
         }
         // 精鋭「爆砕」: 死の間際、周囲を炸裂させる (原作 burst)
@@ -354,11 +403,13 @@ public final class KillHandler {
                     net.minecraft.core.particles.ParticleTypes.EXPLOSION);
         }
         // 精鋭撃破の10%で遺物の3択 (原作の遺物拾いに対応)
-        if (deadName != null && deadName.getString().contains("エリート")
-                && player.getRandom().nextFloat() < 0.10) {
+        if (Enemies.isElite(event.getEntity()) && player.getRandom().nextFloat() < 0.10) {
             FloorEvents.offerRelics(player);
         }
-        // 層クリア判定
+    }
+
+    /** 層クリア判定 → 転移門の開放 + 層間イベント・未選択祝福の提示 */
+    private static void checkFloorClear(ServerPlayer player, LivingDeathEvent event, ServerLevel level) {
         // 蘇生師・門の子は層のウェーブに含めない (数えると転移門が早く開いてしまう)
         if (!event.getEntity().getTags().contains(Enemies.SUMMON_TAG)) {
             player.setData(ModAttachments.FLOOR_KILLS.get(), player.getData(ModAttachments.FLOOR_KILLS.get()) + 1);
@@ -388,8 +439,6 @@ public final class KillHandler {
                 BoonHandler.resendBoonOffer(player);
             }
         }
-        // 撃破数・コンボ・転移門の開放をHUDに即時反映 (0.2秒に1回に間引き)
-        CombatHandler.sendHudSoon(player);
     }
 
     private static int needFor(int level) {

@@ -104,10 +104,13 @@ public final class RunManager {
         return GameData.dailyModForDay(day);
     }
 
+    private static List<String> csvList(String raw) {
+        if (raw == null || raw.isBlank()) return new ArrayList<>();
+        return new ArrayList<>(Arrays.asList(raw.split(",")));
+    }
+
     public static Set<String> sigilsOf(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.SIGILS.get());
-        if (raw == null || raw.isBlank()) return new HashSet<>();
-        return new HashSet<>(Arrays.asList(raw.split(",")));
+        return new HashSet<>(csvList(player.getData(ModAttachments.SIGILS.get())));
     }
 
     public static void setSigils(ServerPlayer player, Set<String> sigils) {
@@ -135,7 +138,7 @@ public final class RunManager {
         double rate = GameData.trialRules(sigilsOf(player)).energy()
                 * (1 + boonLv(player, "energy") * 0.35)
                 * (1 + StatCalc.wbonusOf(player).energyPct() / 100.0)
-                * (1 + (StatCalc.affixOf(player, "energyPct") + StatCalc.extraStat(player, "energyPct")) / 100.0);
+                * (1 + StatCalc.affixPlusExtra(player, "energyPct") / 100.0);
         // 呪い (xpPct): 成長阻害でゲージ増加が鈍る (呪喰らいで無効化)
         var held = player.getMainHandItem();
         if (GearData.curseActive(player, held) && "xpPct".equals(GearData.curseOf(held))) {
@@ -193,8 +196,7 @@ public final class RunManager {
     public static int countMats(ServerPlayer player, Item item) {
         int n = 0;
         var inv = player.getInventory();
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            var s = inv.getItem(i);
+        for (var s : inv.getNonEquipmentItems()) {
             if (s.is(item)) n += s.getCount();
         }
         return n;
@@ -205,8 +207,8 @@ public final class RunManager {
         if (countMats(player, item) < n) return false;
         var inv = player.getInventory();
         int left = n;
-        for (int i = 0; i < inv.getContainerSize() && left > 0; i++) {
-            var s = inv.getItem(i);
+        for (var s : inv.getNonEquipmentItems()) {
+            if (left <= 0) break;
             if (s.is(item)) {
                 int take = Math.min(left, s.getCount());
                 s.shrink(take);
@@ -269,9 +271,7 @@ public final class RunManager {
     /* ---------------- 遺物・技能・fate ---------------- */
 
     public static List<String> relicsOf(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.RELICS.get());
-        if (raw == null || raw.isBlank()) return new ArrayList<>();
-        return new ArrayList<>(Arrays.asList(raw.split(",")));
+        return csvList(player.getData(ModAttachments.RELICS.get()));
     }
 
     public static Set<String> relicFlagsOf(ServerPlayer player) {
@@ -290,9 +290,7 @@ public final class RunManager {
     }
 
     public static List<String> passivesOf(ServerPlayer player) {
-        String raw = player.getData(ModAttachments.PASSIVES.get());
-        if (raw == null || raw.isBlank()) return new ArrayList<>();
-        return new ArrayList<>(Arrays.asList(raw.split(",")));
+        return csvList(player.getData(ModAttachments.PASSIVES.get()));
     }
 
     public static Set<String> passiveFlagsOf(ServerPlayer player) {
@@ -843,7 +841,7 @@ public final class RunManager {
                 new AABB(pos.x - 64, pos.y - 32, pos.z - 64,
                         pos.x + 64, pos.y + 32, pos.z + 64),
                 e -> e.isAlive() && (e.getTags().contains(Enemies.WARDEN_TAG)
-                        || (e.getCustomName() != null && e.getCustomName().getString().contains("エリート"))
+                        || Enemies.isElite(e)
                         // containsKey は synchronizedMap でスレッドセーフかつ O(1) (旧実装は keySet を毎回 stream 走査)
                         || BOSS_BARS.containsKey(e))).stream()
                 .min(Comparator.comparingDouble(e -> e.position().distanceTo(pos)))

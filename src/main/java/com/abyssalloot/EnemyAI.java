@@ -54,6 +54,10 @@ public final class EnemyAI {
         Set<UUID> seen = new HashSet<>();
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (!(p.level() instanceof ServerLevel level)) continue;
+            // 囮 (特殊スキル「囮」): 16m内の囮スタンドを拾い、近くの深淵敵の注意を6秒間逸らす
+            var decoys = level.getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class,
+                    p.getBoundingBox().inflate(24),
+                    a -> a.isAlive() && a.getTags().contains(SubSkills.DECOY_TAG));
             var found = level.getEntitiesOfClass(Mob.class,
                     p.getBoundingBox().inflate(64),
                     e -> e.isAlive() && (!e.getTags().isEmpty() || RunManager.BOSS_BARS.containsKey(e)));
@@ -63,6 +67,15 @@ public final class EnemyAI {
                 // 時の歪み: 敵速度半減 (鈍足で再現)
                 if (RunManager.hasFate(p, "timewarp")) {
                     m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 2, false, false));
+                }
+                // 囮の注意引きつけ: 12m内の敵は囮へ向く (層主は囮に引かれない)
+                if (!decoys.isEmpty() && !RunManager.BOSS_BARS.containsKey(m)) {
+                    for (var d : decoys) {
+                        if (m.position().distanceToSqr(d.position()) < 12 * 12) {
+                            m.setTarget(d);
+                            break;
+                        }
+                    }
                 }
                 // 精鋭「再生」: 最大HPの2%/0.5秒を回復
                 if (tags.contains(Enemies.ET_REGEN) && m.getHealth() < m.getMaxHealth()) {

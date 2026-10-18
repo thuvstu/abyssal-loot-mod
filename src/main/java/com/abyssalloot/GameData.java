@@ -674,101 +674,71 @@ public final class GameData {
         return s;
     }
 
-    /** 技能の数値効果の合計 (原作 passiveMods の MC 対応分). 攻撃倍率の加算項を返す */
-    public static double passiveDamagePct(java.util.Collection<String> owned) {
+    /**
+     * 技能の数値効果 (原作 passiveMods の MC 対応分)。単一の表に統合し、
+     * passiveDamagePct/MaxHpPct/ArmorPct と呪喰らい (呪喰らいは Σ|v| = 欠点無効+正効果2倍) を導出する。
+     * id -> [攻撃%, 最大HP%, 被ダメ軽減%]
+     */
+    private static final java.util.Map<String, double[]> PASSIVE_MODS = java.util.Map.ofEntries(
+            java.util.Map.entry("iron_oath", new double[]{25, -12, 0}),
+            java.util.Map.entry("clear_mind", new double[]{0, 0, 14}),
+            java.util.Map.entry("glass_cannon", new double[]{55, -35, -10}),
+            java.util.Map.entry("scholar", new double[]{0, -15, 0}),
+            java.util.Map.entry("twin_soul", new double[]{-18, 0, 0}),
+            java.util.Map.entry("no_mercy", new double[]{20, 0, -8}),
+            java.util.Map.entry("swift", new double[]{-10, 0, 0}),
+            java.util.Map.entry("greedy", new double[]{0, 0, -12}),
+            java.util.Map.entry("thorn_lord", new double[]{0, -10, 0}),
+            java.util.Map.entry("undying", new double[]{0, -20, 0}));
+
+    /** 指定列の合計 (col: 0=攻撃% 1=最大HP% 2=被ダメ軽減%) */
+    private static double passiveModSum(java.util.Collection<String> owned, int col) {
         double v = 0;
         for (String id : owned) {
-            v += switch (id) {
-                case "iron_oath" -> 25;
-                case "glass_cannon" -> 55;
-                case "twin_soul" -> -18;
-                case "no_mercy" -> 20;
-                case "swift" -> -10;
-                default -> 0;
-            };
+            var m = PASSIVE_MODS.get(id);
+            if (m != null) v += m[col];
         }
         return v;
     }
 
-    public static double passiveMaxHpPct(java.util.Collection<String> owned) {
+    /** 指定列の絶対値合計 (呪喰らい: 欠点 (負) を無効化し、正効果を2倍にする補正値) */
+    private static double passiveModAbsSum(java.util.Collection<String> owned, int col) {
         double v = 0;
         for (String id : owned) {
-            v += switch (id) {
-                case "iron_oath" -> -12;
-                case "glass_cannon" -> -35;
-                case "scholar" -> -15;
-                case "thorn_lord" -> -10;
-                case "undying" -> -20;
-                default -> 0;
-            };
+            var m = PASSIVE_MODS.get(id);
+            if (m != null) v += Math.abs(m[col]);
         }
         return v;
+    }
+
+    /** 技能の攻撃倍率の加算項 (%) */
+    public static double passiveDamagePct(java.util.Collection<String> owned) {
+        return passiveModSum(owned, 0);
+    }
+
+    public static double passiveMaxHpPct(java.util.Collection<String> owned) {
+        return passiveModSum(owned, 1);
     }
 
     /** 被ダメ軽減の加算項 (%). 正=軽減、負=被ダメ増 */
     public static double passiveArmorPct(java.util.Collection<String> owned) {
-        double v = 0;
-        for (String id : owned) {
-            v += switch (id) {
-                case "clear_mind" -> 14;
-                case "glass_cannon" -> -10;
-                case "greedy" -> -12;
-                case "no_mercy" -> -8;
-                default -> 0;
-            };
-        }
-        return v;
+        return passiveModSum(owned, 2);
     }
 
     /**
      * 恩寵「呪喰らい」: 技能の欠点 (負の効果) を無効化し、正の効果を2倍にする.
-     * 各ヘルパーの結果に足す補正値を返す (補正後 = base + bonus).
+     * 各ヘルパーの結果に足す補正値を返す (補正後 = base + bonus)。欠点が消え正が2倍になるので Σ|v| に等しい。
      */
     public static double curseEaterBonusDamage(java.util.Collection<String> owned) {
-        double neg = 0, pos = 0;
-        for (String id : owned) {
-            double v = switch (id) {
-                case "iron_oath" -> 25;
-                case "glass_cannon" -> 55;
-                case "twin_soul" -> -18;
-                case "no_mercy" -> 20;
-                case "swift" -> -10;
-                default -> 0;
-            };
-            if (v < 0) neg += v; else pos += v;
-        }
-        return -neg + pos;
+        return passiveModAbsSum(owned, 0);
     }
 
     public static double curseEaterBonusMaxHp(java.util.Collection<String> owned) {
-        double neg = 0, pos = 0;
-        for (String id : owned) {
-            double v = switch (id) {
-                case "iron_oath" -> -12;
-                case "glass_cannon" -> -35;
-                case "scholar" -> -15;
-                case "thorn_lord" -> -10;
-                case "undying" -> -20;
-                default -> 0;
-            };
-            if (v < 0) neg += v; else pos += v;
-        }
-        return -neg + pos;
+        return passiveModAbsSum(owned, 1);
     }
 
     public static double curseEaterBonusArmor(java.util.Collection<String> owned) {
-        double neg = 0, pos = 0;
-        for (String id : owned) {
-            double v = switch (id) {
-                case "clear_mind" -> 14;
-                case "glass_cannon" -> -10;
-                case "greedy" -> -12;
-                case "no_mercy" -> -8;
-                default -> 0;
-            };
-            if (v < 0) neg += v; else pos += v;
-        }
-        return -neg + pos;
+        return passiveModAbsSum(owned, 2);
     }
 
     /* ---------------- 原作 ACHIEVEMENTS (32種) ---------------- */

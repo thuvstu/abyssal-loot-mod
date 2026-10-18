@@ -83,7 +83,7 @@ public final class FloorEvents {
                 new ModPackets.FloorEventSync(mode, title, ids, names, descs, footer, portalOpen));
     }
 
-    private static Component btn(String label, String cmd) {
+    static Component btn(String label, String cmd) {
         return Component.literal(label + " ").withStyle(s -> s
                 .withClickEvent(new ClickEvent.RunCommand(cmd))
                 .withUnderlined(true));

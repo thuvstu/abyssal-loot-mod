@@ -527,13 +527,10 @@ public final class ModCommands {
                 .append(button("§e[操作ハブを開く]", "/abyss hub")));
     }
 
+    /** クリックコマンドボタン (FloorEvents.btn の別名。実装は1箇所に統一) */
     static net.minecraft.network.chat.MutableComponent button(String label, String cmd) {
-        return Component.literal(label + " ").withStyle(s -> s
-                .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(cmd))
-                .withUnderlined(true));
-    }
-
-    /** 出撃前設定メニュー: 現在値を表示し、クリックで切り替え/出撃する */
+        return FloorEvents.btn(label, cmd).copy();
+    }    /** 出撃前設定メニュー: 現在値を表示し、クリックで切り替え/出撃する */
     static void showMenu(ServerPlayer p) {
         String cls = p.getData(ModAttachments.HERO_CLASS.get());
         String mode = p.getData(ModAttachments.MODE.get());

@@ -149,7 +149,7 @@ public final class StatCalc {
         var wb0 = wbonusOf(player);
         double maxHp = (GameData.heroMaxHp(cls, level) + StatCalc.affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
                 * (1 + attrEff(player, 3) * 0.04) * (1 + RunManager.boonLv(player, "hp") * 0.18)
-                * (1 + wb0.maxHpPct() / 100.0) * (1 + (StatCalc.affixOf(player, "maxHpPct") + extraStat(player, "maxHpPct")) / 100.0)
+                * (1 + wb0.maxHpPct() / 100.0) * (1 + affixPlusExtra(player, "maxHpPct") / 100.0)
                 * (1 + GameData.passiveMaxHpPct(passives) / 100.0)
                 * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.01)
                 * (1 + curseHp / 100.0);
@@ -216,8 +216,7 @@ public final class StatCalc {
             curseAspd = GearData.curseValueOf(held);
         }
         double v = RunManager.boonLv(player, "as") * 16 + curseAspd
-                + wbonusOf(player).attackSpeedPct() + StatCalc.affixOf(player, "attackSpeedPct")
-                + extraStat(player, "attackSpeedPct");
+                + wbonusOf(player).attackSpeedPct() + affixPlusExtra(player, "attackSpeedPct");
         var passives = RunManager.passivesOf(player);
         if (passives.contains("clear_mind")) v -= 10;
         if (passives.contains("frostbound")) v -= 12;
@@ -310,6 +309,11 @@ public final class StatCalc {
     /** 主手持ち武器の接辞値 (なければ 0)。防具4部位の合算も含む */
     public static double affixOf(ServerPlayer player, String key) {
         return GearData.affixOf(player.getMainHandItem(), key) + armorAffix(player, key);
+    }
+
+    /** 接辞 (武器+防具) と追加コンテンツ合算の合計。10箇所以上で同じ加算パターンの統一用 */
+    public static double affixPlusExtra(ServerPlayer player, String key) {
+        return affixOf(player, key) + extraStat(player, key);
     }
 
     /** 装備中防具4部位の接辞合計 (原作の7スロット合算に相当) */
@@ -435,8 +439,8 @@ public final class StatCalc {
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         // 幸運(運+7/点)は素材・ドロップ側で使う. 会心は職業値+心眼の刻印のみ
         double crit = cls.crit + RunManager.boonLv(player, "crit") * 0.05
-                + wbonusOf(player).critPct() / 100.0 + StatCalc.affixOf(player, "critPct") / 100.0
-                + extraStat(player, "critPct") / 100.0 + attrEff(player, 5) * 0.008;
+                + wbonusOf(player).critPct() / 100.0 + affixPlusExtra(player, "critPct") / 100.0
+                + attrEff(player, 5) * 0.008;
         if (RunManager.passivesOf(player).contains("abyss_eye")) crit += 0.12;
         return Math.min(0.95, crit);
     }
@@ -444,21 +448,21 @@ public final class StatCalc {
     /** 会心威力 (原作2.0倍 + 致命の刻印+45%/Lv) */
     public static double critDamageMult(ServerPlayer player) {
         return 2.0 + RunManager.boonLv(player, "critdmg") * 0.45
-                + wbonusOf(player).critDmgPct() / 100.0 + StatCalc.affixOf(player, "critDmgPct") / 100.0
-                + extraStat(player, "critDmgPct") / 100.0 + attrEff(player, 5) * 0.02;
+                + wbonusOf(player).critDmgPct() / 100.0 + affixPlusExtra(player, "critDmgPct") / 100.0
+                + attrEff(player, 5) * 0.02;
     }
 
     /** 攻撃範囲 (恩寵「拡大の刻印」+22%/Lv。奥義・祝福の半径に適用) */
     public static double areaMult(ServerPlayer player) {
         return (1 + RunManager.boonLv(player, "area") * 0.22)
                 * (1 + wbonusOf(player).areaPct() / 100.0)
-                * (1 + (StatCalc.affixOf(player, "areaPct") + extraStat(player, "areaPct")) / 100.0)
+                * (1 + affixPlusExtra(player, "areaPct") / 100.0)
                 * (1 + attrEff(player, 7) * 0.015);
     }
     /** 運 (幸運+7/点 + 知識の渇望+20/Lv + 呪いluckFlat) */
     public static int luckOf(ServerPlayer player) {
         int luck = GameData.luckOf((int) attrEff(player, 4)) + RunManager.boonLv(player, "xp") * 20
-                + (int) StatCalc.affixOf(player, "luckFlat") + (int) extraStat(player, "luckFlat");
+                + (int) affixPlusExtra(player, "luckFlat");
         var held = player.getMainHandItem();
         if (GearData.curseActive(player, held) && "luckFlat".equals(GearData.curseOf(held))) {
             luck += (int) GearData.curseValueOf(held);

@@ -327,54 +327,10 @@ public final class CombatHandler {
         }
     }
 
+    /** ステータス表示 (RunManager.statusLines の単一出力源。GUI と内容を共有する) */
     public static void showStatus(ServerPlayer player) {
-        GameData.HeroClass cls =
-                GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        GameData.WeaponStyle style = ModItems.styleOf(player.getMainHandItem().getItem());
-        int[] a = StatCalc.attrsOf(player);
-        player.sendSystemMessage(Component.literal(String.format(
-                "§6[%s %s Lv%d] §f第%d層[%s/%s] §d魂%.0f/100 §c攻撃%.1f §aHP%.0f/%.0f §e撃破%d §b奥義:%s",
-                cls.name, cls.title, player.getData(ModAttachments.LEVEL.get()),
-                player.getData(ModAttachments.FLOOR.get()),
-                player.getData(ModAttachments.MODE.get()), player.getData(ModAttachments.DIFF.get()),
-                player.getData(ModAttachments.SOUL.get()),
-                StatCalc.attackDamageOf(player),
-                player.getHealth(), player.getMaxHealth(),
-                player.getData(ModAttachments.KILLS.get()),
-                style != null ? style.artName : "武器を持ってね")));
-        player.sendSystemMessage(Component.literal(String.format(
-                "§7属性 剛%d 韻%d 敏%d 忍%d 幸%d 集%d 活%d 技%d 採%d 跳%d §8| §7祝福%s §8| §7層主 %s",
-                a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
-                RunManager.boonsOf(player).toString(),
-                player.getData(ModAttachments.BOSSES.get()))));
-        player.sendSystemMessage(Component.literal(String.format(
-                "§7区域 %s §8| §7遺物 %s §8| §7技能 %s §8| §7実績 %s",
-                GameData.zoneForFloor(player.getData(ModAttachments.FLOOR.get())).name(),
-                RunManager.relicsOf(player).toString(),
-                RunManager.passivesOf(player).toString(),
-                player.getData(ModAttachments.ACH.get()))));
-        var held = player.getMainHandItem();
-        if (ModItems.styleOf(held.getItem()) != null) {
-            String trait = GearData.traitOf(held);
-            String curse = GearData.curseOf(held);
-            int affixes = 0;
-            for (var ak : GameData.WEAPON_AFFIXES) {
-                if (GearData.affixOf(held, ak.key()) != 0) affixes++;
-            }
-            player.sendSystemMessage(Component.literal(String.format(
-                    "§7武器 %s (希少:%s 特性:%s%s 接辞:%d 鍛造+%d)",
-                    held.getHoverName().getString(),
-                    GearData.rarityOf(held),
-                    trait != null ? GearData.traitName(trait) : "なし",
-                    curse != null ? " 呪い:" + curse + GearData.curseValueOf(held) : "",
-                    affixes,
-                    GearData.forgeLv(held))));
+        for (String line : RunManager.statusLines(player)) {
+            player.sendSystemMessage(Component.literal(line));
         }
-        player.sendSystemMessage(Component.literal(String.format(
-                "§7スコア %d (撃破%d 与ダメ%d 最大 combo%d)",
-                RunManager.calcScore(player, false),
-                player.getData(ModAttachments.KILLS.get()),
-                player.getData(ModAttachments.DMG_DEALT.get()),
-                player.getData(ModAttachments.BEST_COMBO.get()))));
     }
 }

@@ -76,7 +76,7 @@ public final class SubSkills {
         stand.setCustomNameVisible(true);
         stand.setInvisible(true);
         stand.setInvulnerable(true);
-        stand.addTag("abyss_decoy");
+        stand.addTag(DECOY_TAG);
         level.addFreshEntity(stand);
         level.sendParticles(ParticleTypes.PORTAL, at.x, player.getY() + 1, at.z, 30, 0.6, 1, 0.6, 0.2);
         level.playSound(null, stand.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
@@ -250,15 +250,9 @@ public final class SubSkills {
         }
     }
 
-    /** 囮の寿命処理 (EnemyAI.tick から呼ぶ): 囮周囲12mの敵のターゲットを囮へ向ける */
-    public static void tickDecoys(ServerLevel level, int now) {
-        if (now % 20 != 0) return;
-        var decoys = level.getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class,
-                new net.minecraft.world.phys.AABB(-64, -32, -64, 64, 32, 64)
-                        .move(0, 0, 0).expandTowards(0, 0, 0),
-                a -> false);
-        // 注: 範囲指定はプレイヤー毎に EnemyAI.tick 側で行うため、ここではスタンド単体の寿命のみ管理
-    }
+    /** 囮の寿命処理は設置時の DelayRunner が担うため廃止。
+     * 「敵の注意を引きつける」効果は {@link EnemyAI} の毎tick処理で abyss_decoy タグを検索して実装。 */
+    public static final String DECOY_TAG = "abyss_decoy";
 
     private static LivingEntity nearest(Vec3 origin, ServerLevel level, double range) {
         LivingEntity best = null;

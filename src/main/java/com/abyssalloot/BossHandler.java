@@ -114,7 +114,6 @@ public final class BossHandler {
 
     /** 真ボスのフェーズ弾幕 (原作 TRUE_BOSS_PHASES の3段階。5秒ごとに残HP割合で変化) */
     public static void tickTrueBoss(ServerLevel level, Monster boss) {
-        String name = boss.getCustomName() != null ? boss.getCustomName().getString() : "";
         if (!boss.getTags().contains("abyss_true_boss")) return;
         double ratio = boss.getHealth() / Math.max(1, boss.getMaxHealth());
         var ph = GameData.truePhaseFor(ratio);
@@ -287,6 +286,32 @@ public final class BossHandler {
         ArenaManager.clearArenaBarriers(player);
     }
 
+    /** ボスバーの生成・登録 (spawnFloorBoss / spawnAscensionBoss 共通) */
+    private static void registerBossBar(ServerPlayer player, Mob boss, Component name,
+                                        BossEvent.BossBarColor color) {
+        if (!(boss instanceof Monster monster)) return;
+        var bar = new ServerBossEvent(name, color, BossEvent.BossBarOverlay.PROGRESS);
+        bar.addPlayer(player);
+        bar.setProgress(1f);
+        RunManager.BOSS_BARS.put(monster, bar);
+    }
+
+    /** ボスの能力を「層スケールで原作値を割って」適用する共通処理 (25層以降は属性上限に収まる) */
+    private static void applyScaledStats(Mob boss, double hpBase, double dmgBase, double speedBase,
+                                         Enemies.Scale scale, int floor) {
+        var hp = boss.getAttribute(Attributes.MAX_HEALTH);
+        if (hp != null) {
+            hp.setBaseValue(Math.min(1024, hpBase * scale.hp() / Math.max(1, GameData.floorHpScale(floor))));
+            boss.setHealth(boss.getMaxHealth());
+        }
+        var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (atk != null) {
+            atk.setBaseValue(dmgBase * scale.dmg() / Math.max(1, GameData.floorDmgScale(floor)));
+        }
+        var spd = boss.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (spd != null) spd.setBaseValue(Enemies.SPEED_PARITY * speedBase / 100.0 * scale.speed());
+    }
+
     static void spawnFloorBoss(ServerPlayer player, ServerLevel level, BlockPos center,
                                        int floor, Enemies.Scale scale) {
         GameData.BossDef def = GameData.bossForFloor(floor);
@@ -297,30 +322,14 @@ public final class BossHandler {
         boss.setPos(center.getX() + 0.5, sy, center.getZ() - 10 + 0.5);
         double hpBase = def != null ? def.hp() : 60 + floor * 60;
         double dmgBase = def != null ? def.dmg() : 8 + floor * 1.6;
-        var hp = boss.getAttribute(Attributes.MAX_HEALTH);
-        if (hp != null) {
-            hp.setBaseValue(Math.min(1024, hpBase * scale.hp() / Math.max(1, GameData.floorHpScale(floor))));
-            boss.setHealth(boss.getMaxHealth());
-        }
-        var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (atk != null) atk.setBaseValue(dmgBase * scale.dmg() / Math.max(1, GameData.floorDmgScale(floor)));
         double spdBase = def != null ? def.speed() : 90;
-        var spd = boss.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (spd != null) spd.setBaseValue(Enemies.SPEED_PARITY * spdBase / 100.0 * scale.speed());
+        applyScaledStats(boss, hpBase, dmgBase, spdBase, scale, floor);
         boss.setCustomName(Component.literal("§4" + bossName));
         boss.setCustomNameVisible(true);
         boss.setTarget(player);
         level.addFreshEntity(boss);
-        if (boss instanceof Monster monster) {
-            var bar = new ServerBossEvent(
-                    Component.literal("§4" + bossName),
-                    BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
-            bar.addPlayer(player);
-            bar.setProgress(1f);
-            RunManager.BOSS_BARS.put(monster, bar);
+        registerBossBar(player, boss, Component.literal("§4" + bossName), BossEvent.BossBarColor.RED);
     }
-
-        }
 
     /** 超越者 (原作 b_ascension・28層。無限深淵で到達する裏決戦) */
     static void spawnAscensionBoss(ServerPlayer player, ServerLevel level, BlockPos center,
@@ -330,31 +339,15 @@ public final class BossHandler {
         if (boss == null) throw new IllegalStateException("ascension boss create failed");
         int sy = ArenaManager.safeSpawnY(level, center.getX(), center.getZ() - 12, center.getY() + 1);
         boss.setPos(center.getX() + 0.5, sy, center.getZ() - 12 + 0.5);
-        var hp = boss.getAttribute(Attributes.MAX_HEALTH);
-        if (hp != null) {
-            // MC の属性上限に収まるよう圧縮 (原作85万/属性倍率)
-            hp.setBaseValue(Math.min(1024, 40000 * scale.hp() / Math.max(1, GameData.floorHpScale(28))));
-            boss.setHealth(boss.getMaxHealth());
-        }
-        var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (atk != null) {
-            atk.setBaseValue(def.dmg() * scale.dmg() / Math.max(1, GameData.floorDmgScale(28)) / 6);
-        }
-        var spd = boss.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (spd != null) spd.setBaseValue(Enemies.SPEED_PARITY * def.speed() / 100.0 * scale.speed());
+        // MC の属性上限に収まるよう圧縮 (原作85万/属性倍率)
+        applyScaledStats(boss, 40000, def.dmg() / 6, def.speed(), scale, 28);
         boss.setCustomName(Component.literal("§e" + def.name()));
         boss.setCustomNameVisible(true);
         boss.setTarget(player);
         level.addFreshEntity(boss);
         player.setData(ModAttachments.WAVE_TOTAL.get(),
                 player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
-        if (boss instanceof Monster monster) {
-            var bar = new ServerBossEvent(Component.literal("\u00a7e" + def.name()),
-                    BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
-            bar.addPlayer(player);
-            bar.setProgress(1f);
-            RunManager.BOSS_BARS.put(monster, bar);
-        }
+        registerBossBar(player, boss, Component.literal("§e" + def.name()), BossEvent.BossBarColor.PURPLE);
         player.sendSystemMessage(Component.literal("§e◆ 超越者 — 真の深淵と終焉の座を制した者だけが立てる相手！"));
     }
 }
