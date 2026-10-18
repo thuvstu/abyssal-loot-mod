@@ -67,6 +67,23 @@ public final class FloorEvents {
         player.sendSystemMessage(msg);
         player.sendSystemMessage(Component.literal(
                 "§7所持欠片: " + countShards(player) + "個 §8| §7武器合成は /abyss merge (両手にAbyss武器)"));
+        // 選択画面 (GUI) を自動で開く。チャットボタンは後から選び直す代替手段として残す
+        openEventScreen(player, "event", "◆ 層間イベント — 1つ選択 ◆",
+                List.of("rest", "oath", "shop", "forge"),
+                List.of("休息", "血の誓約", "商店", "遺された宝箱"),
+                List.of("HP38%回復・魂+25", "HP18%を捧げて祝福を1つ選ぶ",
+                        "欠片で武器を購入 (3点)・§7/abyss buy 1-3§r",
+                        "層+1相当の装備を1点入手 (層主層はボーナス)"),
+                "所持欠片 " + countShards(player) + "個 §8| ESCで後で選ぶ (選ぶまで消えない)",
+                true);
+    }
+
+    /** 汎用選択画面 (FloorEventScreen) をクライアントへ開かせる */
+    private static void openEventScreen(ServerPlayer player, String mode, String title,
+                                        List<String> ids, List<String> names, List<String> descs,
+                                        String footer, boolean portalOpen) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                new ModPackets.FloorEventSync(mode, title, ids, names, descs, footer, portalOpen));
     }
 
     private static Component btn(String label, String cmd) {
@@ -418,7 +435,7 @@ public final class FloorEvents {
         return p == null ? id : p.name() + " " + p.desc();
     }
 
-    /** 遺物・技能共通の3択提示 (ボタンを並べ、候補IDを添付に保存) */
+    /** 遺物・技能共通の3択提示 (ボタンを並べ、候補IDを添付に保存。選択画面GUIも開く) */
     private static void sendOffer(ServerPlayer player, String header,
                                   java.util.function.Supplier<net.neoforged.neoforge.attachment.AttachmentType<String>> offerKey,
                                   List<String> ids, String cmdPrefix) {
@@ -428,6 +445,26 @@ public final class FloorEvents {
         }
         player.setData(offerKey.get(), String.join(",", ids));
         player.sendSystemMessage(msg);
+        // 選択画面 (GUI) を自動で開く (祝福と同じパターン)
+        boolean relic = offerKey.get() == ModAttachments.RELIC_OFFER.get();
+        String mode = relic ? "relic" : "passive";
+        var names = new ArrayList<String>();
+        var descs = new ArrayList<String>();
+        for (String id : ids) {
+            var r = GameData.relicById(id);
+            if (r != null) {
+                names.add(r.name());
+                descs.add(r.desc());
+                continue;
+            }
+            var p = GameData.passiveById(id);
+            names.add(p == null ? id : p.name());
+            descs.add(p == null ? "" : p.desc());
+        }
+        openEventScreen(player, mode,
+                relic ? "◆ 遺物を選べ (最大2つまで) ◆" : "◆ 技能を選べ (代償付き) ◆",
+                ids, names, descs,
+                "ESCで後で選ぶ (選ばないと消えない)", false);
     }
 
     /** 遺物の3択を提示 (宝の間・層主撃破時) */

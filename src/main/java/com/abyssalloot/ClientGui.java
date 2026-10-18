@@ -147,4 +147,20 @@ public final class ClientGui {
             mc.setScreen(new BoonSelectScreen(boonChoices, boonRemaining));
         }
     }
+
+    /**
+     * 汎用選択画面 (層間イベント・遺物・技能) を開く。既に同じ mode の画面が開いていれば
+     * 内容だけ差し替える (祝福画面を上書きはしない — 祝福は BoonSelectScreen が専任)。
+     */
+    public static void showFloorEvent(String mode, String title, List<String> ids,
+                                      List<String> names, List<String> descs,
+                                      String footer, boolean portalOpen) {
+        var mc = Minecraft.getInstance();
+        if (mc == null) return;
+        if (mc.screen instanceof FloorEventScreen fs && fs.mode().equals(mode)) {
+            fs.refresh(mode, title, ids, names, descs, footer, portalOpen);
+        } else {
+            mc.setScreen(new FloorEventScreen(mode, title, ids, names, descs, footer, portalOpen));
+        }
+    }
 }

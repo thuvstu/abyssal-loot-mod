@@ -54,6 +54,8 @@ public final class ModPackets {
         reg.playToClient(HubSync.TYPE, HubSync.CODEC, HubSync::handle);
         reg.playToClient(BoonSync.TYPE, BoonSync.CODEC, BoonSync::handle);
         reg.playToServer(BoonPacket.TYPE, BoonPacket.CODEC, ModPackets::handleBoon);
+        reg.playToClient(FloorEventSync.TYPE, FloorEventSync.CODEC, FloorEventSync::handle);
+        reg.playToServer(FloorEventPacket.TYPE, FloorEventPacket.CODEC, ModPackets::handleFloorEvent);
     }
 
     /** 商店GUIの購入ボタン (1-3) */
@@ -157,6 +159,57 @@ public final class ModPackets {
         public static final StreamCodec<RegistryFriendlyByteBuf, BoonPacket> CODEC = StreamCodec.of(
                 (buf, p) -> buf.writeUtf(p.id(), 64),
                 buf -> new BoonPacket(buf.readUtf(64)));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /**
+     * サーバー→クライアント: 汎用選択画面 (層間イベント・遺物・技能) を開く.
+     * mode: event (層間イベント4択) / relic (遺物3択) / passive (技能3択).
+     * names・descs は表示用、footer は画面下部の補足、portalOpen で「次の層へ」ボタンを出す.
+     */
+    public record FloorEventSync(String mode, String title, java.util.List<String> ids,
+                                 java.util.List<String> names, java.util.List<String> descs,
+                                 String footer, boolean portalOpen) implements CustomPacketPayload {
+        public static final Type<FloorEventSync> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "floor_event_sync"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, FloorEventSync> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeUtf(p.mode(), 16);
+                    buf.writeUtf(p.title(), 256);
+                    writeLines(buf, p.ids());
+                    writeLines(buf, p.names());
+                    writeLines(buf, p.descs());
+                    buf.writeUtf(p.footer(), 256);
+                    buf.writeBoolean(p.portalOpen());
+                },
+                buf -> new FloorEventSync(buf.readUtf(16), buf.readUtf(256), readLines(buf),
+                        readLines(buf), readLines(buf), buf.readUtf(256), buf.readBoolean()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(FloorEventSync payload, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> ClientGui.showFloorEvent(payload.mode(), payload.title(),
+                    payload.ids(), payload.names(), payload.descs(), payload.footer(), payload.portalOpen()));
+        }
+    }
+
+    /** 汎用選択画面の決定 (mode + id)。サーバー側で提示中かを再検証する */
+    public record FloorEventPacket(String mode, String id) implements CustomPacketPayload {
+        public static final Type<FloorEventPacket> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "floor_event_choose"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, FloorEventPacket> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeUtf(p.mode(), 16);
+                    buf.writeUtf(p.id(), 64);
+                },
+                buf -> new FloorEventPacket(buf.readUtf(16), buf.readUtf(64)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -273,6 +326,19 @@ public final class ModPackets {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {
                 BoonHandler.chooseBoon(sp, payload.id());
+            }
+        });
+    }
+
+    /** 汎用選択画面 (層間イベント・遺物・技能) の決定。各処理が提示中かを再検証する */
+    private static void handleFloorEvent(FloorEventPacket payload, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer sp) {
+                switch (payload.mode()) {
+                    case "relic" -> FloorEvents.doRelic(sp, payload.id());
+                    case "passive" -> FloorEvents.doPassive(sp, payload.id());
+                    default -> FloorEvents.doEvent(sp, payload.id());
+                }
             }
         });
     }
