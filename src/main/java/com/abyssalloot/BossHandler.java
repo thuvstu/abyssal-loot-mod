@@ -69,11 +69,14 @@ public final class BossHandler {
         return bar;
     }
 
-    /** MOBのHP・攻撃・移動速度を絶対設定する (属性上限1000000で圧縮するう。呼び出し側はHP満タンの心持で) */
+    /** MOBのHP・攻撃・移動速度を絶対設定する。呼び出し側はHP満タンの心持で。
+     *  バニラ属性の上限 (MAX_HEALTH=1024 / ATTACK_DAMAGE=2048) を超える値は getValue() で
+     *  クランプされるため、実効値は min(上限, 設定値)。25層以降のボスは実質 HP1024 で、
+     *  難易度の差別化は攻撃力とフェーズ弾幕 (tickTrueBoss/tickPinnacleBoss) で担保している. */
     private static void setMobStats(Mob mob, double hp, double dmg, double speed) {
         var maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
         if (maxHp != null) {
-            maxHp.setBaseValue(Math.min(1000000, hp));
+            maxHp.setBaseValue(Math.min(1024, hp));
             mob.setHealth(mob.getMaxHealth());
         }
         var atk = mob.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -241,7 +244,7 @@ public final class BossHandler {
         double dmgBase = def != null ? def.dmg() : 8 + floor * 1.6;
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
-            hp.setBaseValue(Math.min(1000000, hpBase * scale.hp() / Math.max(1, GameData.floorHpScale(floor))));
+            hp.setBaseValue(Math.min(1024, hpBase * scale.hp() / Math.max(1, GameData.floorHpScale(floor))));
             boss.setHealth(boss.getMaxHealth());
         }
         var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -275,7 +278,7 @@ public final class BossHandler {
         var hp = boss.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             // MC の属性上限に収まるよう圧縮 (原作85万/属性倍率)
-            hp.setBaseValue(Math.min(1000000, 40000 * scale.hp() / Math.max(1, GameData.floorHpScale(28))));
+            hp.setBaseValue(Math.min(1024, 40000 * scale.hp() / Math.max(1, GameData.floorHpScale(28))));
             boss.setHealth(boss.getMaxHealth());
         }
         var atk = boss.getAttribute(Attributes.ATTACK_DAMAGE);

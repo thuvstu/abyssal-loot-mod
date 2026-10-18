@@ -837,6 +837,9 @@ public final class GameData {
 
     public record BossDef(int floor, String id, String name, double hp, double dmg, double speed) {}
 
+    /* ボス定義 (原作ベースの数値)。hp は層スケールで除算した上で、バニラ属性上限
+     *  (MAX_HEALTH=1024) にクランプされる — 実効値の目安: 5層≈346 / 10層≈477 / 15層≈656 /
+     *  20層≈884 / 25層以降はすべて 1024 (差別化は dmg とフェーズ弾幕で行う). */
     public static final java.util.List<BossDef> BOSSES = java.util.List.of(
             new BossDef(5, "b_goblin", "ゴブリン王 グルザ", 900, 20, 82),
             new BossDef(10, "b_wyrm", "屍竜 ヴァイト", 2100, 28, 96),

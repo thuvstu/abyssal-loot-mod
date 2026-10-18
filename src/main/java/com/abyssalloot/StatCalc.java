@@ -161,6 +161,7 @@ public final class StatCalc {
         if (attr != null) {
             // 現在HPの割合を維持 (装備の着脱で全快・激減しないように)
             double ratio = player.getHealth() / Math.max(1.0, player.getMaxHealth());
+            // 1024 = バニラ属性の上限。長期 endless で Lv84+ (剣聖) に達するとクランプされる
             attr.setBaseValue(Math.min(1024, maxHp));
             player.setHealth((float) Math.min(attr.getValue(), Math.max(1.0, attr.getValue() * ratio)));
         }
@@ -285,6 +286,8 @@ public final class StatCalc {
         }
         // 祭壇「怒り」: 与ダメ+60%
         if ("rage".equals(RunManager.activeShrine(player))) mult *= 1.6;
+        // [基礎値] 原作ダメージをMC向けに1/2へスケール
+        // (heroDamage*0.35 + 属性値*0.15 = heroDamage*0.5相当。属性値にはバフも含まれるが己係数 0.15 で寄与は小さい)
         return Math.max(1, GameData.heroDamage(cls, level) * 0.35 + base * 0.15) * mult;
     }
 
