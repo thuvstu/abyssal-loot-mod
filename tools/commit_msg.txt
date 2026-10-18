@@ -1,0 +1,19 @@
+refactor: WeaponArts の41case switch をグループ分割、boltMult を消費型 ThreadLocal 化 (第3弾)
+
+S2: 巨大switchの分割 (case本体は一字も変更せず verbatim 移動)
+- WeaponArts.execute (580行・41case) → execute / executeCoreArts / executeExtendedArts /
+  executeEliteArts の4メソッド構成に。execute はディスパッチのみに徹し、
+  各グループは該当 case があれば true、なければ null を返す
+- WeaponArts.executeLight (265行・41case) → executeLightCore / executeLightExtended の2分割
+- 共有ローカル (level/origin/look/targets) は同名パラメータで渡し、case 本体の書き換えを回避
+- 41武器種の網羅性を tools/verify_arts_coverage.py で検証 (奥義=41/小技=41、漏れなし)
+
+B8: 魔弾倍率の静的伝播を修正
+- SkillHandler.boltMult (public static double) を ThreadLocal + 消費型に変更
+- WeaponHitHandler は consumeBoltMult() で1発1回消費するため、
+  魔弾ヒット中の連鎖・二次ヒットに倍率が漏れなくなった (旧実装は再入時に別ヒットへ乗るリスク)
+
+S1 見送りの確定:
+- TRUE_PHASES/PINNACLE_PHASES/WARDENS/RANDOM_EVENTS の移動は GameDataTest が
+  GameData.* を参照しており「純粋計算+データは GameData に集約してテスト可能」という
+  既存の設計意図と矛盾するため、GameData はデータ+計算の集約として維持する

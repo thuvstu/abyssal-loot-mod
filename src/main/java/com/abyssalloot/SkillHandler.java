@@ -17,8 +17,24 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 public final class SkillHandler {
     private SkillHandler() {}
 
-    /** 魔弾の威力倍率 (castWandBolt が hurtServer 直前に設定し、命中処理で消費) */
-    public static double boltMult = 0;
+    /**
+     * 魔弾の威力倍率 (castWandBolt が hurtServer 直前に設定し、命中処理が1回だけ消費する).
+     * ThreadLocal + 消費型にすることで、魔弾ヒット中の連鎖・二次ヒットに倍率が漏れない
+     * (旧静的フィールドは再入時に別ヒットへ倍率が乗るリスクがあった).
+     */
+    private static final ThreadLocal<Double> BOLT_MULT = ThreadLocal.withInitial(() -> 0.0);
+
+    /** 魔弾の威力倍率を設定 (castWandBolt 専用。通常の命中処理が消費する) */
+    static void setBoltMult(double mult) {
+        BOLT_MULT.set(mult);
+    }
+
+    /** 魔弾の威力倍率を消費する (1発1回。消費後は0) */
+    public static double consumeBoltMult() {
+        double v = BOLT_MULT.get();
+        if (v != 0) BOLT_MULT.set(0.0);
+        return v;
+    }
 
     /** 右クリック=武器小技 / スニーク+右クリック=必殺技 / 魂の欠片=魂+25 */
     @SubscribeEvent
@@ -247,12 +263,12 @@ public final class SkillHandler {
         int n = 0;
         for (var t : hits) {
             if (n++ >= Math.max(1, maxTargets)) break;
-            boltMult = mult;
+            setBoltMult(mult);
             try {
                 t.hurtServer(level, level.damageSources().playerAttack(player),
                         (float) StatCalc.attackDamageOf(player));
             } finally {
-                boltMult = 0;
+                setBoltMult(0);
             }
             Vec3 tp = t.position().add(0, t.getBbHeight() / 2, 0);
             int steps = Math.max(1, (int) (origin.distanceTo(tp) * 2));

@@ -66,6 +66,18 @@ public final class WeaponArts {
                 new AABB(origin.x - 24, origin.y - 8, origin.z - 24, origin.x + 24, origin.y + 8, origin.z + 24),
                 e -> e.isAlive() && !(e instanceof ServerPlayer));
 
+        // 41武器種の奥義を3グループ (基礎・上位・最上級) に分けて実行する。
+        // 各グループは該当ケースがあれば true、なければ null を返す (ディスパッチのみに徹する)
+        Boolean r = executeCoreArts(player, style, attackDamage, level, origin, look, targets);
+        if (r != null) return r;
+        r = executeExtendedArts(player, style, attackDamage, level, origin, look, targets);
+        if (r != null) return r;
+        return executeEliteArts(player, style, attackDamage, level, origin, look, targets);
+    }
+
+    /** 奥義: 基礎武器 (剣/斧/槍/杖/弓/短剣/槌/刀/鎌/拳套/輪刃/ルーン剣/血斧/嵐槍) */
+    private static Boolean executeCoreArts(ServerPlayer player, GameData.WeaponStyle style, double attackDamage,
+                                           ServerLevel level, Vec3 origin, Vec3 look, List<LivingEntity> targets) {
         switch (style) {
             case SWORD -> {
                 // 月牙斬: 前方3方向へ斬撃波 (貫通イメージで3連ヒット)
@@ -238,6 +250,14 @@ public final class WeaponArts {
                 burst(player, "螺旋突貫！", style);
                 return true;
             }
+        }
+        return null;
+    }
+
+    /** 奥義: 上位武器 (虚杖/月弓/牙短剣/震槌/氷刀/魂鎌/剛拳/蝕輪/混沌書/魔導書/ロッド/ワンド/大剣) */
+    private static Boolean executeExtendedArts(ServerPlayer player, GameData.WeaponStyle style, double attackDamage,
+                                               ServerLevel level, Vec3 origin, Vec3 look, List<LivingEntity> targets) {
+        switch (style) {
             case VOID_STAFF -> {
                 // 虚空落とし: 最寄り敵位置に隕石3連 (0.4秒刻み)
                 Vec3 at = aimPoint(player, origin, targets, look, 8);
@@ -414,6 +434,14 @@ public final class WeaponArts {
                 burst(player, "天地断！", style);
                 return true;
             }
+        }
+        return null;
+    }
+
+    /** 奥義: 最上級武器 (双短剣/戦角/風輪/焔鎖鞭/星輝槍/哮爪/残刀/隕槍/虚刃/焔典/猛毒鞭/深銃/月鱗鎚/潮王戟) */
+    private static Boolean executeEliteArts(ServerPlayer player, GameData.WeaponStyle style, double attackDamage,
+                                            ServerLevel level, Vec3 origin, Vec3 look, List<LivingEntity> targets) {
+        switch (style) {
             case TWIN_DAGGER -> {
                 // 乱舞連牙: 周囲へ8連の牙
                 for (int i = 0; i < 8; i++) {
@@ -643,7 +671,7 @@ public final class WeaponArts {
                 return true;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -667,6 +695,15 @@ public final class WeaponArts {
         level.sendParticles(new DustParticleOptions(style.color, 1.0f),
                 origin.x, origin.y + 1.2, origin.z, 8, 0.8, 0.6, 0.8, 0.05);
 
+        // 41武器種の小技を2グループ (基礎・上位) に分けて実行する
+        executeLightCore(player, style, attackDamage, level, origin, look, targets, dmg);
+        executeLightExtended(player, style, attackDamage, level, origin, look, targets, dmg);
+    }
+
+    /** 小技: 基礎武器 (剣〜戦角) */
+    private static void executeLightCore(ServerPlayer player, GameData.WeaponStyle style, double attackDamage,
+                                         ServerLevel level, Vec3 origin, Vec3 look,
+                                         List<LivingEntity> targets, double dmg) {
         switch (style) {
             case SWORD -> // 疾刃: 前方を素早く斬る
                     slashCone(level, player, origin, look, 5, dmg, ParticleTypes.SWEEP_ATTACK);
@@ -835,6 +872,14 @@ public final class WeaponArts {
                 level.playSound(null, player.blockPosition(),
                         SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 0.6f);
             }
+            }
+    }
+
+    /** 小技: 上位武器 (風輪〜哮爪) */
+    private static void executeLightExtended(ServerPlayer player, GameData.WeaponStyle style, double attackDamage,
+                                             ServerLevel level, Vec3 origin, Vec3 look,
+                                             List<LivingEntity> targets, double dmg) {
+        switch (style) {
             case WIND_BLADE -> // 風輪斬: 風の輪を放つ
                     slashCone(level, player, origin, look, 6, dmg, ParticleTypes.SWEEP_ATTACK);
             case EMBER_FLAIL -> { // 焔鞭撃: 炎の鞭で薙ぎ発火

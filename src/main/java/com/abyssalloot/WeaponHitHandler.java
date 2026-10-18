@@ -283,8 +283,9 @@ public final class WeaponHitHandler {
                 float dmg = (float) (atk * (crit ? StatCalc.critDamageMult(player) : 1.0));
                 // レアリティ倍率
                 dmg *= (float) GearData.rarityMult(GearData.rarityOf(held));
-                // 魔弾 (ロッド・ワンドの自動射撃): 最終威力に倍率
-                if (SkillHandler.boltMult > 0) dmg *= (float) SkillHandler.boltMult;
+                // 魔弾 (ロッド・ワンドの自動射撃): 最終威力に倍率 (1発1回消費。二次ヒットには漏れない)
+                double bolt = SkillHandler.consumeBoltMult();
+                if (bolt > 0) dmg *= (float) bolt;
                 String trait = GearData.traitOf(held);
                 // 反撃窓: 回避直後の初撃×1.5 (技能「完全主義」は×1.9・原作カウンター)
                 if (player.getData(ModAttachments.COUNTER.get()) > 0) {
