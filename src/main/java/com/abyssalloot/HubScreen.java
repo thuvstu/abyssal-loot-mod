@@ -21,6 +21,7 @@ public class HubScreen extends Screen {
             {"技能の再提示", "abyss passive"},
             {"鍛造", "abyss forge"},
             {"商店", "abyss shop"},
+            {"特殊スキル", "abyss sub"},
             {"装備比較", "abyss compare"},
             {"ステータス", "abyss statusgui"},
             {"設定メニュー", "abyss menu"},

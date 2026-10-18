@@ -136,6 +136,27 @@ public final class KillHandler {
                     level.addFreshEntity(cm);
                 }
             }
+            // 悪夢「影分身」: 撃破時50%で高攻撃の残像を1体残す (層クリアには数えない)
+            if (deadMob.getTags().contains(Enemies.NT_CLONE) && rand.nextFloat() < 0.5f) {
+                var spec = Enemies.specOf(deadMob);
+                if (spec != null) {
+                    var afterimage = spec.type().create(level,
+                            net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+                    if (afterimage != null) {
+                        afterimage.setPos(dp.x + (rand.nextDouble() - 0.5) * 2, dp.y + 0.5,
+                                dp.z + (rand.nextDouble() - 0.5) * 2);
+                        int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
+                        Enemies.apply(afterimage, spec, Enemies.scaleFor(player, floor), 0.3);
+                        var catk = afterimage.getAttribute(
+                                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+                        if (catk != null) catk.setBaseValue(catk.getBaseValue() * 1.5);
+                        afterimage.setCustomName(Component.literal("§5残像"));
+                        afterimage.addTag(Enemies.SUMMON_TAG);
+                        afterimage.setTarget(player);
+                        level.addFreshEntity(afterimage);
+                    }
+                }
+            }
         }
         // 素材ドロップ (原作 MATERIALS): 精鋭30%・番人80%・層主は虚空確定+追加
         var deadTags = event.getEntity().getTags();

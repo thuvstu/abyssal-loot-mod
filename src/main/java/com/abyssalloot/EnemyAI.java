@@ -12,6 +12,9 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.SpectralArrow;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,6 +44,10 @@ public final class EnemyAI {
     private static final Map<UUID, Integer> NEXT_CHARGE = new HashMap<>();
     private static final Map<UUID, Integer> NEXT_TELE = new HashMap<>();
     private static final Map<UUID, Double> ORBIT_ANG = new HashMap<>();
+    /** 悪夢射撃の扇状3発の次回発射 tick */
+    private static final Map<UUID, Integer> NEXT_FAN = new HashMap<>();
+    /** 悪夢「狂乱」の発動済みタグ (一度だけ発動) */
+    private static final String NT_BERSERK_DONE = "abyss_nt_berserk_done";
 
     public static void tick(MinecraftServer server, int now) {
         if (now % TICK_PERIOD != 0) return;
@@ -77,6 +84,7 @@ public final class EnemyAI {
                     tickBomber(level, m, now);
                 }
                 tickVisuals(level, m, now, tags);
+                tickNightmare(level, m, now, tags);
             }
         }
         // 倒れた敵の記録を捨てる
@@ -85,6 +93,7 @@ public final class EnemyAI {
         NEXT_TELE.keySet().removeIf(id -> !seen.contains(id));
         ORBIT_ANG.keySet().removeIf(id -> !seen.contains(id));
         SHOOT_DIR.keySet().removeIf(id -> !seen.contains(id));
+        NEXT_FAN.keySet().removeIf(id -> !seen.contains(id));
         // 脱走収容 (壁を越えたMOBをアリーナ内へ戻す)
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (p.level() instanceof ServerLevel level) containMobs(p, level);
@@ -307,6 +316,82 @@ public final class EnemyAI {
             if (m.getRandom().nextFloat() < 0.1f) SHOOT_DIR.put(m.getUUID(), -dir);
         }
         m.setTarget(target);
+        // 悪夢の射撃強化: 扇状3発を追加発射 (原作 shoot ai の eprojs 扇射に対応)
+        var tags = m.getTags();
+        if (hasNightmareTag(tags) && now >= NEXT_FAN.getOrDefault(m.getUUID(), 0)) {
+            nightmareFanShot(level, m, target);
+            NEXT_FAN.put(m.getUUID(), now + scaledInterval(target, 90, 40));
+        }
+        // 悪夢「攻城」: 半周期で遅延爆発撃ちを1発
+        if (tags.contains(Enemies.NT_SIEGE) && now % 120 == 60) {
+            level.sendParticles(ParticleTypes.FLAME,
+                    m.getX(), m.getY() + m.getBbHeight() * 0.6, m.getZ(), 6, 0.3, 0.4, 0.3, 0.05);
+            DelayRunner.after(10, () -> {
+                if (!m.isAlive() || m.isRemoved() || !target.isAlive()) return;
+                WeaponArts.enemyPulse(level, target.position(), 2.0, 8.0, ParticleTypes.FLAME);
+            });
+        }
+    }
+
+    /** 悪夢化しているか (abyss_nt_* の特性タグの有無。狂乱の発動済みタグは除く) */
+    private static boolean hasNightmareTag(Set<String> tags) {
+        for (String t : tags) {
+            if (t.startsWith("abyss_nt_") && !t.equals(NT_BERSERK_DONE)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * 悪夢の扇状3発: 標的方向を中心に ±0.25rad ずつ逸らしたスペクトル矢を放つ。
+     * 矢の威力 = 攻撃×0.7 (AbstractArrow は速度×baseDamage でダメージが決まるため速度分を割る)。
+     * 拾えない (Pickup.DISALLOWED)。
+     */
+    private static void nightmareFanShot(ServerLevel level, Mob m, ServerPlayer target) {
+        Vec3 from = m.getEyePosition();
+        Vec3 to = target.getEyePosition();
+        double dx = to.x - from.x, dz = to.z - from.z;
+        double dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < 1e-3) return;
+        double baseAng = Math.atan2(dz, dx);
+        var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
+        double dmg = (atk != null ? atk.getValue() * 0.7 : 8) / 1.6;
+        for (int i = -1; i <= 1; i++) {
+            double a = baseAng + i * 0.25;
+            var arrow = new SpectralArrow(level, m,
+                    new ItemStack(net.minecraft.world.item.Items.ARROW), ItemStack.EMPTY);
+            arrow.setPos(from.x, from.y - 0.1, from.z);
+            arrow.setBaseDamage(dmg);
+            arrow.pickup = AbstractArrow.Pickup.DISALLOWED;
+            arrow.shoot(Math.cos(a) * dist, to.y - from.y, Math.sin(a) * dist, 1.6f, 0);
+            level.addFreshEntity(arrow);
+        }
+        level.sendParticles(ParticleTypes.CRIT, from.x, from.y, from.z, 4, 0.2, 0.2, 0.2, 0.1);
+    }
+
+    /**
+     * 悪夢特性の毎tick挙動 (精鋭の先の段階)。
+     *  - NT_SIEGE: 3秒ごとに最寄りのプレイヤー位置へ予兆 → 範囲爆発
+     *  - NT_BERSERK: HP半分以下で一度だけ攻撃・速度が大幅上昇 (告知はせず効果付与のみ)
+     */
+    private static void tickNightmare(ServerLevel level, Mob m, int now, Set<String> tags) {
+        // NT_SIEGE: 予兆つきの範囲爆発 (味方プレイヤーのみ被ダメ)
+        if (tags.contains(Enemies.NT_SIEGE) && now % 60 == 0) {
+            Player p = level.getNearestPlayer(m.getX(), m.getY(), m.getZ(), 24, false);
+            if (p != null && p.isAlive()) {
+                level.sendParticles(ParticleTypes.CRIT, p.getX(), p.getY() + 1, p.getZ(), 15, 2, 0.5, 2, 0.05);
+                DelayRunner.after(20, () -> {
+                    if (!m.isAlive() || m.isRemoved() || !p.isAlive()) return;
+                    WeaponArts.enemyPulse(level, p.position(), 3.0, 8.0, ParticleTypes.FLAME);
+                });
+            }
+        }
+        // NT_BERSERK: HP50% 以下で一度だけ発動
+        if (tags.contains(Enemies.NT_BERSERK) && !tags.contains(NT_BERSERK_DONE)
+                && m.getHealth() / Math.max(1, m.getMaxHealth()) <= 0.5) {
+            m.addTag(NT_BERSERK_DONE);
+            m.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100 * 20, 1, false, false));
+            m.addEffect(new MobEffectInstance(MobEffects.SPEED, 100 * 20, 0, false, false));
+        }
     }
 
     /** 突進: 約6秒ごとに予兆→突進. 突進時は衝撃波で周囲に打撃 */

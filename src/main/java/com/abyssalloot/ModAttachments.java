@@ -178,4 +178,13 @@ public final class ModAttachments {
     /** 武器の左クリック追撃カウンタ (WEAPON_FOLLOWUP 用) */
     public static final Supplier<AttachmentType<Integer>> FOLLOW_HIT =
             reg("follow_hit", 0, Codec.INT);
+    /** Sub-skill currently equipped (id from SubSkills; changed via hub or /abyss sub) */
+    public static final Supplier<AttachmentType<String>> SUB_SKILL =
+            reg("sub_skill", "decoy", Codec.STRING);
+    /** Sub-skill remaining cooldown (seconds), decayed every tick */
+    public static final Supplier<AttachmentType<Float>> SUB_CD =
+            reg("sub_cd", 0f, Codec.FLOAT);
+    /** Thorn-shield remaining time (seconds): damage reduction + reflection */
+    public static final Supplier<AttachmentType<Float>> SUB_SHIELD =
+            reg("sub_shield", 0f, Codec.FLOAT);
 }

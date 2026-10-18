@@ -308,6 +308,14 @@ public final class Enemies {
     public static final String ET_WARP = "abyss_et_warp";
     public static final String ET_VAMPIRE = "abyss_et_vampire";
 
+    /** 悪夢の特性タグ (精鋭の先の段階。深層のエリートが悪夢化する。GameData.NIGHTMARE_TRAITS に対応) */
+    public static final String NT_VANISH = "abyss_nt_vanish";
+    public static final String NT_SIPHON = "abyss_nt_siphon";
+    public static final String NT_CLONE = "abyss_nt_clone";
+    public static final String NT_SIEGE = "abyss_nt_siege";
+    public static final String NT_BERSERK = "abyss_nt_berserk";
+    public static final String NT_WITHER = "abyss_nt_wither";
+
     /** 精鋭化 (原作: 冠詞の能力変化 + 体力2倍 + 60%で特性1つ) */
     public static void makeElite(Mob m) {
         var rand = m.getRandom();
@@ -341,6 +349,32 @@ public final class Enemies {
         }
         m.addEffect(new MobEffectInstance(MobEffects.GLOWING, EFFECT_FOREVER, 0, false, false));
         m.setCustomName(Component.literal("§6" + pre.name() + "エリート " + m.getName().getString() + traitSuffix));
+    }
+
+    /** 悪夢化 (精鋭の先の段階: HP×1.5・攻撃×1.3 + 特性2つ。既存の冠詞・特性表示の後に〔悪夢〕を添える) */
+    public static void makeNightmare(Mob m) {
+        var hp = m.getAttribute(Attributes.MAX_HEALTH);
+        if (hp != null) {
+            hp.setBaseValue(Math.min(1024, hp.getBaseValue() * 1.5));
+            m.setHealth(m.getMaxHealth());
+        }
+        var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (atk != null) atk.setBaseValue(atk.getBaseValue() * 1.3);
+        var names = new StringBuilder();
+        for (var t : GameData.rollNightmareTraits(m.getRandom()::nextDouble, 2)) {
+            switch (t.id()) {
+                case "vanish" -> m.addTag(NT_VANISH);
+                case "siphon" -> m.addTag(NT_SIPHON);
+                case "clone" -> m.addTag(NT_CLONE);
+                case "siege" -> m.addTag(NT_SIEGE);
+                case "berserk" -> m.addTag(NT_BERSERK);
+                case "wither" -> m.addTag(NT_WITHER);
+                default -> { }
+            }
+            if (names.length() > 0) names.append("/");
+            names.append(t.name());
+        }
+        m.setCustomName(Component.literal(m.getName().getString() + "§5〔悪夢・" + names + "〕"));
     }
 
     /** 番人化 (原作 WARDENS の倍率・発光・名札) */

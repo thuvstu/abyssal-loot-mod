@@ -270,6 +270,21 @@ public final class ModCommands {
                                     BoonHandler.chooseBoon(p, StringArgumentType.getString(ctx, "id"));
                                     return 1;
                                 })))
+                .then(Commands.literal("sub")
+                        .executes(ctx -> {
+                            SkillHandler.openSubScreen(ctx.getSource().getPlayerOrException());
+                            return 1;
+                        })
+                        .then(Commands.argument("id", StringArgumentType.word())
+                                .suggests((ctx, b) -> {
+                                    for (var s : SubSkills.SUB_SKILLS) b.suggest(s.id());
+                                    return b.buildFuture();
+                                })
+                                .executes(ctx -> {
+                                    SkillHandler.setSubSkill(ctx.getSource().getPlayerOrException(),
+                                            StringArgumentType.getString(ctx, "id"));
+                                    return 1;
+                                })))
                 .then(Commands.literal("event_screen")
                         .executes(ctx -> {
                             // 層間イベント選択画面の再提示 (ESCで後回しにした分をハブから開ける)

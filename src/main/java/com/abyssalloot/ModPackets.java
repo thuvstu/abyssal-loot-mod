@@ -263,7 +263,8 @@ public final class ModPackets {
     public record HudSync(float soul, int floor, int level, int kills, int combo,
                           int attrPoints, int portalOpen, int pendingBoons,
                           float lightCd, float skillCd,
-                          int relicPending, int passivePending)
+                          int relicPending, int passivePending,
+                          String subSkill, float subCd)
             implements CustomPacketPayload {
         public static final Type<HudSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hud"));
@@ -281,12 +282,15 @@ public final class ModPackets {
                     buf.writeFloat(p.skillCd());
                     buf.writeBoolean(p.relicPending() != 0);
                     buf.writeBoolean(p.passivePending() != 0);
+                    buf.writeUtf(p.subSkill(), 32);
+                    buf.writeFloat(p.subCd());
                 },
                 buf -> new HudSync(buf.readFloat(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(),
                         buf.readFloat(), buf.readFloat(),
-                        buf.readBoolean() ? 1 : 0, buf.readBoolean() ? 1 : 0));
+                        buf.readBoolean() ? 1 : 0, buf.readBoolean() ? 1 : 0,
+                        buf.readUtf(32), buf.readFloat()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -299,8 +303,8 @@ public final class ModPackets {
                     payload.soul(), payload.floor(), payload.level(), payload.kills(), payload.combo(),
                     payload.attrPoints(), payload.portalOpen(), payload.pendingBoons(),
                     payload.lightCd(), payload.skillCd(),
-                    payload.relicPending(), payload.passivePending()));
-        }
+                    payload.relicPending(), payload.passivePending(),
+                    payload.subSkill(), payload.subCd()));        }
     }
 
     private static void handle(ActPacket payload, IPayloadContext ctx) {
@@ -313,6 +317,7 @@ public final class ModPackets {
                     case "hub" -> net.neoforged.neoforge.network.PacketDistributor
                             .sendToPlayer(sp, new HubSync());
                     case "next" -> RunManager.tryNextFloor(sp);
+                    case "sub" -> SkillHandler.trySubSkill(sp);
                     default -> AbyssalLootMod.LOGGER.warn("unknown act: " + payload.kind());
                 }
             }

@@ -33,17 +33,21 @@ public final class ClientHud {
     private static volatile float skillCd;
     private static volatile boolean relicPending;
     private static volatile boolean passivePending;
+    private static volatile String subSkill = "";
+    private static volatile float subCd;
 
     /** CTバーの満タン基準 (受信した最大値。CTが尽きて0.3秒経ったらリセット) */
     private static float lightCdMax;
     private static float skillCdMax;
+    private static float subCdMax;
     /** 前回受信したCT値 (新しいCTの開始=前回0→今回>0 の検出に使う) */
     private static float lastLightCd;
     private static float lastSkillCd;
+    private static float lastSubCd;
     private static long lastCdSeen;
 
     public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
-                              float lcd, float scd, int rp, int pp) {
+                              float lcd, float scd, int rp, int pp, String ss, float sc) {
         soul = s;
         floor = f;
         level = lv;
@@ -56,6 +60,8 @@ public final class ClientHud {
         skillCd = scd;
         relicPending = rp != 0;
         passivePending = pp != 0;
+        subSkill = ss == null ? "" : ss;
+        subCd = sc;
         if (lcd > 0) {
             // 前回受信0→今回>0 は新しいCTの開始。古い最大値が残らないよう今回値で上書きする
             lightCdMax = lastLightCd <= 0 ? lcd : Math.max(lightCdMax, lcd);
@@ -71,6 +77,13 @@ public final class ClientHud {
             lastCdSeen = System.currentTimeMillis();
         } else {
             lastSkillCd = 0;
+        }
+        if (sc > 0) {
+            subCdMax = lastSubCd <= 0 ? sc : Math.max(subCdMax, sc);
+            lastSubCd = sc;
+            lastCdSeen = System.currentTimeMillis();
+        } else {
+            lastSubCd = 0;
         }
     }
 
@@ -143,6 +156,7 @@ public final class ClientHud {
         if (t - lastCdSeen > 300) {  // CTが尽きてしばらく経ったら基準を戻す
             if (lightCd <= 0) lightCdMax = 0;
             if (skillCd <= 0) skillCdMax = 0;
+            if (subCd <= 0) subCdMax = 0;
         }
         if (lightCd > 0) {
             float max = Math.max(1f, lightCdMax);
@@ -150,6 +164,15 @@ public final class ClientHud {
             g.drawString(font, String.format("小技 %.1fs", lightCd), x0 + 96, y - 1, 0xFF7CC8FF);
             y += 11;
         }
+        // sub skill (C key), CD shown while active
+        var sub = SubSkills.byId(subSkill);
+        g.drawString(font, "Sub: " + sub.name() + " (C)", x0, y, 0xFF9FD8FF);
+        if (subCd > 0) {
+            float max = Math.max(1f, subCdMax);
+            bar(g, x0, y, 90, 5, subCd / max, 0xFF9FD8FF, false);
+            g.drawString(font, String.format("%.1fs", subCd), x0 + 96, y - 1, 0xFF9FD8FF);
+        }
+        y += 12;
         if (skillCd > 0) {
             float max = Math.max(1f, skillCdMax);
             bar(g, x0, y, 90, 5, skillCd / max, 0xFFFFD23C, false);

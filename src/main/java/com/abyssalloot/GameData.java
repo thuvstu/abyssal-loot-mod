@@ -1030,6 +1030,35 @@ public final class GameData {
         return ELITE_TRAITS.get(idx);
     }
 
+    /* ---------------- 悪夢 (NIGHTMARE) の特殊行動6種 (精鋭の先の段階) ---------------- */
+
+    public record NightmareTrait(String id, String name, String desc) {}
+
+    public static final java.util.List<NightmareTrait> NIGHTMARE_TRAITS = java.util.List.of(
+            new NightmareTrait("vanish", "幻影", "被弾25%で瞬間移動し短時間攻撃上昇"),
+            new NightmareTrait("siphon", "魂蝕", "攻撃命中でプレイヤーの魂ゲージを吸う"),
+            new NightmareTrait("clone", "影分身", "撃破時50%で高攻撃の残像を1体残す"),
+            new NightmareTrait("siege", "攻城", "遠距離から予兆つき範囲爆発を撃つ"),
+            new NightmareTrait("berserk", "狂乱", "HP半分以下で攻撃と速度が大幅上昇 (1回)"),
+            new NightmareTrait("wither", "衰弱", "攻撃命中で弱体効果を付与"));
+
+    /** 重複なしで count 個の悪夢特性を引く (Fisher–Yates で混ぜて先頭から) */
+    public static java.util.List<NightmareTrait> rollNightmareTraits(java.util.function.DoubleSupplier r, int count) {
+        var pool = new java.util.ArrayList<NightmareTrait>(NIGHTMARE_TRAITS);
+        for (int i = pool.size() - 1; i > 0; i--) {
+            int j = (int) (r.getAsDouble() * (i + 1));
+            java.util.Collections.swap(pool, i, j);
+        }
+        return pool.subList(0, Math.min(count, pool.size()));
+    }
+
+    public static NightmareTrait nightmareTraitById(String id) {
+        for (NightmareTrait t : NIGHTMARE_TRAITS) {
+            if (t.id().equals(id)) return t;
+        }
+        return null;
+    }
+
     /* ---------------- 原作 CURSED_MODS (呪い装備の弱点6種) ---------------- */
 
     public record CursedMod(String key, double min, double max) {}

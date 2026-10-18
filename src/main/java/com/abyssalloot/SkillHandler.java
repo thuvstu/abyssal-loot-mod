@@ -117,6 +117,51 @@ public final class SkillHandler {
         return false;
     }
 
+    /** 特殊スキルの発動 (Cキー・コマンド共通)。CT管理は SUB_CD */
+    public static boolean trySubSkill(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel)) return false;
+        float cd = player.getData(ModAttachments.SUB_CD.get());
+        if (cd > 0) {
+            player.displayClientMessage(
+                    Component.literal(String.format("§7特殊スキルCT %.1fs", cd)), true);
+            return false;
+        }
+        String id = SubSkills.idOf(player);
+        if (!SubSkills.execute(player, id)) return false;
+        player.setData(ModAttachments.SUB_CD.get(), SubSkills.byId(id).cd());
+        return true;
+    }
+
+    /** 特殊スキルの装備変更 (選択画面・コマンド共通)。自由変更可 */
+    public static boolean setSubSkill(ServerPlayer player, String id) {
+        var s = SubSkills.byId(id);
+        if (!s.id().equals(id)) {
+            player.sendSystemMessage(Component.literal("§c不明な特殊スキル: " + id));
+            return false;
+        }
+        player.setData(ModAttachments.SUB_SKILL.get(), id);
+        player.sendSystemMessage(Component.literal(
+                "§d特殊スキル装備: §b" + s.name() + " §7(" + s.desc() + ")"));
+        CombatHandler.sendHud(player);
+        return true;
+    }
+
+    /** 特殊スキルの選択画面を開く (ハブ・/abyss sub) */
+    public static void openSubScreen(ServerPlayer player) {
+        var ids = new java.util.ArrayList<String>();
+        var names = new java.util.ArrayList<String>();
+        var descs = new java.util.ArrayList<String>();
+        String equipped = SubSkills.idOf(player);
+        for (var s : SubSkills.SUB_SKILLS) {
+            ids.add(s.id());
+            names.add(s.name() + (s.id().equals(equipped) ? " ◀装備中" : ""));
+            descs.add(s.desc() + " §8| CT" + (int) s.cd() + "秒");
+        }
+        FloorEvents.openEventScreen(player, "sub", "◆ 特殊スキルを選択 ◆",
+                ids, names, descs,
+                "装備すると §bC §7キーで発動できる (ESC で閉じる)", false);
+    }
+
     /** 必殺技の発動 (スニーク+右クリック / Vキー / コマンド共通。CT25秒) */
     public static void trySkill(ServerPlayer player) {
         float cd = player.getData(ModAttachments.SKILL_CD.get());

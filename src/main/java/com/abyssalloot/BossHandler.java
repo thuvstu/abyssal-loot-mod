@@ -16,6 +16,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * ボス・決戦まわり (RunManager から分離): 層主の生成・真ボス/終焉の座/超越者の
@@ -122,6 +123,14 @@ public final class BossHandler {
         refreshBarLabel(boss, "§f原初虚無 《ニヒル・ゼロ》 — " + ph.label());
         WeaponArts.enemyPulse(level, at, 4 + ph.bullets() * 0.4, 6 + ph.bullets() * 0.7,
                 ratio > 0.66 ? ParticleTypes.PORTAL : ratio > 0.33 ? ParticleTypes.FLAME : ParticleTypes.SOUL);
+        // フェーズごとの追加弾幕 (螺旋・リング・十字の組み合わせ)
+        if (ratio > 0.66) {
+            enemyRing(level, at, 4.0, 7.0, 6.0);
+        } else if (ratio > 0.33) {
+            enemySpiral(level, at, 2, 8, 6.0);
+        } else {
+            enemyCross(level, at, 8.0);
+        }
         if (ph.summon() > 0) {
             for (int i = 0; i < Math.min(2, ph.summon()); i++) {
                 summonMinion(level, boss, i == 0 ? ModEntities.SKELETON.get() : ModEntities.GOBLIN.get());
@@ -141,11 +150,58 @@ public final class BossHandler {
         refreshBarLabel(boss, "§c終焉神 《タルタロス・オメガ》 — " + ph.label());
         WeaponArts.enemyPulse(level, at, 5 + ph.bullets() * 0.35, 10 + ph.bullets() * 0.8,
                 ParticleTypes.SOUL);
+        // フェーズごとの追加弾幕 (深層ほど弾幕が混ざり合う)
+        if (ratio > 0.75) {
+            enemySpiral(level, at, 2, 8, 10.0);
+        } else if (ratio > 0.50) {
+            enemyCross(level, at, 12.0);
+        } else if (ratio > 0.25) {
+            enemyRing(level, at, 4.0, 7.0, 10.0);
+            enemyCross(level, at, 12.0);
+        } else {
+            enemySpiral(level, at, 3, 10, 12.0);
+        }
         if (ph.shieldGuards() || ph.cataclysm()) {
             summonMinion(level, boss, ModEntities.IMP.get());
         }
         if (ph.cataclysm()) {
             summonMinion(level, boss, ModEntities.SKELETON.get());
+        }
+    }
+
+    /* ---------------- 決戦の追加弾幕 (enemyPulse の組み合わせ) ---------------- */
+
+    /** 螺旋状に爆発を放つ (waves 回 × bullets 方向、各 pulse は円周上の点に小爆発) */
+    private static void enemySpiral(ServerLevel level, Vec3 at, int waves, int bullets, double dmg) {
+        for (int wave = 0; wave < waves; wave++) {
+            final int w = wave;
+            DelayRunner.after(wave * 4, () -> {
+                for (int i = 0; i < bullets; i++) {
+                    double ang = w * 0.7 + i * (Math.PI * 2 / bullets);
+                    Vec3 pos = at.add(Math.cos(ang) * 2.5, 0, Math.sin(ang) * 2.5);
+                    WeaponArts.enemyPulse(level, pos, 1.2, dmg, ParticleTypes.SOUL);
+                }
+            });
+        }
+    }
+
+    /** 同心円リング (2重): 各リング 8 点に爆発 */
+    private static void enemyRing(ServerLevel level, Vec3 at, double r1, double r2, double dmg) {
+        for (int i = 0; i < 8; i++) {
+            double ang = Math.PI * 2 * i / 8;
+            WeaponArts.enemyPulse(level, at.add(Math.cos(ang) * r1, 0, Math.sin(ang) * r1),
+                    1.5, dmg, ParticleTypes.FLAME);
+            WeaponArts.enemyPulse(level, at.add(Math.cos(ang) * r2, 0, Math.sin(ang) * r2),
+                    1.5, dmg, ParticleTypes.FLAME);
+        }
+    }
+
+    /** 十字4点に遅延爆発 */
+    private static void enemyCross(ServerLevel level, Vec3 at, double dmg) {
+        for (int i = 0; i < 4; i++) {
+            double ang = Math.PI / 2 * i;
+            Vec3 pos = at.add(Math.cos(ang) * 3, 0, Math.sin(ang) * 3);
+            DelayRunner.after(12, () -> WeaponArts.enemyPulse(level, pos, 2.2, dmg, ParticleTypes.EXPLOSION));
         }
     }
 

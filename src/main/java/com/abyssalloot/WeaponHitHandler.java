@@ -72,6 +72,15 @@ public final class WeaponHitHandler {
                 player.displayClientMessage(Component.literal("§a見切り！"), true);
                 return;
             }
+            // 特殊スキル「棘の盾」: 被ダメ-30% + 攻撃者へ反射
+            if (player.getData(ModAttachments.SUB_SHIELD.get()) > 0
+                    && event.getSource().getEntity() instanceof LivingEntity refAtk && refAtk.isAlive()) {
+                event.setNewDamage(event.getNewDamage() * 0.7f);
+                refAtk.hurtServer(level, level.damageSources().playerAttack(player),
+                        event.getNewDamage() * 0.5f);
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.WAX_OFF,
+                        player.getX(), player.getY() + 1, player.getZ(), 10, 0.6, 0.8, 0.6, 0.1);
+            }
             // 鉄壁の刻印: 被ダメ軽減 (上限50%)
             int armor = RunManager.boonLv(player, "armor");
             if (armor > 0) {
@@ -439,6 +448,15 @@ public final class WeaponHitHandler {
                         level.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL,
                                 mp.x, mp.y + 1, mp.z, 20, 1, 1, 1, 0.3);
                     }
+                    // 悪夢「幻影」: 被弾25%で攻撃者の背後へ瞬間移動し短時間攻撃上昇
+                    if (target.getTags().contains(Enemies.NT_VANISH) && rand.nextFloat() < 0.25f) {
+                        Vec3 look = player.getLookAngle();
+                        target.teleportTo(player.getX() - look.x * 4, target.getY(),
+                                player.getZ() - look.z * 4);
+                        target.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 60, 1));
+                        level.sendParticles(net.minecraft.core.particles.ParticleTypes.PORTAL,
+                                target.getX(), target.getY() + 1, target.getZ(), 20, 0.8, 1, 0.8, 0.2);
+                    }
                 }
             }
         }
@@ -451,6 +469,18 @@ public final class WeaponHitHandler {
                 m.heal(event.getNewDamage() * 0.1f);
             } else if ("SNARE".equals(mab2) && p2.getRandom().nextFloat() < 0.25f) {
                 p2.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 0));
+            }
+            // 悪夢「魂蝕」: 攻撃命中でプレイヤーの魂ゲージを吸い取る (addGauge は加算専用のため直接減算)
+            if (m.getTags().contains(Enemies.NT_SIPHON)) {
+                float soul = p2.getData(ModAttachments.SOUL.get());
+                p2.setData(ModAttachments.SOUL.get(), Math.max(0, soul - 8f));
+                lv2.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL,
+                        m.getX(), m.getY() + m.getBbHeight() * 0.6, m.getZ(), 10, 0.5, 0.6, 0.5, 0.1);
+            }
+            // 悪夢「衰弱」: 攻撃命中40%で弱体+鈍足を付与
+            if (m.getTags().contains(Enemies.NT_WITHER) && p2.getRandom().nextFloat() < 0.40f) {
+                p2.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
+                p2.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0));
             }
         }
     }

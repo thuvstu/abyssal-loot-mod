@@ -76,7 +76,7 @@ public final class FloorEvents {
     }
 
     /** 汎用選択画面 (FloorEventScreen) をクライアントへ開かせる */
-    private static void openEventScreen(ServerPlayer player, String mode, String title,
+    static void openEventScreen(ServerPlayer player, String mode, String title,
                                         List<String> ids, List<String> names, List<String> descs,
                                         String footer, boolean portalOpen) {
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,

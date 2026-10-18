@@ -25,6 +25,7 @@ public final class ClientKeys {
     private static KeyMapping dashKey;
     private static KeyMapping hubKey;
     private static KeyMapping nextKey;
+    private static KeyMapping subKey;
 
     public static void init(IEventBus modBus) {
         modBus.addListener((RegisterKeyMappingsEvent event) -> {
@@ -47,6 +48,7 @@ public final class ClientKeys {
             event.register(dashKey);
             event.register(hubKey);
             event.register(nextKey);
+            event.register(subKey);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             var conn = Minecraft.getInstance().getConnection();

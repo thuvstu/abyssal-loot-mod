@@ -169,8 +169,9 @@ public final class CombatHandler {
                         player.getData(ModAttachments.LIGHT_CD.get()),
                         player.getData(ModAttachments.SKILL_CD.get()),
                         player.getData(ModAttachments.RELIC_OFFER.get()).isBlank() ? 0 : 1,
-                        player.getData(ModAttachments.PASSIVE_OFFER.get()).isBlank() ? 0 : 1));
-    }
+                        player.getData(ModAttachments.PASSIVE_OFFER.get()).isBlank() ? 0 : 1,
+                        player.getData(ModAttachments.SUB_SKILL.get()),
+                        player.getData(ModAttachments.SUB_CD.get())));    }
 
     /**
      * HUDの間引き送信 (撃破・魂ゲージ変動など頻繁な変化用).
@@ -209,7 +210,12 @@ public final class CombatHandler {
             if (skillCd > 0) player.setData(ModAttachments.SKILL_CD.get(), Math.max(0, skillCd - 0.05f));
             float lightCd = player.getData(ModAttachments.LIGHT_CD.get());
             if (lightCd > 0) player.setData(ModAttachments.LIGHT_CD.get(), Math.max(0, lightCd - 0.05f));
+            float subCd = player.getData(ModAttachments.SUB_CD.get());
+            if (subCd > 0) player.setData(ModAttachments.SUB_CD.get(), Math.max(0, subCd - 0.05f));
+            float subShield = player.getData(ModAttachments.SUB_SHIELD.get());
+            if (subShield > 0) player.setData(ModAttachments.SUB_SHIELD.get(), Math.max(0, subShield - 0.05f));
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
+            if (tickCounter % 10 == 0) SubSkills.tickWorld(player);
             if (tickCounter % 20 == 0) {
                 tickAbilityBoons(player);
                 RunManager.tickRunEffects(player);
@@ -218,7 +224,8 @@ public final class CombatHandler {
             KillHandler.tickComboDecay(player, tickCounter);
             // CT中は0.1秒ごとにHUDを再送して残り秒を滑らかに表示する
             boolean anyCd = player.getData(ModAttachments.LIGHT_CD.get()) > 0
-                    || player.getData(ModAttachments.SKILL_CD.get()) > 0;
+                    || player.getData(ModAttachments.SKILL_CD.get()) > 0
+                    || player.getData(ModAttachments.SUB_CD.get()) > 0;
             if (anyCd ? tickCounter % 2 == 0 : tickCounter % 20 == 0) {
                 sendHud(player);
             }

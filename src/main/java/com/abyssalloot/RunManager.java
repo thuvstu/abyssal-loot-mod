@@ -62,6 +62,11 @@ public final class RunManager {
     public static final Map<Monster, ServerBossEvent> BOSS_BARS =
             Collections.synchronizedMap(new IdentityHashMap<>());
 
+    /** 悪夢化: 無限深淵のこの層以降のエリートが悪夢になる (精鋭の先の段階) */
+    public static final int NIGHTMARE_MIN_FLOOR = 30;
+    /** 悪夢化の確率 (エリートのうち 50%) */
+    public static final double NIGHTMARE_CHANCE = 0.50;
+
     /** アリーナ半径・塀高は {@link ArenaManager} に移動 */
 
     /** 原作 DIFFICULTIES のHP倍率 (normal/hard/hell/inferno/omega) */
@@ -440,6 +445,8 @@ public final class RunManager {
         player.setData(ModAttachments.SCYTHE.get(), 0);
         player.setData(ModAttachments.GCNT.get(), 0);
         player.setData(ModAttachments.FOLLOW_HIT.get(), 0);
+        player.setData(ModAttachments.SUB_CD.get(), 0f);
+        player.setData(ModAttachments.SUB_SHIELD.get(), 0f);
         player.setData(ModAttachments.PARRY_TICK.get(), -1000L);
         player.setData(ModAttachments.LIGHT_CD.get(), 0f);
         player.setData(ModAttachments.SKILL_CD.get(), 0f);
@@ -813,6 +820,12 @@ public final class RunManager {
             Enemies.apply(mob, spec, scale, extra);
             if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < eliteChance) {
                 Enemies.makeElite(mob);
+                // 悪夢化: 無限深淵の深層 (NIGHTMARE_MIN_FLOOR 以降) のエリートは確率で悪夢になる
+                if (floor >= NIGHTMARE_MIN_FLOOR
+                        && "endless".equals(player.getData(ModAttachments.MODE.get()))
+                        && rand.nextDouble() < NIGHTMARE_CHANCE) {
+                    Enemies.makeNightmare(mob);
+                }
             }
             Enemies.tagByRole(mob, spec);
             mob.setTarget(player);

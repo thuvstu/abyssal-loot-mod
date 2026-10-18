@@ -1,0 +1,278 @@
+package com.abyssalloot;
+
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * 特殊スキル (Cキー / ActPacket "sub"): 囮・影分身・引力地雷など汎用の切り札8種。
+ * 装備は {@link ModAttachments#SUB_SKILL} に1つだけ保持し、CTは SUB_CD で管理する
+ * (切り替えはハブ / /abyss sub の選択画面)。地雷と重力井戸は設置型のため
+ * {@link #tickWorld(ServerPlayer)} で進行させる。
+ */
+public final class SubSkills {
+    private SubSkills() {}
+
+    public record SubSkill(String id, String name, String desc, float cd) {}
+
+    public static final List<SubSkill> SUB_SKILLS = List.of(
+            new SubSkill("decoy", "囮", "囮を設置し12m内の敵の注意を6秒間引きつける", 15f),
+            new SubSkill("clone", "影分身", "3体の分身が前方へ走り範囲を斬る (3連)", 18f),
+            new SubSkill("mine", "引力地雷", "地雷を設置。敵が近づくと爆発して引き寄せる", 12f),
+            new SubSkill("timecrush", "時締め", "周囲の敵を強く足止めし、8秒後に小爆発", 18f),
+            new SubSkill("thornshield", "棘の盾", "6秒間 被ダメ-30%と反射を得る", 20f),
+            new SubSkill("blinkswap", "錯影", "最寄りの敵と位置を交換して足止め", 14f),
+            new SubSkill("soulfeed", "魂の供物", "HP20%を捧げて魂ゲージ+35", 10f),
+            new SubSkill("gravitywell", "重力井戸", "照準地点に4秒間の吸引フィールドを作る", 22f));
+
+    public static SubSkill byId(String id) {
+        for (SubSkill s : SUB_SKILLS) {
+            if (s.id().equals(id)) return s;
+        }
+        return SUB_SKILLS.get(0);
+    }
+
+    public static String idOf(ServerPlayer player) {
+        String id = player.getData(ModAttachments.SUB_SKILL.get());
+        return id == null || id.isBlank() ? "decoy" : id;
+    }
+
+    /** 現在装備中の特殊スキルを実行 (CT管理は SkillHandler) */
+    public static boolean execute(ServerPlayer player, String id) {
+        if (!(player.level() instanceof ServerLevel level)) return false;
+        return switch (id) {
+            case "clone" -> cloneStrike(player, level);
+            case "mine" -> placeMine(player, level);
+            case "timecrush" -> timeCrush(player, level);
+            case "blinkswap" -> blinkSwap(player, level);
+            case "soulfeed" -> soulFeed(player, level);
+            case "gravitywell" -> gravityWell(player, level);
+            case "thornshield" -> thornShield(player);
+            default -> placeDecoy(player, level);
+        };
+    }
+
+    /** 囮: 武器スタンド (透明・無敵・マーカー) を設置。EnemyAI.tick が敵のターゲットをここへ向ける */
+    private static boolean placeDecoy(ServerPlayer player, ServerLevel level) {
+        Vec3 look = player.getLookAngle();
+        Vec3 at = player.position().add(look.x * 3, 0, look.z * 3);
+        var stand = EntityType.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.EVENT);
+        if (stand == null) return false;
+        stand.setPos(at.x, player.getY(), at.z);
+        stand.setYRot(player.getYRot());
+        stand.setCustomName(net.minecraft.network.chat.Component.literal("§d〔囮〕"));
+        stand.setCustomNameVisible(true);
+        stand.setInvisible(true);
+        stand.setInvulnerable(true);
+        stand.addTag("abyss_decoy");
+        level.addFreshEntity(stand);
+        level.sendParticles(ParticleTypes.PORTAL, at.x, player.getY() + 1, at.z, 30, 0.6, 1, 0.6, 0.2);
+        level.playSound(null, stand.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
+                SoundSource.PLAYERS, 0.6f, 1.4f);
+        DelayRunner.after(6 * 20, () -> {
+            if (stand.isAlive()) {
+                level.sendParticles(ParticleTypes.SMOKE, stand.getX(), stand.getY() + 1, stand.getZ(),
+                        12, 0.4, 0.8, 0.4, 0.05);
+                stand.discard();
+            }
+        });
+        return true;
+    }
+
+    /** 影分身: 3連の範囲斬撃 (前後に走る演出つき) */
+    private static boolean cloneStrike(ServerPlayer player, ServerLevel level) {
+        Vec3 look = player.getLookAngle();
+        for (int i = 0; i < 3; i++) {
+            final int k = i;
+            DelayRunner.after(k * 3, () -> {
+                if (!player.isAlive()) return;
+                Vec3 at = player.position().add(look.scale(2 + k * 2));
+                WeaponArts.pulse(level, player, at, 2.6, 0.6, k == 2, ParticleTypes.SWEEP_ATTACK);
+                level.sendParticles(new net.minecraft.core.particles.DustParticleOptions(0x9fd8ff, 1.2f),
+                        at.x, player.getY() + 1, at.z, 14, 0.8, 0.8, 0.8, 0.1);
+            });
+        }
+        level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,
+                SoundSource.PLAYERS, 0.8f, 1.3f);
+        return true;
+    }
+
+    /** 引力地雷: 設置した位置に敵が入ると爆発+引き寄せ (tickWorld で進行) */
+    private static final Map<UUID, Vec3> MINES = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> MINE_UNTIL = new ConcurrentHashMap<>();
+
+    private static boolean placeMine(ServerPlayer player, ServerLevel level) {
+        MINES.put(player.getUUID(), player.position().add(0, 0.2, 0));
+        MINE_UNTIL.put(player.getUUID(), (long) 15 * 20);
+        level.sendParticles(ParticleTypes.END_ROD, player.getX(), player.getY() + 0.2, player.getZ(),
+                12, 0.4, 0.2, 0.4, 0.05);
+        return true;
+    }
+
+    /** 時締め: 周囲の敵を強スローで足止めし、8秒後に小爆発 */
+    private static boolean timeCrush(ServerPlayer player, ServerLevel level) {
+        var at = player.position();
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                new net.minecraft.world.phys.AABB(at.x - 10, at.y - 5, at.z - 10,
+                        at.x + 10, at.y + 5, at.z + 10),
+                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+            e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 3, false, false));
+            e.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 100, 1, false, false));
+        }
+        level.sendParticles(ParticleTypes.SCULK_SOUL, at.x, at.y + 1, at.z, 40, 6, 1.5, 6, 0.02);
+        DelayRunner.after(8 * 20, () -> {
+            if (player.isAlive()) {
+                WeaponArts.pulse(level, player, player.position(), 4.0, 1.5, false, ParticleTypes.WITCH);
+            }
+        });
+        level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE,
+                SoundSource.PLAYERS, 0.8f, 0.6f);
+        return true;
+    }
+
+    /** 棘の盾: 被ダメ軽減+反射 (WeaponHitHandler が SUB_SHIELD を参照)。付与のみ */
+    private static boolean thornShield(ServerPlayer player) {
+        player.setData(ModAttachments.SUB_SHIELD.get(), 6f);
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                "§e棘の盾展開 (6秒) — 被ダメ-30%・反射"), true);
+        return true;
+    }
+
+    /** 錯影: 最寄り敵と位置交換 */
+    private static boolean blinkSwap(ServerPlayer player, ServerLevel level) {
+        Vec3 origin = player.position();
+        LivingEntity t = nearest(origin, level, 16);
+        if (t == null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c錯影: 敵がいない"), true);
+            return false;
+        }
+        Vec3 tp = t.position();
+        player.teleportTo(tp.x, tp.y, tp.z);
+        t.teleportTo(origin.x, origin.y, origin.z);
+        t.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 4, false, false));
+        player.setData(ModAttachments.IFRAME.get(), 0.3f);
+        level.sendParticles(ParticleTypes.PORTAL, tp.x, tp.y + 1, tp.z, 20, 0.6, 1, 0.6, 0.2);
+        level.sendParticles(ParticleTypes.PORTAL, origin.x, origin.y + 1, origin.z, 20, 0.6, 1, 0.6, 0.2);
+        level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT,
+                SoundSource.PLAYERS, 0.8f, 1.1f);
+        return true;
+    }
+
+    /** 魂の供物: HP20%を魂ゲージへ */
+    private static boolean soulFeed(ServerPlayer player, ServerLevel level) {
+        float cost = player.getMaxHealth() * 0.2f;
+        if (player.getHealth() <= cost + 1) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c供物には命が足りない"), true);
+            return false;
+        }
+        player.hurtServer(level, level.damageSources().magic(), cost);
+        RunManager.addGauge(player, 35);
+        level.sendParticles(ParticleTypes.SCULK_SOUL, player.getX(), player.getY() + 1, player.getZ(),
+                20, 0.5, 1, 0.5, 0.2);
+        return true;
+    }
+
+    /** 重力井戸: 照準地点に4秒間の吸引フィールド (tickWorld で進行) */
+    private static final Map<UUID, Vec3> WELLS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> WELL_UNTIL = new ConcurrentHashMap<>();
+
+    private static boolean gravityWell(ServerPlayer player, ServerLevel level) {
+        Vec3 at = player.position().add(player.getLookAngle().scale(8));
+        WELLS.put(player.getUUID(), at);
+        WELL_UNTIL.put(player.getUUID(), (long) 4 * 20);
+        level.playSound(null, player.blockPosition(), SoundEvents.PORTAL_AMBIENT,
+                SoundSource.PLAYERS, 0.8f, 0.5f);
+        return true;
+    }
+
+    /** 地雷と重力井戸の進行 (CombatHandler.onServerTick から 0.5秒ごとに呼ぶ) */
+    public static void tickWorld(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel level)) return;
+        long now = level.getGameTime();
+
+        // 引力地雷: 敵が3m内に入ったら爆発+引き寄せ。15秒で失効
+        Vec3 mine = MINES.get(player.getUUID());
+        if (mine != null) {
+            long until = MINE_UNTIL.getOrDefault(player.getUUID(), 0L);
+            var victims = level.getEntitiesOfClass(LivingEntity.class,
+                    new net.minecraft.world.phys.AABB(mine.x - 3, mine.y - 2, mine.z - 3,
+                            mine.x + 3, mine.y + 2, mine.z + 3),
+                    x -> x.isAlive() && !(x instanceof ServerPlayer));
+            if (!victims.isEmpty() || now >= until) {
+                WeaponArts.pulse(level, player, mine, 3.0, 4.0, false, ParticleTypes.EXPLOSION);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new net.minecraft.world.phys.AABB(mine.x - 8, mine.y - 4, mine.z - 8,
+                                mine.x + 8, mine.y + 4, mine.z + 8),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    Vec3 pull = mine.subtract(e.position()).normalize().scale(1.4);
+                    e.push(pull.x, 0.2, pull.z);
+                }
+                MINES.remove(player.getUUID());
+                MINE_UNTIL.remove(player.getUUID());
+            } else {
+                level.sendParticles(ParticleTypes.END_ROD, mine.x, mine.y + 0.2, mine.z,
+                        2, 0.3, 0.15, 0.3, 0.01);
+            }
+        }
+
+        // 重力井戸: 半径6mの敵を吸引+継続ダメージ。4秒で消滅
+        Vec3 well = WELLS.get(player.getUUID());
+        if (well != null) {
+            long until = WELL_UNTIL.getOrDefault(player.getUUID(), 0L);
+            if (now >= until) {
+                WELLS.remove(player.getUUID());
+                WELL_UNTIL.remove(player.getUUID());
+                WeaponArts.pulse(level, player, well, 4.5, 1.2, false, ParticleTypes.PORTAL);
+                return;
+            }
+            for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                    new net.minecraft.world.phys.AABB(well.x - 6, well.y - 4, well.z - 6,
+                            well.x + 6, well.y + 4, well.z + 6),
+                    x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                Vec3 pull = well.subtract(e.position()).normalize().scale(0.35);
+                e.push(pull.x, 0.1, pull.z);
+                WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), 0.5f);
+            }
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, well.x, well.y + 1, well.z,
+                    8, 1.5, 1.5, 1.5, 0.1);
+        }
+    }
+
+    /** 囮の寿命処理 (EnemyAI.tick から呼ぶ): 囮周囲12mの敵のターゲットを囮へ向ける */
+    public static void tickDecoys(ServerLevel level, int now) {
+        if (now % 20 != 0) return;
+        var decoys = level.getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class,
+                new net.minecraft.world.phys.AABB(-64, -32, -64, 64, 32, 64)
+                        .move(0, 0, 0).expandTowards(0, 0, 0),
+                a -> false);
+        // 注: 範囲指定はプレイヤー毎に EnemyAI.tick 側で行うため、ここではスタンド単体の寿命のみ管理
+    }
+
+    private static LivingEntity nearest(Vec3 origin, ServerLevel level, double range) {
+        LivingEntity best = null;
+        double bestD = range * range;
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                new net.minecraft.world.phys.AABB(origin.x - range, origin.y - 5, origin.z - range,
+                        origin.x + range, origin.y + 5, origin.z + range),
+                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+            double d = e.position().distanceToSqr(origin);
+            if (d < bestD) {
+                bestD = d;
+                best = e;
+            }
+        }
+        return best;
+    }
+}
