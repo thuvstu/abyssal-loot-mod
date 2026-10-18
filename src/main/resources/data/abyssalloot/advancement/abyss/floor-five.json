@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "第5層の主を撃破",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_pouch"
+    },
+    "title": "門番を越えて"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

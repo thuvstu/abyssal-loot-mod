@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "日替わり深淵で第10層へ到達",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_bale"
+    },
+    "title": "日替わり踏破者"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

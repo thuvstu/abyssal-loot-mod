@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "1回の冒険で20回見切る",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_bale"
+    },
+    "title": "見切りの達人"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

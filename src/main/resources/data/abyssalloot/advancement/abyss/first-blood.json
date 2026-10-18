@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "初めて敵を倒す",
+    "frame": "task",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard"
+    },
+    "title": "深淵への第一歩"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

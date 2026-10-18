@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "原初虚無《ニヒル・ゼロ》を討伐する",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_core"
+    },
+    "title": "虚無を_zeroに還した者"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "層間イベントを10回完了",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_pouch"
+    },
+    "title": "祭壇の常連"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

@@ -53,7 +53,8 @@ public final class ModItems {
         return armor(id, rarity, slot, "abyssal");
     }
 
-    /** 着用モデルつき防具 (assets/abyssalloot/equipment/<asset>.json を参照) */
+    /** 着用モデルつき防具 (assets/abyssalloot/equipment/<asset>.json を参照)。
+     * ENCHANTABLE 15 ≒ 鉄相当: バニラのダメージ軽減・耐久力などのエンチャントが深淵防具にも効く */
     private static DeferredItem<Item> armor(String id, Rarity rarity, EquipmentSlot slot, String asset) {
         var key = net.minecraft.resources.ResourceKey.create(
                 net.minecraft.world.item.equipment.EquipmentAssets.ROOT_ID,
@@ -62,7 +63,9 @@ public final class ModItems {
                 props -> new AbyssArmorItem(props.stacksTo(1).durability(1651).rarity(rarity).fireResistant()
                         .component(net.minecraft.core.component.DataComponents.EQUIPPABLE,
                                 net.minecraft.world.item.equipment.Equippable.builder(slot)
-                                        .setAsset(key).build()),
+                                        .setAsset(key).build())
+                        .component(net.minecraft.core.component.DataComponents.ENCHANTABLE,
+                                new net.minecraft.world.item.enchantment.Enchantable(15)),
                         slot));
     }
 

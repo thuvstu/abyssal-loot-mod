@@ -931,13 +931,25 @@ public final class GameData {
             new BiomeEcho("minecraft:dripstone_caves", "鍾乳の共鳴", "攻撃力 +12%",
                     java.util.Map.of("damagePct", 12.0)),
             new BiomeEcho("minecraft:frozen_peaks", "氷峰の共鳴", "凍結 +15%",
-                    java.util.Map.of("freezePct", 15.0)));
+                    java.util.Map.of("freezePct", 15.0)),
+            new BiomeEcho("minecraft:nether_wastes", "焔海の共鳴", "攻撃力 +6%",
+                    java.util.Map.of("damagePct", 6.0)),
+            new BiomeEcho("minecraft:the_end", "虚界の共鳴", "会心威力 +12% / 会心率 +4%",
+                    java.util.Map.of("critDmgPct", 12.0, "critPct", 4.0)),
+            new BiomeEcho("minecraft:cherry_grove", "花霞の共鳴", "HP回復 +0.5/秒 / 移動速度 +5%",
+                    java.util.Map.of("regenFlat", 0.5, "moveSpeedPct", 5.0)),
+            new BiomeEcho("minecraft:pale_garden", "白庭の共鳴", "被ダメ軽減 +10% / 攻撃力 -3% (静かすぎて眠い)",
+                    java.util.Map.of("armorPct", 10.0, "damagePct", -3.0)),
+            new BiomeEcho("minecraft:badlands", "赤土の共鳴", "攻撃射程 +0.6m",
+                    java.util.Map.of("reach", 1.0)),
+            new BiomeEcho("minecraft:warm_ocean", "潮海の共鳴", "攻撃範囲 +10% / HP回復 +0.5/秒",
+                    java.util.Map.of("areaPct", 10.0, "regenFlat", 0.5)));
+
+    public static final java.util.Map<String, BiomeEcho> BIOME_ECHO_INDEX =
+            BIOME_ECHOS.stream().collect(java.util.stream.Collectors.toMap(BiomeEcho::biome, e -> e));
 
     public static BiomeEcho biomeEchoById(String biomeId) {
-        for (BiomeEcho e : BIOME_ECHOS) {
-            if (e.biome().equals(biomeId)) return e;
-        }
-        return null;
+        return BIOME_ECHO_INDEX.get(biomeId);
     }
 
     /* ---------------- 原作 RARITY_META (希少度の重み) ---------------- */

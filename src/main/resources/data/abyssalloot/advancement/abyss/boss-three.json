@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "1回の冒険で3体の層主を撃破",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_bale"
+    },
+    "title": "層主狩り"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

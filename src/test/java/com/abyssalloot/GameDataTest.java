@@ -433,7 +433,7 @@ public class GameDataTest {
 
     @Test
     void biomeEchoTableIsSound() {
-        assertEquals(8, GameData.BIOME_ECHOS.size());
+        assertEquals(14, GameData.BIOME_ECHOS.size());
         var ids = new java.util.HashSet<String>();
         for (var e : GameData.BIOME_ECHOS) {
             assertTrue(ids.add(e.biome()), "重複したバイオーム: " + e.biome());

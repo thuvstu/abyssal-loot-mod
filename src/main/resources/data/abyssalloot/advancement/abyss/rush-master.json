@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "主の巡礼で8体の層主を撃破",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_core"
+    },
+    "title": "巡礼の果て"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

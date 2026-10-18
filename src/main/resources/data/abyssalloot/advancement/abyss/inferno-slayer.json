@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "難易度【阿鼻叫喚】で第15層へ到達する",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_core"
+    },
+    "title": "阿鼻叫喚を制す"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

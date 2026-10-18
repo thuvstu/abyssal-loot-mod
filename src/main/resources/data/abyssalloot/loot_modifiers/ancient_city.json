@@ -1,0 +1,12 @@
+{
+  "type": "abyssalloot:shard_loot",
+  "chance": 1.0,
+  "min": 2,
+  "max": 4,
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/ancient_city"
+    }
+  ]
+}

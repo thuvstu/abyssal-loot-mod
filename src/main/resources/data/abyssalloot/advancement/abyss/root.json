@@ -1,0 +1,24 @@
+{
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:gui/advancements/backgrounds/end",
+    "description": "深淵から滲み出る痕跡を追い、その系譜を刻む",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:echo_shard"
+    },
+    "show_toast": false,
+    "title": "深淵の系譜"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

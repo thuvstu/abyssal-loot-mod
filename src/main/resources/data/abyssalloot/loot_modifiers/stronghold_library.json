@@ -1,0 +1,12 @@
+{
+  "type": "abyssalloot:shard_loot",
+  "chance": 0.4,
+  "min": 1,
+  "max": 2,
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/stronghold_library"
+    }
+  ]
+}

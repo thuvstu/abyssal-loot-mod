@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "entries": [
+    "abyssalloot:ancient_city",
+    "abyssalloot:ancient_city_ice_box",
+    "abyssalloot:simple_dungeon",
+    "abyssalloot:abandoned_mineshaft",
+    "abyssalloot:buried_treasure",
+    "abyssalloot:stronghold_library"
+  ]
+}

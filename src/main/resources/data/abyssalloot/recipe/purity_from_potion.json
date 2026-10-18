@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "minecraft:potion"
+  ],
+  "result": {
+    "count": 1,
+    "id": "abyssalloot:abyss_cure"
+  }
+}

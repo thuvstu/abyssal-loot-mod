@@ -1,0 +1,24 @@
+{
+  "parent": "abyssalloot:abyss/root",
+  "display": {
+    "announce_to_chat": false,
+    "description": "無限深淵で第35層へ到達",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "abyssalloot:soul_shard_core"
+    },
+    "title": "限界の先"
+  },
+  "criteria": {
+    "granted": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "granted"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

@@ -26,6 +26,7 @@ public class AbyssalLootMod {
         ModMenus.MENUS.register(modEventBus);
         ModEntities.TYPES.register(modEventBus);
         ModEntities.attributes(modEventBus);
+        VanillaLinks.LOOT_MODIFIER_SERIALIZERS.register(modEventBus);
         modEventBus.addListener(ModPackets::register);
 
         NeoForge.EVENT_BUS.register(ModCommands.class);
@@ -33,6 +34,7 @@ public class AbyssalLootMod {
         NeoForge.EVENT_BUS.register(LootHandler.class);
         NeoForge.EVENT_BUS.register(WeaponHitHandler.class);
         NeoForge.EVENT_BUS.register(SkillHandler.class);
+        NeoForge.EVENT_BUS.register(VanillaLinks.class);
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientKeys.init(modEventBus);
