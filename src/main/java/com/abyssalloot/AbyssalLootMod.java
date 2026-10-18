@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 /**
  * Abyssal Loot — 原作ブラウザゲームの NeoForge 再現MOD.
  * v0.1.0: コマンド+右クリック操作で遊べるMVP.
- *  - 5職業 / 12武器種 / 12武器奥義 / 8呪印 / 層進行 / 魂ゲージ / 回避見切り
+ *  - 8職業 / 41武器種 / 武器奥義 / 8呪印 / 層進行 / 魂ゲージ / 回避見切り
  */
 @Mod(AbyssalLootMod.MODID)
 public class AbyssalLootMod {

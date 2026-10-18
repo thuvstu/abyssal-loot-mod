@@ -81,16 +81,6 @@ public final class GearData {
         };
     }
 
-    private static String rarityLabel(String rarity) {
-        return switch (rarity) {
-            case "mythic" -> "§d神話";
-            case "legendary" -> "§6レジェンド";
-            case "rare" -> "§eレア";
-            case "magic" -> "§b魔法";
-            default -> "§7通常";
-        };
-    }
-
     public static double affixOf(ItemStack stack, String key) {
         if (stack == null || stack.isEmpty()) return 0;
         var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,

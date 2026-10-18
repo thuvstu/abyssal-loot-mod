@@ -51,19 +51,20 @@ public class HubScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        super.render(g, mouseX, mouseY, partialTick);
-        // パネル背景 (ボタングリッドを囲む。6行×2列)
+        // パネル背景 (ボタングリッドを囲む。6行×2列)。super.render の前に描き、
+        // ボタンがパネルの下に沈むのを防ぐ
         int px0 = width / 2 - 162;
         int px1 = width / 2 + 162;
         int py0 = height / 2 - 84;
-        int py1 = height / 2 + 78;
+        int py1 = height / 2 + 90;
         g.fill(px0, py0, px1, py1, 0xD010141E);
         g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
         g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
         g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
         g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
         g.drawCenteredString(font, title.getString(), width / 2, py0 + 6, 0xFFFFD23C);
-        g.drawCenteredString(font, "ESC で閉じる", width / 2, py1 - 12, 0xFF6E7686);
+        g.drawCenteredString(font, "ESC で閉じる", width / 2, py1 + 6, 0xFF6E7686);
+        super.render(g, mouseX, mouseY, partialTick);
     }
 
     @Override

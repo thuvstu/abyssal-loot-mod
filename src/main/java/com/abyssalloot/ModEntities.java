@@ -34,7 +34,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 
 /**
- * 深淵の固有MOB (通常18 + 層主8)。見た目 (モチE��・チE��スチャ) を固有にするため、E * 振る�EぁE��受け継ぐバニラ系統の薁E��サブクラスとして定義する、E * 能力値 (HP/攻撁E速度) はすべて {@link Enemies#apply} で原作値から絶対設定するため、E * 属性サプライヤは索敵等�E土台のみ (Monster 標溁E でよい、E */
+ * 深淵の固有MOB (通常18 + 層主8)。見た目 (モデル・テクスチャ) を固有にするため、
+ * 振る舞いを受け継ぐバニラ系統の派生サブクラスとして定義する。
+ * 能力値 (HP/攻撃/速度) はすべて {@link Enemies#apply} で原作値から絶対設定するため、
+ * 属性サプライヤは索敵等の土台のみ (Monster 標準) でよい。
+ */
 public final class ModEntities {
     private ModEntities() {}
 
@@ -114,7 +118,7 @@ public final class ModEntities {
         public GateMob(EntityType<GateMob> type, Level level) { super(type, level); }
     }
 
-    // ---- 層主8佁E----
+    // ---- 層主8種 ----
     public static class GoblinKingMob extends Vindicator {
         public GoblinKingMob(EntityType<GoblinKingMob> type, Level level) { super(type, level); }
     }
@@ -182,7 +186,7 @@ public final class ModEntities {
     public static final Supplier<EntityType<OmegaMob>> OMEGA = reg("abyss_omega", OmegaMob::new, MobCategory.MONSTER, 1.8f, 3.6f);
     public static final Supplier<EntityType<AscenderMob>> ASCENDER = reg("abyss_ascender", AscenderMob::new, MobCategory.MONSTER, 2.0f, 4.0f);
 
-    /** 全種に Monster 標準�E属性土台を登録 (実値は Enemies.apply で原作値から絶対設宁E */
+    /** 全種に Monster 標準の属性土台を登録 (実値は Enemies.apply で原作値から絶対設定) */
     public static void attributes(IEventBus modBus) {
         modBus.addListener((EntityAttributeCreationEvent event) -> {
             AttributeSupplier base = Monster.createMonsterAttributes().build();

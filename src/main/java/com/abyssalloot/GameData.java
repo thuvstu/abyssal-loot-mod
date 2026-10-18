@@ -371,7 +371,7 @@ public final class GameData {
     }
 
     /**
-     * 原作 core.ts FLOOR_MUTATIONS の写し. 層の異変 (9種).
+     * 原作 core.ts FLOOR_MUTATIONS の写し. 層の異変 (12種).
      * enemyHp/enemyDmg/enemySpeed/spawn/eliteRate は敵側, gold/loot は報酬側の倍率.
      * darkness は視界を塞ぐ (MCでは盲目効果で再現).
      */
@@ -501,7 +501,7 @@ public final class GameData {
         return DAILY_MODS.get(i);
     }
 
-    /* ---------------- 原作 WARDENS (5種)・isWardenFloor ---------------- */
+    /* ---------------- 原作 WARDENS (6種)・isWardenFloor ---------------- */
 
     public record Warden(String name, String flavor, double hpMul, double dmgMul) {}
 
@@ -540,7 +540,7 @@ public final class GameData {
         return ZONES.get(0);
     }
 
-    /* ---------------- 原作 RELICS (8種・ラン中最大2つ) ---------------- */
+    /* ---------------- 原作 RELICS (26種・ラン中最大2つ) ---------------- */
 
     public record Relic(String id, String name, String desc, String flag) {}
 
@@ -598,7 +598,7 @@ public final class GameData {
         return s;
     }
 
-    /* ---------------- 原作 PASSIVES (20種) ---------------- */
+    /* ---------------- 原作 PASSIVES (44種) ---------------- */
 
     public record Passive(String id, String name, String desc, String grade, String flag) {}
 
@@ -778,7 +778,7 @@ public final class GameData {
         return -neg + pos;
     }
 
-    /* ---------------- 原作 ACHIEVEMENTS (24種) ---------------- */
+    /* ---------------- 原作 ACHIEVEMENTS (32種) ---------------- */
 
     public record Achievement(String id, String title, String desc, int reward, String tier) {}
 
@@ -1055,7 +1055,7 @@ public final class GameData {
         return Math.round((mod.min() + r.getAsDouble() * (mod.max() - mod.min())) * 10) / 10.0;
     }
 
-    /* ---------------- 原作 WEAPON_CLASSES (12種の装備ボーナス) ---------------- */
+    /* ---------------- 原作 WEAPON_CLASSES (41種の装備ボーナス) ---------------- */
 
     public record WeaponBonus(double damagePct, double attackSpeedPct, double areaPct, double energyPct,
                               int projectiles, int pierce, double critPct, double critDmgPct,
@@ -1119,6 +1119,7 @@ public final class GameData {
      * 原作の武器クラス形状差をMCへ。StatCalc.shapeOf が参照する。
      * reach = 攻撃射程 (バニラ属性 + 奥義の突進/横薙距離) /
      * sweep = 横方向の斬り幅 (半角ラジアンの拡大) / strikes = 一打で同時に斬る隣接敵数。
+     * 未登録の武器種はボーナスなし扱い。
      */
     public record ShapeBonus(double reach, double sweep, double strikes) {}
 
@@ -1152,7 +1153,8 @@ public final class GameData {
 
     /* ---------------- 武器の左クリック追撃 (WEAPON_FOLLOWUP) ----------------
      * 武器種ごとの固有連打ボーナス。一定回数の通常攻撃ごとに追加効果が発動する。
-     * 発動ロジックは CombatHandler.applyFollowup (FOLLOW_HIT 添付でカウント)。
+     * 発動ロジックは WeaponHitHandler.applyFollowup (FOLLOW_HIT 添付でカウント)。
+     * 未登録の武器種はボーナスなし扱い。
      */
     public static final java.util.Map<String, String> WEAPON_FOLLOWUP = java.util.Map.ofEntries(
             java.util.Map.entry("spear", "pierce3"),           // 毎3打目: 前方貫通衝撃波
@@ -1511,8 +1513,8 @@ public final class GameData {
         return null;
     }
 
-    /* ---------------- 属性8種・節目ボーナス ----------------
-     * 原作 attributes.ts の5属性 + 追加3属性 (集中・活力・技巧)。
+    /* ---------------- 属性10種・節目ボーナス ----------------
+     * 原作 attributes.ts の5属性 + 追加5属性 (集中・活力・技巧・採掘・跳躍)。
      * 各属性は 10/20/30 点で節目ボーナス (接辞キー束) が付く。
      */
     public static final String[] ATTR_NAMES = {"剛力", "韻律", "敏捷", "忍耐", "幸運", "集中", "活力", "技巧", "採掘", "跳躍"};
@@ -1602,7 +1604,7 @@ public final class GameData {
     public static String legendFor(java.util.function.DoubleSupplier r) { return pickName(r, LEGEND_NAMES); }
     public static String mythicFor(java.util.function.DoubleSupplier r) { return pickName(r, MYTHIC_NAMES); }
 
-    /* ---------------- 原作 AFFIXES (武器に付く接辞・抜粋19種) ---------------- */
+    /* ---------------- 原作 AFFIXES (武器に付く接辞・抜粋22種) ---------------- */
 
     public record AffixKey(String key, double min, double max, int tier) {}
 

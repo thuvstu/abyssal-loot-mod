@@ -42,6 +42,11 @@ public class BoonSelectScreen extends Screen {
         return Math.max(70, height / 2 - 56);
     }
 
+    /** 選択カードの幅 (小さい画面ではみ出さないよう画面幅に合わせて縮める) */
+    private int choiceW() {
+        return Math.min(360, width - 16);
+    }
+
     /** 決定 (クリックと数字キーの共通)。選べない場合はサーバー側で拒否される */
     private void choose(int i) {
         if (chosen || i < 0 || i >= choices.size()) return;
@@ -60,7 +65,7 @@ public class BoonSelectScreen extends Screen {
                 width / 2, height / 2 - 92, 0xFF9FB0C9);
         int y = choiceY();
         for (int i = 0; i < choices.size(); i++) {
-            drawChoice(g, i, choiceX(), y, 360, mouseX, mouseY);
+            drawChoice(g, i, choiceX(), y, choiceW(), mouseX, mouseY);
             y += 28;
         }
         g.drawCenteredString(font, "数字キー 1〜3 でも選択 / ESC で後に選ぶ (G→祝福を選ぶ)", width / 2, y + 12, 0xFF6E7686);
@@ -88,10 +93,11 @@ public class BoonSelectScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        switch (event.key()) {
-            case GLFW.GLFW_KEY_1 -> { choose(0); return true; }
-            case GLFW.GLFW_KEY_2 -> { choose(1); return true; }
-            case GLFW.GLFW_KEY_3 -> { choose(2); return true; }
+        // 数字キーで選択 (選択肢の数に応じて 1〜N まで有効。FloorEventScreen と同じ方式)
+        int n = event.key() - GLFW.GLFW_KEY_1;
+        if (n >= 0 && n < choices.size()) {
+            choose(n);
+            return true;
         }
         return super.keyPressed(event);
     }
@@ -103,7 +109,7 @@ public class BoonSelectScreen extends Screen {
             double mouseY = event.y();
             int y = choiceY();
             for (int i = 0; i < choices.size(); i++) {
-                if (mouseX >= choiceX() && mouseX < choiceX() + 360 && mouseY >= y && mouseY < y + 24) {
+                if (mouseX >= choiceX() && mouseX < choiceX() + choiceW() && mouseY >= y && mouseY < y + 24) {
                     choose(i);
                     return true;
                 }

@@ -24,7 +24,7 @@ public class FloorEventScreen extends Screen {
     private List<String> names;
     private List<String> descs;
     private String footer;
-    private final boolean portalOpen;
+    private boolean portalOpen;
     /** 選択送信済みフラグ (連打でパケットが二重送信されるのを防ぐ) */
     private boolean chosen;
 
@@ -54,6 +54,7 @@ public class FloorEventScreen extends Screen {
         this.names = names == null ? List.of() : List.copyOf(names);
         this.descs = descs == null ? List.of() : List.copyOf(descs);
         this.footer = footer == null ? "" : footer;
+        this.portalOpen = portalOpen;
         this.chosen = false;
     }
 
@@ -62,7 +63,8 @@ public class FloorEventScreen extends Screen {
     }
 
     private int cardW() {
-        return 380;
+        // 小さい画面ではみ出さないよう画面幅に合わせて縮める
+        return Math.min(380, width - 16);
     }
 
     private int cardY() {

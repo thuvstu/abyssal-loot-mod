@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * 鍛造画面のコンテナ。スロット0=本体武器、1=素材武器 + プレイヤーインベントリ。
- * 合成は画面のボタン→パケット→ {@link RunManager#doMergeStacks} で行い、
+ * 合成は画面のボタン→パケット→ {@link FloorEvents#doMergeStacks} で行い、
  * 結果はスロット0の実スタックに直接反映される (自動同期)。
  */
 public class ForgeMenu extends AbstractContainerMenu {

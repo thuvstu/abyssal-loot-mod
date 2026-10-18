@@ -3,19 +3,14 @@ package com.abyssalloot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
@@ -60,7 +55,15 @@ public final class CombatHandler {
         player.sendSystemMessage(Component.literal("§c敗北…深淵の加護で生還した (装備・欠片は保持)"));
     }
 
-    /** 撃破で魂ゲージ蓄積 (原作 artChargeGain の簡易版: 固定+敵最大HP比) */
+    /** ログアウトでHUD間引き・撃破時刻・防具署名のキャッシュを掃除 (UUID再利用の誤爆防止) */
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            LAST_HUD_TICK.remove(player.getUUID());
+            KillHandler.onLogout(player);
+            RunManager.onLogout(player);
+        }
+    }
 
     /* ---------------- 破壊物 ---------------- */
 
@@ -181,9 +184,10 @@ public final class CombatHandler {
     }
 
 
-    /** 無敵・ダッシュCT・反撃窓の減衰 + ボスバー更新 + 罠 */
+    /** サーバtickカウンタ (各種周期処理・撃破時刻の基準) */
     private static int tickCounter = 0;
 
+    /** 無敵・ダッシュCT・反撃窓の減衰 + ボスバー更新 + 罠 */
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         var server = event.getServer();
@@ -206,8 +210,10 @@ public final class CombatHandler {
             float lightCd = player.getData(ModAttachments.LIGHT_CD.get());
             if (lightCd > 0) player.setData(ModAttachments.LIGHT_CD.get(), Math.max(0, lightCd - 0.05f));
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
-            if (tickCounter % 20 == 0) tickAbilityBoons(player);
-            if (tickCounter % 20 == 0) RunManager.tickRunEffects(player);
+            if (tickCounter % 20 == 0) {
+                tickAbilityBoons(player);
+                RunManager.tickRunEffects(player);
+            }
             // コンボ減衰 (5秒撃破なしでリセット。KillHandler が撃破時刻を管理)
             KillHandler.tickComboDecay(player, tickCounter);
             // CT中は0.1秒ごとにHUDを再送して残り秒を滑らかに表示する
@@ -283,7 +289,6 @@ public final class CombatHandler {
                             (float) (StatCalc.attackDamageOf(player) * 0.7));
                     level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
                             target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
-                    if (shots > 1) target.teleportTo(target.getX(), target.getY(), target.getZ());
                 }
             }
         }

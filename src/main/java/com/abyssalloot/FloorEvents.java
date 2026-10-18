@@ -7,8 +7,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -123,7 +120,7 @@ public final class FloorEvents {
                         || RunManager.pendingBoonsOf(player) > 0) {
                     RunManager.addPendingBoons(player, 1);
                     player.sendSystemMessage(Component.literal(
-                            "§7現在の選択のあとに (残り" + (RunManager.pendingBoonsOf(player) + 1) + "件)"));
+                            "§7現在の選択のあとに (残り" + RunManager.pendingBoonsOf(player) + "件)"));
                 } else {
                     BoonHandler.offerBoons(player);
                 }
@@ -326,6 +323,10 @@ public final class FloorEvents {
             return;
         }
         var st = GameData.WeaponStyle.byId(kv[0]);
+        if (st == null) {
+            player.sendSystemMessage(Component.literal("§c不明な商品: " + kv[0]));
+            return;
+        }
         if (!takeShards(player, price)) {
             player.sendSystemMessage(Component.literal("§c欠片" + price + "個が足りない (所持" + countShards(player) + ")"));
             return;
@@ -566,6 +567,4 @@ public final class FloorEvents {
         openEventScreen(player, "passive", "◆ 技能を選べ (代償付き) ◆",
                 ids, names, descs, "ESCで後で選ぶ (選ばないと消えない)", false);
     }
-
-    /** 深羅針盤: 最寄りの強敵 (精鋭・番人・層主) を発光させて指し示す */
 }

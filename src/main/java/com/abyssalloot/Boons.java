@@ -3,7 +3,7 @@ package com.abyssalloot;
 /**
  * 恩寵 (原作 core.ts BOONS / BOON_GRADE) の定義表.
  * Minecraft のクラスに依存しない純粋データのため、GameDataTest から直接検証できる.
- * 効果の実装箇所: 攻撃=RunManager.attackDamageOf / HP・速度・攻速=applyClass /
+ * 効果の実装箇所: 攻撃=StatCalc.attackDamageOf / HP・速度・攻速=applyClass /
  * 被ダメ=CombatHandler.onDamage / 撃破=onKill / 定期=tickAbilityBoons / 奥義=tryArt / 跳躍=dash
  */
 public final class Boons {

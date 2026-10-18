@@ -59,7 +59,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             var s = pinv.getItem(i);
             if (s.is(ModItems.SOUL_SHARD.get())) shards += s.getCount();
         }
-        g.drawString(font, "所持欠片: " + shards, 8, 60, 0xFFE8C86A, false);
-        g.drawString(font, "購入品の特性はランダム", 8, 70, 0xFF888899, false);
+        g.drawString(font, "所持欠片: " + shards, 8, 15, 0xFFE8C86A, false);
+        g.drawString(font, "購入品の特性はランダム", 8, 25, 0xFF888899, false);
     }
 }

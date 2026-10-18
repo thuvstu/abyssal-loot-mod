@@ -37,6 +37,9 @@ public final class ClientHud {
     /** CTバーの満タン基準 (受信した最大値。CTが尽きて0.3秒経ったらリセット) */
     private static float lightCdMax;
     private static float skillCdMax;
+    /** 前回受信したCT値 (新しいCTの開始=前回0→今回>0 の検出に使う) */
+    private static float lastLightCd;
+    private static float lastSkillCd;
     private static long lastCdSeen;
 
     public static void update(float s, int f, int lv, int k, int c, int ap, int po, int pb,
@@ -54,12 +57,20 @@ public final class ClientHud {
         relicPending = rp != 0;
         passivePending = pp != 0;
         if (lcd > 0) {
-            lightCdMax = Math.max(lightCdMax, lcd);
+            // 前回受信0→今回>0 は新しいCTの開始。古い最大値が残らないよう今回値で上書きする
+            lightCdMax = lastLightCd <= 0 ? lcd : Math.max(lightCdMax, lcd);
+            lastLightCd = lcd;
             lastCdSeen = System.currentTimeMillis();
+        } else {
+            lastLightCd = 0;
         }
         if (scd > 0) {
-            skillCdMax = Math.max(skillCdMax, scd);
+            // 前回受信0→今回>0 は新しいCTの開始。古い最大値が残らないよう今回値で上書きする
+            skillCdMax = lastSkillCd <= 0 ? scd : Math.max(skillCdMax, scd);
+            lastSkillCd = scd;
             lastCdSeen = System.currentTimeMillis();
+        } else {
+            lastSkillCd = 0;
         }
     }
 
@@ -108,8 +119,9 @@ public final class ClientHud {
         // ---- 魂ゲージ (枠・刻線つき。MAX時は脈動) ----
         int gaugeColor;
         if (soul >= 100f) {
-            int wave = (int) (Math.sin(t / 160.0) * 30);
-            gaugeColor = 0xFFC0FF7A + (wave << 8);   // 緑〜黄の脈動
+            // 緑チャンネルだけで脈動させる (0xFF からの桁上がりで色が崩れるのを防ぐ)
+            int gr = 200 + (int) (Math.sin(t / 160.0) * 45);
+            gaugeColor = 0xFFC00000 | (Math.min(255, gr) << 8) | 0x50;
         } else {
             gaugeColor = 0xFFB14BFF;
         }

@@ -33,7 +33,8 @@ public final class ArenaManager {
     public static final int WALL_H = 5;
 
     /**
-     * 戦闘威力のアリーナ補正。アリーナ内なら特攻1.5倍、範囲外・非出撃時は0.5倍に抑制。
+     * 戦闘威力のアリーナ補正。アリーナ中心から半径 (ARENA_R + 8) 以内なら特攻1.5倍、
+     * 範囲外・非出撃時は0.5倍に抑制。
      * バニラ基準に寄せつつ、アリーナでは強く遊べるよう調整する。
      */
     public static double arenaPowerMult(ServerPlayer player) {

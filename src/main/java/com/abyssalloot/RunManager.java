@@ -266,7 +266,6 @@ public final class RunManager {
         player.setData(ModAttachments.PENDING_BOONS.get(), Math.max(0, n));
     }
 
-    /** 消耗品の効果説明 (lore 用) */
     public static boolean isRunLocked(ServerPlayer player) {
         return player.getData(ModAttachments.RUN_LOCK.get()) != 0;
     }
@@ -568,7 +567,6 @@ public final class RunManager {
         return id;
     }
 
-    /** 現在層の異変 (なければ null) */
     /** 層のダンジョン特性を抽選 (65%で1つ)。異変とは別枠 */
     public static String rollDungeon(ServerPlayer player) {
         String id = "";
@@ -603,9 +601,6 @@ public final class RunManager {
         return id.equals(player.getData(ModAttachments.MUTATION.get()));
     }
 
-    /** 真・最終決戦 (原作TRUE_FLOOR=26) */
-
-    /** 踏破処理の共通末尾: 戦闘固定の解除・層の初期化・結界の撤去 */
     /**
      * 出撃の終了処理 (勝利・踏破)。条件固定を解除し、提示中の祝福/遺物/商店などの
      * ラン依存状態を必ず消す (次の出撃に前ランの未選択が引きずられないように)。
@@ -646,8 +641,6 @@ public final class RunManager {
         player.setData(ModAttachments.SHRINE_UNTIL.get(), 0L);
     }
 
-    /** カスタムデータにレアリティを刻印し、銘を付け替えてloreを更新する */
-
     /** 次層への進行 (転移門の開放を確認。キー・ボタン用) */
     public static void tryNextFloor(ServerPlayer player) {
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
@@ -664,7 +657,7 @@ public final class RunManager {
         String mode = player.getData(ModAttachments.MODE.get());
         int cur = player.getData(ModAttachments.FLOOR.get());
         if (cur >= 100) {
-            player.sendSystemMessage(Component.literal("§7ここが最深層だ (真ボスを討て)"));
+            player.sendSystemMessage(Component.literal("§7無限深淵の最深部に到達した (endless の限界)"));
             return;
         }
         int floor = cur + 1;
@@ -728,7 +721,6 @@ public final class RunManager {
         boolean noHeal = isDaily(player) && dailyMod() != null && dailyMod().noFloorHeal();
         if (!noHeal) heal(player, player.getMaxHealth() * 0.25);
         else player.sendSystemMessage(Component.literal("§e乾ききった迷宮: 層移動の回復なし"));
-        player.teleportTo(player.getX(), player.getY(), player.getZ());
         ArenaManager.refreshArena(player, floor);
         spawnWave(player, floor);
         var zone = GameData.zoneForFloor(floor);
@@ -855,8 +847,6 @@ public final class RunManager {
         ArenaManager.placeHazards(player, level, center, floor);
     }
 
-    /** 層主の出現 (原作 BOSSES の名前・能力で) */
-
     public static void compass(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level)) return;
         if (!relicFlagsOf(player).contains("compass")) {
@@ -893,6 +883,11 @@ public final class RunManager {
 
     /** 防具変更検出用 (UUID -> 4部位の署名) */
     private static final Map<UUID, String> ARMOR_SIG = new HashMap<>();
+
+    /** ログアウトで防具署名キャッシュを掃除 (CombatHandler.onPlayerLoggedOut から呼ぶ) */
+    static void onLogout(ServerPlayer player) {
+        ARMOR_SIG.remove(player.getUUID());
+    }
 
     private static String armorSig(ServerPlayer player) {
         var sb = new StringBuilder();

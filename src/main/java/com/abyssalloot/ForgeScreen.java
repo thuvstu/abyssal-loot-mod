@@ -65,19 +65,20 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
         ItemStack main = menu.getSlot(ForgeMenu.SLOT_WEAPON).getItem();
         ItemStack sub = menu.getSlot(ForgeMenu.SLOT_MATERIAL).getItem();
         if (main.isEmpty() || sub.isEmpty()) {
-            g.drawString(font, "2スロットにAbyss武器を置いてね", 8, 60, 0xFF888899, false);
+            g.drawString(font, "2スロットにAbyss武器を置いてね", 8, 82, 0xFF888899, false);
             return;
         }
         int lv = GearData.forgeLv(main);
         if (lv >= 5) {
-            g.drawString(font, "鍛造MAX (覚醒)", 8, 60, 0xFFFFD23C, false);
+            g.drawString(font, "鍛造MAX (覚醒)", 8, 82, 0xFFFFD23C, false);
             return;
         }
-        int cost = 3 + lv * 2;
+        // サーバー側 FloorEvents.doMergeStacks の実費式に合わせる (威力分の加算を含む)
+        int cost = 3 + lv * 2 + (GearData.powerOf(main) + GearData.powerOf(sub) + 12) / 25;
         // 所持数 (クライアント側の表示用。確定はサーバー側)
         var inv = minecraft.player.getInventory();
         int shards = countIn(inv, ModItems.SOUL_SHARD.get().getDefaultInstance().getItem());
-        g.drawString(font, "欠片×" + cost + " (所持" + shards + ")", 8, 60, shards >= cost ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
+        g.drawString(font, "欠片×" + cost + " (所持" + shards + ")", 8, 82, shards >= cost ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
         var mat = GameData.mergeMaterial(topRarity(GearData.rarityOf(main), GearData.rarityOf(sub)));
         if (mat != null) {
             net.minecraft.world.item.Item matItem = switch (mat.id()) {
@@ -86,7 +87,7 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
                 default -> ModItems.ANCIENT_STONE.get();
             };
             int have = countIn(inv, matItem);
-            g.drawString(font, mat.name() + " (所持" + have + ")", 8, 70,
+            g.drawString(font, mat.name() + " (所持" + have + ")", 8, 92,
                     have >= mat.count() ? 0xFF7CFFB2 : 0xFFFF5C6E, false);
         }
     }

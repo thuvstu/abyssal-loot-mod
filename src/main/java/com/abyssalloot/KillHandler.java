@@ -25,6 +25,11 @@ public final class KillHandler {
         LAST_KILL_TICK.put(player.getUUID(), (long) tick);
     }
 
+    /** ログアウトで撃破時刻のキャッシュを掃除 (CombatHandler.onPlayerLoggedOut から呼ぶ) */
+    static void onLogout(ServerPlayer player) {
+        LAST_KILL_TICK.remove(player.getUUID());
+    }
+
     /** コンボ減衰 (5秒撃破なしでリセット・原作comboT準拠)。onServerTick から毎tick呼ぶ */
     static void tickComboDecay(ServerPlayer player, int tick) {
         Long last = LAST_KILL_TICK.get(player.getUUID());

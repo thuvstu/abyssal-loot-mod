@@ -16,6 +16,7 @@ import java.util.Set;
 /**
  * /abyss 系コマンド.
  *  quick / menu / help / class / weapon / sigil / level / start / next / daily / true / pinnacle /
+ *  hub / retire / event_screen / respec /
  *  zone / relic / passive / compass / ach / art / skill / boon / attr / mode / diff / keep /
  *  event / buy / merge / forge / shop / compare / statusgui / dash / status
  */
@@ -314,13 +315,18 @@ public final class ModCommands {
                                         return 0;
                                     }
                                     p.setData(ModAttachments.MODE.get(), id);
+                                    String desc = switch (id) {
+                                            case "bossrush" -> " Lv10開始・毎層ボス・8層主で踏破";
+                                            case "covenant" -> " 祝福なし";
+                                            case "endless" -> " 25層以降も無限";
+                                            case "pinnacle" -> " /abyss pinnacle で終焉の座へ";
+                                            case "danmaku" -> " 敵の群れが濃くなるかわりに被弾は軽い";
+                                            case "omega" -> " 全8呪印を強制付与";
+                                            case "daily" -> " 日替わり種別の層構成";
+                                            default -> " 全25層・虚無神を討て"; // standard
+                                    };
                                     p.sendSystemMessage(Component.literal("§5進行モード: " + id
-                                            + " (魂×" + GameData.modeSoulMult(id) + ")"
-                                            + (id.equals("bossrush") ? " Lv10開始・毎層ボス・8層主で踏破"
-                                            : id.equals("covenant") ? " 祝福なし"
-                                            : id.equals("endless") ? " 25層以降も無限"
-                                            : id.equals("pinnacle") ? " /abyss pinnacle で終焉の座へ"
-                                            : " 全25層・虚無神を討て)")));
+                                            + " (魂×" + GameData.modeSoulMult(id) + ")" + desc));
                                     return 1;
                                 })))
                 .then(Commands.literal("diff")
@@ -475,7 +481,7 @@ public final class ModCommands {
     static void showHelp(ServerPlayer p) {
         p.sendSystemMessage(Component.literal("§6━━━ Abyssal Loot 操作説明 ━━━"));
         p.sendSystemMessage(Component.literal("§f移動 WASD / 攻撃 左クリック / 照準 マウス"));
-        p.sendSystemMessage(Component.literal("§b右クリック 武器小技 (CT1~3秒) / §dR 武器奥義 (魂100) / §dスニーク+右クリック=必殺技 (CT25秒) / §aX 回避ダッシュ"));
+        p.sendSystemMessage(Component.literal("§b右クリック 武器小技 (CT1~3秒) / §dR 武器奥義 (魂100) / §dV 必殺技 (CT25秒) / §aX 回避ダッシュ / §fN 次の層へ"));
         p.sendSystemMessage(Component.literal("§eG 操作ハブ（出撃・次層・各GUIへのボタン集）"));
         p.sendSystemMessage(Component.literal("§7魂ゲージは与ダメ・被ダメで溜まる。満タンでRの奥義。"));
         p.sendSystemMessage(Component.literal("§7倒すと武器・防具や魂の欠片が出る。全滅で転移門が開く → /abyss next"));
@@ -486,7 +492,7 @@ public final class ModCommands {
         p.sendSystemMessage(Component.literal("§7§b射程§7/§b横斬り§7/§b連撃§7は接辞・祝福・防具スキル・武器種の素値で伸びる (攻撃距離と薙ぎ幅)"));
         p.sendSystemMessage(Component.literal("§7満腹は §b軍糧丸§7 や撃破時のもぐに (12%) で回復。試練も腹が減るのが本番"));
         p.sendSystemMessage(Component.literal("§7モブにも固有能力 (反射・爆発・転移・分裂・吸収・鈍足)。層に地相 (65%で1つ) あり"));
-        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運|集中|活力|技巧（レベルアップで1点）"));
+        p.sendSystemMessage(Component.literal("§7属性配分 /abyss attr 剛力|韻律|敏捷|忍耐|幸運|集中|活力|技巧|採掘|跳躍（レベルアップで1点）"));
         p.sendSystemMessage(Component.literal("§7適性★の属性は効果1.5倍。各属性10・20・30点で節目ボーナス。振り直し /abyss respec (欠片8)"));
         p.sendSystemMessage(Component.literal("§7呪印（難易度）/abyss sigil <id>　モード /abyss mode <id>"));
         p.sendSystemMessage(Component.literal("§7武器合成は鍛造画面で（同武器2点 or 同防具2点）")

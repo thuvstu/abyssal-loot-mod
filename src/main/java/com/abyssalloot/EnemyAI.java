@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * 特殊敵・固有AIの毎tick挙動 (原作 engine.ts の各 ai に対応).
  *  - guard: 回頭制限 (毎tick)
- *  - summoner/gate: 召喚 (10tickごと)
+ *  - summoner/gate: 召喚 (判定は10tick周期・召喚間隔は 140/116tick)
  *  - shoot: 中距離 (8〜16m) を維持. 発射自体はバニラAI (Blaze/Breeze/Guardian/Pillager) に任せる
  *  - charge: 約6秒ごとに予兆 (鈍足+煙) → 突進 (速度バースト+衝撃波)
  *  - teleport: 約5秒ごとにプレイヤー近傍へ瞬間移動

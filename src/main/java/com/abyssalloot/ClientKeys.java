@@ -51,19 +51,20 @@ public final class ClientKeys {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             var conn = Minecraft.getInstance().getConnection();
             if (conn == null) return;
-            while (artKey != null && artKey.consumeClick()) {
+            // キーリピート (長押し) による ActPacket の連送を防ぐため 1tick に 1 回だけ送る
+            if (artKey != null && artKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("art")));
             }
-            while (skillKey != null && skillKey.consumeClick()) {
+            if (skillKey != null && skillKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("skill")));
             }
-            while (dashKey != null && dashKey.consumeClick()) {
+            if (dashKey != null && dashKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("dash")));
             }
-            while (hubKey != null && hubKey.consumeClick()) {
+            if (hubKey != null && hubKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("hub")));
             }
-            while (nextKey != null && nextKey.consumeClick()) {
+            if (nextKey != null && nextKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("next")));
             }
         });

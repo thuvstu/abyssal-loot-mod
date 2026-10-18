@@ -8,7 +8,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 
 /**
- * GUI のコンテナ登録 (鍛造画面から開始。商店・装備比較・ステータスは後続)。
+ * GUI のコンテナ登録 (鍛造 / 商店 / 装備比較。ステータスはテキスト同期のSyncパケットで表示)。
  */
 public final class ModMenus {
     private ModMenus() {}

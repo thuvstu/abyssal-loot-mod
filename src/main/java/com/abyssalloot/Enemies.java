@@ -51,6 +51,8 @@ public final class Enemies {
     /** 蘇生師の召喚間隔 / 門の増援間隔 (tick) */
     public static final int NECRO_SUMMON_TICKS = 140;
     public static final int GATE_SUMMON_TICKS = 116;
+    /** MobEffectInstance に与える「実質恒久」の長さ (tick) */
+    public static final int EFFECT_FOREVER = 999999;
     /** 門のHPは通常敵の何倍か (原作の門は耐久が高い) */
     public static final double GATE_HP_MULT = 6.0;
 
@@ -337,7 +339,7 @@ public final class Enemies {
                 default -> { }
             }
         }
-        m.addEffect(new MobEffectInstance(MobEffects.GLOWING, 999999, 0, false, false));
+        m.addEffect(new MobEffectInstance(MobEffects.GLOWING, EFFECT_FOREVER, 0, false, false));
         m.setCustomName(Component.literal("§6" + pre.name() + "エリート " + m.getName().getString() + traitSuffix));
     }
 
@@ -351,7 +353,7 @@ public final class Enemies {
         var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
         if (atk != null) atk.setBaseValue(atk.getBaseValue() * w.dmgMul());
         m.addTag(WARDEN_TAG);
-        m.addEffect(new MobEffectInstance(MobEffects.GLOWING, 999999, 0, false, false));
+        m.addEffect(new MobEffectInstance(MobEffects.GLOWING, EFFECT_FOREVER, 0, false, false));
         m.setCustomName(Component.literal("§c番人 " + w.name()));
         m.setCustomNameVisible(true);
     }

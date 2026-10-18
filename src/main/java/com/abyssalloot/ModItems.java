@@ -18,7 +18,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * アイテム12武器種 + 深淵防具4種 + 魂の欠片.
+ * アイテム41武器種 + 深淵防具4種 + 魂の欠片.
  * Tier APIの差異を避けるため素のItemとして登録し、
  * ダメージ計算は CombatHandler 側の独自式で行う (原作式の再現のため).
  * 防具は右クリックで対応スロットに装備し、接辞は武器と合算される。
@@ -275,7 +275,7 @@ public final class ModItems {
     public static final DeferredItem<Item> SOUL_SHARD_CORE = ITEMS.registerSimpleItem("soul_shard_core",
             () -> new Item.Properties().rarity(Rarity.EPIC));
 
-    /** 奥義の断片 (武器種ごと33種。断片+古代石+欠片2でその武器を完成できる) */
+    /** 奥義の断片 (武器種ごと41種。断片+古代石+欠片2でその武器を完成できる) */
     public static final java.util.Map<GameData.WeaponStyle, DeferredItem<Item>> ART_SHARDS = buildArtShards();
 
     private static java.util.Map<GameData.WeaponStyle, DeferredItem<Item>> buildArtShards() {

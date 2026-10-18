@@ -48,7 +48,7 @@ public final class ModAttachments {
     /** 転移門オープン済みか (0/1) */
     public static final Supplier<AttachmentType<Integer>> PORTAL_OPEN =
             reg("portal_open", 0, Codec.INT);
-    /** 属性配分 "8値" (剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧) */
+    /** 属性配分 "10値" (剛力,韻律,敏捷,忍耐,幸運,集中,活力,技巧,採掘,跳躍)。旧セーブは後ろを0埋め */
     public static final Supplier<AttachmentType<String>> ATTRS =
             reg("attrs", "0,0,0,0,0,0,0,0", Codec.STRING);
     /** 祝福 "id:lv,..." */
@@ -69,10 +69,10 @@ public final class ModAttachments {
     /** 武器小技の残りCT (秒)。右クリック発動・1~3秒、毎tick減衰 */
     public static final Supplier<AttachmentType<Float>> LIGHT_CD =
             reg("light_cd", 0f, Codec.FLOAT);
-    /** 進行モード standard/bossrush/endless/covenant */
+    /** 進行モード standard/bossrush/endless/covenant/pinnacle/danmaku/omega/daily */
     public static final Supplier<AttachmentType<String>> MODE =
             reg("mode", "standard", Codec.STRING);
-    /** 難易度 normal/hard/inferno */
+    /** 難易度 normal/hard/hell/inferno/omega */
     public static final Supplier<AttachmentType<String>> DIFF =
             reg("diff", "normal", Codec.STRING);
     /** 撃破した層主 "5,10,..." */

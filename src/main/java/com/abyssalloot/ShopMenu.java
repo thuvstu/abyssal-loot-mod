@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * 商店GUIのコンテナ。スロット0-2=商品プレビュー (持出・投入不可) + プレイヤー所持品。
- * 購入は画面のボタン→パケット→ {@link RunManager#doBuy} で行う。
+ * 購入は画面のボタン→パケット→ {@link FloorEvents#doBuy} で行う。
  * 価格はプレビュー品の CustomData ("abyss_price") に保持し、クライアント表示に使う。
  */
 public class ShopMenu extends AbstractContainerMenu {
@@ -79,14 +79,6 @@ public class ShopMenu extends AbstractContainerMenu {
             GearData.refreshLore(stack);
             previews.setItem(i, stack);
         }
-    }
-
-    /** プレビュー品の価格 (なければ -1)。クライアント表示用 */
-    public static int priceOf(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return -1;
-        var data = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                net.minecraft.world.item.component.CustomData.EMPTY);
-        return data.copyTag().getInt("abyss_price").orElse(-1);
     }
 
     /** 購入済み表示に差し替え (再購入の誤解防止。即時同期される) */

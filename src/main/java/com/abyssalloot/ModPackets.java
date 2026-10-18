@@ -9,7 +9,10 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
- * クライアントキー -> サーバーの操作パケット (art/skill/dash/forge/boon)。
+ * クライアントキー・GUI -> サーバーの操作パケット
+ *  (act: art/skill/dash/hub/next, forge, shop, compare, attr, boon, floor_event)
+ * と、サーバー→クライアントの同期パケット (HudSync / CompareSync / StatusSync / HubSync /
+ *  BoonSync / FloorEventSync)。
  */
 public final class ModPackets {
     private ModPackets() {}
@@ -138,7 +141,7 @@ public final class ModPackets {
         }
     }
 
-    /** ステータスGUIの属性ボタン (0-4) */
+    /** ステータスGUIの属性ボタン (0-9) */
     public record AttrPacket(int index) implements CustomPacketPayload {
         public static final Type<AttrPacket> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "attr"));
@@ -310,6 +313,7 @@ public final class ModPackets {
                     case "hub" -> net.neoforged.neoforge.network.PacketDistributor
                             .sendToPlayer(sp, new HubSync());
                     case "next" -> RunManager.tryNextFloor(sp);
+                    default -> AbyssalLootMod.LOGGER.warn("unknown act: " + payload.kind());
                 }
             }
         });
