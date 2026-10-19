@@ -20,9 +20,23 @@ TP_ROT = (0.0, -18.0, -22.0)
 TP_TRANS = (0.0, -5.5, 0.5)
 TP_SCALE = 0.8
 
+# 縦持ちする道具 (GUI では upright に、所持時は柄を下にして真っ直ぐ持つ)。
+VERTICAL_POSE = {
+    "gui": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.95, 0.95, 0.95]},
+    "fp_rot": (6.0, -6.0, 10.0),
+    "fp_trans": (-0.2, 2.4, 0.4),
+    "fp_scale": 0.7,
+}
 
-def display(kind: str = "weapon") -> dict:
-    """display ブロックを組み立てる。"""
+# GUI だけ upright (所持時は通常の構え) にする品目
+GUI_UPRIGHT_ONLY = {
+    "abyss_scythe", "abyss_soul_scythe", "abyss_war_horn", "abyss_depth_gun",
+}
+
+
+def display(kind: str = "weapon", pose: dict | None = None, held_vertical: bool = True) -> dict:
+    """display ブロックを組み立てる。pose で所持の向きを上書きできる。"""
+    vertical = bool(pose)
     if kind == "flat":
         # 2D アイコン風 (GUI では正面・斜め 45 度)
         return {
@@ -49,8 +63,16 @@ def display(kind: str = "weapon") -> dict:
         }
 
     # 武器
+    fp_rot, fp_trans, fp_scale = FP_ROT, FP_TRANS, FP_SCALE
+    gui = {"rotation": [0, 0, GUI_TILT], "translation": [0, 0, 0], "scale": [1, 1, 1]}
+    if vertical and pose:
+        gui = pose.get("gui", gui)
+        if held_vertical:
+            fp_rot = pose.get("fp_rot", fp_rot)
+            fp_trans = pose.get("fp_trans", fp_trans)
+            fp_scale = pose.get("fp_scale", fp_scale)
     return {
-        "gui": {"rotation": [0, 0, GUI_TILT], "translation": [0, 0, 0], "scale": [1, 1, 1]},
+        "gui": gui,
         "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.55, 0.55, 0.55]},
         "fixed": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [1, 1, 1]},
         "head": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [1, 1, 1]},
@@ -60,10 +82,10 @@ def display(kind: str = "weapon") -> dict:
             "rotation": [TP_ROT[0], -TP_ROT[1], -TP_ROT[2]],
             "translation": list(TP_TRANS), "scale": [TP_SCALE] * 3},
         "firstperson_righthand": {
-            "rotation": list(FP_ROT), "translation": list(FP_TRANS), "scale": [FP_SCALE] * 3},
+            "rotation": list(fp_rot), "translation": list(fp_trans), "scale": [fp_scale] * 3},
         "firstperson_lefthand": {
-            "rotation": [FP_ROT[0], -FP_ROT[1], -FP_ROT[2]],
-            "translation": list(FP_TRANS), "scale": [FP_SCALE] * 3},
+            "rotation": [fp_rot[0], -fp_rot[1], -fp_rot[2]],
+            "translation": list(fp_trans), "scale": [fp_scale] * 3},
     }
 
 

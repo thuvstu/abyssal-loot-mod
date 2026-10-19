@@ -251,33 +251,34 @@ def bow(m: Model, p: dict) -> None:
 
 
 def scythe(m: Model, p: dict) -> None:
-    """鎌。柄 + 湾曲した刃。"""
-    m.box("haft", (7.42, 1.6, 7.4), (8.58, 12.6, 8.6), p["darkwood"])
+    """鎌。刃は左向き (2D ドット絵と合わせる)。"""
+    m.box("haft", (7.5, 1.6, 7.4), (8.5, 12.6, 8.6), p["darkwood"])
     m.box("haft_wrap", (7.35, 2.2, 7.25), (8.65, 4.6, 8.75), p["leather"])
     m.box("collar", (7.2, 11.8, 7.1), (8.8, 12.6, 8.9), p["gold"])
     # 刃 (4 枚を階段状・角度付きにして湾曲を描く)
-    m.box("blade0", (5.6, 12.4, 7.2), (9.6, 13.8, 8.8), p["steel"],
-          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": 12})
-    m.box("blade1", (8.0, 11.6, 7.2), (11.6, 13.0, 8.8), p["steel"],
-          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": 4})
-    m.box("blade2", (9.8, 9.8, 7.2), (13.0, 11.8, 8.8), p["steel"],
-          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": -8})
-    m.box("blade3", (10.4, 7.4, 7.2), (13.2, 9.8, 8.8), p["steel"],
-          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": -22})
-    m.box("edge", (9.4, 7.0, 7.0), (13.4, 9.4, 9.0), p["accent_dim"],
-          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": -16})
+    m.box("blade0", (5.8, 12.4, 7.2), (9.8, 13.8, 8.8), p["steel"],
+          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": -12})
+    m.box("blade1", (4.0, 11.6, 7.2), (7.6, 13.0, 8.8), p["steel"],
+          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": -4})
+    m.box("blade2", (3.0, 9.8, 7.2), (6.2, 11.8, 8.8), p["steel"],
+          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": 8})
+    m.box("blade3", (2.8, 7.4, 7.2), (5.6, 9.8, 8.8), p["steel"],
+          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": 22})
+    m.box("edge", (2.6, 7.0, 7.0), (6.4, 9.4, 9.0), p["accent_dim"],
+          rotation={"origin": [8, 12.6, 8], "axis": "z", "angle": 16})
 
 
 def flail(m: Model, p: dict) -> None:
-    """OBS: 鎖 + 玉。"""
-    m.box("haft", (7.42, 4.0, 7.6), (8.58, 12.0, 8.6), p["darkwood"])
+    """鎖球: 柄 + 鎖 + 玉 (玉は上側)。"""
+    m.box("haft", (7.42, 1.0, 7.6), (8.58, 7.0, 8.6), p["darkwood"])
+    m.box("haft_cap", (7.3, 0.6, 7.5), (8.7, 1.4, 8.7), p["gold"])
     for i in range(4):
-        m.box(f"chain{i}", (7.7, 11.0 - i * 1.7, 7.7), (8.3, 12.0 - i * 1.7, 8.3), p["dark"])
-    m.box("ball", (6.4, 2.0, 6.4), (9.6, 5.2, 9.6), p["dark"])
-    m.box("ball_core", (7.4, 3.0, 6.2), (8.6, 4.2, 6.5), p["accent"])
+        m.box(f"chain{i}", (7.7, 7.0 + i * 1.1, 7.7), (8.3, 8.0 + i * 1.1, 8.3), p["dark"])
+    m.box("ball", (6.4, 11.2, 6.4), (9.6, 14.4, 9.6), p["dark"])
+    m.box("ball_core", (7.4, 12.2, 6.2), (8.6, 13.4, 6.5), p["accent"])
     for a in (0, 45, 90, 135):
-        m.box(f"spike{a}", (7.6, 2.6, 5.2), (8.4, 4.6, 6.4), p["steel"],
-              rotation={"origin": [8, 3.6, 8], "axis": "y", "angle": a})
+        m.box(f"spike{a}", (7.6, 11.8, 5.2), (8.4, 13.8, 6.4), p["steel"],
+              rotation={"origin": [8, 12.8, 8], "axis": "y", "angle": a})
 
 
 def chakram(m: Model, p: dict) -> None:
@@ -402,10 +403,10 @@ def tool_axe(m: Model, p: dict) -> None:
 
 def shovel(m: Model, p: dict) -> None:
     """シャベル。"""
-    m.box("haft", (7.42, 4.0, 7.6), (8.58, 14.0, 8.6), p["wood"])
-    m.box("blade", (6.4, 1.2, 6.8), (9.6, 4.4, 9.2), p["steel"])
-    m.box("edge", (6.6, 1.0, 6.9), (9.4, 1.4, 9.1), p["dark"])
-    m.box("collar", (7.4, 3.8, 7.3), (8.6, 4.6, 8.7), p["bronze"])
+    m.box("haft", (7.42, 2.0, 7.6), (8.58, 12.0, 8.6), p["wood"])
+    m.box("blade", (6.4, 11.6, 6.8), (9.6, 14.8, 9.2), p["steel"])
+    m.box("edge", (6.6, 14.6, 6.9), (9.4, 15.0, 9.1), p["dark"])
+    m.box("collar", (7.4, 11.2, 7.3), (8.6, 12.0, 8.7), p["bronze"])
 
 
 def hoe(m: Model, p: dict) -> None:

@@ -283,6 +283,15 @@ for _set in ARMOR_SETS:
     ARMOR_ICONS[f"abyss_{_set}_boots"] = icons.boots
 del _set
 
+# 縦持ちする道具 (GUI では upright・所持時は真っ直ぐ) の持ち方
+VERTICAL_ITEMS = {
+    "abyss_staff", "abyss_void_staff", "abyss_wand", "abyss_bow", "abyss_moon_bow",
+    "abyss_rod", "abyss_fishing_rod", "abyss_pickaxe", "abyss_tool_axe",
+    "abyss_shovel", "abyss_hoe", "abyss_ember_flail", "abyss_scythe", "abyss_soul_scythe",
+    "abyss_tome", "abyss_chaos_tome", "abyss_flame_grimoire", "abyss_war_horn",
+    "abyss_depth_gun", "abyss_gauntlet", "abyss_titan_gauntlet", "abyss_howling_claw",
+}
+
 # 3D モデルを持つアイテムの 2D ドット絵 (インベントリ表示用)
 WEAPON_ICONS = {
     "abyss_sword": icons.sword,
@@ -397,8 +406,10 @@ def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: st
     shape_fn(m, palette)
     m.build_texture()
     tex = texture_name or item_id
+    pose = items.VERTICAL_POSE if item_id in VERTICAL_ITEMS else None
+    held_v = item_id not in items.GUI_UPRIGHT_ONLY
     m.texture.save(os.path.join(TEX_DIR, f"{tex}.png"))
-    write_model(item_id, m.model_json(f"abyssalloot:item/{tex}", items.display(kind)))
+    write_model(item_id, m.model_json(f"abyssalloot:item/{tex}", items.display(kind, pose, held_v)))
     write_item_def(item_id)
 
 
