@@ -1,6 +1,291 @@
 {
-  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "abyssalloot:item/abyss_ash_powder"
+    "0": "abyssalloot:item/abyss_ash_powder",
+    "particle": "abyssalloot:item/abyss_ash_powder"
+  },
+  "elements": [
+    {
+      "from": [
+        4.6,
+        4.0,
+        4.6
+      ],
+      "to": [
+        11.4,
+        12.0,
+        11.4
+      ],
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 22
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            3.375,
+            4.0
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            3.375,
+            0.0,
+            6.75,
+            4.0
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            6.75,
+            0.0,
+            10.125,
+            4.0
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            10.125,
+            0.0,
+            13.5,
+            4.0
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            4.0,
+            3.375,
+            7.375
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            3.375,
+            4.0,
+            6.75,
+            7.375
+          ],
+          "texture": "#0"
+        }
+      }
+    },
+    {
+      "from": [
+        6.8,
+        6.4,
+        4.0
+      ],
+      "to": [
+        9.2,
+        9.6,
+        4.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.75,
+            4.0,
+            8.0,
+            5.625
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            8.0,
+            4.0,
+            9.25,
+            5.625
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            9.25,
+            4.0,
+            9.5,
+            5.625
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            9.5,
+            4.0,
+            9.75,
+            5.625
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            9.75,
+            4.0,
+            11.0,
+            4.25
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            11.0,
+            4.0,
+            12.25,
+            4.25
+          ],
+          "texture": "#0"
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
   }
 }
