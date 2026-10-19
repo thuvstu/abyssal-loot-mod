@@ -156,32 +156,32 @@ del _set, _body, _trim
 
 # 素材 (立体モデル化するもの)
 MATERIAL_MODELS = {
-    "soul_shard": (shapes.shard, 0x5cc8ff),
+    "soul_shard": (shapes.crystal, 0x5cc8ff),
     "ancient_stone": (shapes.stone_chunk, 0xf5c542),
     "chaos_gem": (shapes.gem, 0xe34bff),
-    "void_essence": (shapes.gem, 0x7c8cff),
+    "void_essence": (shapes.crystal, 0x7c8cff),
     "abyss_blood_crystal": (shapes.gem, 0xff2a55),
-    "abyss_shadow_stone": (shapes.gem, 0x4a2a6a),
-    "abyss_star_dust": (shapes.shard, 0xbfe9ff),
-    "abyss_wyrm_scale": (shapes.shard, 0x4bd07a),
+    "abyss_shadow_stone": (shapes.stone_chunk, 0x4a2a6a),
+    "abyss_star_dust": (shapes.splinter, 0xbfe9ff),
+    "abyss_wyrm_scale": (shapes.scale_mat, 0x4bd07a),
     "abyss_ancient_core": (shapes.gem, 0xffd700),
-    "abyss_void_piece": (shapes.shard, 0x2a0a3a),
-    "abyss_teardrop": (shapes.shard, 0x7ce8ff),
-    "abyss_ember": (shapes.shard, 0xff8a2b),
-    "abyss_frost_prism": (shapes.gem, 0xaee9ff),
+    "abyss_void_piece": (shapes.splinter, 0x2a0a3a),
+    "abyss_teardrop": (shapes.drop_mat, 0x7ce8ff),
+    "abyss_ember": (shapes.drop_mat, 0xff8a2b),
+    "abyss_frost_prism": (shapes.crystal, 0xaee9ff),
     "abyss_moonstone": (shapes.gem, 0xd8f0ff),
-    "abyss_bone_charm": (shapes.shard, 0xe8e8f2),
-    "abyss_bloodroot": (shapes.shard, 0xff4d6d),
-    "abyss_thunder_thread": (shapes.shard, 0xffe14a),
-    "abyss_venom_sac": (shapes.shard, 0x8ff06e),
+    "abyss_bone_charm": (shapes.bone_mat, 0xe8e8f2),
+    "abyss_bloodroot": (shapes.rose_mat, 0xff4d6d),
+    "abyss_thunder_thread": (shapes.thread_mat, 0xffe14a),
+    "abyss_venom_sac": (shapes.drop_mat, 0x8ff06e),
     "abyss_ash_powder": (shapes.stone_chunk, 0x8a8a95),
-    "abyss_void_splinter": (shapes.shard, 0x8a5cff),
+    "abyss_void_splinter": (shapes.splinter, 0x8a5cff),
     "abyss_gold_vein": (shapes.stone_chunk, 0xffd23c),
-    "abyss_iron_rose": (shapes.shard, 0xd8b8c8),
+    "abyss_iron_rose": (shapes.rose_mat, 0xd8b8c8),
     "abyss_night_pearl": (shapes.gem, 0x9a8ecf),
     "abyss_lava_pearl": (shapes.gem, 0xff5c2a),
-    "abyss_mist_wisp": (shapes.shard, 0x9fd8ff),
-    "abyss_star_seed": (shapes.shard, 0xffe9a8),
+    "abyss_mist_wisp": (shapes.wisp_mat, 0x9fd8ff),
+    "abyss_star_seed": (shapes.drop_mat, 0xffe9a8),
 }
 
 
@@ -475,10 +475,18 @@ def main() -> None:
 
     # --- 防具 (立体 + 2D ドット絵) ---
     for item_id, (fn, base, trim) in ARMOR_MODELS.items():
-        pal = shapes.make_palette(base, "steel")
-        pal["steel"] = shapes.Material("metal", hexcolor(base), metal=0.9, rough=0.3)
-        pal["gold"] = shapes.Material("metal", hexcolor(trim), metal=1.0, rough=0.2)
-        pal["accent"] = shapes.Material("crystal", hexcolor(trim), emissive=True)
+        # 本体色は「色付きの鋼」として薄く混ぜ、装飾色を縁・宝石に回す
+        body = hexcolor(base)
+        tcol = hexcolor(trim)
+        pal = shapes.make_palette(trim, "steel")
+        pal["steel"] = shapes.Material("metal", core.mix((108, 116, 140, 255), body, 0.34), metal=0.95, rough=0.26)
+        pal["dark"] = shapes.Material("metal", core.mix((58, 62, 80, 255), body, 0.30), metal=0.85, rough=0.38)
+        pal["bright"] = shapes.Material("metal", core.mix((186, 196, 220, 255), tcol, 0.16), metal=1.0, rough=0.16)
+        pal["cloth"] = shapes.Material("cloth", body)
+        pal["leather"] = shapes.Material("leather", core.mix((78, 54, 38, 255), body, 0.35))
+        pal["gold"] = shapes.Material("metal", tcol, metal=1.0, rough=0.2)
+        pal["accent"] = shapes.Material("crystal", tcol, emissive=True)
+        pal["accent_dim"] = shapes.Material("crystal", core.shade(tcol, 0.76))
         gen_model(item_id, fn, pal, "armor")
         icon_fn = ARMOR_ICONS.get(item_id)
         if icon_fn is not None:

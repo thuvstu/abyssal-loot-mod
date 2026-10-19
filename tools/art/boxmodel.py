@@ -112,8 +112,10 @@ class Model:
         self.name = name
         self.boxes: list[Box] = []
         self.texture_size = 64
+        self.tpu = TEXELS_PER_UNIT          # 1 モデル単位あたりのテクセル数
         self.uv: dict[tuple[int, str], tuple[int, int, int, int]] = {}  # (box index, face) -> texel rect
         self.texture: Image.Image | None = None
+        self._culled = False
 
     # -- 構築 --
     def add(self, b: Box) -> Box:
@@ -126,40 +128,96 @@ class Model:
     # -- UV / テクスチャ --
     def _face_texel_size(self, b: Box, face):
         fw, fh = b.face_size(face)
-        return (max(1, int(round(fw * TEXELS_PER_UNIT))),
-                max(1, int(round(fh * TEXELS_PER_UNIT))))
+        return (max(1, int(round(fw * self.tpu))),
+                max(1, int(round(fh * self.tpu))))
 
-    def build_texture(self, size: int | None = None) -> Image.Image:
-        """UV を割り当ててテクスチャを焼き付ける。size が足りなければ自動で升格。"""
-        for candidate in ([size] if size else [64, 128, 256]):
-            img, uv = self._pack(candidate)
+    # -- 面カリング (完全に隠れる面を除外してテクスチャを節約) --
+    def cull_hidden_faces(self) -> int:
+        """他の箱に完全に覆われる面を hide に追加する。除外した面数を返す。"""
+        if self._culled:
+            return 0
+        axis_of = {NORTH: 2, SOUTH: 2, EAST: 0, WEST: 0, UP: 1, DOWN: 1}
+        out_of = {NORTH: -1, SOUTH: 1, EAST: 1, WEST: -1, UP: 1, DOWN: -1}
+        eps = 0.02
+        removed = 0
+        for i, a in enumerate(self.boxes):
+            if a.rotation:
+                continue
+            for face in FACE_ORDER:
+                if face in a.hide:
+                    continue
+                axis = axis_of[face]
+                out = out_of[face]
+                plane = a.frm[axis] if out < 0 else a.to[axis]
+                u, v = [k for k in (0, 1, 2) if k != axis]
+                lo = (a.frm[u], a.frm[v])
+                hi = (a.to[u], a.to[v])
+                for j, o in enumerate(self.boxes):
+                    if j == i or o.rotation:
+                        continue
+                    if out > 0:
+                        if abs(o.frm[axis] - plane) > eps:
+                            continue
+                    else:
+                        if abs(o.to[axis] - plane) > eps:
+                            continue
+                    if (o.frm[u] <= lo[0] + eps and o.to[u] >= hi[0] - eps
+                            and o.frm[v] <= lo[1] + eps and o.to[v] >= hi[1] - eps):
+                        a.hide = a.hide + (face,)
+                        removed += 1
+                        break
+        self._culled = True
+        return removed
+
+    def build_texture(self, size: int | None = None, max_size: int = 128) -> Image.Image:
+        """UV を割り当ててテクスチャを焼き付ける。
+
+        解像度は 64 → 128 の順に試し、収まらない場合はテクセル密度を落として
+        128 に押し込む (テクスチャアトラスを圧迫しないため)。
+        """
+        self.cull_hidden_faces()
+        if size:
+            combos = [(size, TEXELS_PER_UNIT)]
+        else:
+            combos = [(64, TEXELS_PER_UNIT), (max_size, TEXELS_PER_UNIT)]
+            if max_size > 64:
+                combos += [(max_size, 3), (max_size, 2)]
+        for cand, tpu in combos:
+            self.tpu = tpu
+            img, uv = self._pack(cand)
             if img is not None:
-                self.texture_size = candidate
+                self.texture_size = cand
                 self.uv = uv
                 self.texture = img
                 return img
         raise RuntimeError(f"{self.name}: テクスチャに収まりません")
 
-    def _pack(self, size: int):
+    def _pack(self, size: int, pad: int = 1):
         packer = _Packer(size, size)
         uv = {}
         placed = []
+        # 大きな面から先に詰める (シェルフパッカーの充填率を上げる)
+        items = []
         for bi, b in enumerate(self.boxes):
             for face in FACE_ORDER:
                 if face in b.hide:
                     continue
                 tw, th = self._face_texel_size(b, face)
-                r = packer.place(tw, th)
-                if r is None:
-                    return None, None
-                uv[(bi, face)] = r
-                placed.append((bi, face, r))
+                items.append((th, tw, bi, face))
+        items.sort(reverse=True)
+        for th, tw, bi, face in items:
+            r = packer.place(tw + pad, th + pad)
+            if r is None:
+                return None, None
+            r = (r[0], r[1], r[0] + tw, r[1] + th)
+            uv[(bi, face)] = r
+            placed.append((bi, face, r))
 
         img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
         for bi, face, r in placed:
             b = self.boxes[bi]
             seed = (bi * 31 + FACE_ORDER.index(face) * 7 + hash(b.name) % 97) & 0xFFFF
-            paint_face(img, r, b.mat, face, seed)
+            paint_face(img, r, b.mat, face, seed, b.size())
         return img, uv
 
     def uv_json(self, bi: int, face: str):
