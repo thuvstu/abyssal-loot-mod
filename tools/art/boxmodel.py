@@ -338,6 +338,20 @@ def render_preview(model: Model, view: str = "gui", size: int = 256, background=
 
         def proj(p):
             return ((p[0] + 0.5) * size, (0.5 - p[1]) * size)
+    elif view == "front":
+        m = display_matrix({"rotation": [0, 0, 0], "scale": [1, 1, 1]})
+        quads = _collect_quads(model, m, scale_to_blocks=True)
+        xs = [p[0] for q in quads for p in q[0]]
+        ys = [p[1] for q in quads for p in q[0]]
+        x0, x1 = (min(xs), max(xs)) if xs else (0, 1)
+        y0, y1 = (min(ys), max(ys)) if ys else (0, 1)
+        sx = size / max(1e-6, (x1 - x0))
+        sy = size / max(1e-6, (y1 - y0))
+        s = min(sx, sy)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+
+        def proj(p):
+            return (size / 2 + (p[0] - cx) * s, size / 2 - (p[1] - cy) * s)
     else:
         m = display_matrix({"rotation": [22, 34, 0], "scale": [1, 1, 1]})
         quads = _collect_quads(model, m, scale_to_blocks=True)
@@ -369,7 +383,8 @@ def _collect_quads(model: Model, m, scale_to_blocks: bool = True, offset=(0, 0, 
                 p = (c[0] / 16.0, c[1] / 16.0, c[2] / 16.0) if scale_to_blocks else c
                 p = _apply(m, p)
                 pts.append((p[0] + offset[0], p[1] + offset[1], p[2] + offset[2]))
-            uvs = [(r[0], r[1]), (r[2], r[1]), (r[2], r[3]), (r[0], r[3])]
+            # 頂点順 (左上, 左下, 右下, 右上) にUV を合わせる (MC の FaceInfo と同じ)
+            uvs = [(r[0], r[1]), (r[0], r[3]), (r[2], r[3]), (r[2], r[1])]
             quads.append((pts, uvs))
     return quads
 
@@ -410,7 +425,7 @@ def _ortho(size):
 
 
 def _draw_textured_quad(img: Image.Image, sp, uvs, tex):
-    """重心座標でテクスチャを貼り付ける 1 枚ポリゴン。"""
+    """重心座標でテクスチャを貼り付ける 1 枚ポリゴン (三角形 2 つに分割)。"""
     (x0, y0), (x1, y1), (x2, y2), (x3, y3) = sp
     (u0, v0), (u1, v1), (u2, v2), (u3, v3) = uvs
     minx = max(0, int(min(x0, x1, x2, x3)))
@@ -419,26 +434,37 @@ def _draw_textured_quad(img: Image.Image, sp, uvs, tex):
     maxy = min(img.height - 1, int(max(y0, y1, y2, y3)) + 1)
     if maxx < minx or maxy < miny:
         return
-    det = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
-    if abs(det) < 1e-6:
-        return
     px = tex.load()
+
+    def bary(pxc, pyc, ax, ay, bx, by, cx, cy):
+        det = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+        if abs(det) < 1e-9:
+            return None
+        a = ((by - cy) * (pxc - cx) + (cx - bx) * (pyc - cy)) / det
+        b = ((cy - ay) * (pxc - cx) + (ax - cx) * (pyc - cy)) / det
+        c = 1.0 - a - b
+        return a, b, c
+
     for y in range(miny, maxy + 1):
         for x in range(minx, maxx + 1):
             pxc, pyc = x + 0.5, y + 0.5
-            l0 = ((y1 - y2) * (pxc - x2) + (x2 - x1) * (pyc - y2)) / det
-            l1 = ((y2 - y3) * (pxc - x2) + (x3 - x2) * (pyc - y2)) / det
-            l2 = 1.0 - l0 - l1
-            if l0 < -0.02 or l1 < -0.02 or l2 < -0.02:
-                continue
-            l0, l1, l2 = max(0.0, l0), max(0.0, l1), max(0.0, l2)
-            u = l0 * u0 + l1 * u1 + l2 * u2
-            v = l0 * v0 + l1 * v1 + l2 * v2
+            w = bary(pxc, pyc, x0, y0, x1, y1, x2, y2)
+            if w is not None and w[0] >= -0.02 and w[1] >= -0.02 and w[2] >= -0.02:
+                a, b, c = w
+                u = a * u0 + b * u1 + c * u2
+                v = a * v0 + b * v1 + c * v2
+            else:
+                w = bary(pxc, pyc, x0, y0, x2, y2, x3, y3)
+                if w is None or w[0] < -0.02 or w[1] < -0.02 or w[2] < -0.02:
+                    continue
+                a, b, c = w
+                u = a * u0 + b * u2 + c * u3
+                v = a * v0 + b * v2 + c * v3
             tx = int(min(tex.width - 1, max(0, round(u - 0.5))))
             ty = int(min(tex.height - 1, max(0, round(v - 0.5))))
-            c = px[tx, ty]
-            if c[3] > 0:
-                img.putpixel((x, y), c)
+            col = px[tx, ty]
+            if col[3] > 0:
+                img.putpixel((x, y), col)
 
 
 def write_model(path: str, data: dict) -> None:

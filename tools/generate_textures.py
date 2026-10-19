@@ -23,15 +23,29 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image
 
-from art import boxmodel, core, entities, icons, items, shapes
+from art import boxmodel, core, entities, equipment, icons, items, shapes
 from art.core import hexcolor
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 ASSETS = os.path.join(ROOT, "src", "main", "resources", "assets", "abyssalloot")
 TEX_DIR = os.path.join(ASSETS, "textures", "item")
 ENT_DIR = os.path.join(ASSETS, "textures", "entity")
+EQP_DIR = os.path.join(ASSETS, "textures", "entity", "equipment", "humanoid")
 MODEL_DIR = os.path.join(ASSETS, "models", "item")
 ITEM_DIR = os.path.join(ASSETS, "items")
+
+# 装備テクスチャ (防具セット = 本体色, 装飾色)
+EQUIPMENT_SETS = {
+    "abyssal": (0x4a3a68, 0xb28ce0),
+    "blood": (0x5a1a26, 0xff4d6d),
+    "ember": (0x5a2a18, 0xff8a3c),
+    "frost": (0x2a4a5a, 0xaee9ff),
+    "moon": (0x3a3a52, 0xd6f0ff),
+    "rock": (0x4a4438, 0xc9a227),
+    "shadow": (0x2a2038, 0x8a7cff),
+    "star": (0x2a3a4a, 0x7ce8ff),
+    "storm": (0x3a3a3a, 0xffe14a),
+}
 
 
 # ================================================================= 立体モデル
@@ -328,9 +342,19 @@ def main() -> None:
         img = entities.entity_tex(hexcolor(base), hexcolor(accent), pattern)
         img.save(os.path.join(ENT_DIR, f"{ent_id}.png"))
 
+    # --- 装備 (プレイヤーの防具) ---
+    for _set, (_base, _trim) in EQUIPMENT_SETS.items():
+        base_c = hexcolor(_base)
+        trim_c = hexcolor(_trim)
+        acc_c = hexcolor(_trim)
+        equipment.equipment_tex(base_c, trim_c, acc_c).save(
+            os.path.join(EQP_DIR, f"{_set}.png"))
+        equipment.equipment_tex(base_c, trim_c, acc_c, leggings=True).save(
+            os.path.join(EQP_DIR, f"{_set}_leggings.png"))
+
     print(f"generated {len(WEAPON_MODELS)} weapon models, {len(ARMOR_MODELS)} armor models, "
           f"{len(MATERIAL_MODELS)} material models, {len(CONSUMABLES)} icons, "
-          f"{len(entities.ENTITIES)} entity textures")
+          f"{len(entities.ENTITIES)} entity textures, {len(EQUIPMENT_SETS) * 2} equipment textures")
 
 
 def read_weapon_styles() -> list[tuple[str, int]]:
