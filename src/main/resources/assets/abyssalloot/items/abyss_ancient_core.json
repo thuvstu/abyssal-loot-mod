@@ -1,6 +1,37 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "abyssalloot:item/abyss_ancient_core"
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": [
+          "gui"
+        ],
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_ancient_core_icon"
+        }
+      },
+      {
+        "when": [
+          "firstperson_righthand",
+          "firstperson_lefthand",
+          "thirdperson_righthand",
+          "thirdperson_lefthand",
+          "ground",
+          "fixed",
+          "head",
+          "on_shelf"
+        ],
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_ancient_core"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "abyssalloot:item/abyss_ancient_core"
+    }
   }
 }

@@ -1,6 +1,37 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "abyssalloot:item/abyss_thunder_thread"
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": [
+          "gui"
+        ],
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_thunder_thread_icon"
+        }
+      },
+      {
+        "when": [
+          "firstperson_righthand",
+          "firstperson_lefthand",
+          "thirdperson_righthand",
+          "thirdperson_lefthand",
+          "ground",
+          "fixed",
+          "head",
+          "on_shelf"
+        ],
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_thunder_thread"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "abyssalloot:item/abyss_thunder_thread"
+    }
   }
 }

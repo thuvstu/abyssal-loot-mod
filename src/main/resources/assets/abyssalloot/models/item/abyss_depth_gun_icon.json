@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "abyssalloot:item/abyss_depth_gun_icon"
+  }
+}

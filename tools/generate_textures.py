@@ -38,9 +38,9 @@ ITEM_DIR = os.path.join(ASSETS, "items")
 EQUIPMENT_SETS = {
     "abyssal": (0x4a3a68, 0xb28ce0),
     "blood": (0x5a1a26, 0xff4d6d),
-    "ember": (0x5a2a18, 0xff8a3c),
+    "ember": (0x5a2a18, 0xff6a2b),
     "frost": (0x2a4a5a, 0xaee9ff),
-    "moon": (0x3a3a52, 0xd6f0ff),
+    "moon": (0x3a3a52, 0xa8e8ff),
     "rock": (0x4a4438, 0xc9a227),
     "shadow": (0x2a2038, 0x8a7cff),
     "star": (0x2a3a4a, 0x7ce8ff),
@@ -130,25 +130,29 @@ WEAPON_MODELS = {
     "abyss_shears": (shapes.shears, 0xb28ce0, "steel", "weapon"),
 }
 
-# 防具: (形状, 本体の色, 装飾色)
+# 防具セット: (本体色, 装飾色) — GameData.ArmorSet の color / accent に対応
+ARMOR_SETS = {
+    "blood": (0xff4d6d, 0xffd0d8),
+    "shadow": (0x8a7cff, 0xe0d8ff),
+    "rock": (0xc9a227, 0xffe9a8),
+    "star": (0x7ce8ff, 0xe0f8ff),
+    "frost": (0xaee9ff, 0xe8f8ff),
+    "storm": (0xffe14a, 0xfff2c9),
+    "moon": (0xa8e8ff, 0xeaffff),
+    "ember": (0xff6a2b, 0xffd0a0),
+}
 ARMOR_MODELS = {
     "abyss_helm": (shapes.helm, 0xb28ce0, 0xd8b0ff),
     "abyss_chest": (shapes.chest, 0xb28ce0, 0xd8b0ff),
     "abyss_legs": (shapes.legs, 0xb28ce0, 0xd8b0ff),
     "abyss_boots": (shapes.boots, 0xb28ce0, 0xd8b0ff),
 }
-SET_COLORS = {
-    "blood": (0xffd0d8, 0xff4d6d),
-    "shadow": (0xe0d8ff, 0x8a7cff),
-    "rock": (0xffe9a8, 0xc9a227),
-    "star": (0xe0f8ff, 0x7ce8ff),
-}
-for _set, (_acc, _trim) in SET_COLORS.items():
-    ARMOR_MODELS[f"abyss_{_set}_helm"] = (shapes.helm, _acc, _trim)
-    ARMOR_MODELS[f"abyss_{_set}_chest"] = (shapes.chest, _acc, _trim)
-    ARMOR_MODELS[f"abyss_{_set}_legs"] = (shapes.legs, _acc, _trim)
-    ARMOR_MODELS[f"abyss_{_set}_boots"] = (shapes.boots, _acc, _trim)
-del _set, _acc, _trim
+for _set, (_body, _trim) in ARMOR_SETS.items():
+    ARMOR_MODELS[f"abyss_{_set}_helm"] = (shapes.helm, _body, _trim)
+    ARMOR_MODELS[f"abyss_{_set}_chest"] = (shapes.chest, _body, _trim)
+    ARMOR_MODELS[f"abyss_{_set}_legs"] = (shapes.legs, _body, _trim)
+    ARMOR_MODELS[f"abyss_{_set}_boots"] = (shapes.boots, _body, _trim)
+del _set, _body, _trim
 
 # 素材 (立体モデル化するもの)
 MATERIAL_MODELS = {
@@ -258,20 +262,133 @@ CONSUMABLES = {
 
 SOUL_SHARD_STATES = ("soul_shard_pouch", "soul_shard_bale", "soul_shard_core")
 
+# 宝石系の素材 (2D は gem アイコン)
+GEM_MATERIALS = {
+    "chaos_gem", "void_essence", "abyss_blood_crystal", "abyss_shadow_stone",
+    "abyss_star_dust", "abyss_wyrm_scale", "abyss_ancient_core", "abyss_void_piece",
+    "abyss_frost_prism", "abyss_moonstone", "abyss_night_pearl", "abyss_lava_pearl",
+}
+
+# 防具の 2D ドット絵 (部位で関数が違う)
+ARMOR_ICONS = {
+    "abyss_helm": icons.helm,
+    "abyss_chest": icons.chest,
+    "abyss_legs": icons.legs,
+    "abyss_boots": icons.boots,
+}
+for _set in ARMOR_SETS:
+    ARMOR_ICONS[f"abyss_{_set}_helm"] = icons.helm
+    ARMOR_ICONS[f"abyss_{_set}_chest"] = icons.chest
+    ARMOR_ICONS[f"abyss_{_set}_legs"] = icons.legs
+    ARMOR_ICONS[f"abyss_{_set}_boots"] = icons.boots
+del _set
+
+# 3D モデルを持つアイテムの 2D ドット絵 (インベントリ表示用)
+WEAPON_ICONS = {
+    "abyss_sword": icons.sword,
+    "abyss_greatsword": icons.greatsword,
+    "abyss_rune_blade": icons.rune_blade,
+    "abyss_rift_blade": icons.rift_blade,
+    "abyss_wind_blade": icons.wind_blade,
+    "abyss_echo_katana": icons.echo_katana,
+    "abyss_katana": icons.katana,
+    "abyss_frost_katana": icons.frost_katana,
+    "abyss_dagger": icons.dagger,
+    "abyss_fang_dagger": icons.fang_dagger,
+    "abyss_twin_dagger": icons.twin_dagger,
+    "abyss_axe": icons.axe,
+    "abyss_blood_axe": icons.blood_axe,
+    "abyss_tool_axe": icons.tool_axe,
+    "abyss_pickaxe": icons.pickaxe,
+    "abyss_shovel": icons.shovel,
+    "abyss_hoe": icons.hoe,
+    "abyss_spear": icons.spear,
+    "abyss_storm_spear": icons.storm_spear,
+    "abyss_astral_lance": icons.astral_lance,
+    "abyss_meteor_lance": icons.meteor_lance,
+    "abyss_tide_trident": icons.tide_trident,
+    "abyss_rod": icons.rod,
+    "abyss_fishing_rod": icons.fishing_rod,
+    "abyss_staff": icons.staff,
+    "abyss_void_staff": icons.void_staff,
+    "abyss_wand": icons.wand,
+    "abyss_hammer": icons.hammer,
+    "abyss_quake_hammer": icons.quake_hammer,
+    "abyss_moon_mace": icons.moon_mace,
+    "abyss_bow": icons.bow,
+    "abyss_moon_bow": icons.moon_bow,
+    "abyss_scythe": icons.scythe,
+    "abyss_soul_scythe": icons.soul_scythe,
+    "abyss_venom_whip": icons.venom_whip,
+    "abyss_ember_flail": icons.ember_flail,
+    "abyss_chakram": icons.chakram,
+    "abyss_eclipse_chakram": icons.eclipse_chakram,
+    "abyss_tome": icons.tome,
+    "abyss_chaos_tome": icons.chaos_tome,
+    "abyss_flame_grimoire": icons.flame_grimoire,
+    "abyss_gauntlet": icons.gauntlet,
+    "abyss_titan_gauntlet": icons.titan_gauntlet,
+    "abyss_howling_claw": icons.howling_claw,
+    "abyss_war_horn": icons.war_horn,
+    "abyss_depth_gun": icons.depth_gun,
+    "abyss_shears": icons.shears,
+}
+
+# 素材 (2D)
+MATERIAL_ICONS = {
+    "soul_shard": icons.shard,
+    "ancient_stone": icons.ancient_stone,
+    "chaos_gem": None,       # gem() は (outer, inner) なので個別処理
+    "void_essence": None,
+    "abyss_blood_crystal": None,
+    "abyss_shadow_stone": None,
+    "abyss_star_dust": None,
+    "abyss_wyrm_scale": None,
+    "abyss_ancient_core": None,
+    "abyss_void_piece": None,
+}
+
+# インベントリ (GUI) 用の 2D ドット絵
+GUI_CONTEXTS = ["gui"]
+HELD_CONTEXTS = [
+    "firstperson_righthand", "firstperson_lefthand",
+    "thirdperson_righthand", "thirdperson_lefthand",
+    "ground", "fixed", "head", "on_shelf",
+]
+
 
 # ================================================================= 生成
-
-def write_item_def(item_id: str) -> None:
-    data = {"model": {"type": "minecraft:model", "model": f"abyssalloot:item/{item_id}"}}
-    with io.open(os.path.join(ITEM_DIR, f"{item_id}.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-
 
 def write_model(item_id: str, data: dict) -> None:
     with io.open(os.path.join(MODEL_DIR, f"{item_id}.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
+
+
+def write_item_def(item_id: str, model: dict | None = None) -> None:
+    """アイテム定義。model を省略すると通常の models/item 参照。"""
+    if model is None:
+        model = {"type": "minecraft:model", "model": f"abyssalloot:item/{item_id}"}
+    data = {"model": model}
+    with io.open(os.path.join(ITEM_DIR, f"{item_id}.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
+def write_select_def(item_id: str, icon_model: str) -> None:
+    """所持時=3D / インベントリ=2D ドット絵 にする定義。"""
+    select = {
+        "type": "minecraft:select",
+        "property": "minecraft:display_context",
+        "cases": [
+            {"when": GUI_CONTEXTS,
+             "model": {"type": "minecraft:model", "model": f"abyssalloot:item/{icon_model}"}},
+            {"when": HELD_CONTEXTS,
+             "model": {"type": "minecraft:model", "model": f"abyssalloot:item/{item_id}"}},
+        ],
+        "fallback": {"type": "minecraft:model", "model": f"abyssalloot:item/{item_id}"},
+    }
+    write_item_def(item_id, select)
 
 
 def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: str | None = None) -> None:
@@ -286,7 +403,7 @@ def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: st
 
 
 def gen_icon(item_id: str, fn, color) -> None:
-    """2D アイコンを生成する (立体的な ambush 加工あり)。"""
+    """2D アイコンを生成する (立体的な縁取り加工あり)。"""
     img = fn(hexcolor(color))
     img = core.emboss(img)
     img.save(os.path.join(TEX_DIR, f"{item_id}.png"))
@@ -297,27 +414,70 @@ def gen_icon(item_id: str, fn, color) -> None:
     write_item_def(item_id)
 
 
+def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
+    """3D アイテム用の 2D ドット絵 (インベントリ表示)。"""
+    icon_id = f"{item_id}_icon"
+    if trim is None:
+        img = fn(hexcolor(color))
+    else:
+        img = fn(hexcolor(color), hexcolor(trim))
+    img = core.emboss(img)
+    img.save(os.path.join(TEX_DIR, f"{icon_id}.png"))
+    write_model(icon_id, {
+        "parent": "minecraft:item/generated",
+        "textures": {"layer0": f"abyssalloot:item/{icon_id}"},
+    })
+    write_select_def(item_id, icon_id)
+
+
+def gen_material_icon(item_id: str, color: int) -> None:
+    """素材の 2D ドット絵 (インベントリ表示)。"""
+    icon_id = f"{item_id}_icon"
+    if item_id == "soul_shard":
+        img = icons.shard()
+    elif item_id == "ancient_stone":
+        img = icons.ancient_stone(hexcolor(color))
+    elif item_id in GEM_MATERIALS:
+        img = icons.gem(hexcolor(color), (230, 240, 255, 255))
+    else:
+        img = icons._mats3_tex(hexcolor(color))
+    img = core.emboss(img)
+    img.save(os.path.join(TEX_DIR, f"{icon_id}.png"))
+    write_model(icon_id, {
+        "parent": "minecraft:item/generated",
+        "textures": {"layer0": f"abyssalloot:item/{icon_id}"},
+    })
+    write_select_def(item_id, icon_id)
+
+
 def main() -> None:
     for d in (TEX_DIR, ENT_DIR, MODEL_DIR, ITEM_DIR):
         os.makedirs(d, exist_ok=True)
 
-    # --- 武器 (立体) ---
+    # --- 武器 (立体 + 2D ドット絵) ---
     for item_id, (fn, color, style, kind) in WEAPON_MODELS.items():
         pal = shapes.make_palette(color, style)
         gen_model(item_id, fn, pal, kind)
+        icon_fn = WEAPON_ICONS.get(item_id)
+        if icon_fn is not None:
+            gen_2d_icon(item_id, icon_fn, color)
 
-    # --- 防具 (立体) ---
+    # --- 防具 (立体 + 2D ドット絵) ---
     for item_id, (fn, base, trim) in ARMOR_MODELS.items():
         pal = shapes.make_palette(base, "steel")
         pal["steel"] = shapes.Material("metal", hexcolor(base), metal=0.9, rough=0.3)
         pal["gold"] = shapes.Material("metal", hexcolor(trim), metal=1.0, rough=0.2)
         pal["accent"] = shapes.Material("crystal", hexcolor(trim), emissive=True)
         gen_model(item_id, fn, pal, "armor")
+        icon_fn = ARMOR_ICONS.get(item_id)
+        if icon_fn is not None:
+            gen_2d_icon(item_id, icon_fn, trim, base)
 
-    # --- 素材 (立体) ---
+    # --- 素材 (立体 + 2D ドット絵) ---
     for item_id, (fn, color) in MATERIAL_MODELS.items():
         pal = shapes.make_palette(color)
         gen_model(item_id, fn, pal, "flat")
+        gen_material_icon(item_id, color)
 
     # --- 消耗品 (2D) ---
     for item_id, (fn, color) in CONSUMABLES.items():

@@ -38,12 +38,27 @@ def main() -> int:
 
         # アイテム定義
         def_path = os.path.join(ITEM_DIR, f"{item_id}.json")
+        is_icon = item_id.endswith("_icon")
         if not os.path.exists(def_path):
-            errors.append(f"{item_id}: アイテム定義が無い")
+            if not is_icon:
+                errors.append(f"{item_id}: アイテム定義が無い")
         else:
             with io.open(def_path, encoding="utf-8") as f:
                 idef = json.load(f)
-            if idef.get("model", {}).get("model") != f"abyssalloot:item/{item_id}":
+            mdl = idef.get("model", {})
+            if mdl.get("type") == "minecraft:select":
+                # 所持=3D / GUI=2D の切替。参照先モデルの存在を確認
+                for case in mdl.get("cases", []):
+                    ref = case.get("model", {}).get("model", "")
+                    if not ref.startswith("abyssalloot:"):
+                        errors.append(f"{item_id}: select の参照先が不正 {ref}")
+                        continue
+                    target = ref.split(":", 1)[1].split("/")[-1]
+                    if not os.path.exists(os.path.join(MODEL_DIR, f"{target}.json")):
+                        errors.append(f"{item_id}: select の参照モデルが無い {ref}")
+                if len(mdl.get("cases", [])) < 2:
+                    errors.append(f"{item_id}: select の cases が 2 未満")
+            elif not is_icon and mdl.get("model") != f"abyssalloot:item/{item_id}":
                 errors.append(f"{item_id}: アイテム定義の参照先が違う")
 
         # テクスチャの実在

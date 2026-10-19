@@ -10,13 +10,15 @@ from .boxmodel import Model
 GUI_TILT = -30.0
 
 # --- 一人称: 右手で構え、刃先が左上を向く ---
-FP_ROT = (12.0, 0.0, 28.0)
-FP_TRANS = (-5.0, 5.0, 0.0)
-FP_SCALE = 0.72
+# 柄が手の位置 (0.62, -0.55, -0.70) に来るように平行移動し、刀身は画面左上へ向ける。
+FP_ROT = (10.0, -10.0, 32.0)
+FP_TRANS = (-0.5, 1.9, 0.5)
+FP_SCALE = 0.7
 
-TP_ROT = (0.0, -14.0, -18.0)
-TP_TRANS = (0.0, 2.6, 0.0)
-TP_SCALE = 0.62
+# --- 三人称: 腰高でやや前方に構える ---
+TP_ROT = (0.0, -18.0, -22.0)
+TP_TRANS = (0.0, -5.5, 0.5)
+TP_SCALE = 0.8
 
 
 def display(kind: str = "weapon") -> dict:
