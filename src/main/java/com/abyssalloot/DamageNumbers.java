@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +70,16 @@ public final class DamageNumbers {
     public static void show(ServerPlayer attacker, LivingEntity target, float damage, boolean crit) {
         if (damage <= 0) return;
         if (!(attacker.level() instanceof ServerLevel level)) return;
+        // 攻撃者の反対側 (敵の影側) に表示する。攻撃の邪魔をしないように
+        double dx = target.getX() - attacker.getX();
+        double dz = target.getZ() - attacker.getZ();
+        double len = Math.sqrt(dx * dx + dz * dz);
+        double ox = len > 1e-4 ? dx / len * 0.55 : 0;
+        double oz = len > 1e-4 ? dz / len * 0.55 : 0;
         spawn(attacker, target.getUUID(),
-                target.getX() + (attacker.getRandom().nextDouble() - 0.5) * 0.7,
+                target.getX() + ox + (attacker.getRandom().nextDouble() - 0.5) * 0.4,
                 target.getY() + target.getBbHeight() * 0.65,
-                target.getZ() + (attacker.getRandom().nextDouble() - 0.5) * 0.7,
+                target.getZ() + oz + (attacker.getRandom().nextDouble() - 0.5) * 0.4,
                 label(damage, crit), damage, crit);
     }
 
@@ -79,9 +87,10 @@ public final class DamageNumbers {
     public static void showHeal(ServerPlayer player, float amount) {
         if (amount <= 0.5f) return;
         if (!(player.level() instanceof ServerLevel level)) return;
+        // 頭の上に表示する (自分の攻撃を邪魔しないため)
         spawn(player, HEAL_KEY,
                 player.getX() + (player.getRandom().nextDouble() - 0.5) * 0.6,
-                player.getY() + player.getBbHeight() * 0.9,
+                player.getY() + player.getBbHeight() + 0.35,
                 player.getZ() + (player.getRandom().nextDouble() - 0.5) * 0.6,
                 Component.literal("+" + Math.round(amount)).withStyle(st -> st
                         .withColor(ChatFormatting.GREEN).withBold(true)),
@@ -128,8 +137,20 @@ public final class DamageNumbers {
         stand.setInvulnerable(true);
         stand.setCustomName(text);
         stand.setCustomNameVisible(true);
+        stand.addTag(TAG);
         level.addFreshEntity(stand);
         ACTIVE.add(new Active(attacker.getUUID(), mergeKey, stand, amount, crit, mergeKey == HEAL_KEY));
+    }
+
+    /** 浮遊数字アーマースタンドの識別タグ (誤って掴거나開かれたりしないようにする) */
+    public static final String TAG = "abyss_damage_number";
+
+    /** 数字表示の誤操作を防ぐ (アーマースタンドのGUIを開かせない) */
+    @SubscribeEvent
+    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (event.getTarget() != null && event.getTarget().getTags().contains(TAG)) {
+            event.setCanceled(true);
+        }
     }
 
     /** 毎tick: 浮遊表示の上昇と寿命管理 */

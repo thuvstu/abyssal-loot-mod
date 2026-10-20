@@ -46,8 +46,9 @@ public final class TransferGate {
         BlockPos base = findSpot(player);
         if (base == null) return;
         build(level, base);
-        player.setData(ModAttachments.GATE.get(),
-                base.getX() + "," + base.getY() + "," + base.getZ());
+        // ディメンションも保存する (別ディメンションの座標と誤認しないため)
+        player.setData(ModAttachments.GATE.get(), level.dimension().identifier().toString()
+                + "," + base.getX() + "," + base.getY() + "," + base.getZ());
         level.playSound(null, base, SoundEvents.PORTAL_TRIGGER, SoundSource.PLAYERS, 0.7f, 1.4f);
     }
 
@@ -55,7 +56,7 @@ public final class TransferGate {
     public static void close(ServerPlayer player) {
         String raw = player.getData(ModAttachments.GATE.get());
         if (raw == null || raw.isBlank()) return;
-        BlockPos base = parse(raw);
+        BlockPos base = parse(raw, player);
         if (base != null && player.level() instanceof ServerLevel level) {
             clear(level, base);
         }
@@ -112,9 +113,9 @@ public final class TransferGate {
 
     /* ---------------- 内部処理 ---------------- */
 
-    /** 門の基準座標 (未設置なら null) */
+    /** 門の基準座標 (未設置・別ディメンションなら null) */
     public static BlockPos gateBase(ServerPlayer player) {
-        return parse(player.getData(ModAttachments.GATE.get()));
+        return parse(player.getData(ModAttachments.GATE.get()), player);
     }
 
     /** 設置位置の決定: プレイヤーの近くで、プレイヤーが埋まらない場所を探す */
@@ -191,14 +192,15 @@ public final class TransferGate {
         return inX && inY && inZ;
     }
 
-    /** "x,y,z" の解析 */
-    private static BlockPos parse(String raw) {
+    /** "dim,x,y,z" の解析 (現在いるディメンションと一致しなければ null) */
+    private static BlockPos parse(String raw, ServerPlayer player) {
         if (raw == null || raw.isBlank()) return null;
         String[] p = raw.split(",");
-        if (p.length != 3) return null;
+        if (p.length != 4) return null;
+        if (!p[0].trim().equals(player.level().dimension().identifier().toString())) return null;
         try {
-            return new BlockPos(Integer.parseInt(p[0].trim()), Integer.parseInt(p[1].trim()),
-                    Integer.parseInt(p[2].trim()));
+            return new BlockPos(Integer.parseInt(p[1].trim()), Integer.parseInt(p[2].trim()),
+                    Integer.parseInt(p[3].trim()));
         } catch (NumberFormatException e) {
             return null;
         }
