@@ -6,6 +6,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+
 /**
  * ステータス計算式・属性・汎用ボーナス集計 (RunManager から分離)。
  */
@@ -136,7 +138,23 @@ public final class StatCalc {
         player.setData(ModAttachments.HERO_CLASS.get(), cls.id);
         player.setData(ModAttachments.LEVEL.get(), level);
         var passives = RunManager.passivesOf(player);
-        // 呪い武器の弱点 (主手持ちのみ。呪喰らいで無効化。攻速は attackSpeedPctOf 側で処理)
+        var curse = cursePenaltyOf(player);
+        var wb = wbonusOf(player);
+
+        applyMaxHealth(player, cls, level, passives, curse.hpPct(), wb.maxHpPct());
+        var atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (atk != null) atk.setBaseValue(GameData.heroDamage(cls, level));
+        applyMovementSpeed(player, cls, passives, curse.movePct(), wb.moveSpeedPct());
+        applyAttackSpeed(player, cls);
+        applyReach(player);
+        if (!quiet) {
+            player.displayClientMessage(Component.literal(
+                    "§6職業: " + cls.name + "「" + cls.title + "」 必殺技: " + cls.skillName()), false);
+        }
+    }
+
+    /** 呪い武器の弱点 (主手持ちのみ。呪喰らいで無効化。攻速は attackSpeedPctOf 側で処理) */
+    private static CursePenalty cursePenaltyOf(ServerPlayer player) {
         var held = player.getMainHandItem();
         double curseHp = 0, curseMove = 0;
         if (GearData.curseActive(player, held)) {
@@ -145,11 +163,17 @@ public final class StatCalc {
             if ("maxHpPct".equals(key)) curseHp = val;
             else if ("moveSpeedPct".equals(key)) curseMove = val;
         }
-        // 原作: 剛力+3%/点, 韻律+2%/点, 敏捷+1.5%/点, 忍耐+4%/点, 幸運=会心相当
-        var wb0 = wbonusOf(player);
+        return new CursePenalty(curseHp, curseMove);
+    }
+
+    private record CursePenalty(double hpPct, double movePct) {}
+
+    /** 最大HP (原作: 剛力+3%/点, 忍耐+4%/点, 幸運=会心相当 などの補正を含む) */
+    private static void applyMaxHealth(ServerPlayer player, GameData.HeroClass cls, int level,
+                                       List<String> passives, double curseHp, double wbMaxHpPct) {
         double maxHp = (GameData.heroMaxHp(cls, level) + affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
                 * (1 + attrEff(player, 3) * 0.04) * (1 + RunManager.boonLv(player, "hp") * 0.18)
-                * (1 + wb0.maxHpPct() / 100.0) * (1 + affixPlusExtra(player, "maxHpPct") / 100.0)
+                * (1 + wbMaxHpPct / 100.0) * (1 + affixPlusExtra(player, "maxHpPct") / 100.0)
                 * (1 + GameData.passiveMaxHpPct(passives) / 100.0)
                 * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.01)
                 * (1 + curseHp / 100.0);
@@ -168,45 +192,50 @@ public final class StatCalc {
             attr.setBaseValue(Math.min(1024, maxHp));
             player.setHealth((float) Math.min(attr.getValue(), Math.max(1.0, attr.getValue() * ratio)));
         }
-        var atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (atk != null) atk.setBaseValue(GameData.heroDamage(cls, level));
+    }
+
+    /** 移動速度 (疾走の刻印・靴・兜スキル・技能・呪い) */
+    private static void applyMovementSpeed(ServerPlayer player, GameData.HeroClass cls,
+                                           List<String> passives, double curseMove, double wbMovePct) {
         var spd = player.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (spd != null) {
-            double base = cls.mcMoveSpeed();
-            // 疾走の刻印 +12%/Lv (原作 b_speed)。回避短縮は dash 側で適用
-            double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
-                    + wb0.moveSpeedPct() + affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
-            // 防具スロット能力: 靴=疾走 (常時移動+3%)
-            if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).getItem()) != null) {
-                movePct += 3;
-            }
-            // 防具スキル「迅径の兜」: 常時移動 +8%
-            if ("h_swift".equals(GearData.skillOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD)))) {
-                movePct += 8;
-            }
-            if (passives.contains("swift")) movePct += 25;
-            if (passives.contains("slow_burn")) movePct -= 12;
-            spd.setBaseValue(base * (1 + attrEff(player, 2) * 0.015) * (1 + movePct / 100.0));
+        if (spd == null) return;
+        double base = cls.mcMoveSpeed();
+        // 疾走の刻印 +12%/Lv (原作 b_speed)。回避短縮は dash 側で適用
+        double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
+                + wbMovePct + affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
+        // 防具スロット能力: 靴=疾走 (常時移動+3%)
+        if (ModItems.slotOf(player.getItemBySlot(EquipmentSlot.FEET).getItem()) != null) {
+            movePct += 3;
         }
+        // 防具スキル「迅径の兜」: 常時移動 +8%
+        if ("h_swift".equals(GearData.skillOf(player.getItemBySlot(EquipmentSlot.HEAD)))) {
+            movePct += 8;
+        }
+        if (passives.contains("swift")) movePct += 25;
+        if (passives.contains("slow_burn")) movePct -= 12;
+        spd.setBaseValue(base * (1 + attrEff(player, 2) * 0.015) * (1 + movePct / 100.0));
+    }
+
+    /** 攻撃速度 (韻律・装備補正・収穫スタック) */
+    private static void applyAttackSpeed(ServerPlayer player, GameData.HeroClass cls) {
         var atkSpd = player.getAttribute(Attributes.ATTACK_SPEED);
-        if (atkSpd != null) {
-            double asPct = attackSpeedPctOf(player);
-            // 鎌の収穫スタック (+6%/枚) も含める (refreshAttackSpeed と同一式)
-            atkSpd.setBaseValue(cls.attackSpeed
-                    * (1 + attrEff(player, 1) * 0.02)
-                    * (1 + asPct / 100.0)
-                    * (1 + player.getData(ModAttachments.SCYTHE.get()) * 0.06));
-        }
-        // 攻撃射程 (バニラの ENTITY_INTERACTION_RANGE。素値3m + 射程0.6m/点, 上限8m)
+        if (atkSpd == null) return;
+        double asPct = attackSpeedPctOf(player);
+        // 鎌の収穫スタック (+6%/枚) も含める (refreshAttackSpeed と同一式)
+        atkSpd.setBaseValue(cls.attackSpeed
+                * (1 + attrEff(player, 1) * 0.02)
+                * (1 + asPct / 100.0)
+                * (1 + player.getData(ModAttachments.SCYTHE.get()) * 0.06));
+    }
+
+    /** 攻撃射程 (バニラの ENTITY_INTERACTION_RANGE。素値3m + 射程0.6m/点, 上限8m) */
+    private static void applyReach(ServerPlayer player) {
         var reach = player.getAttribute(Attributes.ENTITY_INTERACTION_RANGE);
         if (reach != null) {
             reach.setBaseValue(Math.min(8.0, 3.0 + reachOf(player) * 0.6));
         }
-        if (!quiet) {
-            player.displayClientMessage(Component.literal(
-                    "§6職業: " + cls.name + "「" + cls.title + "」 必殺技: " + cls.skillName()), false);
-        }
     }
+
 
     /** 攻速の合計% (迅風・武器クラス・接辞・技能・呪い)。applyClass と共有 */
     public static double attackSpeedPctOf(ServerPlayer player) {
