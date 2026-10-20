@@ -9,6 +9,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -131,7 +132,7 @@ public final class SubSkills {
     private static boolean timeCrush(ServerPlayer player, ServerLevel level) {
         var at = player.position();
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                new net.minecraft.world.phys.AABB(at.x - 10, at.y - 5, at.z - 10,
+                new AABB(at.x - 10, at.y - 5, at.z - 10,
                         at.x + 10, at.y + 5, at.z + 10),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {
             e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 3, false, false));
@@ -275,54 +276,59 @@ public final class SubSkills {
     public static void tickWorld(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level)) return;
         long now = level.getGameTime();
+        tickGravityMine(player, level, now);
+        tickGravityWell(player, level, now);
+    }
 
-        // 引力地雷: 敵が3m内に入ったら爆発+引き寄せ。15秒で失効
+    /** 引力地雷: 敵が3m内に入ったら爆発+引き寄せ。15秒で失効 */
+    private static void tickGravityMine(ServerPlayer player, ServerLevel level, long now) {
         Vec3 mine = MINES.get(player.getUUID());
-        if (mine != null) {
-            long until = MINE_UNTIL.getOrDefault(player.getUUID(), 0L);
-            var victims = level.getEntitiesOfClass(LivingEntity.class,
-                    new net.minecraft.world.phys.AABB(mine.x - 3, mine.y - 2, mine.z - 3,
-                            mine.x + 3, mine.y + 2, mine.z + 3),
-                    x -> x.isAlive() && !(x instanceof ServerPlayer));
-            if (!victims.isEmpty() || now >= until) {
-                WeaponArts.pulse(level, player, mine, 3.0, 4.0, false, ParticleTypes.EXPLOSION);
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(mine.x - 8, mine.y - 4, mine.z - 8,
-                                mine.x + 8, mine.y + 4, mine.z + 8),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    Vec3 pull = mine.subtract(e.position()).normalize().scale(1.4);
-                    e.push(pull.x, 0.2, pull.z);
-                }
-                MINES.remove(player.getUUID());
-                MINE_UNTIL.remove(player.getUUID());
-            } else {
-                level.sendParticles(ParticleTypes.END_ROD, mine.x, mine.y + 0.2, mine.z,
-                        2, 0.3, 0.15, 0.3, 0.01);
-            }
-        }
-
-        // 重力井戸: 半径6mの敵を吸引+継続ダメージ。4秒で消滅
-        Vec3 well = WELLS.get(player.getUUID());
-        if (well != null) {
-            long until = WELL_UNTIL.getOrDefault(player.getUUID(), 0L);
-            if (now >= until) {
-                WELLS.remove(player.getUUID());
-                WELL_UNTIL.remove(player.getUUID());
-                WeaponArts.pulse(level, player, well, 4.5, 1.2, false, ParticleTypes.PORTAL);
-                return;
-            }
+        if (mine == null) return;
+        long until = MINE_UNTIL.getOrDefault(player.getUUID(), 0L);
+        var victims = level.getEntitiesOfClass(LivingEntity.class,
+                new AABB(mine.x - 3, mine.y - 2, mine.z - 3,
+                        mine.x + 3, mine.y + 2, mine.z + 3),
+                x -> x.isAlive() && !(x instanceof ServerPlayer));
+        if (!victims.isEmpty() || now >= until) {
+            WeaponArts.pulse(level, player, mine, 3.0, 4.0, false, ParticleTypes.EXPLOSION);
             for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                    new net.minecraft.world.phys.AABB(well.x - 6, well.y - 4, well.z - 6,
-                            well.x + 6, well.y + 4, well.z + 6),
+                    new AABB(mine.x - 8, mine.y - 4, mine.z - 8,
+                            mine.x + 8, mine.y + 4, mine.z + 8),
                     x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                Vec3 pull = well.subtract(e.position()).normalize().scale(0.35);
-                e.push(pull.x, 0.1, pull.z);
-                WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), 0.5f);
+                Vec3 pull = mine.subtract(e.position()).normalize().scale(1.4);
+                e.push(pull.x, 0.2, pull.z);
             }
-            level.sendParticles(ParticleTypes.REVERSE_PORTAL, well.x, well.y + 1, well.z,
-                    8, 1.5, 1.5, 1.5, 0.1);
+            MINES.remove(player.getUUID());
+            MINE_UNTIL.remove(player.getUUID());
+        } else {
+            level.sendParticles(ParticleTypes.END_ROD, mine.x, mine.y + 0.2, mine.z,
+                    2, 0.3, 0.15, 0.3, 0.01);
         }
     }
+
+    /** 重力井戸: 半径6mの敵を吸引+継続ダメージ。4秒で消滅 */
+    private static void tickGravityWell(ServerPlayer player, ServerLevel level, long now) {
+        Vec3 well = WELLS.get(player.getUUID());
+        if (well == null) return;
+        long until = WELL_UNTIL.getOrDefault(player.getUUID(), 0L);
+        if (now >= until) {
+            WELLS.remove(player.getUUID());
+            WELL_UNTIL.remove(player.getUUID());
+            WeaponArts.pulse(level, player, well, 4.5, 1.2, false, ParticleTypes.PORTAL);
+            return;
+        }
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                new AABB(well.x - 6, well.y - 4, well.z - 6,
+                        well.x + 6, well.y + 4, well.z + 6),
+                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+            Vec3 pull = well.subtract(e.position()).normalize().scale(0.35);
+            e.push(pull.x, 0.1, pull.z);
+            WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), 0.5f);
+        }
+        level.sendParticles(ParticleTypes.REVERSE_PORTAL, well.x, well.y + 1, well.z,
+                8, 1.5, 1.5, 1.5, 0.1);
+    }
+
 
     /** 囮の寿命処理は設置時の DelayRunner が担うため廃止。
      * 「敵の注意を引きつける」効果は {@link EnemyAI} の毎tick処理で abyss_decoy タグを検索して実装。 */
@@ -332,7 +338,7 @@ public final class SubSkills {
         LivingEntity best = null;
         double bestD = range * range;
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                new net.minecraft.world.phys.AABB(origin.x - range, origin.y - 5, origin.z - range,
+                new AABB(origin.x - range, origin.y - 5, origin.z - range,
                         origin.x + range, origin.y + 5, origin.z + range),
                 x -> x.isAlive() && !(x instanceof ServerPlayer))) {
             double d = e.position().distanceToSqr(origin);
