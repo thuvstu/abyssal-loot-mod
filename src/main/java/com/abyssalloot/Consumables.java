@@ -98,6 +98,8 @@ public final class Consumables {
     public static boolean useConsumable(ServerPlayer player, String kind) {
         if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return false;
         Vec3 origin = player.position();
+        // 職業の必殺巻物は発動音なしで即時発動する (元の early return と同じ挙動)
+        if (kind.startsWith("skill_demo::")) return castClassScroll(player, kind);
         if (!applyConsumable(player, level, origin, kind)) return false;
         level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.8f, 1.2f);
         return true;
@@ -109,7 +111,6 @@ public final class Consumables {
         if (result == null) result = applyBuffs(player, level, origin, kind);
         if (result == null) result = applyOffensive(player, level, origin, kind);
         if (result == null) result = applyUtility(player, level, origin, kind);
-        if (result == null) result = applyClassScroll(player, kind);
         return Boolean.TRUE.equals(result);
     }
 
@@ -563,8 +564,7 @@ public final class Consumables {
 
 
     /** 職業の必殺巻物: その型の必殺技をCTなしで1度だけ発動 */
-    private static Boolean applyClassScroll(ServerPlayer player, String kind) {
-        if (!kind.startsWith("skill_demo::")) return null;
+    private static boolean castClassScroll(ServerPlayer player, String kind) {
         var castCls = GameData.HeroClass.byId(kind.substring("skill_demo::".length()));
         WeaponArts.executeSkill(player, castCls,
                 StatCalc.attackDamageOf(player) * StatCalc.artMultOf(player));
