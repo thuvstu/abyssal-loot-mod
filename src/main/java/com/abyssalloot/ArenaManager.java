@@ -3,20 +3,15 @@ package com.abyssalloot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-
-
-
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-
-
-
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -48,7 +43,7 @@ public final class ArenaManager {
     }
 
     /** 区域ごとの床ブロック (見た目で深層帯が分かる) */
-    private static net.minecraft.world.level.block.Block floorBlockFor(String zoneId) {
+    private static Block floorBlockFor(String zoneId) {
         return switch (zoneId) {
             case "ossuary" -> Blocks.BONE_BLOCK;
             case "forge" -> Blocks.BLACKSTONE;
@@ -60,7 +55,7 @@ public final class ArenaManager {
     }
 
     /** 区域ごとの障害物ブロック */
-    private static net.minecraft.world.level.block.Block trimBlockFor(String zoneId) {
+    private static Block trimBlockFor(String zoneId) {
         return switch (zoneId) {
             case "ossuary" -> Blocks.QUARTZ_BLOCK;
             case "forge" -> Blocks.MAGMA_BLOCK;
@@ -85,17 +80,28 @@ public final class ArenaManager {
                 center.getX() + "," + center.getY() + "," + center.getZ());
         int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
         String zone = GameData.zoneForFloor(floor).id();
-        var floorBlock = floorBlockFor(zone);
-        var trim = trimBlockFor(zone);
         var rand = player.getRandom();
-        // 床
+        layArenaFloor(level, center, r, floorBlockFor(zone));
+        clearArenaSpace(level, center, r);
+        scatterArenaFeatures(level, center, rand, trimBlockFor(zone));
+        buildArenaWalls(level, center, r);
+        // バリア: 塀上〜天井を不可視ブロックで封鎖 (リタイア・終了まで維持)
+        placeBarriers(level, center);
+        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した (周囲を整地)"), false);
+    }
+
+    /** 円形の区域床を敷く */
+    private static void layArenaFloor(ServerLevel level, BlockPos center, int r, Block floorBlock) {
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 if (x * x + z * z > r * r) continue;
                 level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), 3);
             }
         }
-        // 整地: 場内の地形・樹木を除去 (埋没防止。基盤は残す)
+    }
+
+    /** 整地: 場内の地形・樹木を除去 (埋没防止。基盤は残す) */
+    private static void clearArenaSpace(ServerLevel level, BlockPos center, int r) {
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 if (x * x + z * z > r * r) continue;
@@ -108,7 +114,10 @@ public final class ArenaManager {
                 }
             }
         }
-        // ランダム障害物: 柱・岩塊・棘を 5〜7基 (中央4・湧き輪13〜15を避ける)
+    }
+
+    /** ランダム障害物: 柱・岩塊・棘を 5〜7基 (中央4・湧き輪13〜15を避ける) */
+    private static void scatterArenaFeatures(ServerLevel level, BlockPos center, RandomSource rand, Block trim) {
         int nFeat = 5 + rand.nextInt(3);
         int placed = 0;
         for (int tries = 0; tries < 40 && placed < nFeat; tries++) {
@@ -143,7 +152,10 @@ public final class ArenaManager {
             }
             placed++;
         }
-        // 塀は5段 (ジャンプ・ノックバック越えを防ぐ。飛行等の抜けは収容処理で戻す)
+    }
+
+    /** 塀は5段 (ジャンプ・ノックバック越えを防ぐ。飛行等の抜けは収容処理で戻す) */
+    private static void buildArenaWalls(ServerLevel level, BlockPos center, int r) {
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 if (x * x + z * z <= (r - 2) * (r - 2)) continue;
@@ -153,10 +165,8 @@ public final class ArenaManager {
                 }
             }
         }
-        // バリア: 塀上〜天井を不可視ブロックで封鎖 (リタイア・終了まで維持)
-        placeBarriers(level, center);
-        player.displayClientMessage(Component.literal("§7試練のアリーナを展開した (周囲を整地)"), false);
     }
+
 
     /** 塀上〜天井のバリア配置 */
     public static void placeBarriers(ServerLevel level, BlockPos center) {
