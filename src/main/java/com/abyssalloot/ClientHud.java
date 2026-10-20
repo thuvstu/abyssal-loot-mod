@@ -118,6 +118,33 @@ public final class ClientHud {
         int y = renderCooldowns(g, font, hud, x0, y0 + 38, t, lightCd, skillCd, subCd);
         y = renderKillsAndCombo(g, font, hud, x0, y);
         renderPendingPrompts(g, font, hud, x0, y, blink);
+        // 低HPの警告 (画面周縁が赤く染まる)
+        renderLowHealthWarning(g, hud, g.guiWidth(), g.guiHeight());
+    }
+
+    /** 低HPの警告表現 (HP30%未満で周縁が赤く、HP-critical ほど強い) */
+    private static void renderLowHealthWarning(GuiGraphics g, ModPackets.HudSync hud, int w, int h) {
+        float max = hud.maxHp();
+        if (max <= 0f) return;
+        float ratio = hud.hp() / max;
+        if (ratio >= 0.3f) return;
+        // 30%未満で分级 → 0%付近で最大
+        float danger = Math.min(1f, (0.3f - ratio) / 0.3f);
+        // 鼓動に合わせて明滅させる
+        float pulse = 0.75f + 0.25f * (float) Math.sin(System.currentTimeMillis() / 140.0);
+        int alpha = (int) (danger * 90 * pulse);
+        if (alpha <= 2) return;
+        int band = 16;
+        for (int i = 0; i < 5; i++) {
+            int a = (int) (alpha * (1.0 - i / 5.0));
+            if (a <= 1) continue;
+            int inset = i * band;
+            int color = (a << 24) | 0x00C02020;
+            g.fill(0, inset, w, inset + band, color);
+            g.fill(0, h - inset - band, w, h - inset, color);
+            g.fill(inset, 0, inset + band, h, color);
+            g.fill(w - inset - band, 0, w - inset, h, color);
+        }
     }
 
     /** 魂ゲージ (枠・刻線つき。MAX時は脈動) */
@@ -179,7 +206,7 @@ public final class ClientHud {
         return y;
     }
 
-    /** 撃破数・コンボ。描画後の次行Yを返す */
+    /** 撃破数・コンボ・残存敵数。描画後の次行Yを返す */
     private static int renderKillsAndCombo(GuiGraphics g, Font font, ModPackets.HudSync hud, int x0, int y) {
         g.drawString(font, "撃破 " + hud.kills(), x0, y, 0xFF9FB0C9);
         y += 12;
@@ -187,6 +214,12 @@ public final class ClientHud {
         if (combo >= 10) {
             int comboColor = combo >= 50 ? 0xFFFF8A3C : combo >= 30 ? 0xFFFFD23C : 0xFFFFFFFF;
             g.drawString(font, combo + " 連撃！", x0, y, comboColor);
+            y += 12;
+        }
+        // 残存敵数 (層クリアまでの目標が分かるように)
+        if (hud.waveTotal() > 0 && hud.portalOpen() == 0) {
+            int left = Math.max(0, hud.waveTotal() - hud.floorKills());
+            g.drawString(font, "残存 " + left + " 体", x0, y, 0xFFFFB86B);
             y += 12;
         }
         return y;
@@ -214,7 +247,7 @@ public final class ClientHud {
         // 画面上中央はバニラのボスバー (層主戦)、右上は効果アイコンと被るため
         // 左上のこのゾーンに集約する。バニラHUDと被らない位置は左上 (通常空き) のみ。
         if (hud.portalOpen() != 0 && blink) {
-            g.drawString(font, "◆転移門OPEN! (G→次の層へ)", x0, y, 0xFF7CFFB2);
+            g.drawString(font, "◆転移門OPEN! (門をくぐって次層へ)", x0, y, 0xFF7CFFB2);
         }
     }
 }

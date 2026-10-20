@@ -113,6 +113,9 @@ public final class ModAttachments {
     /** アリーナ中心 "x,y,z" (MOBの脱走収容用。buildArenaで保存) */
     public static final Supplier<AttachmentType<String>> ARENA =
             reg("arena", "", Codec.STRING);
+    /** 転移門の基準座標 "x,y,z" (層クリア時に開く実体の門。空=未設置) */
+    public static final Supplier<AttachmentType<String>> GATE =
+            reg("gate", "", Codec.STRING);
     /** 実行遺物 (原作 RELICS・ラン中最大2つ・"id,...") */
     public static final Supplier<AttachmentType<String>> RELICS =
             reg("relics", "", Codec.STRING);

@@ -527,6 +527,8 @@ public final class RunManager {
 
     /** 戦場の掃除: 前回アリーナのバリア除去・残存MOB消去・ボスバー解除 (再出撃・死亡時に使用) */
     public static void clearRunField(ServerPlayer player) {
+        // 開いている転移門を撤去する (次の出撃で門が残らないように)
+        TransferGate.close(player);
         ArenaManager.clearArenaBarriers(player);
         if (player.level() instanceof ServerLevel level) {
             BlockPos center = ArenaManager.arenaCenterOf(player);
@@ -603,6 +605,7 @@ public final class RunManager {
      * ラン依存状態を必ず消す (次の出撃に前ランの未選択が引きずられないように)。
      */
     static void endRun(ServerPlayer player) {
+        TransferGate.close(player);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -706,6 +709,8 @@ public final class RunManager {
 
     /** 層状態のリセット・未選択祝福の再提示・層移動回復・次ウェーブの開始 */
     private static void enterFloor(ServerPlayer player, int floor) {
+        // 前の層の転移門を撤去する (次の層に残らない)
+        TransferGate.close(player);
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);

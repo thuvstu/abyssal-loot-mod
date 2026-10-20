@@ -264,7 +264,8 @@ public final class ModPackets {
                           int attrPoints, int portalOpen, int pendingBoons,
                           float lightCd, float skillCd,
                           int relicPending, int passivePending,
-                          String subSkill, float subCd)
+                          String subSkill, float subCd,
+                          int waveTotal, int floorKills, float hp, float maxHp)
             implements CustomPacketPayload {
         public static final Type<HudSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hud"));
@@ -284,13 +285,18 @@ public final class ModPackets {
                     buf.writeBoolean(p.passivePending() != 0);
                     buf.writeUtf(p.subSkill(), 32);
                     buf.writeFloat(p.subCd());
+                    buf.writeVarInt(p.waveTotal());
+                    buf.writeVarInt(p.floorKills());
+                    buf.writeFloat(p.hp());
+                    buf.writeFloat(p.maxHp());
                 },
                 buf -> new HudSync(buf.readFloat(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(),
                         buf.readFloat(), buf.readFloat(),
                         buf.readBoolean() ? 1 : 0, buf.readBoolean() ? 1 : 0,
-                        buf.readUtf(32), buf.readFloat()));
+                        buf.readUtf(32), buf.readFloat(),
+                        buf.readVarInt(), buf.readVarInt(), buf.readFloat(), buf.readFloat()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {

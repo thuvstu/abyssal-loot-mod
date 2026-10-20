@@ -7,6 +7,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -192,7 +194,11 @@ public final class CombatHandler {
                         player.getData(ModAttachments.RELIC_OFFER.get()).isBlank() ? 0 : 1,
                         player.getData(ModAttachments.PASSIVE_OFFER.get()).isBlank() ? 0 : 1,
                         player.getData(ModAttachments.SUB_SKILL.get()),
-                        player.getData(ModAttachments.SUB_CD.get())));    }
+                        player.getData(ModAttachments.SUB_CD.get()),
+                        player.getData(ModAttachments.WAVE_TOTAL.get()),
+                        player.getData(ModAttachments.FLOOR_KILLS.get()),
+                        player.getHealth(),
+                        player.getMaxHealth()));    }
 
     /**
      * HUDの間引き送信 (撃破・魂ゲージ変動など頻繁な変化用).
@@ -221,11 +227,15 @@ public final class CombatHandler {
         EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             tickCooldowns(player);
+            // 転移門 (層クリア後に開く実体の門。中に居ると次の層へ)
+            TransferGate.tick(player);
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
             if (tickCounter % 10 == 0) SubSkills.tickWorld(player);
             if (tickCounter % 20 == 0) {
                 tickAbilityBoons(player);
                 RunManager.tickRunEffects(player);
+                // 低HPの鼓動 (残量30%未満で毎秒)
+                playLowHealthHeartbeat(player);
             }
             // コンボ減衰 (5秒撃破なしでリセット。KillHandler が撃破時刻を管理)
             KillHandler.tickComboDecay(player, tickCounter);
@@ -256,6 +266,19 @@ public final class CombatHandler {
     private static void decay(ServerPlayer player, Supplier<AttachmentType<Float>> type) {
         float value = player.getData(type.get());
         if (value > 0) player.setData(type.get(), Math.max(0, value - 0.05f));
+    }
+
+    /** 低HPの鼓動音 (残量30%未満・出撃中のみ) */
+    private static void playLowHealthHeartbeat(ServerPlayer player) {
+        if (player.getData(ModAttachments.RUN_LOCK.get()) == 0) return;
+        float max = player.getMaxHealth();
+        if (max <= 0f) return;
+        float ratio = player.getHealth() / max;
+        if (ratio >= 0.3f) return;
+        // 残量が少ないほど大きく・低く鳴らす (緊張感の演出)
+        float vol = 0.25f + (0.3f - ratio) * 1.2f;
+        player.level().playSound(null, player.blockPosition(),
+                SoundEvents.WARDEN_HEARTBEAT, SoundSource.PLAYERS, vol, 1.6f - ratio);
     }
 
     /** ボスバー進捗 + 真ボス/終焉の座の弾幕 + 倒れたボスの掃除 */

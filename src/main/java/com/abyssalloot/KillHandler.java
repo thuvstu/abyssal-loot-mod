@@ -422,11 +422,12 @@ public final class KillHandler {
         if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0
                 && player.getData(ModAttachments.FLOOR_KILLS.get()) >= total) {
             player.setData(ModAttachments.PORTAL_OPEN.get(), 1);
-            player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ ")
+            // 実体の転移門を開く (門をくぐると次の層へ)
+            TransferGate.open(player, level);
+            player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ 門をくぐって次の層へ ")
                     .append(Component.literal("§b[次の層へ進む]").withStyle(s -> s
                             .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss next"))
-                            .withUnderlined(true))));
-            level.playSound(null, player.blockPosition(),
+                            .withUnderlined(true))));            level.playSound(null, player.blockPosition(),
                     net.minecraft.sounds.SoundEvents.PORTAL_TRIGGER, net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.2f);
             FloorEvents.offerEvent(player);
             // 層の締め前に未選択の祝福を確実に提示 (消える前に選ばせる)
