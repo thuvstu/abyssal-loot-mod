@@ -346,86 +346,99 @@ public final class FloorEvents {
         player.sendSystemMessage(Component.literal("§e◆ " + ev.name() + " — " + ev.desc()));
         var scale = Enemies.scaleFor(player, floor);
         switch (ev.kind()) {
-            case "loot" -> {
-                // 宝の間: 装備3点 + 遺物の3択 (最大2つまで)
-                var styles = GameData.WeaponStyle.values();
-                for (int i = 0; i < 3; i++) {
-                    var drop = GearFactory.makeWeapon(styles[player.getRandom().nextInt(styles.length)],
-                            player.getRandom(), StatCalc.luckOf(player), floor, 0);
-                    var e = new ItemEntity(
-                            level, center.getX() + player.getRandom().nextInt(7) - 3,
-                            center.getY() + 1, center.getZ() + player.getRandom().nextInt(7) - 3, drop);
-                    level.addFreshEntity(e);
-                }
-                offerRelics(player);
-            }
-            case "gamble" -> {
-                // 賭博の祭壇: 欠片の半分を賭ける
-                int have = countShards(player);
-                if (have < 2) {
-                    player.sendSystemMessage(Component.literal("§7欠片が足りず祭壇は沈黙した (2個〜で賭けられる)"));
-                    break;
-                }
-                int bet = have / 2;
-                if (player.getRandom().nextBoolean()) {
-                    LootHandler.giveOrDrop(player, new ItemStack(
-                            ModItems.SOUL_SHARD.get(), bet));
-                    player.sendSystemMessage(Component.literal("§6当たり！ 欠片+" + bet));
-                } else {
-                    takeShards(player, bet);
-                    player.sendSystemMessage(Component.literal("§c外れ… 欠片-" + bet));
-                }
-            }
-            case "elite" -> {
-                // 精鋭の襲撃: 精鋭3体 (通常敵のみ)
-                for (int i = 0; i < 3; i++) {
-                    var spec = Enemies.pickSpec(floor, -1, player.getRandom());
-                    if (spec.role() != Enemies.Role.NORMAL) spec = Enemies.byId("golem");
-                    Mob mob = Enemies.create(level, spec);
-                    BlockPos pos = center.offset(player.getRandom().nextInt(17) - 8, 1,
-                            player.getRandom().nextInt(17) - 8);
-                    mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                    Enemies.apply(mob, spec, scale, 1.0);
-                    Enemies.makeElite(mob);
-                    Enemies.tagByRole(mob, spec);
-                    mob.setTarget(player);
-                    level.addFreshEntity(mob);
-                }
-                player.setData(ModAttachments.WAVE_TOTAL.get(),
-                        player.getData(ModAttachments.WAVE_TOTAL.get()) + 3);
-            }
-            case "heal" -> {
-                // 加護の泉: 全回復 + 素材
-                RunManager.heal(player, player.getMaxHealth());
-                int shards = RunManager.materialCount(player, 3.0);
-                if (shards > 0) {
-                    LootHandler.giveOrDrop(player, new ItemStack(
-                            ModItems.SOUL_SHARD.get(), shards));
-                }
-                player.sendSystemMessage(Component.literal("§a全回復！ 欠片+" + shards));
-            }
-            case "fate" -> {
-                if ("mist".equals(ev.fate())) {
-                    RunManager.setFate(player, "mist", 400);
-                    player.sendSystemMessage(Component.literal("§5呪いの霧 (20秒): 被ダメ+30%、戦利品2倍"));
-                } else {
-                    RunManager.setFate(player, "timewarp", 300);
-                    var mobs = level.getEntitiesOfClass(Mob.class,
-                            player.getBoundingBox().inflate(48),
-                            e -> e.isAlive());
-                    for (var m : mobs) {
-                        m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 300, 2, false, false));
-                    }
-                    player.sendSystemMessage(Component.literal("§b時の歪み (15秒): 敵半速、魂ゲージ2倍"));
-                }
-            }
-            default -> {
-                // 群れの呼び声: 追加ウェーブ
-                RunManager.spawnWave(player, floor, false);
-                player.sendSystemMessage(Component.literal("§e群れが押し寄せる！ 追加ウェーブ"));
-            }
+            case "loot" -> grantLootEvent(player, level, center, floor);
+            case "gamble" -> resolveGambleEvent(player);
+            case "elite" -> spawnEliteEvent(player, level, center, floor, scale);
+            case "heal" -> grantHealEvent(player);
+            case "fate" -> applyFateEvent(player, level, ev);
+            default -> callSwarmEvent(player, floor);
         }
     }
+
+    /** 宝の間: 装備3点 + 遺物の3択 (最大2つまで) */
+    private static void grantLootEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor) {
+        var styles = GameData.WeaponStyle.values();
+        for (int i = 0; i < 3; i++) {
+            var drop = GearFactory.makeWeapon(styles[player.getRandom().nextInt(styles.length)],
+                    player.getRandom(), StatCalc.luckOf(player), floor, 0);
+            var e = new ItemEntity(
+                    level, center.getX() + player.getRandom().nextInt(7) - 3,
+                    center.getY() + 1, center.getZ() + player.getRandom().nextInt(7) - 3, drop);
+            level.addFreshEntity(e);
+        }
+        offerRelics(player);
+    }
+
+    /** 賭博の祭壇: 欠片の半分を賭ける */
+    private static void resolveGambleEvent(ServerPlayer player) {
+        int have = countShards(player);
+        if (have < 2) {
+            player.sendSystemMessage(Component.literal("§7欠片が足りず祭壇は沈黙した (2個〜で賭けられる)"));
+            return;
+        }
+        int bet = have / 2;
+        if (player.getRandom().nextBoolean()) {
+            LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), bet));
+            player.sendSystemMessage(Component.literal("§6当たり！ 欠片+" + bet));
+        } else {
+            takeShards(player, bet);
+            player.sendSystemMessage(Component.literal("§c外れ… 欠片-" + bet));
+        }
+    }
+
+    /** 精鋭の襲撃: 精鋭3体 (通常敵のみ) */
+    private static void spawnEliteEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
+                                        Enemies.Scale scale) {
+        for (int i = 0; i < 3; i++) {
+            var spec = Enemies.pickSpec(floor, -1, player.getRandom());
+            if (spec.role() != Enemies.Role.NORMAL) spec = Enemies.byId("golem");
+            Mob mob = Enemies.create(level, spec);
+            BlockPos pos = center.offset(player.getRandom().nextInt(17) - 8, 1,
+                    player.getRandom().nextInt(17) - 8);
+            mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+            Enemies.apply(mob, spec, scale, 1.0);
+            Enemies.makeElite(mob);
+            Enemies.tagByRole(mob, spec);
+            mob.setTarget(player);
+            level.addFreshEntity(mob);
+        }
+        player.setData(ModAttachments.WAVE_TOTAL.get(),
+                player.getData(ModAttachments.WAVE_TOTAL.get()) + 3);
+    }
+
+    /** 加護の泉: 全回復 + 素材 */
+    private static void grantHealEvent(ServerPlayer player) {
+        RunManager.heal(player, player.getMaxHealth());
+        int shards = RunManager.materialCount(player, 3.0);
+        if (shards > 0) {
+            LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
+        }
+        player.sendSystemMessage(Component.literal("§a全回復！ 欠片+" + shards));
+    }
+
+    /** 運命の分岐: 呪いの霧 / 時の歪み */
+    private static void applyFateEvent(ServerPlayer player, ServerLevel level, GameData.RandomEvent ev) {
+        if ("mist".equals(ev.fate())) {
+            RunManager.setFate(player, "mist", 400);
+            player.sendSystemMessage(Component.literal("§5呪いの霧 (20秒): 被ダメ+30%、戦利品2倍"));
+        } else {
+            RunManager.setFate(player, "timewarp", 300);
+            var mobs = level.getEntitiesOfClass(Mob.class,
+                    player.getBoundingBox().inflate(48),
+                    e -> e.isAlive());
+            for (var m : mobs) {
+                m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 300, 2, false, false));
+            }
+            player.sendSystemMessage(Component.literal("§b時の歪み (15秒): 敵半速、魂ゲージ2倍"));
+        }
+    }
+
+    /** 群れの呼び声: 追加ウェーブ */
+    private static void callSwarmEvent(ServerPlayer player, int floor) {
+        RunManager.spawnWave(player, floor, false);
+        player.sendSystemMessage(Component.literal("§e群れが押し寄せる！ 追加ウェーブ"));
+    }
+
 
     /* ---------------- 遺物・技能の提示 ---------------- */
 
