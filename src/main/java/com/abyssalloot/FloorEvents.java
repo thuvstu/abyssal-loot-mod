@@ -95,56 +95,60 @@ public final class FloorEvents {
             return;
         }
         switch (kind) {
-            case "rest" -> {
-                // 原作: 最大HPの38%回復 + 魂ゲージ25
-                completeEvent(player);
-                RunManager.heal(player, player.getMaxHealth() * 0.38);
-                RunManager.addGauge(player, 25);
-                player.sendSystemMessage(Component.literal("§a休息した。HP38%回復・魂+25。"));
-            }
-            case "oath" -> {
-                // 原作: 最大HPの18%を捧げ、祝福を1つ選ぶ (盟約モードでは宝箱に差し替わる)
-                if (RunManager.isCovenant(player)) {
-                    doForgeCrate(player);
-                    break;
-                }
-                completeEvent(player);
-                float cost = player.getMaxHealth() * 0.18f;
-                if (player.getHealth() > cost + 1) {
-                    player.hurtServer((ServerLevel) player.level(),
-                            player.level().damageSources().magic(), cost);
-                }
-                player.sendSystemMessage(Component.literal("§5血の誓約… 最大HP18%を捧げた。祝福を選べ"));
-                // 既に祝福の選択中 (提示済み or 未選択残数が残る) なら上書きせず後回しにする
-                if (!player.getData(ModAttachments.OFFER.get()).isBlank()
-                        || RunManager.pendingBoonsOf(player) > 0) {
-                    RunManager.addPendingBoons(player, 1);
-                    player.sendSystemMessage(Component.literal(
-                            "§7現在の選択のあとに (残り" + RunManager.pendingBoonsOf(player) + "件)"));
-                } else {
-                    BoonHandler.offerBoons(player);
-                }
-            }
-            case "shop" -> {
-                String raw = player.getData(ModAttachments.SHOP.get());
-                if (raw == null || raw.isBlank()) {
-                    player.sendSystemMessage(Component.literal("§c商品なし"));
-                    return;
-                }
-                // 商店GUIを直接開く (購入はGUIのボタン→doBuy。チャット購入も可)
-                player.openMenu(new SimpleMenuProvider(
-                        (id, inv, pl) -> new ShopMenu(id, inv),
-                        Component.literal("商店")));
-                player.sendSystemMessage(Component.literal(
-                        "§6商店を開いた (所持欠片" + countShards(player) + "／チャット購入は /abyss buy 1〜3)"));
-            }
-            case "forge" -> {
-                // 原作「遺された宝箱」: 第(層+1)層相当の装備 (層主の層はボーナス130)
-                doForgeCrate(player);
-            }
+            case "rest" -> doRestEvent(player);
+            case "oath" -> doOathEvent(player);
+            case "shop" -> doShopEvent(player);
+            case "forge" -> doForgeCrate(player);
             default -> player.sendSystemMessage(Component.literal("§crest/oath/shop/forge で指定"));
         }
     }
+
+    /** 休息: 最大HPの38%回復 + 魂ゲージ25 */
+    private static void doRestEvent(ServerPlayer player) {
+        completeEvent(player);
+        RunManager.heal(player, player.getMaxHealth() * 0.38);
+        RunManager.addGauge(player, 25);
+        player.sendSystemMessage(Component.literal("§a休息した。HP38%回復・魂+25。"));
+    }
+
+    /** 誓約: 最大HPの18%を捧げ、祝福を1つ選ぶ (盟約モードでは宝箱に差し替わる) */
+    private static void doOathEvent(ServerPlayer player) {
+        if (RunManager.isCovenant(player)) {
+            doForgeCrate(player);
+            return;
+        }
+        completeEvent(player);
+        float cost = player.getMaxHealth() * 0.18f;
+        if (player.getHealth() > cost + 1) {
+            player.hurtServer((ServerLevel) player.level(),
+                    player.level().damageSources().magic(), cost);
+        }
+        player.sendSystemMessage(Component.literal("§5血の誓約… 最大HP18%を捧げた。祝福を選べ"));
+        // 既に祝福の選択中 (提示済み or 未選択残数が残る) なら上書きせず後回しにする
+        if (!player.getData(ModAttachments.OFFER.get()).isBlank()
+                || RunManager.pendingBoonsOf(player) > 0) {
+            RunManager.addPendingBoons(player, 1);
+            player.sendSystemMessage(Component.literal(
+                    "§7現在の選択のあとに (残り" + RunManager.pendingBoonsOf(player) + "件)"));
+        } else {
+            BoonHandler.offerBoons(player);
+        }
+    }
+
+    /** 商店: GUIを直接開く (購入はGUIのボタン→doBuy。チャット購入も可) */
+    private static void doShopEvent(ServerPlayer player) {
+        String raw = player.getData(ModAttachments.SHOP.get());
+        if (raw == null || raw.isBlank()) {
+            player.sendSystemMessage(Component.literal("§c商品なし"));
+            return;
+        }
+        player.openMenu(new SimpleMenuProvider(
+                (id, inv, pl) -> new ShopMenu(id, inv),
+                Component.literal("商店")));
+        player.sendSystemMessage(Component.literal(
+                "§6商店を開いた (所持欠片" + countShards(player) + "／チャット購入は /abyss buy 1〜3)"));
+    }
+
 
     /** 原作の遺された宝箱/禁呪の宝箱: 層相当の装備を1点得る (鍛冶場ボーナス付き) */
     public static void doForgeCrate(ServerPlayer player) {
