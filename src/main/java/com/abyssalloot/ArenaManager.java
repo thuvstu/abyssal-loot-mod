@@ -16,6 +16,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * アリーナ構築・結界・湧き位置・罠 (RunManager から分離)。
  */
@@ -197,20 +200,18 @@ public final class ArenaManager {
         if (!(player.level() instanceof ServerLevel level) || center == null) return;
         int r = ARENA_R;
         String zone = GameData.zoneForFloor(Math.max(1, floor)).id();
-        var floorBlock = floorBlockFor(zone);
-        var trim = trimBlockFor(zone);
-        var rand = player.getRandom();
         // 床の張替え
-        for (int x = -r; x <= r; x++) {
-            for (int z = -r; z <= r; z++) {
-                if (x * x + z * z > r * r) continue;
-                level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), 3);
-            }
-        }
+        layArenaFloor(level, center, r, floorBlockFor(zone));
         // バリア更新
         clearBarriers(level, center);
         placeBarriers(level, center);
-        // 障害物を追加 (空きマスのみ。層・難易度で増加)
+        scatterArenaGrowth(level, center, player, floor, trimBlockFor(zone));
+    }
+
+    /** 障害物を追加 (空きマスのみ。層・難易度で増加) */
+    private static void scatterArenaGrowth(ServerLevel level, BlockPos center, ServerPlayer player,
+                                            int floor, Block trim) {
+        var rand = player.getRandom();
         String diff = player.getData(ModAttachments.DIFF.get());
         int diffBonus = switch (diff) {
             case "hard" -> 1;
@@ -253,6 +254,7 @@ public final class ArenaManager {
             placed++;
         }
     }
+
 
     /** 前回アリーナのバリアを除去 (再出撃・終了時) */
     public static void clearBarriers(ServerLevel level, BlockPos center) {
@@ -365,60 +367,70 @@ public final class ArenaManager {
         String raw = player.getData(ModAttachments.TRAPS.get());
         if (raw == null || raw.isBlank()) return;
         var level = (ServerLevel) player.level();
-        var keep = new java.util.ArrayList<String>();
+        var keep = new ArrayList<String>();
         boolean changed = false;
         for (String t : raw.split(";")) {
-            String[] p = t.split(",");
-            // 新形式 kind,x,y,z / 旧形式 x,y,z (岩として扱う)
-            String kind = "rock";
-            int off = 0;
-            if (p.length == 4) {
-                kind = p[0];
-                off = 1;
-            } else if (p.length != 3) {
-                continue;
-            }
-            final String fkind = kind;
-            try {
-                double x = Double.parseDouble(p[off]) + 0.5;
-                double y = Double.parseDouble(p[off + 1]);
-                double z = Double.parseDouble(p[off + 2]) + 0.5;
-                double d = Math.hypot(player.getX() - x, player.getZ() - z);
-                if (d < 2.5 && Math.abs(player.getY() - y) < 3) {
-                    var at = new Vec3(x, y + 1, z);
-                    if ("spike".equals(fkind)) {
-                        // 針罠: 短い予兆 (0.5秒) の後に小範囲の直撃 + 鈍足
-                        for (int k = 0; k < 2; k++) {
-                            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.CRIT,
-                                    x, y + 0.2, z, 8, 0.8, 0.1, 0.8, 0.02));
-                        }
-                        DelayRunner.after(10, () -> {
-                            if (!player.isAlive()) return;
-                            player.hurtServer(level, level.damageSources().cactus(), 6f);
-                            player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 1, false, false));
-                        });
-                        player.sendSystemMessage(Component.literal("§e針罠！"));
-                    } else {
-                        // 岩罠: 予兆 (約1秒) を経て範囲爆発. 予兆の間は煙を出す
-                        for (int k = 0; k < 4; k++) {
-                            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
-                                    x, y + 0.2, z, 10, 1.0, 0.1, 1.0, 0.02));
-                        }
-                        DelayRunner.after(20, () -> WeaponArts.trapBlast(level, player, at));
-                        player.sendSystemMessage(Component.literal("§c岩罠が起動… 1秒後に爆発！"));
-                    }
-                    changed = true;
-                } else {
-                    keep.add(t);
-                    if (d < 8) {
-                        var puff = "spike".equals(fkind) ? ParticleTypes.CRIT : ParticleTypes.SMOKE;
-                        level.sendParticles(puff, x, y + 0.2, z, 1, 0.2, 0.1, 0.2, 0.01);
-                    }
-                }
-            } catch (NumberFormatException ignored) {
-                changed = true;
-            }
+            if (tickTrap(player, level, t, keep)) changed = true;
         }
         if (changed) player.setData(ModAttachments.TRAPS.get(), String.join(";", keep));
+    }
+
+    /** 罠1件を判定。起動・破棄したら true (維持したものは keep に残す) */
+    private static boolean tickTrap(ServerPlayer player, ServerLevel level, String t, List<String> keep) {
+        String[] p = t.split(",");
+        // 新形式 kind,x,y,z / 旧形式 x,y,z (岩として扱う)
+        String kind = "rock";
+        int off = 0;
+        if (p.length == 4) {
+            kind = p[0];
+            off = 1;
+        } else if (p.length != 3) {
+            return false;
+        }
+        final String fkind = kind;
+        try {
+            double x = Double.parseDouble(p[off]) + 0.5;
+            double y = Double.parseDouble(p[off + 1]);
+            double z = Double.parseDouble(p[off + 2]) + 0.5;
+            double d = Math.hypot(player.getX() - x, player.getZ() - z);
+            if (d < 2.5 && Math.abs(player.getY() - y) < 3) {
+                if ("spike".equals(fkind)) triggerSpikeTrap(player, level, x, y, z);
+                else triggerRockTrap(player, level, x, y, z);
+                return true;
+            }
+            keep.add(t);
+            if (d < 8) {
+                var puff = "spike".equals(fkind) ? ParticleTypes.CRIT : ParticleTypes.SMOKE;
+                level.sendParticles(puff, x, y + 0.2, z, 1, 0.2, 0.1, 0.2, 0.01);
+            }
+            return false;
+        } catch (NumberFormatException ignored) {
+            return true;
+        }
+    }
+
+    /** 針罠: 短い予兆 (0.5秒) の後に小範囲の直撃 + 鈍足 */
+    private static void triggerSpikeTrap(ServerPlayer player, ServerLevel level, double x, double y, double z) {
+        for (int k = 0; k < 2; k++) {
+            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.CRIT,
+                    x, y + 0.2, z, 8, 0.8, 0.1, 0.8, 0.02));
+        }
+        DelayRunner.after(10, () -> {
+            if (!player.isAlive()) return;
+            player.hurtServer(level, level.damageSources().cactus(), 6f);
+            player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 1, false, false));
+        });
+        player.sendSystemMessage(Component.literal("§e針罠！"));
+    }
+
+    /** 岩罠: 予兆 (約1秒) を経て範囲爆発. 予兆の間は煙を出す */
+    private static void triggerRockTrap(ServerPlayer player, ServerLevel level, double x, double y, double z) {
+        var at = new Vec3(x, y + 1, z);
+        for (int k = 0; k < 4; k++) {
+            DelayRunner.after(5 * k, () -> level.sendParticles(ParticleTypes.SMOKE,
+                    x, y + 0.2, z, 10, 1.0, 0.1, 1.0, 0.02));
+        }
+        DelayRunner.after(20, () -> WeaponArts.trapBlast(level, player, at));
+        player.sendSystemMessage(Component.literal("§c岩罠が起動… 1秒後に爆発！"));
     }
 }
