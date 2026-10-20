@@ -215,6 +215,8 @@ public final class CombatHandler {
         tickCounter++;
         // 遅延タスク (絶対tick到達で発火・除去)
         DelayRunner.tick();
+        // ダメージ数値の浮遊表示 (上昇・寿命管理)
+        DamageNumbers.tick();
         EnemyAI.tickGuards(server, tickCounter);
         EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {

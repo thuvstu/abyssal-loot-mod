@@ -323,21 +323,27 @@ public final class WeaponHitHandler {
         LivingEntity target = event.getEntity();
         String trait = GearData.traitOf(held);
         var ability = GameData.WEAPON_ABILITIES.get(style.id);
-        float dmg = computeWeaponDamage(player, target, held, passives, pflags, atk, trait, ability, rand);
+        DamageRoll roll = computeWeaponDamage(player, target, held, passives, pflags, atk, trait, ability, rand);
+        float dmg = roll.damage();
         event.setNewDamage(dmg);
         // 魔盾の軽減を再適用 (本メソッドの威力上書きで打ち消されないように)
         if (target.getTags().contains(Enemies.ET_SHIELD)) {
             event.setNewDamage(event.getNewDamage() * 0.7f);
         }
+        // 与ダメージを宙に数字で表示 (会心は金色)
+        DamageNumbers.show(player, target, event.getNewDamage(), roll.crit());
         applyNormalHitEffects(new HitInfo(player, level, target, dmg, atk, trait,
                 style, ability, passives, pflags, rand));
     }
 
+    /** 命中1回分の威力与会心フラグ */
+    private record DamageRoll(float damage, boolean crit) {}
+
     /** 通常武器の最終威力 (会心・レアリティ・反撃窓・特性・祝福・技能) */
-    private static float computeWeaponDamage(ServerPlayer player, LivingEntity target, ItemStack held,
-                                             List<String> passives, Set<String> pflags,
-                                             double atk, String trait, GameData.WeaponAbility ability,
-                                             RandomSource rand) {
+    private static DamageRoll computeWeaponDamage(ServerPlayer player, LivingEntity target, ItemStack held,
+                                                  List<String> passives, Set<String> pflags,
+                                                  double atk, String trait, GameData.WeaponAbility ability,
+                                                  RandomSource rand) {
         boolean crit = rand.nextFloat() < StatCalc.critOf(player);
         // 致命の刻印: 会心威力 +45%/Lv
         float dmg = (float) (atk * (crit ? StatCalc.critDamageMult(player) : 1.0));
@@ -383,7 +389,7 @@ public final class WeaponHitHandler {
                 && countNearbyEnemies(player.level(), target.position(), 8) >= 3) {
             dmg *= 1.35f;
         }
-        return dmg;
+        return new DamageRoll(dmg, crit);
     }
 
     /** 指定位置の周囲 radius 内にいるプレイヤー以外の生存エンティティ数 */
