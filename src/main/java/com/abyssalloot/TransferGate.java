@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.HashMap;
@@ -109,6 +110,12 @@ public final class TransferGate {
         if (!isGateBlock(base, clicked)) return;
         event.setCanceled(true);
         RunManager.tryNextFloor(player);
+    }
+
+    /** ログアウト時に残留データを消す */
+    @SubscribeEvent
+    public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        CHARGE.remove(event.getEntity().getUUID());
     }
 
     /* ---------------- 内部処理 ---------------- */
