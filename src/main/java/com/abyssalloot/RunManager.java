@@ -368,25 +368,12 @@ public final class RunManager {
         int floor = 1;
         String mode = player.getData(ModAttachments.MODE.get());
         resetRunState(player, floor);
-        // 終焉の契約モード: 全8呪印を強制付与 (原作 omega)
-        if ("omega".equals(mode)) {
-            var all = new HashSet<String>();
-            for (GameData.Sigil s : GameData.Sigil.values()) all.add(s.id);
-            setSigils(player, all);
-            player.sendSystemMessage(Component.literal("§d終焉の契約: 全8呪印を強制付与"));
-        }
+        if ("omega".equals(mode)) grantOmegaSigils(player);
         // 出撃中は呪印・モード・難易度を固定 (原作 /api/expeditions の条件固定に対応)
         player.setData(ModAttachments.RUN_LOCK.get(), 1);
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         int level = "bossrush".equals(mode) ? 10 : player.getData(ModAttachments.LEVEL.get());
-        // 継承装備があれば受け取る
-        var heirloom = player.getData(ModAttachments.HEIRLOOM.get());
-        if (heirloom != null && !heirloom.isEmpty()) {
-            // インベントリ満杯時は足元に落とす (継承装備を消失させない)
-            LootHandler.giveOrDrop(player, heirloom.copy());
-            player.sendSystemMessage(Component.literal("§6血脈の装備を受け継いだ: " + heirloom.getHoverName().getString()));
-            player.setData(ModAttachments.HEIRLOOM.get(), ItemStack.EMPTY.copy());
-        }
+        grantHeirloom(player);
         StatCalc.applyClass(player, cls, level);
         ArenaManager.buildArena(player);
         spawnWave(player, floor);
@@ -394,18 +381,40 @@ public final class RunManager {
         player.displayClientMessage(Component.literal(
                 "§5深淵潜行開始 — 第1層 [" + mode + "/" + player.getData(ModAttachments.DIFF.get())
                         + "] 魂倍率×" + String.format("%.2f", soul)), false);
-        // 初出撃チュートリアル (2回目以降は出さない。/abyss help で再読可)
-        if (player.getData(ModAttachments.TUTOR.get()) == 0) {
-            player.setData(ModAttachments.TUTOR.get(), 1);
-            player.sendSystemMessage(Component.literal("§6━━━ 初潜行ガイド ━━━"));
-            player.sendSystemMessage(Component.literal("§f1. 左クリックで攻撃。敵を倒して魂ゲージを溜めよう"));
-            player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
-            player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
-            player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると選択肢が出る → 転移門へ → §b/abyss next §fで次層"));
-            player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
-            player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
-        }
+        showFirstRunTutorial(player);
     }
+
+    /** 終焉の契約モード: 全8呪印を強制付与 (原作 omega) */
+    private static void grantOmegaSigils(ServerPlayer player) {
+        var all = new HashSet<String>();
+        for (GameData.Sigil s : GameData.Sigil.values()) all.add(s.id);
+        setSigils(player, all);
+        player.sendSystemMessage(Component.literal("§d終焉の契約: 全8呪印を強制付与"));
+    }
+
+    /** 継承装備があれば受け取る (インベントリ満杯時は足元に落とす) */
+    private static void grantHeirloom(ServerPlayer player) {
+        var heirloom = player.getData(ModAttachments.HEIRLOOM.get());
+        if (heirloom == null || heirloom.isEmpty()) return;
+        // インベントリ満杯時は足元に落とす (継承装備を消失させない)
+        LootHandler.giveOrDrop(player, heirloom.copy());
+        player.sendSystemMessage(Component.literal("§6血脈の装備を受け継いだ: " + heirloom.getHoverName().getString()));
+        player.setData(ModAttachments.HEIRLOOM.get(), ItemStack.EMPTY.copy());
+    }
+
+    /** 初出撃チュートリアル (2回目以降は出さない。/abyss help で再読可) */
+    private static void showFirstRunTutorial(ServerPlayer player) {
+        if (player.getData(ModAttachments.TUTOR.get()) != 0) return;
+        player.setData(ModAttachments.TUTOR.get(), 1);
+        player.sendSystemMessage(Component.literal("§6━━━ 初潜行ガイド ━━━"));
+        player.sendSystemMessage(Component.literal("§f1. 左クリックで攻撃。敵を倒して魂ゲージを溜めよう"));
+        player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
+        player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
+        player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると選択肢が出る → 転移門へ → §b/abyss next §fで次層"));
+        player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
+        player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
+    }
+
 
     /**
      * 出撃の初期化: 全ラン依存状態を既定値に戻す (出撃開始時).

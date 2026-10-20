@@ -280,6 +280,15 @@ public final class StatCalc {
         base += RunManager.boonLv(player, "dmg2") * 12 + GearData.affixOf(held, "damageFlat") + armorAffix(player, "damageFlat")
                 + extraStat(player, "damageFlat");
         var wb = wbonusOf(held);
+        double mult = damageMultiplier(player, held, level, passives, wb);
+        // [基礎値] 原作ダメージをMC向けに1/2へスケール
+        // (heroDamage*0.35 + 属性値*0.15 = heroDamage*0.5相当。属性値にはバフも含まれるが己係数 0.15 で寄与は小さい)
+        return Math.max(1, GameData.heroDamage(cls, level) * 0.35 + base * 0.15) * mult;
+    }
+
+    /** 与ダメ倍率 (属性・恩寵・接辞・鍛造・呪い・遺物・技能・祭壇) */
+    private static double damageMultiplier(ServerPlayer player, ItemStack held, int level,
+                                           List<String> passives, GameData.WeaponBonus wb) {
         double mult = (1 + attrEff(player, 0) * 0.03) * (1 + RunManager.boonLv(player, "dmg") * 0.12)
                 * (1 + RunManager.boonLv(player, "dmg1") * 0.18) * (1 + RunManager.boonLv(player, "dmg2") * 0.08)
                 * (1 + wb.damagePct() / 100.0) * (1 + (GearData.affixOf(held, "damagePct") + armorAffix(player, "damagePct") + extraStat(player, "damagePct")) / 100.0)
@@ -317,10 +326,9 @@ public final class StatCalc {
         }
         // 祭壇「怒り」: 与ダメ+60%
         if ("rage".equals(RunManager.activeShrine(player))) mult *= 1.6;
-        // [基礎値] 原作ダメージをMC向けに1/2へスケール
-        // (heroDamage*0.35 + 属性値*0.15 = heroDamage*0.5相当。属性値にはバフも含まれるが己係数 0.15 で寄与は小さい)
-        return Math.max(1, GameData.heroDamage(cls, level) * 0.35 + base * 0.15) * mult;
+        return mult;
     }
+
 
     /* ---------------- 武器クラス・接辞 (原作 WEAPON_CLASSES / AFFIXES) ---------------- */
 
