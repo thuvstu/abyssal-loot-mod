@@ -538,7 +538,10 @@ public final class RunManager {
                 }
             }
         }
-    }    public static boolean isTrueFloor(ServerPlayer player) {
+    }
+
+    /** 真の深淵 (第26層) か */
+    public static boolean isTrueFloor(ServerPlayer player) {
         return player.getData(ModAttachments.FLOOR.get()) == 26;
     }
 
@@ -891,10 +894,8 @@ public final class RunManager {
         return sb.toString();
     }
 
-    /** 遺物・区域の毎秒処理 (呪杯の代償・巨人の欲・溶鉄の炉・虚無の心臓) */
-    public static void tickRunEffects(ServerPlayer player) {
-        if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return;
-        // 防具の着脱でステータス再計算 (初回は記録のみ)
+    /** 防具の着脱を検出し、変わっていればステータスを再計算する (初回は署名の記録のみ) */
+    private static void tickArmorChange(ServerPlayer player) {
         String sig = armorSig(player);
         String prev = ARMOR_SIG.get(player.getUUID());
         if (prev == null) {
@@ -905,26 +906,35 @@ public final class RunManager {
             StatCalc.applyClass(player, cls, player.getData(ModAttachments.LEVEL.get()), true);
             player.displayClientMessage(Component.literal("§b防具を変更: ステータス再計算"), true);
         }
-        long t = level.getGameTime();
-        // 深獄の呼吸: 試練外でも高度0未満 (バニラの地下) に潜ると魂が漂ってくる
-        // (レベルアップに繋がるので、洞窟探索自体が冒険の足場になる)
+    }
+
+    /**
+     * 深獄の呼吸: 試練外でも高度0未満 (バニラの地下) に潜ると魂が漂ってくる.
+     * レベルアップに繋がるので、洞窟探索自体が冒険の足場になる.
+     */
+    private static void tickWildSoulGain(ServerPlayer player) {
         if (!isRunLocked(player) && player.getY() < 0) {
             addGauge(player, 1);
         }
-        // 生活属性: 採掘=保持ツールで掘削加速 / 跳躍=常時跳躍力 (40tickごとに更新)
-        if (t % 40 == 0) {
-            double mine = StatCalc.attrEff(player, 8);
-            if (mine > 0 && ModItems.isTool(player.getMainHandItem().getItem())) {
-                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 70,
-                        Math.min(2, (int) (mine / 10)), false, false));
-            }
-            double jump = StatCalc.attrEff(player, 9);
-            if (jump > 0) {
-                player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 70,
-                        Math.min(2, (int) (jump / 12)), false, false));
-            }
+    }
+
+    /** 生活属性: 採掘=保持ツールで掘削加速 / 跳躍=常時跳躍力 (40tickごとに更新) */
+    private static void tickLifeAttributes(ServerPlayer player, long t) {
+        if (t % 40 != 0) return;
+        double mine = StatCalc.attrEff(player, 8);
+        if (mine > 0 && ModItems.isTool(player.getMainHandItem().getItem())) {
+            player.addEffect(new MobEffectInstance(MobEffects.HASTE, 70,
+                    Math.min(2, (int) (mine / 10)), false, false));
         }
-        // 防具スキル (tick系)。兜: 危険感知・水の加護 / 鎧: 聖盾
+        double jump = StatCalc.attrEff(player, 9);
+        if (jump > 0) {
+            player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 70,
+                    Math.min(2, (int) (jump / 12)), false, false));
+        }
+    }
+
+    /** 防具スキル (tick系)。兜: 危険感知・水の加護・炉火 / 脚: 羽毛 / 靴: 跳上げ・磁石 / 鎧: 聖盾 */
+    private static void tickArmorSkills(ServerPlayer player, ServerLevel level, long t) {
         var helm = player.getItemBySlot(EquipmentSlot.HEAD);
         var helmSkill = GearData.skillOf(helm);
         if ("h_danger".equals(helmSkill) && t % 40 == 0) {
@@ -973,35 +983,42 @@ public final class RunManager {
                 && !player.hasEffect(MobEffects.ABSORPTION) && t % 100 == 0) {
             player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 400, 1, false, false));
         }
-        // 巨躯の刻印・接辞: HP回復 (1秒ごと)
+    }
+
+    /** 巨躯の刻印・接辞のHP回復 (1秒ごと) と祭壇「試練」の毎秒2損耗 */
+    private static void tickRegenAndShrine(ServerPlayer player, ServerLevel level, long t) {
         double regen = boonLv(player, "hp") * 0.6 + StatCalc.affixOf(player, "regenFlat")
                 + StatCalc.extraStat(player, "regenFlat") + StatCalc.attrEff(player, 6) * 0.15;
         if (regen > 0 && t % 20 == 0) {
             heal(player, regen);
         }
-        // 祭壇「試練」: 毎秒2損耗
-        if ("scourge".equals(activeShrine(player)) && t % 20 == 0) {
-            if (player.getHealth() > 3) {
-                player.hurtServer(level, player.level().damageSources().magic(), 2f);
-            }
+        if ("scourge".equals(activeShrine(player)) && t % 20 == 0 && player.getHealth() > 3) {
+            player.hurtServer(level, level.damageSources().magic(), 2f);
         }
-        // 氷結の深層: 滑走 (移動方向に慣性が付く)
-        var zoneSlip = GameData.zoneForFloor(Math.max(1, player.getData(ModAttachments.FLOOR.get())));
-        if (zoneSlip.slip() > 0 && t % 10 == 0 && player.onGround()) {
-            var mv = player.getDeltaMovement();
-            if (mv.horizontalDistanceSqr() > 0.01) {
-                player.push(mv.x * 0.12, 0, mv.z * 0.12);
-            }
+    }
+
+    /** 氷結の深層: 滑走 (移動方向に慣性が付く) */
+    private static void tickZoneSlip(ServerPlayer player, long t) {
+        var zone = GameData.zoneForFloor(Math.max(1, player.getData(ModAttachments.FLOOR.get())));
+        if (zone.slip() <= 0 || t % 10 != 0 || !player.onGround()) return;
+        var mv = player.getDeltaMovement();
+        if (mv.horizontalDistanceSqr() > 0.01) {
+            player.push(mv.x * 0.12, 0, mv.z * 0.12);
         }
+    }
+
+    /** 遺物の常時効果: 呪杯 (最大HP1%損耗) / 巨人の欲 (欠片をHPへ変換) */
+    private static void tickRelicUpkeep(ServerPlayer player, ServerLevel level, long t) {
+        var flags = relicFlagsOf(player);
         // 呪杯: 常にHPが削れ続ける (2秒ごとに最大HP1%)
-        if (relicFlagsOf(player).contains("chalice") && t % 40 == 0) {
+        if (flags.contains("chalice") && t % 40 == 0) {
             float dmg = (float) (player.getMaxHealth() * 0.01);
             if (player.getHealth() > dmg + 1) {
-                player.hurtServer(level, player.level().damageSources().magic(), dmg);
+                player.hurtServer(level, level.damageSources().magic(), dmg);
             }
         }
         // 巨人の欲: 45秒ごとに欠片の半分がHPに変わる (欠片1=HP4)
-        if (relicFlagsOf(player).contains("greed") && t % 900 == 0) {
+        if (flags.contains("greed") && t % 900 == 0) {
             int have = FloorEvents.countShards(player);
             if (have >= 2) {
                 int half = have / 2;
@@ -1011,9 +1028,14 @@ public final class RunManager {
                 }
             }
         }
-        // 溶鉄の炉: 火の粉 (10秒ごとに小ダメージ+発火演出)
+    }
+
+    /** 区域の環境効果: 溶鉄の炉 (火の粉) / 虚無の心臓 (引き寄せ) */
+    private static void tickZoneHazards(ServerPlayer player, ServerLevel level, long t) {
+        if (t % 200 != 0) return;
         var zone = GameData.zoneForFloor(Math.max(1, player.getData(ModAttachments.FLOOR.get())));
-        if (zone.emberRain() && t % 200 == 0) {
+        // 溶鉄の炉: 火の粉 (10秒ごとに小ダメージ+発火演出)
+        if (zone.emberRain()) {
             level.sendParticles(ParticleTypes.FLAME, player.getX(), player.getY() + 2, player.getZ(),
                     12, 3, 1, 3, 0.05);
             if (player.getRandom().nextFloat() < 0.5) {
@@ -1021,7 +1043,7 @@ public final class RunManager {
             }
         }
         // 虚無の心臓: 中心への引き寄せ (10秒ごとに軽く引く)
-        if (zone.voidPull() > 0 && t % 200 == 0) {
+        if (zone.voidPull() > 0) {
             // アリーナ中心は出撃地とずれるため、近傍の敵を寄せる演出に留める
             var mobs = level.getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(24),
                     e -> e.isAlive());
@@ -1033,6 +1055,21 @@ public final class RunManager {
             level.sendParticles(ParticleTypes.PORTAL, player.getX(), player.getY() + 1, player.getZ(),
                     16, 4, 2, 4, 0.1);
         }
+    }
+
+    /** 遺物・区域の毎秒処理 (呪杯の代償・巨人の欲・溶鉄の炉・虚無の心臓) */
+    public static void tickRunEffects(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel level) || !player.isAlive()) return;
+        tickArmorChange(player);
+        long t = level.getGameTime();
+        tickWildSoulGain(player);
+        // 生活属性: 採掘=保持ツールで掘削加速 / 跳躍=常時跳躍力 (40tickごとに更新)
+        tickLifeAttributes(player, t);
+        tickArmorSkills(player, level, t);
+        tickRegenAndShrine(player, level, t);
+        tickZoneSlip(player, t);
+        tickRelicUpkeep(player, level, t);
+        tickZoneHazards(player, level, t);
     }
 
     /** ステータスGUI用: showStatus と同じ内容の行リスト */
