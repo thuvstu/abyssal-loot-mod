@@ -2,6 +2,7 @@ package com.abyssalloot;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
@@ -112,7 +113,16 @@ public final class ClientHud {
         float skillCd = hud.skillCd();
         float subCd = hud.subCd();
 
-        // ---- 魂ゲージ (枠・刻線つき。MAX時は脈動) ----
+        renderSoulGauge(g, font, hud, x0, y0, bw, soul, t, blink);
+        renderFloorLine(g, font, hud, x0, y0);
+        int y = renderCooldowns(g, font, hud, x0, y0 + 38, t, lightCd, skillCd, subCd);
+        y = renderKillsAndCombo(g, font, hud, x0, y);
+        renderPendingPrompts(g, font, hud, x0, y, blink);
+    }
+
+    /** 魂ゲージ (枠・刻線つき。MAX時は脈動) */
+    private static void renderSoulGauge(GuiGraphics g, Font font, ModPackets.HudSync hud,
+                                        int x0, int y0, int bw, float soul, long t, boolean blink) {
         int gaugeColor;
         if (soul >= 100f) {
             // 緑チャンネルだけで脈動させる (0xFF からの桁上がりで色が崩れるのを防ぐ)
@@ -128,14 +138,18 @@ public final class ClientHud {
         if (soul >= 100 && blink) {
             g.drawString(font, "R!", x0 + bw + 6, y0 + 12, 0xFFE14AFF);
         }
+    }
 
-        // ---- 層・レベル (区域名つき) ----
+    /** 層・レベル (区域名つき) */
+    private static void renderFloorLine(GuiGraphics g, Font font, ModPackets.HudSync hud, int x0, int y0) {
         var zone = GameData.zoneForFloor(Math.max(1, hud.floor()));
         g.drawString(font, "第" + hud.floor() + "層 [" + zone.name() + "] Lv" + hud.level(),
                 x0, y0 + 24, 0xFFFFFFFF);
-        int y = y0 + 38;
+    }
 
-        // ---- CT (バー+秒数) ----
+    /** CT (バー+秒数)。描画後の次行Yを返す */
+    private static int renderCooldowns(GuiGraphics g, Font font, ModPackets.HudSync hud, int x0, int y,
+                                       long t, float lightCd, float skillCd, float subCd) {
         if (t - lastCdSeen > 300) {  // CTが尽きてしばらく経ったら基準を戻す
             if (lightCd <= 0) lightCdMax = 0;
             if (skillCd <= 0) skillCdMax = 0;
@@ -162,8 +176,11 @@ public final class ClientHud {
             g.drawString(font, String.format("必殺 %.1fs", skillCd), x0 + 96, y - 1, 0xFFFFD23C);
             y += 11;
         }
+        return y;
+    }
 
-        // ---- 撃破・コンボ ----
+    /** 撃破数・コンボ。描画後の次行Yを返す */
+    private static int renderKillsAndCombo(GuiGraphics g, Font font, ModPackets.HudSync hud, int x0, int y) {
         g.drawString(font, "撃破 " + hud.kills(), x0, y, 0xFF9FB0C9);
         y += 12;
         int combo = hud.combo();
@@ -172,8 +189,12 @@ public final class ClientHud {
             g.drawString(font, combo + " 連撃！", x0, y, comboColor);
             y += 12;
         }
+        return y;
+    }
 
-        // ---- 未選択の提示 (点滅) ----
+    /** 未選択の提示・転移門 (点滅) */
+    private static void renderPendingPrompts(GuiGraphics g, Font font, ModPackets.HudSync hud,
+                                             int x0, int y, boolean blink) {
         if (hud.pendingBoons() > 0 && blink) {
             g.drawString(font, "◆祝福未選択 ×" + hud.pendingBoons() + " (G→祝福)", x0, y, 0xFFE14AFF);
             y += 12;
@@ -190,13 +211,10 @@ public final class ClientHud {
             g.drawString(font, "属性+" + hud.attrPoints() + " (G→ステータス)", x0, y, 0xFF7CFFB2);
             y += 12;
         }
-
-        // ---- 転移門OPEN (点滅) ----
         // 画面上中央はバニラのボスバー (層主戦)、右上は効果アイコンと被るため
         // 左上のこのゾーンに集約する。バニラHUDと被らない位置は左上 (通常空き) のみ。
         if (hud.portalOpen() != 0 && blink) {
             g.drawString(font, "◆転移門OPEN! (G→次の層へ)", x0, y, 0xFF7CFFB2);
-            y += 12;
         }
     }
 }
