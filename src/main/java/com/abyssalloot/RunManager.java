@@ -999,6 +999,14 @@ public final class RunManager {
 
     /** 防具スキル (tick系)。兜: 危険感知・水の加護・炉火 / 脚: 羽毛 / 靴: 跳上げ・磁石 / 鎧: 聖盾 */
     private static void tickArmorSkills(ServerPlayer player, ServerLevel level, long t) {
+        tickHelmSkills(player, level, t);
+        tickLegSkills(player);
+        tickFeetSkills(player, level, t);
+        tickChestSkills(player, t);
+    }
+
+    /** 兜スキル: 危険感知・水の加護・炉火 */
+    private static void tickHelmSkills(ServerPlayer player, ServerLevel level, long t) {
         var helm = player.getItemBySlot(EquipmentSlot.HEAD);
         var helmSkill = GearData.skillOf(helm);
         if ("h_danger".equals(helmSkill) && t % 40 == 0) {
@@ -1017,13 +1025,20 @@ public final class RunManager {
             level.sendParticles(ParticleTypes.SMOKE, player.getX(), player.getY() + 1, player.getZ(),
                     8, 0.4, 0.6, 0.4, 0.05);
         }
+    }
+
+    /** 脚スキル「羽毛の脚」: 常時緩降下 */
+    private static void tickLegSkills(ServerPlayer player) {
         var legs = player.getItemBySlot(EquipmentSlot.LEGS);
-        // 脚スキル「羽毛の脚」: 常時緩降下
         if ("l_feather".equals(GearData.skillOf(legs))
                 && player.getDeltaMovement().y < -0.1
                 && !player.hasEffect(MobEffects.SLOW_FALLING)) {
             player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 120, 0, false, false));
         }
+    }
+
+    /** 靴スキル: 跳上げ・磁石 */
+    private static void tickFeetSkills(ServerPlayer player, ServerLevel level, long t) {
         var feet = player.getItemBySlot(EquipmentSlot.FEET);
         // 靴スキル「跳上げの靴」: 常時跳躍力II
         if ("b_charge".equals(GearData.skillOf(feet))
@@ -1042,12 +1057,17 @@ public final class RunManager {
                 }
             }
         }
+    }
+
+    /** 鎧スキル「聖盾」: 吸収効果 (バリア) を定期付与 */
+    private static void tickChestSkills(ServerPlayer player, long t) {
         var chest = player.getItemBySlot(EquipmentSlot.CHEST);
         if ("c_aegis".equals(GearData.skillOf(chest))
                 && !player.hasEffect(MobEffects.ABSORPTION) && t % 100 == 0) {
             player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 400, 1, false, false));
         }
     }
+
 
     /** 巨躯の刻印・接辞のHP回復 (1秒ごと) と祭壇「試練」の毎秒2損耗 */
     private static void tickRegenAndShrine(ServerPlayer player, ServerLevel level, long t) {

@@ -28,6 +28,12 @@ public final class ClientKeys {
     private static KeyMapping subKey;
 
     public static void init(IEventBus modBus) {
+        registerKeyMappings(modBus);
+        registerKeyTickHandler();
+    }
+
+    /** キーマッピングの登録 (R/V/X/G/N/C) */
+    private static void registerKeyMappings(IEventBus modBus) {
         modBus.addListener((RegisterKeyMappingsEvent event) -> {
             var category = new KeyMapping.Category(
                     net.minecraft.resources.Identifier.fromNamespaceAndPath(
@@ -52,6 +58,10 @@ public final class ClientKeys {
             event.register(nextKey);
             event.register(subKey);
         });
+    }
+
+    /** キー入力→サーバー送信 (1tickに1回だけ送る。キーリピート対策) */
+    private static void registerKeyTickHandler() {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             var conn = Minecraft.getInstance().getConnection();
             if (conn == null) return;
@@ -76,4 +86,5 @@ public final class ClientKeys {
             }
         });
     }
+
 }
