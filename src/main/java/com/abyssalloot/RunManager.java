@@ -411,7 +411,6 @@ public final class RunManager {
         player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
     }
 
-
     /**
      * 出撃の初期化: 全ラン依存状態を既定値に戻す (出撃開始時).
      * データ区分: ①ラン依存の提示・イベント (clearLingeringRunState で消える) /
@@ -1063,7 +1062,6 @@ public final class RunManager {
             player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 400, 1, false, false));
         }
     }
-
 
     /** 巨躯の刻印・接辞のHP回復 (1秒ごと) と祭壇「試練」の毎秒2損耗 */
     private static void tickRegenAndShrine(ServerPlayer player, ServerLevel level, long t) {

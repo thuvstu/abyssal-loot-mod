@@ -177,7 +177,6 @@ public final class ModCommands {
                                 })));
     }
 
-
     private static void registerRunFlow(LiteralArgumentBuilder<CommandSourceStack> root) {
         root
                 .then(Commands.literal("start").executes(ctx -> {
@@ -351,8 +350,6 @@ public final class ModCommands {
                             return 1;
                         }));
     }
-
-
 
     private static void registerBuild(LiteralArgumentBuilder<CommandSourceStack> root) {
         root

@@ -1055,7 +1055,6 @@ public final class WeaponArts {
         announce(player, "天矢雨！");
     }
 
-
     /** 感圧罠の爆発 (敵味方共通・原作traps.ts準拠の簡易版) */
     public static void trapBlast(ServerLevel level, ServerPlayer attacker, Vec3 at) {
         pulse(level, attacker, at, 5, 3.0, true, ParticleTypes.EXPLOSION);

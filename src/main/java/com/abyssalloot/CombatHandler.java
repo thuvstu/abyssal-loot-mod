@@ -174,7 +174,6 @@ public final class CombatHandler {
         }
     }
 
-
     /** HUDの即時更新 (未選択カウントを出すため) */
     static void sendHud(ServerPlayer player) {
         LAST_HUD_TICK.put(player.getUUID(), (long) tickCounter);
@@ -205,7 +204,6 @@ public final class CombatHandler {
         if (last != null && tickCounter - last < 4) return;
         sendHud(player);
     }
-
 
     /** サーバtickカウンタ (各種周期処理・撃破時刻の基準) */
     private static int tickCounter = 0;

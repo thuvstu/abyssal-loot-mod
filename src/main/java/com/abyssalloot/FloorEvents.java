@@ -147,7 +147,6 @@ public final class FloorEvents {
                 "§6商店を開いた (所持欠片" + countShards(player) + "／チャット購入は /abyss buy 1〜3)"));
     }
 
-
     /** 原作の遺された宝箱/禁呪の宝箱: 層相当の装備を1点得る (鍛冶場ボーナス付き) */
     public static void doForgeCrate(ServerPlayer player) {
         completeEvent(player);
@@ -440,7 +439,6 @@ public final class FloorEvents {
         RunManager.spawnWave(player, floor, false);
         player.sendSystemMessage(Component.literal("§e群れが押し寄せる！ 追加ウェーブ"));
     }
-
 
     /* ---------------- 遺物・技能の提示 ---------------- */
 

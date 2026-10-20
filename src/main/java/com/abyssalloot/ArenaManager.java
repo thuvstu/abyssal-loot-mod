@@ -166,7 +166,6 @@ public final class ArenaManager {
         }
     }
 
-
     /** 塀上〜天井のバリア配置 */
     public static void placeBarriers(ServerLevel level, BlockPos center) {
         int r = ARENA_R;
@@ -250,7 +249,6 @@ public final class ArenaManager {
             placed++;
         }
     }
-
 
     /** 前回アリーナのバリアを除去 (再出撃・終了時) */
     public static void clearBarriers(ServerLevel level, BlockPos center) {

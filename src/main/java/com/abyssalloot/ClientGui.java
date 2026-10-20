@@ -103,7 +103,6 @@ public final class ClientGui {
         });
     }
 
-
     private static <T extends Mob> void bind(EntityRenderersEvent.RegisterRenderers event,
                                              Supplier<EntityType<T>> type,
                                              net.minecraft.client.model.geom.ModelLayerLocation layer,
@@ -127,7 +126,6 @@ public final class ClientGui {
         compareLeft = List.copyOf(left);
         compareRight = List.copyOf(right);
     }
-
 
     /** Switching screens while a container (shop/forge/compare) is open leaves the server
      *  side menu behind; call closeContainer first so the ClosePacket is sent. */

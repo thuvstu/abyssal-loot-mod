@@ -332,7 +332,6 @@ public final class SubSkills {
                 8, 1.5, 1.5, 1.5, 0.1);
     }
 
-
     /** 囮の寿命処理は設置時の DelayRunner が担うため廃止。
      * 「敵の注意を引きつける」効果は {@link EnemyAI} の毎tick処理で abyss_decoy タグを検索して実装。 */
     public static final String DECOY_TAG = "abyss_decoy";

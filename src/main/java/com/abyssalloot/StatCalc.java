@@ -242,7 +242,6 @@ public final class StatCalc {
         }
     }
 
-
     /** 攻速の合計% (迅風・武器クラス・接辞・技能・呪い)。applyClass と共有 */
     public static double attackSpeedPctOf(ServerPlayer player) {
         var held = player.getMainHandItem();
@@ -334,7 +333,6 @@ public final class StatCalc {
         if ("rage".equals(RunManager.activeShrine(player))) mult *= 1.6;
         return mult;
     }
-
 
     /* ---------------- 武器クラス・接辞 (原作 WEAPON_CLASSES / AFFIXES) ---------------- */
 

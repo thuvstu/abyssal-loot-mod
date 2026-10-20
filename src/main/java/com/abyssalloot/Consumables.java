@@ -339,7 +339,6 @@ public final class Consumables {
         }
     }
 
-
     /** 攻撃・設置系 */
     private static Boolean applyOffensive(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
         switch (kind) {
@@ -561,7 +560,6 @@ public final class Consumables {
             }
         }
     }
-
 
     /** 職業の必殺巻物: その型の必殺技をCTなしで1度だけ発動 */
     private static boolean castClassScroll(ServerPlayer player, String kind) {
