@@ -406,7 +406,7 @@ public final class RunManager {
         player.sendSystemMessage(Component.literal("§f1. 左クリックで攻撃。敵を倒して魂ゲージを溜めよう"));
         player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
         player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
-        player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると選択肢が出る → 転移門へ → §b/abyss next §fで次層"));
+        player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると転移門が開く → 門をくぐって次層 (§bG§fで操作ハブ)"));
         player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
         player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
     }

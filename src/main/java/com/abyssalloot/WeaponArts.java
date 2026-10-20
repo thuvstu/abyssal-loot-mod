@@ -43,6 +43,10 @@ public final class WeaponArts {
      * 武器命中の威力上書き・奥義ゲージ蓄積の対象から外す.
      */
     public static void artHurt(ServerLevel level, LivingEntity target, DamageSource source, float dmg) {
+        // 奥義・二次反応もダメージ数字で知らせる (自分の被弾は除く)
+        if (source.getEntity() instanceof ServerPlayer attacker && target != attacker) {
+            DamageNumbers.show(attacker, target, dmg, false);
+        }
         artHitDepth++;
         try {
             target.hurtServer(level, source, dmg);

@@ -332,6 +332,14 @@ public final class WeaponHitHandler {
         }
         // 与ダメージを宙に数字で表示 (会心は金色)
         DamageNumbers.show(player, target, event.getNewDamage(), roll.crit());
+        // 会心は専用の演出 (重い一撃として印象を残す)
+        if (roll.crit()) {
+            level.sendParticles(ParticleTypes.CRIT,
+                    target.getX(), target.getY() + target.getBbHeight() * 0.6, target.getZ(),
+                    10, 0.35, 0.35, 0.35, 0.05);
+            level.playSound(null, target.blockPosition(),
+                    SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 0.7f, 1.15f);
+        }
         applyNormalHitEffects(new HitInfo(player, level, target, dmg, atk, trait,
                 style, ability, passives, pflags, rand));
     }
@@ -431,10 +439,14 @@ public final class WeaponHitHandler {
         if (dmg <= 0) return;
         var player = hit.player();
         int life = RunManager.boonLv(player, "life");
-        if (life > 0) RunManager.heal(player, dmg * 0.04 * life);
         double affixLeech = StatCalc.affixPlusExtra(player, "lifestealPct");
+        float before = player.getHealth();
+        if (life > 0) RunManager.heal(player, dmg * 0.04 * life);
         if (affixLeech > 0) RunManager.heal(player, dmg * affixLeech / 100.0);
         if (hit.passives().contains("blood_pact")) RunManager.heal(player, dmg * 0.06);
+        // 回復量も数字で知らせる (吸血が传入ったかどうかが分かる)
+        float gained = player.getHealth() - before;
+        if (gained > 0.5f) DamageNumbers.showHeal(player, gained);
     }
 
     /** 状態異常 (業火/猛毒/裂傷/業火の刻/氷縛の理) と氷結鈍足 */
