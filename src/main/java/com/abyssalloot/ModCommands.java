@@ -233,11 +233,12 @@ public final class ModCommands {
     }
 
     private static void registerRewards(LiteralArgumentBuilder<CommandSourceStack> root) {
-        registerOfferCommands(root);
+        registerRelicPassiveCommands(root);
         registerRewardActions(root);
+        registerChoiceCommands(root);
     }
 
-    private static void registerOfferCommands(LiteralArgumentBuilder<CommandSourceStack> root) {
+    private static void registerRelicPassiveCommands(LiteralArgumentBuilder<CommandSourceStack> root) {
         root
                 .then(Commands.literal("relic")
                         .executes(ctx -> {
@@ -298,7 +299,11 @@ public final class ModCommands {
                 .then(Commands.literal("skill").executes(ctx -> {
                     SkillHandler.trySkill(ctx.getSource().getPlayerOrException());
                     return 1;
-                }))
+                }));
+    }
+
+    private static void registerChoiceCommands(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("boon")
                         .executes(ctx -> {
                             BoonHandler.resendBoonOffer(ctx.getSource().getPlayerOrException());
@@ -346,6 +351,7 @@ public final class ModCommands {
                             return 1;
                         }));
     }
+
 
 
     private static void registerBuild(LiteralArgumentBuilder<CommandSourceStack> root) {
