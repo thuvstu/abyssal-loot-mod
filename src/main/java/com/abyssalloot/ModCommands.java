@@ -37,6 +37,12 @@ public final class ModCommands {
     }
 
     private static void registerQuickAndConfig(LiteralArgumentBuilder<CommandSourceStack> root) {
+        registerQuick(root);
+        registerMenuAndHelp(root);
+        registerLoadout(root);
+    }
+
+    private static void registerQuick(LiteralArgumentBuilder<CommandSourceStack> root) {
         // 一括開始: 職業と武器を配備して即出撃 (/abyss quick [職業] [武器])
         root
                 .then(Commands.literal("quick")
@@ -64,7 +70,11 @@ public final class ModCommands {
                                                     StringArgumentType.getString(ctx, "class"),
                                                     StringArgumentType.getString(ctx, "weapon"));
                                             return 1;
-                                        }))))
+                                        }))));
+    }
+
+    private static void registerMenuAndHelp(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 // 出撃前の設定メニュー (職業・呪印・モード・難易度をクリックで選ぶ)
                 .then(Commands.literal("menu").executes(ctx -> {
                     showMenu(ctx.getSource().getPlayerOrException());
@@ -81,7 +91,11 @@ public final class ModCommands {
                 .then(Commands.literal("help").executes(ctx -> {
                     showHelp(ctx.getSource().getPlayerOrException());
                     return 1;
-                }))
+                }));
+    }
+
+    private static void registerLoadout(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("class")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
@@ -157,6 +171,7 @@ public final class ModCommands {
                                 })));
     }
 
+
     private static void registerRunFlow(LiteralArgumentBuilder<CommandSourceStack> root) {
         root
                 .then(Commands.literal("start").executes(ctx -> {
@@ -212,6 +227,11 @@ public final class ModCommands {
     }
 
     private static void registerRewards(LiteralArgumentBuilder<CommandSourceStack> root) {
+        registerOfferCommands(root);
+        registerRewardActions(root);
+    }
+
+    private static void registerOfferCommands(LiteralArgumentBuilder<CommandSourceStack> root) {
         root
                 .then(Commands.literal("relic")
                         .executes(ctx -> {
@@ -247,7 +267,11 @@ public final class ModCommands {
                                     FloorEvents.doPassive(ctx.getSource().getPlayerOrException(),
                                             StringArgumentType.getString(ctx, "id"));
                                     return 1;
-                                })))
+                                })));
+    }
+
+    private static void registerRewardActions(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("compass").executes(ctx -> {
                     RunManager.compass(ctx.getSource().getPlayerOrException());
                     return 1;
@@ -316,6 +340,7 @@ public final class ModCommands {
                             return 1;
                         }));
     }
+
 
     private static void registerBuild(LiteralArgumentBuilder<CommandSourceStack> root) {
         root
