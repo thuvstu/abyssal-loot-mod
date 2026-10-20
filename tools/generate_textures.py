@@ -409,7 +409,8 @@ def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: st
     pose = items.VERTICAL_POSE if item_id in VERTICAL_ITEMS else None
     held_v = item_id not in items.GUI_UPRIGHT_ONLY
     m.texture.save(os.path.join(TEX_DIR, f"{tex}.png"))
-    write_model(item_id, m.model_json(f"abyssalloot:item/{tex}", items.display(kind, pose, held_v)))
+    write_model(item_id, m.model_json(f"abyssalloot:item/{tex}",
+                                      items.display(kind, pose, held_v, grip=m.grip_point())))
     write_item_def(item_id)
 
 

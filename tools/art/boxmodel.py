@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import zlib
 from dataclasses import dataclass, field
 
 from PIL import Image, ImageDraw
@@ -116,6 +117,7 @@ class Model:
         self.uv: dict[tuple[int, str], tuple[int, int, int, int]] = {}  # (box index, face) -> texel rect
         self.texture: Image.Image | None = None
         self._culled = False
+        self.grip: tuple[float, float, float] | None = None   # 手で握る位置 (0..16)
 
     # -- 構築 --
     def add(self, b: Box) -> Box:
@@ -124,6 +126,41 @@ class Model:
 
     def box(self, name, frm, to, mat, **kw) -> Box:
         return self.add(box(name, frm, to, mat, **kw))
+
+    def grip_point(self) -> tuple[float, float, float]:
+        """手で握る位置を返す (モデル座標 0..16)。所持位置の基準に使う。
+
+        `self.grip` が未指定なら柄らしい名前の箱を探し、無ければ全体の中心。
+        """
+        if self.grip is not None:
+            return self.grip
+
+        def _base(n):
+            for p in ("grip", "handle"):
+                if n == p or (n.startswith(p) and n[len(p):].isdigit()):
+                    return True
+            return False
+
+        tiers = (
+            _base,
+            lambda n: n.startswith(("grip", "handle")),
+            lambda n: n.endswith("_wrap"),
+            lambda n: n.startswith(("haft", "shaft")),
+        )
+        for hit in tiers:
+            cands = [b for b in self.boxes if hit(b.name)]
+            if cands:
+                def _vol(b):
+                    return max(0.0, b.to[0] - b.frm[0]) * max(0.0, b.to[1] - b.frm[1]) * max(0.0, b.to[2] - b.frm[2])
+                b = max(cands, key=_vol)
+                return ((b.frm[0] + b.to[0]) / 2.0,
+                        (b.frm[1] + b.to[1]) / 2.0,
+                        (b.frm[2] + b.to[2]) / 2.0)
+        if not self.boxes:
+            return (8.0, 8.0, 8.0)
+        lo = [min(b.frm[i] for b in self.boxes) for i in range(3)]
+        hi = [max(b.to[i] for b in self.boxes) for i in range(3)]
+        return tuple((lo[i] + hi[i]) / 2.0 for i in range(3))
 
     # -- UV / テクスチャ --
     def _face_texel_size(self, b: Box, face):
@@ -219,7 +256,7 @@ class Model:
         img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
         for bi, face, r in placed:
             b = self.boxes[bi]
-            seed = (bi * 31 + FACE_ORDER.index(face) * 7 + hash(b.name) % 97) & 0xFFFF
+            seed = (bi * 31 + FACE_ORDER.index(face) * 7 + zlib.crc32(b.name.encode("utf-8")) % 97) & 0xFFFF
             paint_face(img, r, b.mat, face, seed, b.size())
         return img, uv
 

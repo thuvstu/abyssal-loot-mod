@@ -598,6 +598,8 @@ def chakram(m: Model, p: dict) -> None:
     m.box("core", (7.3, 7.3, 6.95), (8.7, 8.7, 9.05), p["accent"])
     m.box("core_glow", (7.72, 7.72, 6.8), (8.28, 8.28, 7.15), p["white"])
     m.box("core_glow2", (7.72, 7.72, 8.85), (8.28, 8.28, 9.2), p["white"])
+    # 手は内輪の下側を持つ
+    m.grip = (8.0, 6.4, 8.0)
 
 
 def tome(m: Model, p: dict) -> None:
@@ -638,6 +640,8 @@ def tome(m: Model, p: dict) -> None:
     # 栞
     m.box("ribbon", (7.85, 1.1, 7.6), (8.75, 3.5, 8.5), p["accent_dim"])
     m.box("ribbon_tip", (7.85, 1.1, 7.6), (8.75, 1.8, 8.5), p["accent"])
+    # 本は下から掌で支える (手前の下端寄り)
+    m.grip = (8.0, 4.2, 8.0)
 
 
 def gauntlet(m: Model, p: dict, big: bool = False) -> None:
@@ -688,6 +692,8 @@ def claw(m: Model, p: dict) -> None:
     m.box("gem", (7.3, 5.9, 6.4), (8.7, 7.0, 6.75), p["accent"])
     for i, ox in enumerate((-3.2, 3.2)):
         m.box(f"stud{i}", (8 + ox - 0.3, 6.0, 6.45), (8 + ox + 0.3, 6.8, 6.75), p["bright"])
+    # 握りは拳の内側 (爪ではなく付け根の帯) に合わせる
+    m.grip = (8.0, 6.4, 8.0)
 
 
 def horn(m: Model, p: dict) -> None:
@@ -773,6 +779,8 @@ def shears(m: Model, p: dict) -> None:
     m.box("pivot", (7.25, 7.25, 7.2), (8.75, 8.75, 8.8), p["gold"])
     m.box("pivot_gem", (7.55, 7.55, 6.95), (8.45, 8.45, 7.25), p["accent"])
     m.box("pivot_gem2", (7.55, 7.55, 8.75), (8.45, 8.45, 9.05), p["accent"])
+    # 握り輪 (下側) を手の位置にする
+    m.grip = (8.0, 3.0, 8.0)
 
 
 def pickaxe(m: Model, p: dict) -> None:
