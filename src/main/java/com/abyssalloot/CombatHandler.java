@@ -1,26 +1,38 @@
 package com.abyssalloot;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -40,8 +52,8 @@ public final class CombatHandler {
     }
 
     /** 最終HUD送信tick (間引き送信用) */
-    private static final java.util.Map<java.util.UUID, Long> LAST_HUD_TICK =
-            new java.util.HashMap<>();
+    private static final Map<UUID, Long> LAST_HUD_TICK =
+            new HashMap<>();
 
     /** 装備変更で即時ステータス再計算 (防具の着脱・持替でHP等が追従する) */
     @SubscribeEvent
@@ -78,7 +90,7 @@ public final class CombatHandler {
     /* ---------------- 破壊物 ---------------- */
 
     @SubscribeEvent
-    public static void onBlockBreak(net.neoforged.neoforge.event.level.BlockEvent.BreakEvent event) {
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (!(event.getPlayer() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
         // 生活ツール能力: 対応ブロックで欠片・素材ボーナス
@@ -86,7 +98,7 @@ public final class CombatHandler {
         String raw = player.getData(ModAttachments.DESTRUCT.get());
         if (raw == null || raw.isBlank()) return;
         var pos = event.getPos();
-        var keep = new java.util.ArrayList<String>();
+        var keep = new ArrayList<String>();
         boolean hit = false;
         for (String d : raw.split(";")) {
             String[] p = d.split(",");
@@ -106,9 +118,9 @@ public final class CombatHandler {
 
     /** 生活ツール能力。手持ちの深淵ツールに応じた採集ボーナス */
     private static void triggerToolAbility(ServerPlayer player, ServerLevel level,
-                                           net.minecraft.core.BlockPos pos) {
+                                           BlockPos pos) {
         var held = player.getMainHandItem().getItem();
-        String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK
+        String path = BuiltInRegistries.BLOCK
                 .getKey(level.getBlockState(pos).getBlock()).getPath();
         var rand = player.getRandom();
         Runnable bonus = () -> {
@@ -135,27 +147,27 @@ public final class CombatHandler {
             if ((path.contains("wheat") || path.contains("carrot") || path.contains("potato")
                     || path.contains("beetroot") || path.contains("melon") || path.contains("pumpkin"))
                     && rand.nextDouble() < 0.25) {
-                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.WHEAT_SEEDS));
+                LootHandler.giveOrDrop(player, new ItemStack(Items.WHEAT_SEEDS));
             }
         } else if (held == ModItems.ABYSS_SHEARS.get()) {
             // 蜘蛛の巣から50%で糸+2、葉から10%で棒
             if (path.contains("cobweb") && rand.nextDouble() < 0.5) {
-                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STRING, 2));
+                LootHandler.giveOrDrop(player, new ItemStack(Items.STRING, 2));
             } else if (path.contains("leaves") && rand.nextDouble() < 0.10) {
-                LootHandler.giveOrDrop(player, new ItemStack(net.minecraft.world.item.Items.STICK));
+                LootHandler.giveOrDrop(player, new ItemStack(Items.STICK));
             }
         }
     }
 
     /** 釣果2倍 (深淵の釣竿・30%で各ドロップ複製) */
     @SubscribeEvent
-    public static void onFished(net.neoforged.neoforge.event.entity.player.ItemFishedEvent event) {
+    public static void onFished(ItemFishedEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.getMainHandItem().getItem() != ModItems.ABYSS_FISHING_ROD.get()
-                && player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.OFFHAND).getItem()
+                && player.getItemBySlot(EquipmentSlot.OFFHAND).getItem()
                         != ModItems.ABYSS_FISHING_ROD.get()) return;
         if (player.getRandom().nextFloat() < 0.30f) {
-            for (ItemStack s : java.util.List.copyOf(event.getDrops())) {
+            for (ItemStack s : List.copyOf(event.getDrops())) {
                 event.getDrops().add(s.copy());
             }
             player.displayClientMessage(Component.literal("§b大漁！"), true);
@@ -166,7 +178,7 @@ public final class CombatHandler {
     /** HUDの即時更新 (未選択カウントを出すため) */
     static void sendHud(ServerPlayer player) {
         LAST_HUD_TICK.put(player.getUUID(), (long) tickCounter);
-        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+        PacketDistributor.sendToPlayer(player,
                 new ModPackets.HudSync(
                         player.getData(ModAttachments.SOUL.get()),
                         player.getData(ModAttachments.FLOOR.get()),

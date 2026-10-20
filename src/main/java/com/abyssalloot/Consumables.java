@@ -11,12 +11,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
 import java.util.Set;
 
 /** 消耗品の説明と使用効果 (軍糧丸・回復薬・巻物など)。RunManager から分離.
@@ -405,7 +407,7 @@ public final class Consumables {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 2));
                     e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
                 }
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.ITEM_COBWEB,
+                level.sendParticles(ParticleTypes.ITEM_COBWEB,
                         origin.x, origin.y + 1, origin.z, 40, 3, 1, 3, 0.1);
                 player.displayClientMessage(Component.literal("§7索縛の網が絡みついた"), true);
                 return true;
@@ -474,18 +476,18 @@ public final class Consumables {
     private static Boolean applyCleansingItems(ServerPlayer player, String kind) {
         switch (kind) {
             case "cure" -> {
-                var bad = java.util.List.of(MobEffects.WITHER, MobEffects.POISON,
+                var bad = List.of(MobEffects.WITHER, MobEffects.POISON,
                         MobEffects.SLOWNESS, MobEffects.WEAKNESS, MobEffects.HUNGER,
                         MobEffects.BLINDNESS, MobEffects.UNLUCK, MobEffects.MINING_FATIGUE,
                         MobEffects.DARKNESS, MobEffects.BAD_OMEN);
-                for (var eff : java.util.List.copyOf(player.getActiveEffects())) {
+                for (var eff : List.copyOf(player.getActiveEffects())) {
                     if (bad.contains(eff.getEffect())) player.removeEffect(eff.getEffect());
                 }
                 player.displayClientMessage(Component.literal("§a浄化した"), true);
                 return true;
             }
             case "purity" -> {
-                java.util.List.of(MobEffects.WITHER, MobEffects.POISON, MobEffects.SLOWNESS,
+                List.of(MobEffects.WITHER, MobEffects.POISON, MobEffects.SLOWNESS,
                         MobEffects.WEAKNESS, MobEffects.MINING_FATIGUE, MobEffects.DARKNESS,
                         MobEffects.HUNGER, MobEffects.BLINDNESS, MobEffects.UNLUCK,
                         MobEffects.NAUSEA, MobEffects.LEVITATION).forEach(player::removeEffect);
@@ -530,7 +532,7 @@ public final class Consumables {
             }
             case "eagle" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300, 0, false, false));
-                for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                for (var e : level.getEntitiesOfClass(Mob.class,
                         player.getBoundingBox().inflate(10), e -> e.isAlive())) {
                     e.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300, 0, false, false));
                 }

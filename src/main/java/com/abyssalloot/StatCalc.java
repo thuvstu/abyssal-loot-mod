@@ -1,12 +1,18 @@
 package com.abyssalloot;
 
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * ステータス計算式・属性・汎用ボーナス集計 (RunManager から分離)。
@@ -380,7 +386,7 @@ public final class StatCalc {
         var c = EXTRA_CACHE.get(uuid);
         if (c == null || c.tick() != t) {
             if (EXTRA_CACHE.size() > 256) EXTRA_CACHE.clear();
-            c = new ExtraCache(t, new java.util.HashMap<>());
+            c = new ExtraCache(t, new HashMap<>());
             EXTRA_CACHE.put(uuid, c);
         }
         Double v = c.vals().get(key);
@@ -391,9 +397,9 @@ public final class StatCalc {
         return v;
     }
 
-    private record ExtraCache(long tick, java.util.HashMap<String, Double> vals) {}
+    private record ExtraCache(long tick, HashMap<String, Double> vals) {}
 
-    private static final java.util.Map<java.util.UUID, ExtraCache> EXTRA_CACHE = new java.util.HashMap<>();
+    private static final Map<UUID, ExtraCache> EXTRA_CACHE = new HashMap<>();
 
     /** ステータスの導出元 (祝福・技能・遺物・属性・装備) が変わったときに呼ぶ (StatCalc/RunManager の書き込み系から) */
     public static void invalidateCaches(ServerPlayer player) {
@@ -431,7 +437,7 @@ public final class StatCalc {
         GameData.BiomeEcho echo = null;
         try {
             var id = player.level().registryAccess()
-                    .lookupOrThrow(net.minecraft.core.registries.Registries.BIOME)
+                    .lookupOrThrow(Registries.BIOME)
                     .getKey(player.level().getBiome(player.blockPosition()).value());
             echo = GameData.biomeEchoById(id.getNamespace() + ":" + id.getPath());
         } catch (Exception ignored) {
@@ -444,11 +450,11 @@ public final class StatCalc {
 
     private record EchoCache(long tick, GameData.BiomeEcho echo) {}
 
-    private static final java.util.Map<java.util.UUID, EchoCache> ECHO_CACHE = new java.util.HashMap<>();
+    private static final Map<UUID, EchoCache> ECHO_CACHE = new HashMap<>();
 
     /** 装備中防具セットのボーナス (2部位・4部位)。setId -> 部位数で判定 */
     public static double armorSetBonus(ServerPlayer player, String key) {
-        var count = new java.util.HashMap<String, Integer>();
+        var count = new HashMap<String, Integer>();
         for (var slot : new EquipmentSlot[]{
                 EquipmentSlot.HEAD,
                 EquipmentSlot.CHEST,
@@ -456,8 +462,8 @@ public final class StatCalc {
                 EquipmentSlot.FEET}) {
             var st = player.getItemBySlot(slot);
             if (st.isEmpty()) continue;
-            var data = st.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                    net.minecraft.world.item.component.CustomData.EMPTY);
+            var data = st.getOrDefault(DataComponents.CUSTOM_DATA,
+                    CustomData.EMPTY);
             String set = data.copyTag().getString("abyss_set").orElse("");
             if (!set.isEmpty()) count.merge(set, 1, Integer::sum);
         }

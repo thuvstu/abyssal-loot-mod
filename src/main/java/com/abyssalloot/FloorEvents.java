@@ -2,7 +2,6 @@ package com.abyssalloot;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /** 層間イベントまわり: 休息/誓約/商店/鍛造/宝箱・購入・ランダムイベント・遺物/技能の提示.

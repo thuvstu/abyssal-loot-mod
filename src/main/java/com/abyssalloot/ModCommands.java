@@ -1,19 +1,25 @@
 package com.abyssalloot;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.ItemStack;
+
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 /**
  * /abyss 系コマンド.
@@ -83,7 +89,7 @@ public final class ModCommands {
                 // 操作ハブ (GUIボタン集約。Gキーからも開ける)
                 .then(Commands.literal("hub").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p,
+                    PacketDistributor.sendToPlayer(p,
                             new ModPackets.HubSync());
                     return 1;
                 }))
@@ -457,7 +463,7 @@ public final class ModCommands {
                 }))
                 .then(Commands.literal("forge").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                    p.openMenu(new SimpleMenuProvider(
                             (id, inv, pl) -> new ForgeMenu(id, inv),
                             Component.literal("鍛造")));
                     return 1;
@@ -469,21 +475,21 @@ public final class ModCommands {
                         p.sendSystemMessage(Component.literal("§c商店は開いていない (/abyss event shop)"));
                         return 0;
                     }
-                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                    p.openMenu(new SimpleMenuProvider(
                             (id, inv, pl) -> new ShopMenu(id, inv),
                             Component.literal("商店")));
                     return 1;
                 }))
                 .then(Commands.literal("compare").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                    p.openMenu(new SimpleMenuProvider(
                             (id, inv, pl) -> new CompareMenu(id, inv),
                             Component.literal("装備比較")));
                     return 1;
                 }))
                 .then(Commands.literal("statusgui").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p,
+                    PacketDistributor.sendToPlayer(p,
                             new ModPackets.StatusSync(RunManager.statusLines(p)));
                     return 1;
                 }))
@@ -500,7 +506,7 @@ public final class ModCommands {
     /** 属性名→index (日本語・英語・旧ローマ字を受け付ける) */
     static int attrIndex(String id) {
         if (id == null) return -1;
-        String s = id.toLowerCase(java.util.Locale.ROOT);
+        String s = id.toLowerCase(Locale.ROOT);
         return switch (s) {
             case "剛力", "ごうりき", "ゴウリキ", "power", "str", "got" -> 0;
             case "韻律", "いんりつ", "インリツ", "rhythm", "rin" -> 1;
@@ -580,7 +586,7 @@ public final class ModCommands {
     }
 
     /** クリックコマンドボタン (FloorEvents.btn の別名。実装は1箇所に統一) */
-    static net.minecraft.network.chat.MutableComponent button(String label, String cmd) {
+    static MutableComponent button(String label, String cmd) {
         return FloorEvents.btn(label, cmd).copy();
     }    /** 出撃前設定メニュー: 現在値を表示し、クリックで切り替え/出撃する */
     static void showMenu(ServerPlayer p) {

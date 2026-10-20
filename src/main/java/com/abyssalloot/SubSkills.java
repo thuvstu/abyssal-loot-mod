@@ -1,12 +1,15 @@
 package com.abyssalloot;
 
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
@@ -75,11 +78,11 @@ public final class SubSkills {
     private static boolean placeDecoy(ServerPlayer player, ServerLevel level) {
         Vec3 look = player.getLookAngle();
         Vec3 at = player.position().add(look.x * 3, 0, look.z * 3);
-        var stand = EntityType.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.EVENT);
+        var stand = EntityType.ARMOR_STAND.create(level, EntitySpawnReason.EVENT);
         if (stand == null) return false;
         stand.setPos(at.x, player.getY(), at.z);
         stand.setYRot(player.getYRot());
-        stand.setCustomName(net.minecraft.network.chat.Component.literal("§d〔囮〕"));
+        stand.setCustomName(Component.literal("§d〔囮〕"));
         stand.setCustomNameVisible(true);
         stand.setInvisible(true);
         stand.setInvulnerable(true);
@@ -107,7 +110,7 @@ public final class SubSkills {
                 if (!player.isAlive()) return;
                 Vec3 at = player.position().add(look.scale(2 + k * 2));
                 WeaponArts.pulse(level, player, at, 2.6, 0.6, k == 2, ParticleTypes.SWEEP_ATTACK);
-                level.sendParticles(new net.minecraft.core.particles.DustParticleOptions(0x9fd8ff, 1.2f),
+                level.sendParticles(new DustParticleOptions(0x9fd8ff, 1.2f),
                         at.x, player.getY() + 1, at.z, 14, 0.8, 0.8, 0.8, 0.1);
             });
         }
@@ -152,7 +155,7 @@ public final class SubSkills {
     /** 棘の盾: 被ダメ軽減+反射 (WeaponHitHandler が SUB_SHIELD を参照)。付与のみ */
     private static boolean thornShield(ServerPlayer player) {
         player.setData(ModAttachments.SUB_SHIELD.get(), 6f);
-        player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+        player.displayClientMessage(Component.literal(
                 "§e棘の盾展開 (6秒) — 被ダメ-30%・反射"), true);
         return true;
     }
@@ -162,7 +165,7 @@ public final class SubSkills {
         Vec3 origin = player.position();
         LivingEntity t = nearest(origin, level, 16);
         if (t == null) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c錯影: 敵がいない"), true);
+            player.displayClientMessage(Component.literal("§c錯影: 敵がいない"), true);
             return false;
         }
         Vec3 tp = t.position();
@@ -181,7 +184,7 @@ public final class SubSkills {
     private static boolean soulFeed(ServerPlayer player, ServerLevel level) {
         float cost = player.getMaxHealth() * 0.2f;
         if (player.getHealth() <= cost + 1) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c供物には命が足りない"), true);
+            player.displayClientMessage(Component.literal("§c供物には命が足りない"), true);
             return false;
         }
         player.hurtServer(level, level.damageSources().magic(), cost);
@@ -208,7 +211,7 @@ public final class SubSkills {
     private static boolean bloodRush(ServerPlayer player, ServerLevel level) {
         float cost = player.getMaxHealth() * 0.1f;
         if (player.getHealth() <= cost + 1) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c覚醒には命が足りない"), true);
+            player.displayClientMessage(Component.literal("§c覚醒には命が足りない"), true);
             return false;
         }
         player.hurtServer(level, level.damageSources().magic(), cost);
@@ -218,7 +221,7 @@ public final class SubSkills {
                 player.getX(), player.getY() + 1, player.getZ(), 16, 0.5, 0.8, 0.5, 0.2);
         level.playSound(null, player.blockPosition(), SoundEvents.RAVAGER_ROAR,
                 SoundSource.PLAYERS, 0.5f, 1.6f);
-        player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+        player.displayClientMessage(Component.literal(
                 "§c血の覚醒！ 移動・攻撃速度上昇 (8秒)"), true);
         return true;
     }
@@ -227,13 +230,13 @@ public final class SubSkills {
     private static boolean soulCannon(ServerPlayer player, ServerLevel level) {
         float soul = player.getData(ModAttachments.SOUL.get());
         if (soul < 30f) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+            player.displayClientMessage(Component.literal(
                     "§c魂ゲージが足りない (30必要)"), true);
             return false;
         }
         LivingEntity t = nearest(player.position(), level, 16);
         if (t == null) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c魂砲: 敵がいない"), true);
+            player.displayClientMessage(Component.literal("§c魂砲: 敵がいない"), true);
             return false;
         }
         // addGauge は加算専用のため直接減算 (悪夢「魂蝕」と同じ扱い)
