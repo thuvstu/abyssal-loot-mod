@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -20,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -53,66 +55,82 @@ public final class EnemyAI {
         if (now % TICK_PERIOD != 0) return;
         Set<UUID> seen = new HashSet<>();
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-            if (!(p.level() instanceof ServerLevel level)) continue;
-            // 囮 (特殊スキル「囮」): 16m内の囮スタンドを拾い、近くの深淵敵の注意を6秒間逸らす
-            var decoys = level.getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class,
-                    p.getBoundingBox().inflate(24),
-                    a -> a.isAlive() && a.getTags().contains(SubSkills.DECOY_TAG));
-            var found = level.getEntitiesOfClass(Mob.class,
-                    p.getBoundingBox().inflate(64),
-                    e -> e.isAlive() && (!e.getTags().isEmpty() || RunManager.BOSS_BARS.containsKey(e)));
-            for (Mob m : found) {
-                if (!seen.add(m.getUUID())) continue;
-                var tags = m.getTags();
-                // 時の歪み: 敵速度半減 (鈍足で再現)
-                if (RunManager.hasFate(p, "timewarp")) {
-                    m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 2, false, false));
-                }
-                // 囮の注意引きつけ: 12m内の敵は囮へ向く (層主は囮に引かれない)
-                if (!decoys.isEmpty() && !RunManager.BOSS_BARS.containsKey(m)) {
-                    for (var d : decoys) {
-                        if (m.position().distanceToSqr(d.position()) < 12 * 12) {
-                            m.setTarget(d);
-                            break;
-                        }
-                    }
-                }
-                // 精鋭「再生」: 最大HPの2%/0.5秒を回復
-                if (tags.contains(Enemies.ET_REGEN) && m.getHealth() < m.getMaxHealth()) {
-                    m.heal(m.getMaxHealth() * 0.02f);
-                }
-                if (tags.contains(Enemies.NECRO_TAG)) {
-                    tickNecromancer(level, m, now);
-                } else if (tags.contains(Enemies.GATE_TAG)) {
-                    tickGate(level, m, now);
-                } else if (tags.contains(Enemies.CHARGE_TAG)) {
-                    tickCharge(level, m, now);
-                } else if (tags.contains(Enemies.TELE_TAG)) {
-                    tickTeleport(level, m, now);
-                } else if (tags.contains(Enemies.ORBIT_TAG)) {
-                    tickOrbit(level, m, now);
-                } else if (tags.contains(Enemies.SHOOT_TAG)) {
-                    tickShooter(level, m, now);
-                } else if (tags.contains(Enemies.BOMBER_TAG)) {
-                    tickBomber(level, m, now);
-                }
-                tickVisuals(level, m, now, tags);
-                tickNightmare(level, m, now, tags);
+            if (p.level() instanceof ServerLevel level) {
+                tickPlayerEnemies(p, level, now, seen);
             }
         }
-        // 倒れた敵の記録を捨てる
-        NEXT_SUMMON.keySet().removeIf(id -> !seen.contains(id));
-        NEXT_CHARGE.keySet().removeIf(id -> !seen.contains(id));
-        NEXT_TELE.keySet().removeIf(id -> !seen.contains(id));
-        ORBIT_ANG.keySet().removeIf(id -> !seen.contains(id));
-        SHOOT_DIR.keySet().removeIf(id -> !seen.contains(id));
-        NEXT_FAN.keySet().removeIf(id -> !seen.contains(id));
+        pruneStaleRecords(seen);
         // 脱走収容 (壁を越えたMOBをアリーナ内へ戻す)。重いAABB走査なので 1秒周期 (元は0.5秒) に間引く
         if (now % 20 == 0) {
             for (ServerPlayer p : server.getPlayerList().getPlayers()) {
                 if (p.level() instanceof ServerLevel level) containMobs(p, level);
             }
         }
+    }
+
+    /** 1プレイヤーの周囲にいる深淵MOBを列挙し、個別処理へ回す */
+    private static void tickPlayerEnemies(ServerPlayer p, ServerLevel level, int now, Set<UUID> seen) {
+        // 囮 (特殊スキル「囮」): 16m内の囮スタンドを拾い、近くの深淵敵の注意を6秒間逸らす
+        var decoys = level.getEntitiesOfClass(ArmorStand.class,
+                p.getBoundingBox().inflate(24),
+                a -> a.isAlive() && a.getTags().contains(SubSkills.DECOY_TAG));
+        var found = level.getEntitiesOfClass(Mob.class,
+                p.getBoundingBox().inflate(64),
+                e -> e.isAlive() && (!e.getTags().isEmpty() || RunManager.BOSS_BARS.containsKey(e)));
+        for (Mob m : found) {
+            if (!seen.add(m.getUUID())) continue;
+            tickMob(level, m, p, decoys, now);
+        }
+    }
+
+    /** 個々のMOBの毎tick処理 (状態異常・囮・AIディスパッチ・演出) */
+    private static void tickMob(ServerLevel level, Mob m, ServerPlayer p,
+                                List<ArmorStand> decoys, int now) {
+        var tags = m.getTags();
+        // 時の歪み: 敵速度半減 (鈍足で再現)
+        if (RunManager.hasFate(p, "timewarp")) {
+            m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 2, false, false));
+        }
+        // 囮の注意引きつけ: 12m内の敵は囮へ向く (層主は囮に引かれない)
+        if (!decoys.isEmpty() && !RunManager.BOSS_BARS.containsKey(m)) {
+            for (var d : decoys) {
+                if (m.position().distanceToSqr(d.position()) < 12 * 12) {
+                    m.setTarget(d);
+                    break;
+                }
+            }
+        }
+        // 精鋭「再生」: 最大HPの2%/0.5秒を回復
+        if (tags.contains(Enemies.ET_REGEN) && m.getHealth() < m.getMaxHealth()) {
+            m.heal(m.getMaxHealth() * 0.02f);
+        }
+        if (tags.contains(Enemies.NECRO_TAG)) {
+            tickNecromancer(level, m, now);
+        } else if (tags.contains(Enemies.GATE_TAG)) {
+            tickGate(level, m, now);
+        } else if (tags.contains(Enemies.CHARGE_TAG)) {
+            tickCharge(level, m, now);
+        } else if (tags.contains(Enemies.TELE_TAG)) {
+            tickTeleport(level, m, now);
+        } else if (tags.contains(Enemies.ORBIT_TAG)) {
+            tickOrbit(level, m, now);
+        } else if (tags.contains(Enemies.SHOOT_TAG)) {
+            tickShooter(level, m, now);
+        } else if (tags.contains(Enemies.BOMBER_TAG)) {
+            tickBomber(level, m, now);
+        }
+        tickVisuals(level, m, now, tags);
+        tickNightmare(level, m, now, tags);
+    }
+
+    /** 倒れた・見失った敵の記録を捨てる */
+    private static void pruneStaleRecords(Set<UUID> seen) {
+        NEXT_SUMMON.keySet().removeIf(id -> !seen.contains(id));
+        NEXT_CHARGE.keySet().removeIf(id -> !seen.contains(id));
+        NEXT_TELE.keySet().removeIf(id -> !seen.contains(id));
+        ORBIT_ANG.keySet().removeIf(id -> !seen.contains(id));
+        SHOOT_DIR.keySet().removeIf(id -> !seen.contains(id));
+        NEXT_FAN.keySet().removeIf(id -> !seen.contains(id));
     }
 
     /**

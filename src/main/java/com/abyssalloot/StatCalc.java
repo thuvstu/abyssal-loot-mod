@@ -147,7 +147,7 @@ public final class StatCalc {
         }
         // 原作: 剛力+3%/点, 韻律+2%/点, 敏捷+1.5%/点, 忍耐+4%/点, 幸運=会心相当
         var wb0 = wbonusOf(player);
-        double maxHp = (GameData.heroMaxHp(cls, level) + StatCalc.affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
+        double maxHp = (GameData.heroMaxHp(cls, level) + affixOf(player, "maxHpFlat") + extraStat(player, "maxHpFlat"))
                 * (1 + attrEff(player, 3) * 0.04) * (1 + RunManager.boonLv(player, "hp") * 0.18)
                 * (1 + wb0.maxHpPct() / 100.0) * (1 + affixPlusExtra(player, "maxHpPct") / 100.0)
                 * (1 + GameData.passiveMaxHpPct(passives) / 100.0)
@@ -175,7 +175,7 @@ public final class StatCalc {
             double base = cls.mcMoveSpeed();
             // 疾走の刻印 +12%/Lv (原作 b_speed)。回避短縮は dash 側で適用
             double movePct = RunManager.boonLv(player, "speed") * 12 + curseMove
-                    + wb0.moveSpeedPct() + StatCalc.affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
+                    + wb0.moveSpeedPct() + affixOf(player, "moveSpeedPct") + extraStat(player, "moveSpeedPct");
             // 防具スロット能力: 靴=疾走 (常時移動+3%)
             if (ModItems.slotOf(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).getItem()) != null) {
                 movePct += 3;

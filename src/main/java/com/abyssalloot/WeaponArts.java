@@ -4,18 +4,24 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * 原作 weapon-arts.ts のMC移植.
@@ -36,7 +42,7 @@ public final class WeaponArts {
      * 奥義/二次反応の直接ダメージ. 威力は呼び出し側の値をそのまま使い、
      * 武器命中の威力上書き・奥義ゲージ蓄積の対象から外す.
      */
-    public static void artHurt(ServerLevel level, LivingEntity target, net.minecraft.world.damagesource.DamageSource source, float dmg) {
+    public static void artHurt(ServerLevel level, LivingEntity target, DamageSource source, float dmg) {
         artHitDepth++;
         try {
             target.hurtServer(level, source, dmg);
@@ -50,7 +56,7 @@ public final class WeaponArts {
     }
 
     /** 遅延実行 (DelayRunner.after の安全版)。発動者が既に倒れていたら何もしない */
-    private static void later(ServerPlayer player, int ticks, java.util.function.Consumer<ServerLevel> action) {
+    private static void later(ServerPlayer player, int ticks, Consumer<ServerLevel> action) {
         DelayRunner.after(ticks, () -> {
             if (!player.isAlive()) return;
             action.accept(slevel(player));
@@ -1115,7 +1121,7 @@ public final class WeaponArts {
         Vec3 dest = origin.add(look.x * dash, 0, look.z * dash);
         player.teleportTo(dest.x, dest.y, dest.z);
         player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 20, 4, false, false));
-        java.util.Set<LivingEntity> hit = new java.util.HashSet<>();
+        Set<LivingEntity> hit = new HashSet<>();
         for (double d = 2; d <= dash; d += 2) {
             Vec3 at = origin.add(look.x * d, 0, look.z * d);
             for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
@@ -1248,7 +1254,7 @@ public final class WeaponArts {
     private static int sweepProjectiles(ServerLevel level, Vec3 at, double radius) {
         int cleared = 0;
         for (var p : level.getEntitiesOfClass(
-                net.minecraft.world.entity.projectile.Projectile.class,
+                Projectile.class,
                 new AABB(at.x - radius, at.y - 4, at.z - radius,
                         at.x + radius, at.y + 4, at.z + radius),
                 x -> !x.isRemoved())) {
@@ -1271,6 +1277,6 @@ public final class WeaponArts {
     }
 
     private static void announce(ServerPlayer player, String text) {
-        player.displayClientMessage(net.minecraft.network.chat.Component.literal("§d◆ " + text), true);
+        player.displayClientMessage(Component.literal("§d◆ " + text), true);
     }
 }

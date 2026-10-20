@@ -1,17 +1,27 @@
 package com.abyssalloot;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.function.Supplier;
 
 /**
  * 魂ゲージ・奥義/必殺/小技/回避の発動・見切り・独自ダメージ式.
@@ -198,22 +208,7 @@ public final class CombatHandler {
         EnemyAI.tickGuards(server, tickCounter);
         EnemyAI.tick(server, tickCounter);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            float iframe = player.getData(ModAttachments.IFRAME.get());
-            if (iframe > 0) player.setData(ModAttachments.IFRAME.get(), Math.max(0, iframe - 0.05f));
-            float dashCd = player.getData(ModAttachments.DASH_CD.get());
-            if (dashCd > 0) player.setData(ModAttachments.DASH_CD.get(), Math.max(0, dashCd - 0.05f));
-            float counter = player.getData(ModAttachments.COUNTER.get());
-            if (counter > 0) player.setData(ModAttachments.COUNTER.get(), Math.max(0, counter - 0.05f));
-            float fortify = player.getData(ModAttachments.FORTIFY.get());
-            if (fortify > 0) player.setData(ModAttachments.FORTIFY.get(), Math.max(0, fortify - 0.05f));
-            float skillCd = player.getData(ModAttachments.SKILL_CD.get());
-            if (skillCd > 0) player.setData(ModAttachments.SKILL_CD.get(), Math.max(0, skillCd - 0.05f));
-            float lightCd = player.getData(ModAttachments.LIGHT_CD.get());
-            if (lightCd > 0) player.setData(ModAttachments.LIGHT_CD.get(), Math.max(0, lightCd - 0.05f));
-            float subCd = player.getData(ModAttachments.SUB_CD.get());
-            if (subCd > 0) player.setData(ModAttachments.SUB_CD.get(), Math.max(0, subCd - 0.05f));
-            float subShield = player.getData(ModAttachments.SUB_SHIELD.get());
-            if (subShield > 0) player.setData(ModAttachments.SUB_SHIELD.get(), Math.max(0, subShield - 0.05f));
+            tickCooldowns(player);
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
             if (tickCounter % 10 == 0) SubSkills.tickWorld(player);
             if (tickCounter % 20 == 0) {
@@ -230,8 +225,30 @@ public final class CombatHandler {
                 sendHud(player);
             }
         }
-        // ボスバー進捗 + 真ボス弾幕
-        var dead = new java.util.ArrayList<net.minecraft.world.entity.monster.Monster>();
+        tickBossBars(server);
+    }
+
+    /** 無敵・CT・反撃窓の減衰 (1tick=0.05秒) */
+    private static void tickCooldowns(ServerPlayer player) {
+        decay(player, ModAttachments.IFRAME);
+        decay(player, ModAttachments.DASH_CD);
+        decay(player, ModAttachments.COUNTER);
+        decay(player, ModAttachments.FORTIFY);
+        decay(player, ModAttachments.SKILL_CD);
+        decay(player, ModAttachments.LIGHT_CD);
+        decay(player, ModAttachments.SUB_CD);
+        decay(player, ModAttachments.SUB_SHIELD);
+    }
+
+    /** 0.05秒ぶん減衰させ、0未満にはしない */
+    private static void decay(ServerPlayer player, Supplier<AttachmentType<Float>> type) {
+        float value = player.getData(type.get());
+        if (value > 0) player.setData(type.get(), Math.max(0, value - 0.05f));
+    }
+
+    /** ボスバー進捗 + 真ボス/終焉の座の弾幕 + 倒れたボスの掃除 */
+    private static void tickBossBars(MinecraftServer server) {
+        var dead = new ArrayList<Monster>();
         synchronized (RunManager.BOSS_BARS) {
             for (var e : RunManager.BOSS_BARS.entrySet()) {
                 var boss = e.getKey();
@@ -259,72 +276,83 @@ public final class CombatHandler {
         if (!(player.level() instanceof ServerLevel level)) return;
         if (!player.isAlive()) return;
         var pos = player.position();
-        // 魔術武器 (ロッド・ワンド) の自動魔弾 (1.5秒ごと)。銃魔は弾数ボーナスで多重化
-        if (tickCounter % 30 == 0) {
-            var style = ModItems.styleOf(player.getMainHandItem().getItem());
-            if (style == GameData.WeaponStyle.ROD) {
-                int targets = 1 + StatCalc.wbonusOf(player).projectiles()
-                        + (int) (StatCalc.affixOf(player, "projectiles")
-                                + StatCalc.extraStat(player, "projectiles"));
-                SkillHandler.castWandBolt(player, 12, 0.7, targets);
-            } else if (style == GameData.WeaponStyle.WAND) {
-                SkillHandler.castWandBolt(player, 16, 0.9, 1);
-            }
+        tickAutoBolt(player);
+        tickAuraBoons(player, level, pos);
+        tickMissiles(player, level, pos);
+        tickFamiliar(player, level, pos);
+        tickNova(player, level, pos);
+    }
+
+    /** 魔術武器 (ロッド・ワンド) の自動魔弾 (1.5秒ごと)。弾数ボーナスで多重化 */
+    private static void tickAutoBolt(ServerPlayer player) {
+        if (tickCounter % 30 != 0) return;
+        var style = ModItems.styleOf(player.getMainHandItem().getItem());
+        if (style == GameData.WeaponStyle.ROD) {
+            int targets = 1 + StatCalc.wbonusOf(player).projectiles()
+                    + (int) (StatCalc.affixOf(player, "projectiles")
+                            + StatCalc.extraStat(player, "projectiles"));
+            SkillHandler.castWandBolt(player, 12, 0.7, targets);
+        } else if (style == GameData.WeaponStyle.WAND) {
+            SkillHandler.castWandBolt(player, 16, 0.9, 1);
         }
+    }
+
+    /** 回転刃・聖域の常時オーラ */
+    private static void tickAuraBoons(ServerPlayer player, ServerLevel level, Vec3 pos) {
         if (RunManager.boonLv(player, "orbit") > 0) {
-            WeaponArts.pulse(level, player, pos, 3.5, 0.8, false,
-                    net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK);
+            WeaponArts.pulse(level, player, pos, 3.5, 0.8, false, ParticleTypes.SWEEP_ATTACK);
         }
         if (RunManager.boonLv(player, "aura") > 0) {
-            WeaponArts.pulse(level, player, pos, 5, 0.5, false,
-                    net.minecraft.core.particles.ParticleTypes.FLAME);
+            WeaponArts.pulse(level, player, pos, 5, 0.5, false, ParticleTypes.FLAME);
         }
-        if (RunManager.boonLv(player, "missile") > 0) {
-            // 分裂の刻印・弓の追加弾: 発射弾数 +1/Lv
-            int shots = 1 + RunManager.boonLv(player, "proj")
-                    + StatCalc.wbonusOf(player).projectiles()
-                    + (int) (StatCalc.affixOf(player, "projectiles") + StatCalc.extraStat(player, "projectiles"));
-            for (int i = 0; i < shots; i++) {
-                var target = level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 16, pos.y - 6, pos.z - 16,
-                                pos.x + 16, pos.y + 6, pos.z + 16),
-                        e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
-                        .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
-                        .orElse(null);
-                if (target != null) {
-                    WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
-                            (float) (StatCalc.attackDamageOf(player) * 0.7));
-                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.WITCH,
-                            target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
-                }
-            }
+    }
+
+    /** 分裂の刻印・弓の追加弾: 発射弾数 +1/Lv */
+    private static void tickMissiles(ServerPlayer player, ServerLevel level, Vec3 pos) {
+        if (RunManager.boonLv(player, "missile") <= 0) return;
+        int shots = 1 + RunManager.boonLv(player, "proj")
+                + StatCalc.wbonusOf(player).projectiles()
+                + (int) (StatCalc.affixOf(player, "projectiles") + StatCalc.extraStat(player, "projectiles"));
+        for (int i = 0; i < shots; i++) {
+            var target = nearestEnemy(level, pos, 16);
+            if (target == null) continue;
+            WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
+                    (float) (StatCalc.attackDamageOf(player) * 0.7));
+            level.sendParticles(ParticleTypes.WITCH,
+                    target.getX(), target.getY() + 1, target.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
         }
-        // 影の眷属: 3秒ごとに使役が援護 (2秒周期tickの3回に1回≒6秒では遅いので毎tick判定で別カウンタ)
-        if (RunManager.boonLv(player, "familiar") > 0 && tickCounter % 60 == 0) {
-            var target = level.getEntitiesOfClass(LivingEntity.class,
-                    new net.minecraft.world.phys.AABB(pos.x - 12, pos.y - 6, pos.z - 12,
-                            pos.x + 12, pos.y + 6, pos.z + 12),
-                    e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
-                    .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
-                    .orElse(null);
-            if (target != null) {
-                WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
-                        (float) (StatCalc.attackDamageOf(player) * 0.5));
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL,
-                        target.getX(), target.getY() + 1, target.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
-            }
+    }
+
+    /** 影の眷属: 3秒ごとに使役が援護 */
+    private static void tickFamiliar(ServerPlayer player, ServerLevel level, Vec3 pos) {
+        if (RunManager.boonLv(player, "familiar") <= 0 || tickCounter % 60 != 0) return;
+        var target = nearestEnemy(level, pos, 12);
+        if (target == null) return;
+        WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
+                (float) (StatCalc.attackDamageOf(player) * 0.5));
+        level.sendParticles(ParticleTypes.SOUL,
+                target.getX(), target.getY() + 1, target.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
+    }
+
+    /** 氷霜新星: 6秒ごとに凍結波 */
+    private static void tickNova(ServerPlayer player, ServerLevel level, Vec3 pos) {
+        if (RunManager.boonLv(player, "nova") <= 0 || tickCounter % 120 != 0) return;
+        WeaponArts.pulse(level, player, pos, 6, 0.4, false, ParticleTypes.SNOWFLAKE);
+        for (var e : level.getEntitiesOfClass(LivingEntity.class,
+                new AABB(pos.x - 6, pos.y - 4, pos.z - 6, pos.x + 6, pos.y + 4, pos.z + 6),
+                e -> e.isAlive() && !(e instanceof ServerPlayer))) {
+            e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
         }
-        // 氷霜新星: 6秒ごとに凍結波
-        if (RunManager.boonLv(player, "nova") > 0 && tickCounter % 120 == 0) {
-            WeaponArts.pulse(level, player, pos, 6, 0.4, false,
-                    net.minecraft.core.particles.ParticleTypes.SNOWFLAKE);
-            for (var e : level.getEntitiesOfClass(LivingEntity.class,
-                    new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
-                            pos.x + 6, pos.y + 4, pos.z + 6),
-                    e -> e.isAlive() && !(e instanceof ServerPlayer))) {
-                e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
-            }
-        }
+    }
+
+    /** 指定位置周辺でもっとも近い敵 (プレイヤー以外) */
+    private static LivingEntity nearestEnemy(ServerLevel level, Vec3 pos, double radius) {
+        return level.getEntitiesOfClass(LivingEntity.class,
+                new AABB(pos.x - radius, pos.y - 6, pos.z - radius,
+                        pos.x + radius, pos.y + 6, pos.z + radius),
+                e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
+                .min(Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
+                .orElse(null);
     }
 
     /** ステータス表示 (RunManager.statusLines の単一出力源。GUI と内容を共有する) */

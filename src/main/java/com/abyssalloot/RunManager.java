@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -529,7 +530,7 @@ public final class RunManager {
                     ? new AABB(center).inflate(64)
                     : player.getBoundingBox().inflate(64);
             for (Mob m : level.getEntitiesOfClass(Mob.class, box, e -> e.isAlive())) {
-                boolean abyss = RunManager.BOSS_BARS.containsKey(m) || LootHandler.hasAbyssTag(m);
+                boolean abyss = BOSS_BARS.containsKey(m) || LootHandler.hasAbyssTag(m);
                 if (abyss) m.discard();
             }
             synchronized (BOSS_BARS) {
@@ -654,21 +655,32 @@ public final class RunManager {
         }
         int floor = cur + 1;
         // 踏破判定 (原作FINAL_FLOOR=25 / 巡礼は8層主 / 終焉の座は27単層)
+        if (finishRunIfCleared(player, mode, floor)) return;
+        grantFloorAchievements(player, mode, floor);
+        enterFloor(player, floor);
+    }
+
+    /** 最終層を超えたかを判定し、踏破処理を行う. true = ラン終了 */
+    private static boolean finishRunIfCleared(ServerPlayer player, String mode, int floor) {
         if ("bossrush".equals(mode) && floor > 8) {
             Achievements.grant(player, "rush-master");
             victory(player);
-            return;
+            return true;
         }
         if ("pinnacle".equals(mode) && floor > GameData.PINNACLE_FLOOR) {
             BossHandler.pinnacleVictory(player);
-            return;
+            return true;
         }
         if (!"endless".equals(mode) && !"bossrush".equals(mode) && !"pinnacle".equals(mode)
                 && floor > GameData.FINAL_FLOOR) {
             victory(player);
-            return;
+            return true;
         }
-        // 層到達の実績
+        return false;
+    }
+
+    /** 層到達の実績 (10/15/35/50層) */
+    private static void grantFloorAchievements(ServerPlayer player, String mode, int floor) {
         if (floor == 10) {
             if (isDaily(player)) {
                 Achievements.grant(player, "daily-depth");
@@ -686,6 +698,10 @@ public final class RunManager {
         if (floor == 50 && "endless".equals(mode)) {
             Achievements.grant(player, "endless-fifty");
         }
+    }
+
+    /** 層状態のリセット・未選択祝福の再提示・層移動回復・次ウェーブの開始 */
+    private static void enterFloor(ServerPlayer player, int floor) {
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -726,18 +742,34 @@ public final class RunManager {
     /** rollFloor=true: 層の開始 (異変を抽選). false: 追加の襲来 (同じ層の異変を維持) */
     public static void spawnWave(ServerPlayer player, int floor, boolean rollFloor) {
         ServerLevel level = (ServerLevel) player.level();
-        if (rollFloor) rollMutation(player, floor);
-        if (rollFloor) rollDungeon(player);
-        var sigils = sigilsOf(player);
+        if (rollFloor) {
+            rollMutation(player, floor);
+            rollDungeon(player);
+        }
         var scale = Enemies.scaleFor(player, floor);
         boolean bossFloor = floor % 5 == 0 || isBossrush(player);
         // 無限深淵の 28 層は超越者 (原作 ASCENSION_FLOOR) の決戦層
         boolean ascensionFloor = "endless".equals(player.getData(ModAttachments.MODE.get()))
                 && floor == GameData.ASCENSION_FLOOR;
-        double eliteChance = GameData.eliteChance(floor, sigils);
         var rand = player.getRandom();
-
         var mut = currentMutation(player);
+        WavePlan plan = planWave(player, floor, bossFloor, ascensionFloor, mut,
+                GameData.eliteChance(floor, sigilsOf(player)));
+
+        announceWaveEnvironment(player, floor, rollFloor, mut);
+        updateWaveTotal(player, plan.count(), plan.bossFloor(), rollFloor);
+        BlockPos center = spawnCenter(player);
+        spawnMobRing(player, level, center, floor, plan, scale, rand);
+        spawnBossOrEvent(player, level, center, floor, scale, plan, rollFloor, rand);
+        spawnWarden(player, level, center, floor, scale, plan.bossFloor(), rollFloor, rand);
+        ArenaManager.placeHazards(player, level, center, floor);
+    }
+
+    /** 湧き数・エリート率の決定 (異変・地相・日替わり・弾幕モードの倍率を集約) */
+    private record WavePlan(int count, double eliteChance, boolean bossFloor, boolean ascensionFloor) {}
+
+    private static WavePlan planWave(ServerPlayer player, int floor, boolean bossFloor,
+                                     boolean ascensionFloor, GameData.Mutation mut, double eliteChance) {
         double spawnMul = mut != null ? mut.spawn() : 1.0;
         var dun = currentDungeon(player);
         if (dun != null) spawnMul *= dun.spawn();
@@ -757,11 +789,16 @@ public final class RunManager {
         if (mut != null && mut.eliteRate() != 1.0) {
             eliteChance = Math.min(0.9, eliteChance * mut.eliteRate());
         }
+        return new WavePlan(count, eliteChance, bossFloor, ascensionFloor);
+    }
+
+    /** 層開始時の環境告知: 闇の迷宮・区域 (5層ごとに変わる深層帯) */
+    private static void announceWaveEnvironment(ServerPlayer player, int floor,
+                                                boolean rollFloor, GameData.Mutation mut) {
         if (rollFloor && mut != null && mut.darkness()) {
             // 闇の迷宮: 視界を塞ぐ (盲目は長めに付与し、層の間は持続させる)
             player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 20 * 60 * 5, 0, false, false));
         }
-        // 区域の告知 (5層ごとに変わる深層帯)
         if (rollFloor) {
             var zone = GameData.zoneForFloor(floor);
             player.sendSystemMessage(Component.literal("§7《区域 — " + zone.name() + "》" + zone.desc()));
@@ -769,17 +806,28 @@ public final class RunManager {
                 player.sendSystemMessage(Component.literal("§c溶鉄の炉: 火の粉が降り注ぐ！"));
             }
         }
-        // rollFloor=false は追加の襲来 (swarm 等) なので総数に加算する
+    }
+
+    /** ウェーブ総数の更新 (追加の襲来は加算. 層開始時はボス1体分も含める) */
+    private static void updateWaveTotal(ServerPlayer player, int count, boolean bossFloor, boolean rollFloor) {
         if (rollFloor) {
             player.setData(ModAttachments.WAVE_TOTAL.get(), count + (bossFloor ? 1 : 0));
         } else {
             player.setData(ModAttachments.WAVE_TOTAL.get(),
                     player.getData(ModAttachments.WAVE_TOTAL.get()) + count);
         }
-        // 湧き中心はアリーナ中心 (プレイヤー位置だと場外に湧くため)
-        BlockPos arena = ArenaManager.arenaCenterOf(player);
-        BlockPos center = arena != null ? arena : player.blockPosition();
+    }
 
+    /** 湧き中心はアリーナ中心 (プレイヤー位置だと場外に湧くため) */
+    private static BlockPos spawnCenter(ServerPlayer player) {
+        BlockPos arena = ArenaManager.arenaCenterOf(player);
+        return arena != null ? arena : player.blockPosition();
+    }
+
+    /** 円周上に通常MOBを配置する (エリート・悪夢化の抽選込み) */
+    private static void spawnMobRing(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
+                                     WavePlan plan, Enemies.Scale scale, RandomSource rand) {
+        int count = plan.count();
         for (int i = 0; i < count; i++) {
             double ang = (Math.PI * 2 * i) / count;
             int sx = center.getX() + (int) (Math.cos(ang) * 14);
@@ -791,7 +839,7 @@ public final class RunManager {
             // 門は耐久が高い (原作の門は壊すまで増援し続ける)
             double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
             Enemies.apply(mob, spec, scale, extra);
-            if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < eliteChance) {
+            if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < plan.eliteChance()) {
                 Enemies.makeElite(mob);
                 // 悪夢化: 無限深淵の深層 (NIGHTMARE_MIN_FLOOR 以降) のエリートは確率で悪夢になる
                 if (floor >= NIGHTMARE_MIN_FLOOR
@@ -804,33 +852,40 @@ public final class RunManager {
             mob.setTarget(player);
             level.addFreshEntity(mob);
         }
+    }
 
-        if (bossFloor) {
+    /** 層主・超越者・中盤イベントのいずれかを発生させる */
+    private static void spawnBossOrEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
+                                         Enemies.Scale scale, WavePlan plan, boolean rollFloor,
+                                         RandomSource rand) {
+        if (plan.bossFloor()) {
             BossHandler.spawnFloorBoss(player, level, center, floor, scale);
-        } else if (ascensionFloor) {
+        } else if (plan.ascensionFloor()) {
             BossHandler.spawnAscensionBoss(player, level, center, scale);
         } else if (rollFloor && rand.nextDouble() < 0.45) {
             // 層の中盤イベント (原作 RANDOM_EVENTS). ボス層以外で45%
             FloorEvents.triggerRandomEvent(player, level, center, floor);
         }
-        // 番人 (原作 WARDENS: ボス層でない 3/8 層のミニボス)
-        if (rollFloor && !bossFloor && GameData.isWardenFloor(floor)) {
-            var w = GameData.WARDENS.get(rand.nextInt(GameData.WARDENS.size()));
-            Mob warden = (Mob) Enemies.wardenMob().create(level, EntitySpawnReason.EVENT);
-            if (warden != null) {
-                int sy = ArenaManager.safeSpawnY(level, center.getX(), center.getZ() + 10, center.getY() + 1);
-                warden.setPos(center.getX() + 0.5, sy, center.getZ() + 10.5);
-                Enemies.apply(warden, Enemies.byId("golem"), scale, 1.0);
-                Enemies.makeWarden(warden, w);
-                warden.setTarget(player);
-                level.addFreshEntity(warden);
-                player.setData(ModAttachments.WAVE_TOTAL.get(),
-                        player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
-                player.sendSystemMessage(Component.literal(
-                        "§c◆ 番人出現 — " + w.name() + "「" + w.flavor() + "」"));
-            }
-        }
-        ArenaManager.placeHazards(player, level, center, floor);
+    }
+
+    /** 番人 (原作 WARDENS: ボス層でない 3/8 層のミニボス) */
+    private static void spawnWarden(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
+                                    Enemies.Scale scale, boolean bossFloor, boolean rollFloor,
+                                    RandomSource rand) {
+        if (!rollFloor || bossFloor || !GameData.isWardenFloor(floor)) return;
+        var w = GameData.WARDENS.get(rand.nextInt(GameData.WARDENS.size()));
+        Mob warden = (Mob) Enemies.wardenMob().create(level, EntitySpawnReason.EVENT);
+        if (warden == null) return;
+        int sy = ArenaManager.safeSpawnY(level, center.getX(), center.getZ() + 10, center.getY() + 1);
+        warden.setPos(center.getX() + 0.5, sy, center.getZ() + 10.5);
+        Enemies.apply(warden, Enemies.byId("golem"), scale, 1.0);
+        Enemies.makeWarden(warden, w);
+        warden.setTarget(player);
+        level.addFreshEntity(warden);
+        player.setData(ModAttachments.WAVE_TOTAL.get(),
+                player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
+        player.sendSystemMessage(Component.literal(
+                "§c◆ 番人出現 — " + w.name() + "「" + w.flavor() + "」"));
     }
 
     public static void compass(ServerPlayer player) {
