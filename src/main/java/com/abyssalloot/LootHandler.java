@@ -1,5 +1,6 @@
 package com.abyssalloot;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -7,9 +8,12 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
+
+import java.util.Comparator;
 
 /**
  * 戦利品まわり: 深淵MOBのドロップ抑制・素材/欠片の配布・破壊物の破壊効果・武器スキル (撃破時発動).
@@ -83,15 +87,15 @@ public final class LootHandler {
             case "red" -> {
                 // 赤水晶: 原作通り 攻撃×4.2 の爆発 (220px ≒ 半径4)。自分にも当たる
                 WeaponArts.pulse(level, player, at, 4, 4.2, true,
-                        net.minecraft.core.particles.ParticleTypes.EXPLOSION);
+                        ParticleTypes.EXPLOSION);
                 player.sendSystemMessage(Component.literal("§c赤水晶が爆発した！"));
             }
             case "blue" -> {
                 // 青瓶: 原作通り 周囲の敵を凍結 (250px ≒ 半径5)。回復はしない
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
+                level.sendParticles(ParticleTypes.SNOWFLAKE,
                         at.x, at.y + 1, at.z, 30, 2, 1.5, 2, 0.1);
                 for (var e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(at.x - 5, at.y - 4, at.z - 5,
+                        new AABB(at.x - 5, at.y - 4, at.z - 5,
                                 at.x + 5, at.y + 4, at.z + 5),
                         x -> x.isAlive() && !(x instanceof ServerPlayer))) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
@@ -122,69 +126,100 @@ public final class LootHandler {
         String skill = GearData.skillOf(player.getMainHandItem());
         if (skill == null) return;
         Vec3 pos = dead.position();
+        if (applySelfWeaponSkill(player, skill)) return;
+        applyAreaWeaponSkill(player, level, pos, skill);
+    }
+
+    /** 自分に作用する武器スキル。適用したら true */
+    private static boolean applySelfWeaponSkill(ServerPlayer player, String skill) {
         switch (skill) {
-            case "w_soul" -> RunManager.addGauge(player, 8);
-            case "w_feast" -> RunManager.heal(player, player.getMaxHealth() * 0.05);
-            case "w_chain" -> WeaponArts.pulse(level, player, pos, 4, 0.8, false,
-                    net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK);
-            case "w_break" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
-                                pos.x + 5, pos.y + 4, pos.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
-                }
+            case "w_soul" -> {
+                RunManager.addGauge(player, 8);
+                return true;
             }
-            case "w_swift" -> player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 0));
-            case "w_burst" -> WeaponArts.pulse(level, player, pos, 3, 1.5, true,
-                    net.minecraft.core.particles.ParticleTypes.EXPLOSION);
-            case "w_venge" -> player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
-            case "w_tide" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
-                                pos.x + 6, pos.y + 4, pos.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    Vec3 pull = pos.subtract(e.position()).normalize().scale(1.6);
-                    e.push(pull.x, 0.2, pull.z);
-                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
-                }
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,
-                        pos.x, pos.y + 1, pos.z, 20, 2, 1, 2, 0.1);
+            case "w_feast" -> {
+                RunManager.heal(player, player.getMaxHealth() * 0.05);
+                return true;
+            }
+            case "w_swift" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 0));
+                return true;
+            }
+            case "w_venge" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
+                return true;
             }
             case "w_gale" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 1));
                 RunManager.addGauge(player, 6);
-            }
-            case "w_ignite" -> {
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
-                                pos.x + 5, pos.y + 4, pos.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
-                }
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.FLAME,
-                        pos.x, pos.y + 1, pos.z, 20, 1.5, 1, 1.5, 0.1);
+                return true;
             }
             case "w_greed" -> {
                 if (player.getRandom().nextFloat() < 0.20f) {
                     giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get()));
                     player.displayClientMessage(Component.literal("§6強奪！ 魂の欠片を奪った"), true);
                 }
+                return true;
             }
             case "w_hymn" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 80, 0));
                 RunManager.heal(player, player.getMaxHealth() * 0.02);
+                return true;
             }
             case "w_warcry" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
                 player.addEffect(new MobEffectInstance(MobEffects.HASTE, 100, 0));
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
+    /** 周囲の敵に作用する武器スキル */
+    private static void applyAreaWeaponSkill(ServerPlayer player, ServerLevel level, Vec3 pos, String skill) {
+        switch (skill) {
+            case "w_chain" -> WeaponArts.pulse(level, player, pos, 4, 0.8, false,
+                    ParticleTypes.ELECTRIC_SPARK);
+            case "w_break" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                                pos.x + 5, pos.y + 4, pos.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
+                }
+            }
+            case "w_burst" -> WeaponArts.pulse(level, player, pos, 3, 1.5, true,
+                    ParticleTypes.EXPLOSION);
+            case "w_tide" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(pos.x - 6, pos.y - 4, pos.z - 6,
+                                pos.x + 6, pos.y + 4, pos.z + 6),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    Vec3 pull = pos.subtract(e.position()).normalize().scale(1.6);
+                    e.push(pull.x, 0.2, pull.z);
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
+                }
+                level.sendParticles(ParticleTypes.SMOKE,
+                        pos.x, pos.y + 1, pos.z, 20, 2, 1, 2, 0.1);
+            }
+            case "w_ignite" -> {
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                                pos.x + 5, pos.y + 4, pos.z + 5),
+                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
+                }
+                level.sendParticles(ParticleTypes.FLAME,
+                        pos.x, pos.y + 1, pos.z, 20, 1.5, 1, 1.5, 0.1);
             }
             case "w_avalanche" -> {
                 var cands = level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 6, pos.y - 4, pos.z - 6,
+                        new AABB(pos.x - 6, pos.y - 4, pos.z - 6,
                                 pos.x + 6, pos.y + 4, pos.z + 6),
                         x -> x.isAlive() && !(x instanceof ServerPlayer));
-                cands.sort(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
+                cands.sort(Comparator.comparingDouble(e -> e.position().distanceTo(pos)));
                 int n = 0;
                 for (LivingEntity e : cands) {
                     if (n++ >= 3) break;
@@ -194,21 +229,21 @@ public final class LootHandler {
             }
             case "w_storm" -> {
                 var target = level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 12, pos.y - 6, pos.z - 12,
+                        new AABB(pos.x - 12, pos.y - 6, pos.z - 12,
                                 pos.x + 12, pos.y + 6, pos.z + 12),
                         x -> x.isAlive() && !(x instanceof ServerPlayer)).stream()
-                        .min(java.util.Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
+                        .min(Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
                         .orElse(null);
                 if (target != null) {
                     WeaponArts.artHurt(level, target, level.damageSources().playerAttack(player),
                             (float) (StatCalc.attackDamageOf(player) * 1.2));
-                    level.sendParticles(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                             target.getX(), target.getY() + 1, target.getZ(), 16, 0.4, 0.8, 0.4, 0.1);
                 }
             }
             case "w_rend" -> {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new net.minecraft.world.phys.AABB(pos.x - 5, pos.y - 4, pos.z - 5,
+                        new AABB(pos.x - 5, pos.y - 4, pos.z - 5,
                                 pos.x + 5, pos.y + 4, pos.z + 5),
                         x -> x.isAlive() && !(x instanceof ServerPlayer))) {
                     e.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 0));
