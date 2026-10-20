@@ -2,6 +2,8 @@ package com.abyssalloot;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,9 +27,18 @@ public final class ModCommands {
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
-        var d = event.getDispatcher();
-        d.register(Commands.literal("abyss")
-                // 一括開始: 職業と武器を配備して即出撃 (/abyss quick [職業] [武器])
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("abyss");
+        registerQuickAndConfig(root);
+        registerRunFlow(root);
+        registerRewards(root);
+        registerBuild(root);
+        registerUtility(root);
+        event.getDispatcher().register(root);
+    }
+
+    private static void registerQuickAndConfig(LiteralArgumentBuilder<CommandSourceStack> root) {
+        // 一括開始: 職業と武器を配備して即出撃 (/abyss quick [職業] [武器])
+        root
                 .then(Commands.literal("quick")
                         .executes(ctx -> {
                             quickStart(ctx.getSource().getPlayerOrException(), "samurai", "sword");
@@ -143,7 +154,11 @@ public final class ModCommands {
                                             p.getData(ModAttachments.HERO_CLASS.get()));
                                     StatCalc.applyClass(p, cls, n);
                                     return 1;
-                                })))
+                                })));
+    }
+
+    private static void registerRunFlow(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("start").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     if (RunManager.isRunLocked(p)) {
@@ -193,7 +208,11 @@ public final class ModCommands {
                     p.sendSystemMessage(Component.literal(
                             "§7区域: " + z.name() + " — " + z.desc()));
                     return 1;
-                }))
+                }));
+    }
+
+    private static void registerRewards(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("relic")
                         .executes(ctx -> {
                             FloorEvents.resendRelicOffer(ctx.getSource().getPlayerOrException());
@@ -295,7 +314,11 @@ public final class ModCommands {
                             }
                             FloorEvents.offerEvent(p);
                             return 1;
-                        }))
+                        }));
+    }
+
+    private static void registerBuild(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("attr")
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests((ctx, b) -> {
@@ -367,7 +390,11 @@ public final class ModCommands {
                                             + " (敵HP×" + diff.hpMul() + " 攻撃×" + diff.dmgMul()
                                             + " 魂×" + diff.soulMul() + ")"));
                                     return 1;
-                                })))
+                                })));
+    }
+
+    private static void registerUtility(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root
                 .then(Commands.literal("keep").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     ItemStack held = p.getMainHandItem();
@@ -442,7 +469,7 @@ public final class ModCommands {
                 .then(Commands.literal("status").executes(ctx -> {
                     CombatHandler.showStatus(ctx.getSource().getPlayerOrException());
                     return 1;
-                })));
+                }));
     }
 
     /** 属性名→index (日本語・英語・旧ローマ字を受け付ける) */
