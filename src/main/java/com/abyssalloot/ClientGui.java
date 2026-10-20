@@ -30,11 +30,22 @@ public final class ClientGui {
     private static int boonRemaining;
 
     public static void init(IEventBus modBus) {
+        registerScreens(modBus);
+        registerLayers(modBus);
+        registerRenderers(modBus);
+    }
+
+    /** コンテナ画面 (鍛造・商店・比較) の登録 */
+    private static void registerScreens(IEventBus modBus) {
         modBus.addListener((RegisterMenuScreensEvent event) -> {
             event.register(ModMenus.FORGE.get(), ForgeScreen::new);
             event.register(ModMenus.SHOP.get(), ShopScreen::new);
             event.register(ModMenus.COMPARE.get(), CompareScreen::new);
         });
+    }
+
+    /** エンティティモデルのレイヤー定義 */
+    private static void registerLayers(IEventBus modBus) {
         modBus.addListener((EntityRenderersEvent.RegisterLayerDefinitions event) -> {
             event.registerLayerDefinition(AbyssModels.SLIME, AbyssModels.SlimeModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.SPLITTER, AbyssModels.SplitterModel::createBodyLayer);
@@ -58,6 +69,10 @@ public final class ClientGui {
             event.registerLayerDefinition(AbyssModels.KNIGHT, AbyssModels.KnightModel::createBodyLayer);
             event.registerLayerDefinition(AbyssModels.GOD, AbyssModels.GodModel::createBodyLayer);
         });
+    }
+
+    /** エンティティごとのレンダラ登録 */
+    private static void registerRenderers(IEventBus modBus) {
         modBus.addListener((EntityRenderersEvent.RegisterRenderers event) -> {
             bind(event, ModEntities.SLIME, AbyssModels.SLIME, AbyssModels.SlimeModel::new, "slime", 0.3f, 0.96f);
             bind(event, ModEntities.SPLITTER, AbyssModels.SPLITTER, AbyssModels.SplitterModel::new, "splitter", 0.7f, 2.24f);
@@ -87,6 +102,7 @@ public final class ClientGui {
             bind(event, ModEntities.ASCENDER, AbyssModels.GOD, AbyssModels.GodModel::new, "ascender", 1.2f, 2.1f);
         });
     }
+
 
     private static <T extends Mob> void bind(EntityRenderersEvent.RegisterRenderers event,
                                              Supplier<EntityType<T>> type,
