@@ -187,6 +187,13 @@ public final class Consumables {
 
     /** バフ・状態効果系 */
     private static Boolean applyBuffs(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
+        Boolean timed = applyTimedBuffs(player, kind);
+        if (timed != null) return timed;
+        return applyAuraBuffs(player, level, origin, kind);
+    }
+
+    /** 時間延長系の単純バフ */
+    private static Boolean applyTimedBuffs(ServerPlayer player, String kind) {
         switch (kind) {
             case "buff_str" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 1200, 0));
@@ -266,12 +273,6 @@ public final class Consumables {
                 player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 1200, 0));
                 return true;
             }
-            case "luck_rain" -> {
-                player.addEffect(new MobEffectInstance(MobEffects.LUCK, 2400, 0));
-                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, origin.x, origin.y + 2, origin.z,
-                        40, 2, 2, 2, 0.2);
-                return true;
-            }
             case "haste2" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.HASTE, 900, 1));
                 return true;
@@ -279,6 +280,21 @@ public final class Consumables {
             case "godspeed" -> {
                 player.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 2));
                 player.addEffect(new MobEffectInstance(MobEffects.HASTE, 400, 1));
+                return true;
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    /** 粒子演出つきのバフ */
+    private static Boolean applyAuraBuffs(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
+        switch (kind) {
+            case "luck_rain" -> {
+                player.addEffect(new MobEffectInstance(MobEffects.LUCK, 2400, 0));
+                level.sendParticles(ParticleTypes.HAPPY_VILLAGER, origin.x, origin.y + 2, origin.z,
+                        40, 2, 2, 2, 0.2);
                 return true;
             }
             case "smoke" -> {
@@ -319,6 +335,7 @@ public final class Consumables {
             }
         }
     }
+
 
     /** 攻撃・設置系 */
     private static Boolean applyOffensive(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
@@ -413,6 +430,15 @@ public final class Consumables {
 
     /** 移動・探索・補助系 */
     private static Boolean applyUtility(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
+        Boolean movement = applyMovementItems(player, level, kind);
+        if (movement != null) return movement;
+        Boolean cleansing = applyCleansingItems(player, kind);
+        if (cleansing != null) return cleansing;
+        return applyDetectionItems(player, level, origin, kind);
+    }
+
+    /** 移動系 (アリーナ帰還・スポーン帰還) */
+    private static Boolean applyMovementItems(ServerPlayer player, ServerLevel level, String kind) {
         switch (kind) {
             case "tele_arena" -> {
                 BlockPos c = ArenaManager.arenaCenterOf(player);
@@ -438,6 +464,15 @@ public final class Consumables {
                         Set.<Relative>of(), rd.yaw(), rd.pitch(), true);
                 return true;
             }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    /** 浄化・CTリセット系 */
+    private static Boolean applyCleansingItems(ServerPlayer player, String kind) {
+        switch (kind) {
             case "cure" -> {
                 var bad = java.util.List.of(MobEffects.WITHER, MobEffects.POISON,
                         MobEffects.SLOWNESS, MobEffects.WEAKNESS, MobEffects.HUNGER,
@@ -449,6 +484,27 @@ public final class Consumables {
                 player.displayClientMessage(Component.literal("§a浄化した"), true);
                 return true;
             }
+            case "purity" -> {
+                java.util.List.of(MobEffects.WITHER, MobEffects.POISON, MobEffects.SLOWNESS,
+                        MobEffects.WEAKNESS, MobEffects.MINING_FATIGUE, MobEffects.DARKNESS,
+                        MobEffects.HUNGER, MobEffects.BLINDNESS, MobEffects.UNLUCK,
+                        MobEffects.NAUSEA, MobEffects.LEVITATION).forEach(player::removeEffect);
+                return true;
+            }
+            case "skill_reset" -> {
+                player.setData(ModAttachments.SKILL_CD.get(), 0f);
+                player.displayClientMessage(Component.literal("§d必殺技の呼吸が整った — CT リセット！"), true);
+                return true;
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    /** 回収・索敵系 */
+    private static Boolean applyDetectionItems(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
+        switch (kind) {
             case "magnet" -> {
                 for (var it : level.getEntitiesOfClass(ItemEntity.class,
                         player.getBoundingBox().inflate(12), e -> e.isAlive())) {
@@ -470,18 +526,6 @@ public final class Consumables {
                                 + Math.round(e.getKey().getMaxHealth())));
                     }
                 }
-                return true;
-            }
-            case "purity" -> {
-                java.util.List.of(MobEffects.WITHER, MobEffects.POISON, MobEffects.SLOWNESS,
-                        MobEffects.WEAKNESS, MobEffects.MINING_FATIGUE, MobEffects.DARKNESS,
-                        MobEffects.HUNGER, MobEffects.BLINDNESS, MobEffects.UNLUCK,
-                        MobEffects.NAUSEA, MobEffects.LEVITATION).forEach(player::removeEffect);
-                return true;
-            }
-            case "skill_reset" -> {
-                player.setData(ModAttachments.SKILL_CD.get(), 0f);
-                player.displayClientMessage(Component.literal("§d必殺技の呼吸が整った — CT リセット！"), true);
                 return true;
             }
             case "eagle" -> {
@@ -514,6 +558,7 @@ public final class Consumables {
             }
         }
     }
+
 
     /** 職業の必殺巻物: その型の必殺技をCTなしで1度だけ発動 */
     private static Boolean applyClassScroll(ServerPlayer player, String kind) {
