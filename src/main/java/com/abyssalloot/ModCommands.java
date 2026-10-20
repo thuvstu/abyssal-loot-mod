@@ -89,8 +89,7 @@ public final class ModCommands {
                 // 操作ハブ (GUIボタン集約。Gキーからも開ける)
                 .then(Commands.literal("hub").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    PacketDistributor.sendToPlayer(p,
-                            new ModPackets.HubSync());
+                    PacketDistributor.sendToPlayer(p, RunManager.hubStatus(p));
                     return 1;
                 }))
                 // 操作説明 (クリックで実行できるボタン付き)

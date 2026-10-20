@@ -505,6 +505,8 @@ public final class RunManager {
         if (isCovenant(player)) {
             Achievements.grant(player, "covenant-kept");
         }
+        // 潜行リザルト (endRunで層情報が消える前に出す)
+        showRunSummary(player, true);
         // 出撃終了: 条件固定を解除
         endRun(player);
     }
@@ -514,6 +516,11 @@ public final class RunManager {
      * 装備・欠片は保持される (原作の帰還に相当)。
      */
     public static void retire(ServerPlayer player) {
+        // リザルトは撤退時の到達状況 (獲得内容は消去前に数えておく)
+        boolean hadRun = player.getData(ModAttachments.RUN_LOCK.get()) != 0;
+        int boonCount = boonsOf(player).size();
+        int relicCount = relicsOf(player).size();
+        int passiveCount = passivesOf(player).size();
         clearRunField(player);
         player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
@@ -523,6 +530,9 @@ public final class RunManager {
         // 開いていたGUI (商店・鍛造・比較など) を強制的に閉じる
         player.closeContainer();
         player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
+        if (hadRun) {
+            showRunSummary(player, false, boonCount, relicCount, passiveCount);
+        }
     }
 
     /** 戦場の掃除: 前回アリーナのバリア除去・残存MOB消去・ボスバー解除 (再出撃・死亡時に使用) */
@@ -639,6 +649,52 @@ public final class RunManager {
         player.setData(ModAttachments.BOONS.get(), "");
         player.setData(ModAttachments.SHRINE_FATE.get(), "");
         player.setData(ModAttachments.SHRINE_UNTIL.get(), 0L);
+    }
+
+    /** 潜行リザルト (踏破・撤退時のまとめ) */
+    public static void showRunSummary(ServerPlayer player, boolean cleared) {
+        showRunSummary(player, cleared, boonsOf(player).size(), relicsOf(player).size(),
+                passivesOf(player).size());
+    }
+
+    /** 潜行リザルト (獲得内容は事前に集計して渡す) */
+    public static void showRunSummary(ServerPlayer player, boolean cleared, int boons, int relics, int passives) {
+        int floor = player.getData(ModAttachments.FLOOR.get());
+        int kills = player.getData(ModAttachments.KILLS.get());
+        int bestCombo = player.getData(ModAttachments.BEST_COMBO.get());
+        int dmg = player.getData(ModAttachments.DMG_DEALT.get());
+        int score = calcScore(player, cleared);
+        String mode = player.getData(ModAttachments.MODE.get());
+        String diff = player.getData(ModAttachments.DIFF.get());
+        player.sendSystemMessage(Component.literal("§8§m                                        "));
+        player.sendSystemMessage(Component.literal(cleared
+                ? "§6§l潜行リザルト §a(踏破)"
+                : "§6§l潜行リザルト §7(撤退)"));
+        player.sendSystemMessage(Component.literal("§7到達 §f第" + floor + "層 §8[" + mode + "/" + diff + "]"
+                + " §7撃破 §f" + kills + "体"));
+        player.sendSystemMessage(Component.literal("§7最大コンボ §f" + bestCombo
+                + " §7総与ダメージ §f" + dmg));
+        player.sendSystemMessage(Component.literal("§7祝福 §f" + boons + "種"
+                + " §7遺物 §f" + relics + "個"
+                + " §7技能 §f" + passives + "個"));
+        player.sendSystemMessage(Component.literal("§6スコア §e" + score));
+        player.sendSystemMessage(Component.literal(
+                "§7次は §f/abyss start §7で再出撃 (§f/abyss keep §7で装備を継承)"));
+    }
+
+    /** 操作ハブに表示する進行状況 (実行中かどうかと層・残存・魂など) */
+    public static ModPackets.HubSync hubStatus(ServerPlayer player) {
+        boolean inRun = player.getData(ModAttachments.RUN_LOCK.get()) != 0;
+        int waveTotal = player.getData(ModAttachments.WAVE_TOTAL.get());
+        return new ModPackets.HubSync(inRun,
+                player.getData(ModAttachments.FLOOR.get()),
+                player.getData(ModAttachments.KILLS.get()),
+                waveTotal,
+                player.getData(ModAttachments.FLOOR_KILLS.get()),
+                player.getData(ModAttachments.SOUL.get()),
+                pendingBoonsOf(player),
+                player.getData(ModAttachments.PORTAL_OPEN.get()),
+                player.getData(ModAttachments.MODE.get()));
     }
 
     /** 次層への進行 (転移門の開放を確認。キー・ボタン用) */

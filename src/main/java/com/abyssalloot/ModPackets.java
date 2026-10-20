@@ -241,13 +241,27 @@ public final class ModPackets {
         }
     }
 
-    /** サーバー→クライアント: 操作ハブを開く (中身なし) */
-    public record HubSync() implements CustomPacketPayload {
+    /** サーバー→クライアント: 操作ハブを開く (進行状況を同梱) */
+    public record HubSync(boolean inRun, int floor, int kills, int waveTotal, int floorKills,
+                          float soul, int pendingBoons, int portalOpen, String mode)
+            implements CustomPacketPayload {
         public static final Type<HubSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hub"));
         public static final StreamCodec<RegistryFriendlyByteBuf, HubSync> CODEC = StreamCodec.of(
-                (buf, p) -> {},
-                buf -> new HubSync());
+                (buf, p) -> {
+                    buf.writeBoolean(p.inRun());
+                    buf.writeVarInt(p.floor());
+                    buf.writeVarInt(p.kills());
+                    buf.writeVarInt(p.waveTotal());
+                    buf.writeVarInt(p.floorKills());
+                    buf.writeFloat(p.soul());
+                    buf.writeVarInt(p.pendingBoons());
+                    buf.writeVarInt(p.portalOpen());
+                    buf.writeUtf(p.mode(), 16);
+                },
+                buf -> new HubSync(buf.readBoolean(), buf.readVarInt(), buf.readVarInt(),
+                        buf.readVarInt(), buf.readVarInt(), buf.readFloat(),
+                        buf.readVarInt(), buf.readVarInt(), buf.readUtf(16)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -255,7 +269,7 @@ public final class ModPackets {
         }
 
         public static void handle(HubSync payload, IPayloadContext ctx) {
-            ctx.enqueueWork(() -> ClientGui.openHub());
+            ctx.enqueueWork(() -> ClientGui.openHub(payload));
         }
     }
 
@@ -316,7 +330,7 @@ public final class ModPackets {
                     case "skill" -> SkillHandler.trySkill(sp);
                     case "dash" -> SkillHandler.dash(sp);
                     case "hub" -> net.neoforged.neoforge.network.PacketDistributor
-                            .sendToPlayer(sp, new HubSync());
+                            .sendToPlayer(sp, RunManager.hubStatus(sp));
                     case "next" -> RunManager.tryNextFloor(sp);
                     case "sub" -> SkillHandler.trySubSkill(sp);
                     default -> AbyssalLootMod.LOGGER.warn("unknown act: " + payload.kind());

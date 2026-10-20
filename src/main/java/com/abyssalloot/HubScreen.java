@@ -38,7 +38,7 @@ public class HubScreen extends Screen {
         int bw = 150;
         int colX0 = width / 2 - bw - 6;
         int colX1 = width / 2 + 6;
-        int y = height / 2 - 60;
+        int y = height / 2 - 44;
         for (int i = 0; i < BUTTONS.length; i++) {
             String[] b = BUTTONS[i];
             int x = i % 2 == 0 ? colX0 : colX1;
@@ -56,16 +56,43 @@ public class HubScreen extends Screen {
         // ボタンがパネルの下に沈むのを防ぐ
         int px0 = width / 2 - 162;
         int px1 = width / 2 + 162;
-        int py0 = height / 2 - 84;
-        int py1 = height / 2 + 90;
+        int py0 = height / 2 - 92;
+        int py1 = height / 2 + 112;
         g.fill(px0, py0, px1, py1, 0xD010141E);
         g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
         g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
         g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
         g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
         g.drawCenteredString(font, title.getString(), width / 2, py0 + 6, 0xFFFFD23C);
+        renderStatus(g, py0);
         g.drawCenteredString(font, "ESC で閉じる", width / 2, py1 + 6, 0xFF6E7686);
         super.render(g, mouseX, mouseY, partialTick);
+    }
+
+    /** 進行状況の1行サマリー (実行中は層・残存・魂、未実行は出撃の案内) */
+    private void renderStatus(GuiGraphics g, int py0) {
+        var st = ClientGui.hubStatus();
+        if (st == null) return;
+        String line1;
+        String line2;
+        if (st.inRun()) {
+            String where = "第" + st.floor() + "層 [" + st.mode() + "]";
+            if (st.portalOpen() != 0) {
+                line1 = where + "  転移門OPEN (門をくぐって次層へ)";
+                line2 = "撃破 " + st.kills() + "  魂 " + Math.round(st.soul()) + "/100"
+                        + (st.pendingBoons() > 0 ? "  未選択祝福 " + st.pendingBoons() : "");
+            } else {
+                int left = Math.max(0, st.waveTotal() - st.floorKills());
+                line1 = where + "  残存 " + left + " 体";
+                line2 = "撃破 " + st.kills() + "  魂 " + Math.round(st.soul()) + "/100"
+                        + (st.pendingBoons() > 0 ? "  未選択祝福 " + st.pendingBoons() : "");
+            }
+        } else {
+            line1 = "深淵に潜っていない (出撃すると潜行が始まります)";
+            line2 = "『出撃する』か /abyss quick で即出撃できます";
+        }
+        g.drawCenteredString(font, line1, width / 2, py0 + 20, 0xFFB9C4D6);
+        g.drawCenteredString(font, line2, width / 2, py0 + 31, 0xFF8C96A8);
     }
 
     @Override

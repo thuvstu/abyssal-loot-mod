@@ -114,6 +114,9 @@ public final class ClientGui {
                         modelScale));
     }
 
+    /** 直近のハブ進行状況 (未受信なら null) */
+    private static ModPackets.HubSync hubStatus;
+
     public static List<String> compareLeft() {
         return compareLeft;
     }
@@ -152,10 +155,16 @@ public final class ClientGui {
         return statusLines;
     }
 
-    public static void openHub() {
+    public static void openHub(ModPackets.HubSync status) {
+        hubStatus = status;
         if (Minecraft.getInstance() != null) {
             replaceScreen(new HubScreen());
         }
+    }
+
+    /** ハブに表示する進行状況 (未受信なら null) */
+    public static ModPackets.HubSync hubStatus() {
+        return hubStatus;
     }
 
     /**
