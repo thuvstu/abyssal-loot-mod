@@ -975,69 +975,86 @@ public final class WeaponArts {
         ServerLevel level = slevel(player);
         Vec3 origin = player.position();
         switch (cls) {
-            case SAMURAI -> {
-                aoe(level, player, origin, 12, 3.0 * attackDamage, true, ParticleTypes.SWEEP_ATTACK);
-                announce(player, "絶空斬！");
-            }
-            case MAGE -> {
-                for (int i = 0; i < 5; i++) {
-                    Vec3 at = origin.add((player.getRandom().nextDouble() - 0.5) * 16, 0,
-                            (player.getRandom().nextDouble() - 0.5) * 16);
-                    aoe(level, player, at, 5, 2.2 * attackDamage, false, ParticleTypes.FLAME);
-                }
-                announce(player, "メテオフォール！");
-            }
-            case NINJA -> {
-                aoe(level, player, origin, 8, 1.4 * attackDamage, false, ParticleTypes.PORTAL);
-                aoe(level, player, origin, 8, 1.4 * attackDamage, false, ParticleTypes.CRIT);
-                announce(player, "影分身乱舞！");
-            }
-            case PALADIN -> {
-                aoe(level, player, origin, 10, 2.6 * attackDamage, false, ParticleTypes.END_ROD);
-                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 200, 2));
-                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 1));
-                announce(player, "ジャッジメント！");
-            }
-            case GUNNER -> {
-                for (int k = 0; k < 3; k++) {
-                    aoe(level, player, origin, 14, 1.2 * attackDamage, false, ParticleTypes.CRIT);
-                }
-                announce(player, "バレットヘル！");
-            }
-            case BERSERKER -> {
-                // 血爆: 自身の現在HP20%を捧げて大爆発
-                float cost = player.getHealth() * 0.2f;
-                if (player.getHealth() > cost + 1) {
-                    player.hurtServer(level, level.damageSources().magic(), cost);
-                }
-                aoe(level, player, origin, 8, 5.0 * attackDamage, true, ParticleTypes.EXPLOSION);
-                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
-                announce(player, "血爆！");
-            }
-            case MONK -> {
-                // 禅定結界: 結界内の敵を鎮め自身を癒す
-                aoe(level, player, origin, 9, 1.2 * attackDamage, false, ParticleTypes.END_ROD);
-                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
-                        new AABB(origin.x - 9, origin.y - 4, origin.z - 9,
-                                origin.x + 9, origin.y + 4, origin.z + 9),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
-                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
-                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
-                }
-                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 120, 1));
-                player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 0));
-                announce(player, "禅定結界！");
-            }
-            case ARCHER -> {
-                // 天矢雨: 5重の矢の輪が広がる
-                for (int k = 0; k < 5; k++) {
-                    aoe(level, player, origin, 6 + k * 2, (1.5 - k * 0.1) * attackDamage, false, ParticleTypes.CRIT);
-                }
-                announce(player, "天矢雨！");
-            }
+            case SAMURAI -> skillSamurai(level, player, origin, attackDamage);
+            case MAGE -> skillMage(level, player, origin, attackDamage);
+            case NINJA -> skillNinja(level, player, origin, attackDamage);
+            case PALADIN -> skillPaladin(level, player, origin, attackDamage);
+            case GUNNER -> skillGunner(level, player, origin, attackDamage);
+            case BERSERKER -> skillBerserker(level, player, origin, attackDamage);
+            case MONK -> skillMonk(level, player, origin, attackDamage);
+            case ARCHER -> skillArcher(level, player, origin, attackDamage);
         }
         level.playSound(null, player.blockPosition(), SoundEvents.DRAGON_FIREBALL_EXPLODE, SoundSource.PLAYERS, 1f, 1f);
     }
+
+    private static void skillSamurai(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        aoe(level, player, origin, 12, 3.0 * attackDamage, true, ParticleTypes.SWEEP_ATTACK);
+        announce(player, "絶空斬！");
+    }
+
+    private static void skillMage(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        for (int i = 0; i < 5; i++) {
+            Vec3 at = origin.add((player.getRandom().nextDouble() - 0.5) * 16, 0,
+                    (player.getRandom().nextDouble() - 0.5) * 16);
+            aoe(level, player, at, 5, 2.2 * attackDamage, false, ParticleTypes.FLAME);
+        }
+        announce(player, "メテオフォール！");
+    }
+
+    private static void skillNinja(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        aoe(level, player, origin, 8, 1.4 * attackDamage, false, ParticleTypes.PORTAL);
+        aoe(level, player, origin, 8, 1.4 * attackDamage, false, ParticleTypes.CRIT);
+        announce(player, "影分身乱舞！");
+    }
+
+    private static void skillPaladin(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        aoe(level, player, origin, 10, 2.6 * attackDamage, false, ParticleTypes.END_ROD);
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 200, 2));
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 1));
+        announce(player, "ジャッジメント！");
+    }
+
+    private static void skillGunner(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        for (int k = 0; k < 3; k++) {
+            aoe(level, player, origin, 14, 1.2 * attackDamage, false, ParticleTypes.CRIT);
+        }
+        announce(player, "バレットヘル！");
+    }
+
+    /** 血爆: 自身の現在HP20%を捧げて大爆発 */
+    private static void skillBerserker(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        float cost = player.getHealth() * 0.2f;
+        if (player.getHealth() > cost + 1) {
+            player.hurtServer(level, level.damageSources().magic(), cost);
+        }
+        aoe(level, player, origin, 8, 5.0 * attackDamage, true, ParticleTypes.EXPLOSION);
+        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 100, 0));
+        announce(player, "血爆！");
+    }
+
+    /** 禅定結界: 結界内の敵を鎮め自身を癒す */
+    private static void skillMonk(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        aoe(level, player, origin, 9, 1.2 * attackDamage, false, ParticleTypes.END_ROD);
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                new AABB(origin.x - 9, origin.y - 4, origin.z - 9,
+                        origin.x + 9, origin.y + 4, origin.z + 9),
+                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+            e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
+            e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
+        }
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 120, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 0));
+        announce(player, "禅定結界！");
+    }
+
+    /** 天矢雨: 5重の矢の輪が広がる */
+    private static void skillArcher(ServerLevel level, ServerPlayer player, Vec3 origin, double attackDamage) {
+        for (int k = 0; k < 5; k++) {
+            aoe(level, player, origin, 6 + k * 2, (1.5 - k * 0.1) * attackDamage, false, ParticleTypes.CRIT);
+        }
+        announce(player, "天矢雨！");
+    }
+
 
     /** 感圧罠の爆発 (敵味方共通・原作traps.ts準拠の簡易版) */
     public static void trapBlast(ServerLevel level, ServerPlayer attacker, Vec3 at) {
