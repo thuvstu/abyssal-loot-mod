@@ -23,6 +23,23 @@ def shade(c, k: float) -> RGBA:
     return (clamp(c[0] * k), clamp(c[1] * k), clamp(c[2] * k), c[3] if len(c) > 3 else 255)
 
 
+def luminance(c) -> float:
+    """知覚輝度 (0..255)。"""
+    return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+
+def hi(c, k: float) -> RGBA:
+    """ハイライト用の明度倍率。
+
+    明るい色ほど伸びしろを減らすので、白い素材でも白飛びせず
+    色味を保ったまま縁が立つ。
+    """
+    if k <= 1.0:
+        return shade(c, k)
+    lum = luminance(c) / 255.0
+    return shade(c, 1.0 + (k - 1.0) * max(0.15, 1.0 - lum * 0.85))
+
+
 def mix(a, b, t: float) -> RGBA:
     """2 色を線形補間。"""
     t = max(0.0, min(1.0, t))

@@ -169,19 +169,22 @@ class Model:
         self._culled = True
         return removed
 
-    def build_texture(self, size: int | None = None, max_size: int = 128) -> Image.Image:
+    def build_texture(self, size: int | None = None, max_size: int = 256) -> Image.Image:
         """UV を割り当ててテクスチャを焼き付ける。
 
-        解像度は 64 → 128 の順に試し、収まらない場合はテクセル密度を落として
-        128 に押し込む (テクスチャアトラスを圧迫しないため)。
+        テクセル密度 (tpu) 6 → 5 → 4 の順に、より高い密度を優先して試す。
+        小さいモデルは 128px に収まり、密度の必要な大きなモデルは 256px になる。
         """
         self.cull_hidden_faces()
         if size:
             combos = [(size, TEXELS_PER_UNIT)]
         else:
-            combos = [(64, TEXELS_PER_UNIT), (max_size, TEXELS_PER_UNIT)]
-            if max_size > 64:
-                combos += [(max_size, 3), (max_size, 2)]
+            combos = [(128, 6), (192, 6)]
+            if max_size >= 256:
+                combos += [(256, 6), (128, 5), (192, 5), (256, 5), (128, TEXELS_PER_UNIT),
+                           (192, TEXELS_PER_UNIT), (256, 4), (256, 3), (256, 2)]
+            elif max_size >= 128:
+                combos += [(128, 5), (128, TEXELS_PER_UNIT)]
         for cand, tpu in combos:
             self.tpu = tpu
             img, uv = self._pack(cand)
