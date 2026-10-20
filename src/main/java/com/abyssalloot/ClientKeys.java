@@ -26,6 +26,7 @@ public final class ClientKeys {
     private static KeyMapping hubKey;
     private static KeyMapping nextKey;
     private static KeyMapping subKey;
+    private static KeyMapping quickKey;
 
     public static void init(IEventBus modBus) {
         registerKeyMappings(modBus);
@@ -51,12 +52,15 @@ public final class ClientKeys {
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, category);
             subKey = new KeyMapping("key.abyssalloot.sub", KeyConflictContext.IN_GAME,
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category);
+            quickKey = new KeyMapping("key.abyssalloot.quick", KeyConflictContext.IN_GAME,
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F, category);
             event.register(artKey);
             event.register(skillKey);
             event.register(dashKey);
             event.register(hubKey);
             event.register(nextKey);
             event.register(subKey);
+            event.register(quickKey);
         });
     }
 
@@ -84,7 +88,9 @@ public final class ClientKeys {
             if (subKey != null && subKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("sub")));
             }
+            if (quickKey != null && quickKey.consumeClick()) {
+                conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("quick")));
+            }
         });
     }
-
 }

@@ -408,6 +408,7 @@ public final class RunManager {
         player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
         player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると転移門が開く → 門をくぐって次層 (§bG§fで操作ハブ)"));
         player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
+        player.sendSystemMessage(Component.literal("§f6. §eF§fキーで回復・魂の消耗品を1個即使用 (HP・魂・浄化の順)"));
         player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
     }
 

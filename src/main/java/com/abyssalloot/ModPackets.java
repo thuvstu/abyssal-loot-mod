@@ -333,6 +333,7 @@ public final class ModPackets {
                             .sendToPlayer(sp, RunManager.hubStatus(sp));
                     case "next" -> RunManager.tryNextFloor(sp);
                     case "sub" -> SkillHandler.trySubSkill(sp);
+                    case "quick" -> Consumables.quickUse(sp);
                     default -> AbyssalLootMod.LOGGER.warn("unknown act: " + payload.kind());
                 }
             }

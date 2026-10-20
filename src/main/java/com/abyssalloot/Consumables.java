@@ -561,6 +561,74 @@ public final class Consumables {
         }
     }
 
+    /**
+     * 快捷使用 (Fキー): 状況に応じて最も効く消耗品を1個使う.
+     * 判定順は「回復 → 魂ゲージ → 浄化」. 該当品が無ければ何もしない.
+     */
+    public static boolean quickUse(ServerPlayer player) {
+        if (!player.isAlive()) return false;
+        double maxHp = Math.max(1.0, player.getMaxHealth());
+        double hpRatio = player.getHealth() / maxHp;
+
+        // 1) 傷がある: 60%未満なら回復優先
+        if (hpRatio < 0.6) {
+            String kind = findInInventory(player, List.of(
+                    "heal_100", "heal_70", "heal_30", "reapple", "care_box", "feast", "ration"));
+            if (kind != null && useFromInventory(player, kind)) return true;
+        }
+        // 2) 魂ゲージが満タン未満なら魂の欠片
+        if (player.getData(ModAttachments.SOUL.get()) < 100f) {
+            String kind = findInInventory(player, List.of("gauge_100", "gauge_40", "art_scroll"));
+            if (kind != null && useFromInventory(player, kind)) return true;
+        }
+        // 3) 状態異常があれば浄化
+        if (hasDebuff(player)) {
+            String kind = findInInventory(player, List.of("cure", "purity"));
+            if (kind != null && useFromInventory(player, kind)) return true;
+        }
+        player.displayClientMessage(Component.literal("§7使える消耗品がない (HP・魂・浄化の順を探す)"), true);
+        return false;
+    }
+
+    /** インベントリから指定効果種の消耗品を探す (優先順つき) */
+    private static String findInInventory(ServerPlayer player, List<String> kinds) {
+        var items = player.getInventory().getNonEquipmentItems();
+        for (String kind : kinds) {
+            for (var stack : items) {
+                if (!stack.isEmpty() && kind.equals(ModItems.consumableKindOf(stack.getItem()))) {
+                    return kind;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** インベントリ内の消耗品を使って1個消費する */
+    private static boolean useFromInventory(ServerPlayer player, String kind) {
+        var items = player.getInventory().getNonEquipmentItems();
+        for (int i = 0; i < items.size(); i++) {
+            var stack = items.get(i);
+            if (stack.isEmpty() || !kind.equals(ModItems.consumableKindOf(stack.getItem()))) continue;
+            if (!useConsumable(player, kind)) return false;
+            stack.shrink(1);
+            return true;
+        }
+        return false;
+    }
+
+    /** 状態異常があるか */
+    private static boolean hasDebuff(ServerPlayer player) {
+        for (var eff : player.getActiveEffects()) {
+            var e = eff.getEffect();
+            if (e == MobEffects.POISON || e == MobEffects.WITHER || e == MobEffects.SLOWNESS
+                    || e == MobEffects.WEAKNESS || e == MobEffects.HUNGER || e == MobEffects.BLINDNESS
+                    || e == MobEffects.UNLUCK || e == MobEffects.MINING_FATIGUE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** 職業の必殺巻物: その型の必殺技をCTなしで1度だけ発動 */
     private static boolean castClassScroll(ServerPlayer player, String kind) {
         var castCls = GameData.HeroClass.byId(kind.substring("skill_demo::".length()));

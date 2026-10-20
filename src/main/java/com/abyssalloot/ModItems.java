@@ -138,6 +138,11 @@ public final class ModItems {
             this.kind = kind;
         }
 
+        /** 効果種 (heal_30 / gauge_40 など) */
+        public String consumableKind() {
+            return kind;
+        }
+
         @Override
         public InteractionResult use(Level level, Player player, InteractionHand hand) {
             if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) {
@@ -512,6 +517,11 @@ public final class ModItems {
     public static EquipmentSlot slotOf(Item item) {
         if (item instanceof AbyssArmorItem armor) return armor.abyssSlot();
         return null;
+    }
+
+    /** 消耗品かどうか (効果種を返す。消耗品でなければ null) */
+    public static String consumableKindOf(Item item) {
+        return item instanceof AbyssConsumable c ? c.consumableKind() : null;
     }
 
     /** 消耗品のランダム1個 (ドロップ用) */
