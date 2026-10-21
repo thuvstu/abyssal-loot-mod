@@ -541,20 +541,29 @@ public final class RunManager {
         // 開いている転移門を撤去する (次の出撃で門が残らないように)
         TransferGate.close(player);
         ArenaManager.clearArenaBarriers(player);
-        if (player.level() instanceof ServerLevel level) {
-            BlockPos center = ArenaManager.arenaCenterOf(player);
-            AABB box = center != null
-                    ? new AABB(center).inflate(64)
-                    : player.getBoundingBox().inflate(64);
-            for (Mob m : level.getEntitiesOfClass(Mob.class, box, e -> e.isAlive())) {
-                boolean abyss = BOSS_BARS.containsKey(m) || LootHandler.hasAbyssTag(m);
-                if (abyss) m.discard();
+        clearAbyssMobs(player);
+        synchronized (BOSS_BARS) {
+            for (var e : BOSS_BARS.entrySet()) {
+                e.getValue().removePlayer(player);
             }
-            synchronized (BOSS_BARS) {
-                for (var e : BOSS_BARS.entrySet()) {
-                    e.getValue().removePlayer(player);
-                }
-            }
+        }
+    }
+
+    /** アリーナ周辺の深淵MOB (wave・召喚物・ボス) をすべて消す. 層移動・終了時の取りこぼし防止 */
+    public static void clearAbyssMobs(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel level)) return;
+        BlockPos center = ArenaManager.arenaCenterOf(player);
+        AABB box = center != null
+                ? new AABB(center).inflate(96)
+                : player.getBoundingBox().inflate(96);
+        for (Mob m : level.getEntitiesOfClass(Mob.class, box,
+                e -> e.isAlive() && !e.isRemoved()
+                        && (LootHandler.hasAbyssTag(e) || BOSS_BARS.containsKey(e)))) {
+            m.discard();
+        }
+        // 消したボスのバーが残らないようにする
+        synchronized (BOSS_BARS) {
+            BOSS_BARS.entrySet().removeIf(e -> e.getKey().isRemoved() || !e.getKey().isAlive());
         }
     }
 
@@ -617,6 +626,7 @@ public final class RunManager {
      */
     static void endRun(ServerPlayer player) {
         TransferGate.close(player);
+        clearAbyssMobs(player);
         player.setData(ModAttachments.FLOOR.get(), 1);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -766,8 +776,9 @@ public final class RunManager {
 
     /** 層状態のリセット・未選択祝福の再提示・層移動回復・次ウェーブの開始 */
     private static void enterFloor(ServerPlayer player, int floor) {
-        // 前の層の転移門を撤去する (次の層に残らない)
+        // 前の層の転移門・残存MOB (召喚物含む) を撤去する (次の層に残らない)
         TransferGate.close(player);
+        clearAbyssMobs(player);
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -884,6 +895,139 @@ public final class RunManager {
         }
     }
 
+    /** 実際に湧けた数に合わせてノルマを増減する (0未満にはしない) */
+    public static void addWaveTotal(ServerPlayer player, int delta) {
+        if (delta == 0) return;
+        int next = Math.max(0, player.getData(ModAttachments.WAVE_TOTAL.get()) + delta);
+        player.setData(ModAttachments.WAVE_TOTAL.get(), next);
+    }
+
+    /**
+     * 層クリア対象のMOBが死んだときの共通処理。倒したのがプレイヤーでなくても
+     * (自爆・日光・落下・召喚物の巻き込み等) 進行度を必ず1つ進める。
+     * @return ノルマの所有者 (オンラインの実行中プレイヤー)。対象外なら null
+     */
+    public static ServerPlayer onWaveMobDeath(Mob dead) {
+        if (!Enemies.isWaveMob(dead)) return null;
+        ServerPlayer owner = waveOwnerOnline(dead);
+        if (owner == null) return null;
+        if (owner.getData(ModAttachments.RUN_LOCK.get()) == 0
+                || owner.getData(ModAttachments.PORTAL_OPEN.get()) != 0) {
+            return owner;
+        }
+        int total = owner.getData(ModAttachments.WAVE_TOTAL.get());
+        int kills = owner.getData(ModAttachments.FLOOR_KILLS.get());
+        if (total > 0 && kills < total) {
+            owner.setData(ModAttachments.FLOOR_KILLS.get(), kills + 1);
+        }
+        CombatHandler.sendHudSoon(owner);
+        return owner;
+    }
+
+    /** wave MOB の所有者をオンラインから探す (所有者タグが無い旧データは近傍プレイヤー) */
+    private static ServerPlayer waveOwnerOnline(Mob dead) {
+        if (!(dead.level() instanceof ServerLevel level)) return null;
+        java.util.UUID id = Enemies.waveOwner(dead);
+        if (id != null) return level.getServer().getPlayerList().getPlayer(id);
+        var nearest = level.getNearestPlayer(dead.getX(), dead.getY(), dead.getZ(), 64, false);
+        return nearest instanceof ServerPlayer sp ? sp : null;
+    }
+
+    /** アリーナ周辺でまだ生きているノルマ対象 (召喚物は含めない) */
+    private static List<Mob> aliveWaveMobs(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel level)) return List.of();
+        BlockPos center = ArenaManager.arenaCenterOf(player);
+        AABB box = center != null
+                ? new AABB(center).inflate(96)
+                : player.getBoundingBox().inflate(96);
+        java.util.UUID id = player.getUUID();
+        return level.getEntitiesOfClass(Mob.class, box, e -> {
+            if (!e.isAlive() || e.isRemoved() || !Enemies.isWaveMob(e)) return false;
+            java.util.UUID owner = Enemies.waveOwner(e);
+            return owner == null || owner.equals(id);
+        });
+    }
+
+    /** 現在アリーナに実体として残っているノルマ対象の数 (/abyss status 用) */
+    public static int aliveWaveMobCount(ServerPlayer player) {
+        return aliveWaveMobs(player).size();
+    }
+
+    /**
+     * 毎秒のウェーブ整合性チェック。予定数と実体数を突き合わせて補正し、
+     * 全滅しているのに門が開かない (取りこぼし) 状態を必ず解消する。
+     */
+    public static void tickWaveProgress(ServerPlayer player) {
+        if (player.getData(ModAttachments.RUN_LOCK.get()) == 0) return;
+        if (player.getData(ModAttachments.PORTAL_OPEN.get()) != 0) return;
+        if (!(player.level() instanceof ServerLevel)) return;
+        int total = player.getData(ModAttachments.WAVE_TOTAL.get());
+        int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
+        int alive = aliveWaveMobs(player).size();
+        if (total <= 0) {
+            if (alive > 0) {
+                // ノルマ未設定のまま敵だけいる: 実体数をノルマにする
+                player.setData(ModAttachments.WAVE_TOTAL.get(), alive);
+                return;
+            }
+            // ウェーブが空のまま進めなくなるのを避ける (生成失敗などの保険)
+            player.setData(ModAttachments.WAVE_TOTAL.get(), 1);
+            player.setData(ModAttachments.FLOOR_KILLS.get(), 1);
+            player.sendSystemMessage(Component.literal("§7敵の気配がないため転移門を開放した"));
+            openPortalIfCleared(player);
+            return;
+        }
+        int expected = Math.max(0, total - kills);
+        if (alive < expected) {
+            // Creeper の自爆や /kill など LivingDeathEvent を経由しない消滅を討伐として補正する。
+            // ノルマ自体を減らすと「倒していないのに達成」になるため、必ず討伐数を進める。
+            int missing = expected - alive;
+            kills = Math.min(total, kills + missing);
+            player.setData(ModAttachments.FLOOR_KILLS.get(), kills);
+        } else if (alive > expected) {
+            // 予定より多いノルマ対象がいる (イベント湧きの取りこぼし等) は実体数までノルマを増やす
+            total = kills + alive;
+            player.setData(ModAttachments.WAVE_TOTAL.get(), total);
+        }
+        if (alive == 0 && kills >= total) {
+            openPortalIfCleared(player);
+        }
+    }
+
+    /**
+     * ノルマ達成かつ場内にノルマ対象が1体もいないときだけ門を開く。
+     * 討伐数と実体数の両方を見るため、数え漏れでも早期開放にならない。
+     */
+    public static void openPortalIfCleared(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel level)) return;
+        if (player.getData(ModAttachments.RUN_LOCK.get()) == 0) return;
+        if (player.getData(ModAttachments.PORTAL_OPEN.get()) != 0) return;
+        int total = player.getData(ModAttachments.WAVE_TOTAL.get());
+        if (total <= 0) return;
+        if (player.getData(ModAttachments.FLOOR_KILLS.get()) < total) return;
+        if (!aliveWaveMobs(player).isEmpty()) return;
+
+        player.setData(ModAttachments.PORTAL_OPEN.get(), 1);
+        TransferGate.open(player, level);
+        player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ 門をくぐって次の層へ ")
+                .append(Component.literal("§b[次の層へ進む]").withStyle(s -> s
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss next"))
+                        .withUnderlined(true))));
+        level.playSound(null, player.blockPosition(),
+                SoundEvents.PORTAL_TRIGGER, SoundSource.PLAYERS, 0.6f, 1.2f);
+        FloorEvents.offerEvent(player);
+        // 層の締め前に未選択の祝福を確実に提示 (消える前に選ばせる)
+        if (pendingBoonsOf(player) > 0
+                && player.getData(ModAttachments.OFFER.get()).isBlank()) {
+            player.sendSystemMessage(Component.literal(
+                    "§e◆ レベルアップの祝福が未選択だ (" + pendingBoonsOf(player) + "件)"));
+            BoonHandler.offerBoons(player);
+        } else if (!player.getData(ModAttachments.OFFER.get()).isBlank()) {
+            BoonHandler.resendBoonOffer(player);
+        }
+        CombatHandler.sendHudSoon(player);
+    }
+
     /** 湧き中心はアリーナ中心 (プレイヤー位置だと場外に湧くため) */
     private static BlockPos spawnCenter(ServerPlayer player) {
         BlockPos arena = ArenaManager.arenaCenterOf(player);
@@ -894,41 +1038,53 @@ public final class RunManager {
     private static void spawnMobRing(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
                                      WavePlan plan, Enemies.Scale scale, RandomSource rand) {
         int count = plan.count();
+        int spawned = 0;
         for (int i = 0; i < count; i++) {
-            double ang = (Math.PI * 2 * i) / count;
-            int sx = center.getX() + (int) (Math.cos(ang) * 14);
-            int sz = center.getZ() + (int) (Math.sin(ang) * 14);
-            int sy = ArenaManager.safeSpawnY(level, sx, sz, center.getY() + 1);
-            var spec = Enemies.pickSpec(floor, i, rand);
-            Mob mob = Enemies.create(level, spec);
-            mob.setPos(sx + 0.5, sy, sz + 0.5);
-            // 門は耐久が高い (原作の門は壊すまで増援し続ける)
-            double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
-            Enemies.apply(mob, spec, scale, extra);
-            if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < plan.eliteChance()) {
-                Enemies.makeElite(mob);
-                // 悪夢化: 無限深淵の深層 (NIGHTMARE_MIN_FLOOR 以降) のエリートは確率で悪夢になる
-                if (floor >= NIGHTMARE_MIN_FLOOR
-                        && "endless".equals(player.getData(ModAttachments.MODE.get()))
-                        && rand.nextDouble() < NIGHTMARE_CHANCE) {
-                    Enemies.makeNightmare(mob);
+            try {
+                double ang = (Math.PI * 2 * i) / count;
+                int sx = center.getX() + (int) (Math.cos(ang) * 14);
+                int sz = center.getZ() + (int) (Math.sin(ang) * 14);
+                int sy = ArenaManager.safeSpawnY(level, sx, sz, center.getY() + 1);
+                var spec = Enemies.pickSpec(floor, i, rand);
+                Mob mob = Enemies.create(level, spec);
+                mob.setPos(sx + 0.5, sy, sz + 0.5);
+                // 門は耐久が高い (原作の門は壊すまで増援し続ける)
+                double extra = spec.role() == Enemies.Role.GATE ? Enemies.GATE_HP_MULT : 1.0;
+                Enemies.apply(mob, spec, scale, extra);
+                if (spec.role() == Enemies.Role.NORMAL && rand.nextDouble() < plan.eliteChance()) {
+                    Enemies.makeElite(mob);
+                    // 悪夢化: 無限深淵の深層 (NIGHTMARE_MIN_FLOOR 以降) のエリートは確率で悪夢になる
+                    if (floor >= NIGHTMARE_MIN_FLOOR
+                            && "endless".equals(player.getData(ModAttachments.MODE.get()))
+                            && rand.nextDouble() < NIGHTMARE_CHANCE) {
+                        Enemies.makeNightmare(mob);
+                    }
                 }
+                Enemies.markWaveMob(player, mob);
+                Enemies.tagByRole(mob, spec);
+                mob.setTarget(player);
+                if (level.addFreshEntity(mob)) spawned++;
+            } catch (RuntimeException ex) {
+                // 1体の生成失敗でウェーブ全体を止めない (失敗分はノルマから除外する)
+                AbyssalLootMod.LOGGER.warn("深淵MOBの生成に失敗したためノルマから除外する", ex);
             }
-            Enemies.tagByRole(mob, spec);
-            mob.setTarget(player);
-            level.addFreshEntity(mob);
         }
+        // 実際に湧けた数だけをノルマにする (生成失敗で「残り1体」が永久に残るのを防ぐ)
+        addWaveTotal(player, spawned - count);
     }
 
     /** 層主・超越者・中盤イベントのいずれかを発生させる */
     private static void spawnBossOrEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
                                          Enemies.Scale scale, WavePlan plan, boolean rollFloor,
                                          RandomSource rand) {
+        // 追加ウェーブ (rollFloor=false) ではボス・中盤イベントを再発生させない。
+        // ここでボスを増やすとノルマ加算とズレるため、層開始時だけに限定する。
+        if (!rollFloor) return;
         if (plan.bossFloor()) {
             BossHandler.spawnFloorBoss(player, level, center, floor, scale);
         } else if (plan.ascensionFloor()) {
             BossHandler.spawnAscensionBoss(player, level, center, scale);
-        } else if (rollFloor && rand.nextDouble() < 0.45) {
+        } else if (rand.nextDouble() < 0.45) {
             // 層の中盤イベント (原作 RANDOM_EVENTS). ボス層以外で45%
             FloorEvents.triggerRandomEvent(player, level, center, floor);
         }
@@ -946,10 +1102,10 @@ public final class RunManager {
         warden.setPos(center.getX() + 0.5, sy, center.getZ() + 10.5);
         Enemies.apply(warden, Enemies.byId("golem"), scale, 1.0);
         Enemies.makeWarden(warden, w);
+        Enemies.markWaveMob(player, warden);
         warden.setTarget(player);
-        level.addFreshEntity(warden);
-        player.setData(ModAttachments.WAVE_TOTAL.get(),
-                player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
+        if (!level.addFreshEntity(warden)) return;
+        addWaveTotal(player, 1);
         player.sendSystemMessage(Component.literal(
                 "§c◆ 番人出現 — " + w.name() + "「" + w.flavor() + "」"));
     }
@@ -1222,6 +1378,13 @@ public final class RunManager {
                 cls.name, cls.title, player.getData(ModAttachments.LEVEL.get()),
                 player.getData(ModAttachments.FLOOR.get()),
                 player.getData(ModAttachments.MODE.get()), player.getData(ModAttachments.DIFF.get())));
+        if (player.getData(ModAttachments.RUN_LOCK.get()) != 0
+                && player.getData(ModAttachments.WAVE_TOTAL.get()) > 0) {
+            out.add("§7ウェーブ 討伐 §f"
+                    + player.getData(ModAttachments.FLOOR_KILLS.get()) + "§7/§f"
+                    + player.getData(ModAttachments.WAVE_TOTAL.get())
+                    + " §8| §7実体 §f" + aliveWaveMobCount(player) + "体");
+        }
         out.add(String.format("§d魂%.0f/100 §c攻撃%.1f §aHP%.0f/%.0f §e撃破%d §b奥義:%s",
                 player.getData(ModAttachments.SOUL.get()),
                 StatCalc.attackDamageOf(player),

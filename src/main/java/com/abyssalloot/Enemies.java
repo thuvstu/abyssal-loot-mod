@@ -46,6 +46,10 @@ public final class Enemies {
     public static final String WARDEN_TAG = "abyss_warden";
     /** エリート化の目印 (判定は {@link #isElite} に集約。名札の文字列依存を解消する) */
     public static final String ELITE_TAG = "abyss_elite";
+    /** 深淵MODが湧かせたMOB全般の目印 (ドロップ抑止・場内収容・掃除の共通判定) */
+    public static final String MOB_TAG = "abyss_mob";
+    /** 層クリアのノルマに数えるMOBの目印 (召喚物・分裂子には付けない) */
+    public static final String WAVE_TAG = "abyss_wave";
 
     /** エリート判定 (タグ優先・旧セーブの名札もフォールバックで認識)。表示名変更に壊れない */
     public static boolean isElite(net.minecraft.world.entity.Entity e) {
@@ -142,6 +146,7 @@ public final class Enemies {
     public static final int MAX_MOB_HP = 1024;
 
     public static void apply(Mob m, Spec spec, Scale s, double hpExtra) {
+        m.setPersistenceRequired();
         var hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             hp.setBaseValue(Math.min(MAX_MOB_HP, spec.hp() * s.hp() * hpExtra));
@@ -223,13 +228,44 @@ public final class Enemies {
             m = ModEntities.SLIME.get().create(level, EntitySpawnReason.EVENT);
             if (m == null) throw new IllegalStateException("mob create failed");
         }
+        m.addTag(MOB_TAG);
+        m.setPersistenceRequired();
         m.setCustomName(Component.literal("§7" + spec.name()));
         m.setCustomNameVisible(spec.role() != Role.NORMAL);
         return m;
     }
 
+    /** 層クリアのノルマ対象として印を付ける (所有者・永続化も同時に設定) */
+    public static void markWaveMob(ServerPlayer owner, Mob m) {
+        m.addTag(MOB_TAG);
+        m.addTag(WAVE_TAG);
+        m.addTag(OWNER_PREFIX + owner.getUUID());
+        m.setPersistenceRequired();
+    }
+
+    /** 層クリアのノルマ対象か */
+    public static boolean isWaveMob(net.minecraft.world.entity.Entity e) {
+        return e != null && e.getTags().contains(WAVE_TAG);
+    }
+
+    /** wave MOB の所有者 (タグが無ければ null) */
+    public static java.util.UUID waveOwner(net.minecraft.world.entity.Entity e) {
+        if (e == null) return null;
+        for (String t : e.getTags()) {
+            if (!t.startsWith(OWNER_PREFIX)) continue;
+            try {
+                return java.util.UUID.fromString(t.substring(OWNER_PREFIX.length()));
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     /** 役割・AIごとのタグ付け */
     public static void tagByRole(Mob m, Spec spec) {
+        m.addTag(MOB_TAG);
+        m.setPersistenceRequired();
         switch (spec.role()) {
             case GUARD -> m.addTag(GUARD_TAG);
             case NECROMANCER -> m.addTag(NECRO_TAG);
@@ -297,6 +333,7 @@ public final class Enemies {
             child.setPos(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
             apply(child, slime, scale, 0.4);
             child.addTag(SUMMON_TAG);
+            child.addTag(OWNER_PREFIX + ref.getUUID());
             child.setTarget(ref);
             level.addFreshEntity(child);
         }
@@ -310,11 +347,11 @@ public final class Enemies {
                 e -> e.isAlive() && e.getTags().contains(tag)).size();
     }
 
-    /** 画面内の敵数 (上限判定用). Mob のみ数えるためプレイヤーは含まれない */
+    /** 画面内の深淵MOB数 (上限判定用). 動物・プレイヤーのペットを数えない */
     public static int aliveNear(ServerLevel level, double x, double y, double z) {
         return level.getEntitiesOfClass(Mob.class,
                 new net.minecraft.world.phys.AABB(x - 64, y - 32, z - 64, x + 64, y + 32, z + 64),
-                e -> e.isAlive()).size();
+                e -> e.isAlive() && LootHandler.hasAbyssTag(e)).size();
     }
 
     /** 精鋭の特性タグ (原作 ELITE_TRAITS に対応) */

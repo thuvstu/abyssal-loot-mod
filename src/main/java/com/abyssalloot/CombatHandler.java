@@ -234,6 +234,8 @@ public final class CombatHandler {
             if (tickCounter % 20 == 0) {
                 tickAbilityBoons(player);
                 RunManager.tickRunEffects(player);
+                // 予定モブ数と実体数のズレを補正し、取りこぼしで門が開かない状態を解消する
+                RunManager.tickWaveProgress(player);
                 // 低HPの鼓動 (残量30%未満で毎秒)
                 playLowHealthHeartbeat(player);
             }

@@ -177,10 +177,12 @@ public final class ArenaManager {
                     for (int y = WALL_H; y <= WALL_H + 5; y++) {
                         level.setBlock(center.offset(x, y, z), Blocks.BARRIER.defaultBlockState(), 3);
                     }
-                } else if (d2 <= (r - 2) * (r - 2) && Math.abs(x) + Math.abs(z) > 0) {
-                    // 天井 (中央1マスは開けて光を入れる)
-                    if ((x * x + z * z) % 7 == 0) continue;
-                    level.setBlock(center.offset(x, WALL_H + 5, z), Blocks.BARRIER.defaultBlockState(), 3);
+                } else {
+                    // 天井: バリアはスカイライトを通すため、内側は遮光性の色付きガラスで全面を塞ぐ。
+                    // 7ブロック間隔の格子だけシーランタンにして、真っ暗にならないよう明かりを残す。
+                    Block ceiling = ((x * x + z * z) % 7 == 0)
+                            ? Blocks.SEA_LANTERN : Blocks.TINTED_GLASS;
+                    level.setBlock(center.offset(x, WALL_H + 5, z), ceiling.defaultBlockState(), 3);
                 }
             }
         }
@@ -266,7 +268,8 @@ public final class ArenaManager {
                     }
                 } else {
                     BlockPos p = center.offset(x, WALL_H + 5, z);
-                    if (level.getBlockState(p).is(Blocks.BARRIER)) {
+                    var st = level.getBlockState(p);
+                    if (st.is(Blocks.BARRIER) || st.is(Blocks.TINTED_GLASS) || st.is(Blocks.SEA_LANTERN)) {
                         level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
                     }
                 }
@@ -292,7 +295,9 @@ public final class ArenaManager {
                     && level.getBlockState(p.above()).isAir()
                     && level.getBlockState(p.above().above()).isAir()
                     && !below.isAir() && below.getFluidState().isEmpty()
-                    && !below.is(Blocks.BARRIER) && !below.is(Blocks.STONE_BRICK_WALL)) {
+                    && !below.is(Blocks.BARRIER) && !below.is(Blocks.STONE_BRICK_WALL)
+                    // 天井の色付きガラス/シーランタンの上 (場外) に湧かせない
+                    && !below.is(Blocks.TINTED_GLASS) && !below.is(Blocks.SEA_LANTERN)) {
                 return y;
             }
         }

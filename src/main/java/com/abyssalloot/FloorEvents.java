@@ -390,21 +390,28 @@ public final class FloorEvents {
     /** 精鋭の襲撃: 精鋭3体 (通常敵のみ) */
     private static void spawnEliteEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor,
                                         Enemies.Scale scale) {
+        int spawned = 0;
         for (int i = 0; i < 3; i++) {
-            var spec = Enemies.pickSpec(floor, -1, player.getRandom());
-            if (spec.role() != Enemies.Role.NORMAL) spec = Enemies.byId("golem");
-            Mob mob = Enemies.create(level, spec);
-            BlockPos pos = center.offset(player.getRandom().nextInt(17) - 8, 1,
-                    player.getRandom().nextInt(17) - 8);
-            mob.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-            Enemies.apply(mob, spec, scale, 1.0);
-            Enemies.makeElite(mob);
-            Enemies.tagByRole(mob, spec);
-            mob.setTarget(player);
-            level.addFreshEntity(mob);
+            try {
+                var spec = Enemies.pickSpec(floor, -1, player.getRandom());
+                if (spec.role() != Enemies.Role.NORMAL) spec = Enemies.byId("golem");
+                Mob mob = Enemies.create(level, spec);
+                int x = center.getX() + player.getRandom().nextInt(17) - 8;
+                int z = center.getZ() + player.getRandom().nextInt(17) - 8;
+                int y = ArenaManager.safeSpawnY(level, x, z, center.getY() + 1);
+                mob.setPos(x + 0.5, y, z + 0.5);
+                Enemies.apply(mob, spec, scale, 1.0);
+                Enemies.makeElite(mob);
+                Enemies.markWaveMob(player, mob);
+                Enemies.tagByRole(mob, spec);
+                mob.setTarget(player);
+                if (level.addFreshEntity(mob)) spawned++;
+            } catch (RuntimeException ex) {
+                AbyssalLootMod.LOGGER.warn("精鋭イベントのMOB生成に失敗した", ex);
+            }
         }
-        player.setData(ModAttachments.WAVE_TOTAL.get(),
-                player.getData(ModAttachments.WAVE_TOTAL.get()) + 3);
+        // 実際に湧けた数だけ加算する
+        RunManager.addWaveTotal(player, spawned);
     }
 
     /** 加護の泉: 全回復 + 素材 */

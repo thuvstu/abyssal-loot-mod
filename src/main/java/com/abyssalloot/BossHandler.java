@@ -54,11 +54,13 @@ public final class BossHandler {
                                              BossEvent.BossBarColor color, String tag) {
         Monster boss = (Monster) type.create(level, EntitySpawnReason.EVENT);
         if (boss == null) return null;
-        BlockPos bp = player.blockPosition();
+        BlockPos arena = ArenaManager.arenaCenterOf(player);
+        BlockPos bp = arena != null ? arena : player.blockPosition();
         int sy = ArenaManager.safeSpawnY(level, bp.getX(), bp.getZ() - 10, bp.getY() + 1);
         boss.setPos(bp.getX() + 0.5, sy, bp.getZ() - 10 + 0.5);
         setMobStats(boss, hp, dmg, speed);
         if (tag != null) boss.addTag(tag);
+        Enemies.markWaveMob(player, boss);
         boss.setCustomName(name);
         boss.setCustomNameVisible(true);
         boss.setTarget(player);
@@ -317,7 +319,12 @@ public final class BossHandler {
         GameData.BossDef def = GameData.bossForFloor(floor);
         String bossName = def != null ? def.name() : "層主 第" + floor + "層";
         Mob boss = (Mob) Enemies.bossMobFor(floor).create(level, EntitySpawnReason.EVENT);
-        if (boss == null) throw new IllegalStateException("boss create failed");
+        if (boss == null) {
+            // 生成できなかったボスをノルマに残さない
+            RunManager.addWaveTotal(player, -1);
+            AbyssalLootMod.LOGGER.warn("層主の生成に失敗した (floor={})", floor);
+            return;
+        }
         int sy = ArenaManager.safeSpawnY(level, center.getX(), center.getZ() - 10, center.getY() + 1);
         boss.setPos(center.getX() + 0.5, sy, center.getZ() - 10 + 0.5);
         double hpBase = def != null ? def.hp() : 60 + floor * 60;
@@ -326,8 +333,13 @@ public final class BossHandler {
         applyScaledStats(boss, hpBase, dmgBase, spdBase, scale, floor);
         boss.setCustomName(Component.literal("§4" + bossName));
         boss.setCustomNameVisible(true);
+        Enemies.markWaveMob(player, boss);
         boss.setTarget(player);
-        level.addFreshEntity(boss);
+        if (!level.addFreshEntity(boss)) {
+            // 生成失敗時はノルマを1減らして「倒せないボス」を残さない
+            RunManager.addWaveTotal(player, -1);
+            return;
+        }
         registerBossBar(player, boss, Component.literal("§4" + bossName), BossEvent.BossBarColor.RED);
     }
 
@@ -336,17 +348,20 @@ public final class BossHandler {
                                            Enemies.Scale scale) {
         var def = GameData.bossForFloor(GameData.ASCENSION_FLOOR);
         Mob boss = ModEntities.ASCENDER.get().create(level, EntitySpawnReason.EVENT);
-        if (boss == null) throw new IllegalStateException("ascension boss create failed");
+        if (boss == null) {
+            AbyssalLootMod.LOGGER.warn("超越者の生成に失敗した");
+            return;
+        }
         int sy = ArenaManager.safeSpawnY(level, center.getX(), center.getZ() - 12, center.getY() + 1);
         boss.setPos(center.getX() + 0.5, sy, center.getZ() - 12 + 0.5);
         // MC の属性上限に収まるよう圧縮 (原作85万/属性倍率)
         applyScaledStats(boss, 40000, def.dmg() / 6, def.speed(), scale, 28);
         boss.setCustomName(Component.literal("§e" + def.name()));
         boss.setCustomNameVisible(true);
+        Enemies.markWaveMob(player, boss);
         boss.setTarget(player);
-        level.addFreshEntity(boss);
-        player.setData(ModAttachments.WAVE_TOTAL.get(),
-                player.getData(ModAttachments.WAVE_TOTAL.get()) + 1);
+        if (!level.addFreshEntity(boss)) return;
+        RunManager.addWaveTotal(player, 1);
         registerBossBar(player, boss, Component.literal("§e" + def.name()), BossEvent.BossBarColor.PURPLE);
         player.sendSystemMessage(Component.literal("§e◆ 超越者 — 真の深淵と終焉の座を制した者だけが立てる相手！"));
     }

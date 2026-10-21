@@ -47,7 +47,23 @@ public final class KillHandler {
 
     @SubscribeEvent
     public static void onKill(LivingDeathEvent event) {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        if (event.isCanceled()) return;
+        if (!(event.getEntity() instanceof net.minecraft.world.entity.Mob dead)) return;
+        // 自爆・日光・落下・巻き込みなど、プレイヤー以外が倒した場合でもノルマを進める
+        ServerPlayer progressOwner = RunManager.onWaveMobDeath(dead);
+        // 直接倒したプレイヤー、または直前に攻撃していたプレイヤーに報酬を与える
+        ServerPlayer player = event.getSource().getEntity() instanceof ServerPlayer sp ? sp
+                : dead.getLastHurtByMob() instanceof ServerPlayer lp ? lp : null;
+        if (player == null) {
+            if (progressOwner != null && progressOwner.level() instanceof ServerLevel ownerLevel) {
+                // 環境死でも層主の記録・真ボス勝利・層クリアを取りこぼさない
+                handleBossKill(progressOwner, event, ownerLevel);
+                handleBossVictories(progressOwner, event);
+                RunManager.openPortalIfCleared(progressOwner);
+                CombatHandler.sendHudSoon(progressOwner);
+            }
+            return;
+        }
         if (!(player.level() instanceof ServerLevel level)) return;
         var rand = player.getRandom();
 
@@ -410,36 +426,12 @@ public final class KillHandler {
 
     /** 層クリア判定 → 転移門の開放 + 層間イベント・未選択祝福の提示 */
     private static void checkFloorClear(ServerPlayer player, LivingDeathEvent event, ServerLevel level) {
-        // 蘇生師・門の子は層のウェーブに含めない (数えると転移門が早く開いてしまう)
-        if (!event.getEntity().getTags().contains(Enemies.SUMMON_TAG)) {
-            player.setData(ModAttachments.FLOOR_KILLS.get(), player.getData(ModAttachments.FLOOR_KILLS.get()) + 1);
-        }
         // 呪われた召喚門の破壊 (原作: 戦績に保存され実績「門を断つ者」)
         if (event.getEntity().getTags().contains(Enemies.GATE_TAG)) {
             Achievements.grant(player, "gate-breaker");
         }
-        int total = player.getData(ModAttachments.WAVE_TOTAL.get());
-        if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0
-                && player.getData(ModAttachments.FLOOR_KILLS.get()) >= total) {
-            player.setData(ModAttachments.PORTAL_OPEN.get(), 1);
-            // 実体の転移門を開く (門をくぐると次の層へ)
-            TransferGate.open(player, level);
-            player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ 門をくぐって次の層へ ")
-                    .append(Component.literal("§b[次の層へ進む]").withStyle(s -> s
-                            .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss next"))
-                            .withUnderlined(true))));            level.playSound(null, player.blockPosition(),
-                    net.minecraft.sounds.SoundEvents.PORTAL_TRIGGER, net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.2f);
-            FloorEvents.offerEvent(player);
-            // 層の締め前に未選択の祝福を確実に提示 (消える前に選ばせる)
-            if (RunManager.pendingBoonsOf(player) > 0
-                    && player.getData(ModAttachments.OFFER.get()).isBlank()) {
-                player.sendSystemMessage(Component.literal(
-                        "§e◆ レベルアップの祝福が未選択だ (" + RunManager.pendingBoonsOf(player) + "件)"));
-                BoonHandler.offerBoons(player);
-            } else if (!player.getData(ModAttachments.OFFER.get()).isBlank()) {
-                BoonHandler.resendBoonOffer(player);
-            }
-        }
+        // ノルマ達成かつ残存ノルマ対象が0なら門を開く (実際の残存数を確認する)
+        RunManager.openPortalIfCleared(player);
     }
 
     private static int needFor(int level) {

@@ -87,6 +87,12 @@ public final class EnemyAI {
     private static void tickMob(ServerLevel level, Mob m, ServerPlayer p,
                                 List<ArmorStand> decoys, int now) {
         var tags = m.getTags();
+        // 日光で深淵MOBが勝手に燃え尽きるのを防ぐ (プレイヤーの火炎攻撃中は消さない)
+        if (LootHandler.hasAbyssTag(m) && m.getRemainingFireTicks() > 0
+                && level.isBrightOutside() && level.canSeeSky(m.blockPosition())
+                && m.getLastHurtByMob() == null) {
+            m.setRemainingFireTicks(0);
+        }
         // 時の歪み: 敵速度半減 (鈍足で再現)
         if (RunManager.hasFate(p, "timewarp")) {
             m.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 30, 2, false, false));
@@ -154,8 +160,9 @@ public final class EnemyAI {
             player.teleportTo(cx + Math.cos(pang) * (r - 3), cy + 1, cz + Math.sin(pang) * (r - 3));
             player.displayClientMessage(Component.literal("§c試練の場から出られない！"), true);
         }
+        // ノルマ判定 (96m) と同じ範囲を見て、判定より先に場内へ引き戻す
         var strays = level.getEntitiesOfClass(Mob.class,
-                new AABB(cx - 64, cy - 32, cz - 64, cx + 64, cy + 32, cz + 64),
+                new AABB(cx - 96, cy - 48, cz - 96, cx + 96, cy + 48, cz + 96),
                 e -> e.isAlive() && (RunManager.BOSS_BARS.containsKey(e) || hasAbyssTag(e)));
         for (Mob m : strays) {
             double dx = m.getX() - cx, dz = m.getZ() - cz;
@@ -512,7 +519,8 @@ public final class EnemyAI {
             var atk = m.getAttribute(Attributes.ATTACK_DAMAGE);
             double dmg = atk != null ? atk.getValue() * 2 : 20;
             WeaponArts.enemyPulse(level, m.position(), 4, dmg, ParticleTypes.EXPLOSION);
-            m.discard();  // 自爆: 実体を消す (ドロップなし)
+            // 自爆でも死亡イベントを通す (discard だと層クリアの討伐数が欠ける)
+            m.hurtServer(level, level.damageSources().genericKill(), Float.MAX_VALUE);
         } else {
             m.getNavigation().moveTo(target, 1.3);
         }

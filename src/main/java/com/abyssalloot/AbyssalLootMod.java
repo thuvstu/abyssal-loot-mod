@@ -31,10 +31,17 @@ public class AbyssalLootMod {
 
         NeoForge.EVENT_BUS.register(ModCommands.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);
+        // 撃破処理 (KillHandler) は CombatHandler から分離された際に登録が漏れていた。
+        // 未登録だと討伐数・戦利品・層クリア判定が一切動かないため必ず登録する。
+        NeoForge.EVENT_BUS.register(KillHandler.class);
         NeoForge.EVENT_BUS.register(LootHandler.class);
         NeoForge.EVENT_BUS.register(WeaponHitHandler.class);
         NeoForge.EVENT_BUS.register(SkillHandler.class);
         NeoForge.EVENT_BUS.register(VanillaLinks.class);
+        // 転移門の右クリック進行とログアウト時のチャージ掃除
+        NeoForge.EVENT_BUS.register(TransferGate.class);
+        // ダメージ表示のアーマースタンドを誤操作しないようにする
+        NeoForge.EVENT_BUS.register(DamageNumbers.class);
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientKeys.init(modEventBus);
