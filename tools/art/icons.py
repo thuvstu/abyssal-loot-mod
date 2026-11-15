@@ -255,64 +255,126 @@ ABYSS_DARK = (30, 20, 52, 255)
 ABYSS_LIGHT = (120, 92, 190, 255)
 
 
-def _plate(d, box, trim=True):
-    d.rectangle(box, fill=OUTLINE)
-    x0, y0, x1, y1 = box
-    d.rectangle([x0 + 1, y0 + 1, x1 - 1, y1 - 1], fill=ABYSS_PLATE)
-    d.line([(x0 + 1, y0 + 1), (x1 - 1, y0 + 1)], fill=ABYSS_LIGHT, width=1)
-    if trim:
-        d.point((x0 + 2, y1 - 2), fill=GOLD)
-        d.point((x1 - 2, y1 - 2), fill=GOLD)
+# ---------------------------------------------------------------- 防具 (マスク描画)
+# 記号: o=輪郭 h=光 p=板金 s=影 d=深影 t=金具 g=宝石(発光) w=照り v=面頬の闇 .=透明
+ARMOR_MASKS = {
+    "helm": [
+        "................",
+        ".......oo.......",
+        "......otto......",
+        ".....otwtto.....",
+        "...oohtttsoo....",
+        "..ohhpppppppso..",
+        "..ohppppppppso..",
+        ".ohppppppppppso.",
+        ".otttttttttttto.",
+        ".ohpvvvvvvvvpso.",
+        ".ohpvgvvvvgvpso.",
+        ".ohpvvvvvvvvpso.",
+        ".ohppppvvppppso.",
+        "..ohpppvvpppso..",
+        "...ohppppppso...",
+        "....oooooooo....",
+    ],
+    "chest": [
+        "................",
+        "..oooo....oooo..",
+        ".ohhtto..ottsso.",
+        "ohhpppoooopppsso",
+        "ohppppphhpppppso",
+        "ottpppphppppptto",
+        ".ooppphpgwppsoo.",
+        "..ohpphpggpppo..",
+        "..ohpphpppppso..",
+        "..otttttttttto..",
+        "..ohpphpppppso..",
+        "..ohpphppppsso..",
+        "..ohppphpppsso..",
+        "...ohpphppsso...",
+        "....oosssssoo...",
+        "......oooo......",
+    ],
+    "legs": [
+        "................",
+        "..oooooooooooo..",
+        "..ottttgttttto..",
+        "..ohhppppppsso..",
+        "..ohpppppppppo..",
+        "..ohppsoohppso..",
+        "..ohpso..ohpso..",
+        "..ottto..ottto..",
+        "..ohpso..ohpso..",
+        "..ohgso..ohgso..",
+        "..ohpso..ohpso..",
+        "..ohpso..ohpso..",
+        "..ohpso..ohpso..",
+        "..ohsso..ohsso..",
+        "..odddo..odddo..",
+        "..ooooo..ooooo..",
+    ],
+    "boots": [
+        "................",
+        "................",
+        "................",
+        ".ooooo...ooooo..",
+        ".otwto...otwto..",
+        ".ohpso...ohpso..",
+        ".ohpso...ohpso..",
+        ".ohgso...ohgso..",
+        ".ohpso...ohpso..",
+        ".ohpso...ohpso..",
+        ".ohppoo..ohppoo.",
+        ".ohpppso.ohpppso",
+        ".ohhpppo.ohhpppo",
+        ".ottttto.ottttto",
+        ".odddddo.odddddo",
+        ".ooooooo.ooooooo",
+    ],
+}
+
+
+def _armor_palette(accent, body):
+    """セットの本体色 (body) と装飾色 (accent) から 16x16 防具の色を作る。"""
+    plate = mix((150, 158, 180, 255), body, 0.55)
+    trim = mix(GOLD, accent, 0.30)
+    return {
+        "o": mix(OUTLINE, body, 0.18),
+        "h": core.hi(plate, 1.38),
+        "p": plate,
+        "s": shade(plate, 0.68),
+        "d": shade(plate, 0.45),
+        "t": trim,
+        "g": core.hi(mix(body, accent, 0.35), 1.25),
+        "w": WHITE,
+        "v": mix((20, 14, 30, 255), body, 0.12),
+    }
+
+
+def _armor_icon(kind, accent, body):
+    img, _d = canvas()
+    pal = _armor_palette(accent, body)
+    px = img.load()
+    for y, row in enumerate(ARMOR_MASKS[kind]):
+        for x, ch in enumerate(row[:16]):
+            if ch != ".":
+                px[x, y] = pal[ch]
+    return img
 
 
 def helm(accent, trim=GOLD):
-    img, d = canvas()
-    _plate(d, [3, 3, 12, 11])
-    d.rectangle([5, 7, 10, 9], fill=ABYSS_DARK)  # 面頬
-    d.line([(5, 8), (10, 8)], fill=accent, width=1)  # 目元光
-    d.rectangle([7, 2, 8, 4], fill=trim)  # 前立
-    d.point((7, 3), fill=WHITE)
-    return img
+    return _armor_icon("helm", accent, trim)
 
 
 def chest(accent, trim=GOLD):
-    img, d = canvas()
-    _plate(d, [4, 4, 11, 12])
-    d.rectangle([1, 5, 3, 11], fill=OUTLINE)  # 腕
-    d.rectangle([2, 6, 2, 10], fill=ABYSS_PLATE)
-    d.rectangle([12, 5, 14, 11], fill=OUTLINE)
-    d.rectangle([13, 6, 13, 10], fill=ABYSS_PLATE)
-    d.line([(4, 9), (11, 9)], fill=trim, width=1)  # 帯金具
-    d.rectangle([7, 5, 8, 7], fill=accent)  # 胸核
-    d.point((7, 5), fill=WHITE)
-    return img
+    return _armor_icon("chest", accent, trim)
 
 
 def legs(accent, trim=GOLD):
-    img, d = canvas()
-    d.rectangle([3, 2, 12, 5], fill=OUTLINE)  # 腰
-    d.rectangle([4, 3, 11, 4], fill=ABYSS_PLATE)
-    _plate(d, [3, 5, 7, 13], trim=False)  # 左脚
-    _plate(d, [8, 5, 12, 13], trim=False)  # 右脚
-    d.line([(3, 4), (12, 4)], fill=trim, width=1)
-    d.point((5, 7), fill=accent)
-    d.point((10, 7), fill=accent)
-    return img
+    return _armor_icon("legs", accent, trim)
 
 
 def boots(accent, trim=GOLD):
-    img, d = canvas()
-    _plate(d, [2, 3, 6, 11], trim=False)  # 左
-    _plate(d, [9, 3, 13, 11], trim=False)  # 右
-    d.rectangle([2, 10, 6, 13], fill=OUTLINE)  # 爪先
-    d.rectangle([9, 10, 13, 13], fill=OUTLINE)
-    d.rectangle([3, 11, 5, 12], fill=ABYSS_DARK)
-    d.rectangle([10, 11, 12, 12], fill=ABYSS_DARK)
-    d.point((3, 5), fill=accent)
-    d.point((12, 5), fill=accent)
-    d.point((4, 11), fill=trim)
-    d.point((11, 11), fill=trim)
-    return img
+    return _armor_icon("boots", accent, trim)
 
 
 
@@ -437,23 +499,147 @@ def lodestone(color):
     return img
 
 
-def _mats3_tex(color):
-    """新素材12x12のテクスチャ (塊 + 輝点. 色は冒険系の物性を反映)"""
-    img, d = canvas()
-    c = color
-    import random as _rnd
-    # 色由来の決定的シード (Python の文字列 hash は実行ごとに変わるため使えない)
-    rnd = _rnd.Random((c[0] << 16) | (c[1] << 8) | c[2])
-    poly(d, [(4, 2), (11, 4), (12, 11), (6, 14), (3, 9)], OUTLINE)
-    poly(d, [(5, 4), (10, 6), (11, 10), (7, 12), (5, 9)], c)
-    d.line([(6, 5), (8, 7)], fill=_shade(c, 1.25), width=1)
-    for _ in range(3):
-        x = rnd.randrange(6, 11)
-        y = rnd.randrange(6, 11)
-        d.point((x, y), fill=_shade(c, 0.7))
-    d.point((7, 5), fill=WHITE)
-    d.point((9, 9), fill=_shade(c, 1.35))
+# ---------------------------------------------------------------- 素材 (マスク描画)
+# 記号: o=輪郭 w=照り h=光 p=地色 s=影 d=深影 l=稜線の光 .=透明
+MATERIAL_MASKS = {
+    "chunk": [
+        "................",
+        "................",
+        ".....oooo.......",
+        "....ohhppoo.....",
+        "...ohwhpppsoo...",
+        "..ohhhppppppso..",
+        "..ohhppppppsso..",
+        ".ohhppplpppssso.",
+        ".ohpppplppppsso.",
+        ".ohpppplpppssdo.",
+        "..ohppppppssdo..",
+        "..ospppppssddo..",
+        "...ossssssddo...",
+        "....oodddddo....",
+        "......ooooo.....",
+        "................",
+    ],
+    "gem": [
+        "................",
+        "................",
+        "....oooooooo....",
+        "...ohhwhppppo...",
+        "..ohhhhppppsso..",
+        ".ohhhhpppppssso.",
+        ".ollllllllllllo.",
+        ".ohhppppppppsso.",
+        "..ohhpppppppso..",
+        "...ohppppppso...",
+        "....ohpppsso....",
+        ".....ohpssso....",
+        "......ohsso.....",
+        ".......oo.......",
+        "................",
+        "................",
+    ],
+    "splinter": [
+        "................",
+        "........oo......",
+        ".......ohwo.....",
+        "......ohhpo.....",
+        "......ohppso....",
+        ".....ohhppso....",
+        ".....ohplpso....",
+        "....ohhplpsso...",
+        "....ohpplpsso...",
+        "...ohhpplpssdo..",
+        "...ohppplpssdo..",
+        "....ohppppsdo...",
+        ".....ohppsddo...",
+        "......ohsddo....",
+        ".......oooo.....",
+        "................",
+    ],
+    "drop": [
+        "................",
+        ".......oo.......",
+        "......ohho......",
+        "......ohpo......",
+        ".....ohhpso.....",
+        ".....ohppso.....",
+        "....ohhpppso....",
+        "...ohwhppppso...",
+        "...ohhpppppso...",
+        "..ohhppppppsso..",
+        "..ohpppppppsso..",
+        "..ohppppppssdo..",
+        "...ohpppssddo...",
+        "....oosssddo....",
+        "......oooo......",
+        "................",
+    ],
+    "crystal": [
+        "................",
+        ".......oo.......",
+        "......ohso......",
+        ".....ohwpso.....",
+        ".....ohhpso.....",
+        "....ohhppsso....",
+        "....ohhplsso....",
+        "....ohhplsso....",
+        "....ohhplsso....",
+        "....ohhplsso....",
+        "....ohhppsso....",
+        "....ohhppsdo....",
+        ".....ohpsdo.....",
+        "......ohdo......",
+        ".......oo.......",
+        "................",
+    ],
+}
+
+
+def _mask_palette(base, glint=WHITE):
+    return {
+        "o": mix(OUTLINE, base, 0.22),
+        "w": mix(glint, base, 0.10),
+        "h": core.hi(base, 1.38),
+        "l": core.hi(base, 1.22),
+        "p": base,
+        "s": shade(base, 0.70),
+        "d": shade(base, 0.48),
+    }
+
+
+def mask_icon(kind, base, glint=WHITE):
+    """マスク (MATERIAL_MASKS) を地色 base で塗る。"""
+    img, _d = canvas()
+    pal = _mask_palette(base, glint)
+    px = img.load()
+    for y, row in enumerate(MATERIAL_MASKS[kind]):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                px[x, y] = pal[ch]
     return img
+
+
+def _mats3_tex(color):
+    """素材の塊 (鉱石・粉・雫など、宝石以外の素材)。色由来の決定的な粒を散らす。"""
+    img = mask_icon("chunk", color)
+    rnd = random.Random((color[0] << 16) | (color[1] << 8) | color[2])
+    px = img.load()
+    for _ in range(4):
+        x, y = rnd.randrange(4, 12), rnd.randrange(5, 12)
+        if px[x, y][3] and px[x, y] == color:
+            px[x, y] = shade(color, 0.82) if rnd.random() < 0.6 else core.hi(color, 1.18)
+    return img
+
+
+def gem(outer, inner):
+    """カット宝石。outer=地色 / inner=照りの色。"""
+    return mask_icon("gem", outer, inner)
+
+
+def crystal_splinter(color):
+    """結晶片 (奥義の断片など)。"""
+    return mask_icon("splinter", color)
+
 
 
 def shard_bag(state):
@@ -505,19 +691,14 @@ for _set, (_acc, _trim) in SET_COLORS.items():
 del _set, _acc, _trim, _TA
 
 
-def gem(outer, inner):
-    img, d = canvas()
-    poly(d, [(8, 2), (12, 6), (8, 14), (4, 6)], outer)
-    poly(d, [(8, 5), (10, 7), (8, 11), (6, 7)], inner)
-    d.point((7, 5), fill=(255, 255, 255, 255))
-    return img
-
-
 def ancient_stone(accent):
-    img, d = canvas()
-    poly(d, [(4, 4), (12, 4), (12, 12), (4, 12)], (120, 110, 90, 255))
-    poly(d, [(6, 6), (10, 6), (10, 10), (6, 10)], (245, 197, 66, 255))
-    d.point((7, 7), fill=(255, 255, 255, 255))
+    """古代の石: 灰色の塊に金のルーンが刻まれている。"""
+    img = mask_icon("chunk", (128, 118, 100, 255))
+    px = img.load()
+    rune = mix(accent, GOLD, 0.5)
+    for x, y in ((7, 6), (7, 7), (7, 8), (7, 9), (8, 7), (9, 6), (9, 8), (8, 9), (9, 10)):
+        px[x, y] = rune
+    px[7, 6] = core.hi(rune, 1.3)
     return img
 
 
@@ -997,17 +1178,30 @@ def tide_trident(accent):
 
 
 def moon_mace(accent):
+    """月鱗鎚: 斜めの柄 + 陰影付きの球頭 + 三日月の紋 + 四方の突起。"""
     img, d = canvas()
-    line(d, [(5, 15), (9, 9)], WOOD, 2)  # 柄
-    line(d, [(5, 15), (9, 9)], WOOD_DARK, 1)
-    d.ellipse([6, 8, 14, 15], fill=OUTLINE)      # 三日月頭 (下弦)
-    d.ellipse([7, 9, 13, 14], fill=STEEL_LIGHT)
-    d.ellipse([4, 8, 13, 14], fill=OUTLINE)      # 二重で欠けを作る
-    d.ellipse([5, 9, 11, 13], fill=(10, 8, 20, 255))
-    d.point((13, 10), fill=accent)
-    d.point((13, 11), fill=accent)
-    d.point((12, 9), fill=WHITE)
-    d.point((10, 6), fill=accent)                # 月の輪
+    line(d, [(2, 14), (8, 8)], WOOD, 2)  # 柄
+    d.line([(3, 14), (8, 9)], fill=WOOD_DARK, width=1)
+    d.point((2, 14), fill=GOLD)  # 石突
+    px = img.load()
+    cx, cy, r = 10.5, 5.5, 4.2
+    steel = mix(STEEL, accent, 0.18)
+    for y in range(16):
+        for x in range(16):
+            dx, dy = x + 0.5 - cx, y + 0.5 - cy
+            dist = math.hypot(dx, dy)
+            if dist <= r - 0.9:
+                k = 1.25 - 0.55 * ((dx + dy) / (2 * r) + 0.5)  # 左上=明 / 右下=暗
+                px[x, y] = core.hi(steel, k) if k > 1 else shade(steel, k)
+            elif dist <= r + 0.15:
+                px[x, y] = OUTLINE
+    for sx, sy in ((10, 0), (15, 5), (10, 10), (5, 5)):  # 突起
+        px[sx, sy] = OUTLINE
+    # 三日月の紋 (accent)
+    mark = mix(accent, (70, 96, 190, 255), 0.6)  # 淡い鋼の上でも見える濃さ
+    for x, y in ((9, 4), (9, 5), (9, 6), (10, 7), (11, 7), (10, 3)):
+        px[x, y] = mark
+    px[8, 3] = WHITE
     return img
 
 

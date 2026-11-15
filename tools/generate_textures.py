@@ -440,13 +440,26 @@ def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     write_select_def(item_id, icon_id)
 
 
+MATERIAL_ICON_SHAPES = {
+    shapes.gem: "gem",
+    shapes.crystal: "crystal",
+    shapes.splinter: "splinter",
+    shapes.drop_mat: "drop",
+}
+
+
 def material_icon(item_id: str, color: int):
     if item_id == "soul_shard":
         return icons.shard()
     if item_id == "ancient_stone":
         return icons.ancient_stone(hexcolor(color))
-    if item_id in GEM_MATERIALS:
+    # 3D モデルの形状に合わせて 2D の形を選ぶ (同じ塊ばかりにならないように)
+    shape = MATERIAL_MODELS.get(item_id, (None,))[0]
+    kind = MATERIAL_ICON_SHAPES.get(shape)
+    if kind == "gem" or (kind is None and item_id in GEM_MATERIALS):
         return icons.gem(hexcolor(color), (230, 240, 255, 255))
+    if kind is not None:
+        return icons.mask_icon(kind, hexcolor(color))
     return icons._mats3_tex(hexcolor(color))
 
 
@@ -475,15 +488,8 @@ def armor_palette(base: int, trim: int) -> dict:
 
 
 def art_shard_icon(color: int):
-    """奥義の断片 (2D の欠片) の絵。"""
-    c = hexcolor(color)
-    img, d = icons.canvas()
-    icons.poly(d, [(3, 5), (8, 2), (13, 5), (13, 9), (8, 13), (3, 9)], (60, 50, 90, 255))
-    icons.poly(d, [(5, 6), (8, 4), (11, 6), (11, 9), (8, 11), (5, 9)], icons.OUTLINE)
-    icons.poly(d, [(6, 7), (8, 5.8), (10, 7), (10, 8), (8, 9), (6, 8)], c)
-    d.ellipse([6, 6, 10, 10], outline=(20, 14, 30, 255), width=1)
-    d.point((8, 7), fill=icons.WHITE)
-    return core.emboss(img)
+    """奥義の断片: 武器種の色の結晶片。"""
+    return core.emboss(icons.crystal_splinter(hexcolor(color)))
 
 
 def gen_art_shard(sid: str, color: int) -> None:

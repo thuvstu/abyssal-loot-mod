@@ -231,14 +231,24 @@ def emboss(img: Image.Image, light=(255, 255, 255, 76), dark=(0, 0, 0, 96),
             lf = x > 0 and px[x - 1, y][3] > 0
             rt = x < w - 1 and px[x + 1, y][3] > 0
             c = px[x, y]
+            # 光 / 影は「重ねる」(色の置き換えではない)。元の不透明度は保つ
             if not up:
-                c = mix(c, light, 1.0)
+                # 暗い輪郭線には光を乗せない (灰色に浮いて輪郭が弱くなるため)
+                if luminance(c) > 0.18:
+                    c = _over(c, light)
             elif not dn:
-                c = mix(c, dark, 1.0)
+                c = _over(c, dark)
             elif not lf or not rt:
-                c = mix(c, side, 0.5)
+                c = _over(c, side)
             op[x, y] = c
     return out
+
+
+def _over(c, layer) -> RGBA:
+    """c の上に半透明の layer を重ねた色 (c のアルファは維持)。"""
+    a = (layer[3] if len(layer) > 3 else 255) / 255.0
+    return (clamp(c[0] + (layer[0] - c[0]) * a), clamp(c[1] + (layer[1] - c[1]) * a),
+            clamp(c[2] + (layer[2] - c[2]) * a), c[3] if len(c) > 3 else 255)
 
 
 def scanline_shade(img: Image.Image, box, k: float = 0.92) -> None:
