@@ -6,6 +6,7 @@
     python tools/abyss.py verify [チェック名 ...] [--strict]               静的検証
     python tools/abyss.py preview <種類> [id ...] [--only PAT]           プレビュー画像
     python tools/abyss.py grips                                         武器の握り位置の一覧
+    python tools/abyss.py gametest                                      実サーバーで結合テスト (GameTest。1 分弱)
     python tools/abyss.py check                                         生成物の乖離 + 全検証 (コミット前に)
     python tools/abyss.py all                                           生成 + データ + 検証
 
@@ -37,6 +38,38 @@ def _check(write: bool) -> int:
     return rc
 
 
+def _gametest() -> int:
+    """runGameTestServer を実行し、結果行だけを表示する (AGENTS.md の Gradle 運用に従う)。"""
+    import re
+    import subprocess
+
+    from art.project import ROOT
+    gradlew = os.path.join(ROOT, "gradlew.bat" if os.name == "nt" else "gradlew")
+    log_dir = os.path.join(ROOT, "build")
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, "gametest.log")
+    print("GameTest サーバーを起動しています (全テスト後に自動終了)...")
+    try:
+        with open(log_path, "wb") as log:
+            proc = subprocess.run([gradlew, "--no-daemon", "--console=plain", "runGameTestServer"],
+                                  cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+        rc = proc.returncode
+    except subprocess.TimeoutExpired:
+        print("タイムアウト (10 分)")
+        rc = 1
+    finally:
+        subprocess.run([gradlew, "--stop"], cwd=ROOT, capture_output=True, timeout=120)
+    text = open(log_path, encoding="utf-8", errors="replace").read()
+    pat = re.compile(r"(failed at .*|required tests .*|All \d+ required tests passed.*|GAME TESTS COMPLETE.*"
+                     r"|Couldn't parse data file .*|error: .*|BUILD (?:SUCCESSFUL|FAILED).*)")
+    for line in text.splitlines():
+        m = pat.search(line)
+        if m:
+            print("  " + m.group(1)[:300])
+    print(f"ログ全文: build/gametest.log (終了コード {rc})")
+    return 0 if rc == 0 else 1
+
+
 def main(argv: list[str]) -> int:
     setup_console()
     if not argv or argv[0] in ("-h", "--help", "help"):
@@ -59,6 +92,8 @@ def main(argv: list[str]) -> int:
         import report_grips
         report_grips.main()
         return 0
+    if cmd == "gametest":
+        return _gametest()
     if cmd == "check":
         return _check(write=False)
     if cmd == "all":

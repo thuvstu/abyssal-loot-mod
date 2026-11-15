@@ -10,6 +10,7 @@ Python 3.10+ と Pillow (`pip install pillow`) が必要。どのディレクト
 | `python tools/abyss.py verify` | リソース / データ / Java 定義の静的検証 (`verify.py`) |
 | `python tools/abyss.py preview <種類>` | 見た目の確認画像を `build/model_preview/` に出力 (`preview.py`) |
 | `python tools/abyss.py grips` | 武器の握り位置の一覧 |
+| `python tools/abyss.py gametest` | **実サーバー**で結合テスト (`AbyssGameTests.java`)。レシピの全件読込・出撃・リタイア・層クリア・bossrush のレベル復元など |
 | `python tools/abyss.py check` | **コミット前に**: 生成物が生成スクリプトと一致しているか + 全検証 |
 | `python tools/abyss.py all` | 生成 + データ + 検証 |
 
@@ -43,6 +44,12 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 2. `generate_textures.py` の表 (`WEAPON_MODELS` / `CONSUMABLES` など) に 1 行追加
 3. レシピが必要なら `gen_data.py` に追加 (材料は `"namespace:id"` の **文字列**。`{"item": ...}` は 1.21.2+ で読込エラー)
 4. `python tools/abyss.py all` → `preview` で目視 → コミット
+
+## gametest が見ているもの
+
+静的検証では分からない「実機で読み込まれるか・状態遷移が正しいか」を確認する。
+テストは `src/main/java/com/abyssalloot/AbyssGameTests.java` の `SPECS` に 1 行足して追加する。
+床の構造物 (`data/abyssalloot/structure/gametest_floor.nbt`) は `gen_data.py` が生成する。
 
 ## verify が見ているもの
 

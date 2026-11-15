@@ -27,7 +27,6 @@ import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -180,7 +179,7 @@ public final class CombatHandler {
     /** HUDの即時更新 (未選択カウントを出すため) */
     static void sendHud(ServerPlayer player) {
         LAST_HUD_TICK.put(player.getUUID(), (long) tickCounter);
-        PacketDistributor.sendToPlayer(player,
+        ModPackets.send(player,
                 new ModPackets.HudSync(
                         player.getData(ModAttachments.SOUL.get()),
                         player.getData(ModAttachments.FLOOR.get()),

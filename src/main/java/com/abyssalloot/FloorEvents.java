@@ -77,7 +77,7 @@ public final class FloorEvents {
     static void openEventScreen(ServerPlayer player, String mode, String title,
                                         List<String> ids, List<String> names, List<String> descs,
                                         String footer, boolean portalOpen) {
-        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+        ModPackets.send(player,
                 new ModPackets.FloorEventSync(mode, title, ids, names, descs, footer, portalOpen));
     }
 

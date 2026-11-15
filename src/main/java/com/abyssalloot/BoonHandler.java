@@ -47,7 +47,7 @@ public final class BoonHandler {
         String raw = player.getData(ModAttachments.OFFER.get());
         if (raw == null || raw.isBlank()) return;
         var ids = new java.util.ArrayList<String>(java.util.List.of(raw.split(",")));
-        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+        ModPackets.send(player,
                 new ModPackets.BoonSync(ids, RunManager.pendingBoonsOf(player)));
         CombatHandler.sendHud(player);
     }

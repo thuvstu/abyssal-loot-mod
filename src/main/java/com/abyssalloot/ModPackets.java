@@ -15,6 +15,15 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
  *  BoonSync / FloorEventSync)。
  */
 public final class ModPackets {
+    /**
+     * クライアントへ送る (相手が MOD のチャンネルを持たない接続なら送らない).
+     * MOD 未導入のクライアントやテスト用の仮想プレイヤーへの送信で例外になるのを防ぐ.
+     */
+    public static void send(ServerPlayer player, CustomPacketPayload payload) {
+        if (player.connection == null || !player.connection.hasChannel(payload)) return;
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, payload);
+    }
+
     private ModPackets() {}
 
     /** 鍛造画面の合成ボタン (中身なし。開いているメニューのスロットで合成) */
@@ -332,8 +341,7 @@ public final class ModPackets {
                     case "art" -> SkillHandler.tryArt(sp);
                     case "skill" -> SkillHandler.trySkill(sp);
                     case "dash" -> SkillHandler.dash(sp);
-                    case "hub" -> net.neoforged.neoforge.network.PacketDistributor
-                            .sendToPlayer(sp, RunManager.hubStatus(sp));
+                    case "hub" -> ModPackets.send(sp, RunManager.hubStatus(sp));
                     case "next" -> RunManager.tryNextFloor(sp);
                     case "sub" -> SkillHandler.trySubSkill(sp);
                     case "quick" -> Consumables.quickUse(sp);
@@ -347,7 +355,7 @@ public final class ModPackets {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sp) {
                 if (StatCalc.addAttrPoint(sp, payload.index())) {
-                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
+                    ModPackets.send(sp,
                             new StatusSync(RunManager.statusLines(sp)));
                 }
             }
@@ -410,7 +418,7 @@ public final class ModPackets {
                     && sp.containerMenu instanceof CompareMenu cm) {
                 var left = GearData.compareLines(sp, cm.getSlot(CompareMenu.SLOT_A).getItem());
                 var right = GearData.compareLines(sp, cm.getSlot(CompareMenu.SLOT_B).getItem());
-                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp,
+                ModPackets.send(sp,
                         new CompareSync(left, right));
             }
         });

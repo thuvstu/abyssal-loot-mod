@@ -28,6 +28,8 @@ public class AbyssalLootMod {
         ModEntities.attributes(modEventBus);
         VanillaLinks.LOOT_MODIFIER_SERIALIZERS.register(modEventBus);
         modEventBus.addListener(ModPackets::register);
+        // 実サーバー上の結合テスト (runGameTestServer / /test runall)
+        AbyssGameTests.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(ModCommands.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);

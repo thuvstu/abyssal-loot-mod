@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -89,7 +88,7 @@ public final class ModCommands {
                 // 操作ハブ (GUIボタン集約。Gキーからも開ける)
                 .then(Commands.literal("hub").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    PacketDistributor.sendToPlayer(p, RunManager.hubStatus(p));
+                    ModPackets.send(p, RunManager.hubStatus(p));
                     return 1;
                 }))
                 // 操作説明 (クリックで実行できるボタン付き)
@@ -491,7 +490,7 @@ public final class ModCommands {
                 }))
                 .then(Commands.literal("statusgui").executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
-                    PacketDistributor.sendToPlayer(p,
+                    ModPackets.send(p,
                             new ModPackets.StatusSync(RunManager.statusLines(p)));
                     return 1;
                 }))

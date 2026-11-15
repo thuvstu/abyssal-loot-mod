@@ -9,6 +9,7 @@
   data/abyssalloot/advancement/abyss/*.json        実績 (GameData.java の Achievement から抽出)
   data/abyssalloot/recipe/*.json                   断片→武器 / 欠片の圧縮・展開 / 消耗品 / バニラ連携
   data/minecraft/tags/item/beacon_payment_items.json
+  data/abyssalloot/structure/gametest_floor.nbt    ゲームテスト用の床 (石 9x9 + 上空の空気)
 
 使い方:
     python tools/gen_data.py           # 生成 (内容が変わったファイルだけ書き換える)
@@ -23,6 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from art import nbt  # noqa: E402
 from art.project import DATA, MOD_ID, Writer, java_source, read_weapon_styles, rel, setup_console  # noqa: E402
 
 NS = f"{MOD_ID}:"
@@ -77,7 +79,7 @@ CONSUMABLE_RECIPES = {
     "artscroll": [SHARD, f"{NS}abyss_void_splinter"],
     "skillreset": [SHARD, f"{NS}abyss_void_splinter", f"{NS}abyss_teardrop"],
     "lleap": [SHARD, "minecraft:rabbit_foot"],
-    "goldmist": [SHARD, "minecraft:golden_nugget"],
+    "goldmist": [SHARD, "minecraft:gold_nugget"],
     "leechcandy": [SHARD, f"{NS}abyss_bloodroot"],
     "depthbomb": [SHARD, f"{NS}abyss_lava_pearl", "minecraft:gunpowder"],
     "eagle": [SHARD, "minecraft:glow_ink_sac"],
@@ -186,6 +188,14 @@ def generate(w: Writer) -> dict[str, int]:
     w.write_json(os.path.join(DATA, "minecraft", "tags", "item", "beacon_payment_items.json"),
                  {"replace": False, "values": [SHARD]})
     counts["tags"] = 1
+
+    # --- ゲームテスト用の構造物 (src/main/java/.../AbyssGameTests が参照)
+    size = (9, 4, 9)
+    blocks = [((x, y, z), "minecraft:stone" if y == 0 else "minecraft:air")
+              for y in range(size[1]) for z in range(size[2]) for x in range(size[0])]
+    w.write_bytes(os.path.join(DATA, MOD_ID, "structure", "gametest_floor.nbt"),
+                  nbt.structure_bytes(size, blocks))
+    counts["structures"] = 1
     return counts
 
 

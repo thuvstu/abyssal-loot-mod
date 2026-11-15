@@ -3,7 +3,7 @@
   "group": "abyssal_loot",
   "ingredients": [
     "abyssalloot:soul_shard",
-    "minecraft:golden_nugget"
+    "minecraft:gold_nugget"
   ],
   "result": {
     "id": "abyssalloot:abyss_goldmist",
