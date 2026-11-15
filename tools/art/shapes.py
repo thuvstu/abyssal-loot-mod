@@ -248,43 +248,58 @@ def collar(m: Model, name, y, w, h, z0, z1, mat, rivets=0.0):
 # ------------------------------------------------------------------ 武器
 
 
-def sword(m: Model, p: dict, length: float = 13.0, w: float = 2.8, thick: float = 1.0,
-          style: str = "steel", gem: bool = True) -> None:
-    """剣。"""
+def sword(m: Model, p: dict, length: float = 16.0, w: float = 2.2, thick: float = 0.9,
+          style: str = "steel", gem: bool = True, serrated: bool = False) -> None:
+    """剣。刃 : 柄 ≒ 3 : 1 (旧版は刃が短く短剣に見えた)。
+
+    style="rune" で刃にルーン、serrated=True で片側を鋸刃にする。
+    """
     z0, z1 = 8 - thick / 2, 8 + thick / 2
-    top = 8 + length / 2
-    bot = 8 - length / 2
-    y_guard = bot + 5.0
+    bot = 8 - length / 2 + 0.2
+    top = bot + length
+    y_guard = bot + 4.2
     blade(m, "blade", y_guard + 0.55, top, w, z0, z1, p["blade"], p["blade_mid"],
           edge_mat=p["blade_edge"])
     # 刃元の金具 (リカッソ)
-    m.box("ricasso", (8 - w / 2 + 0.15, y_guard - 0.1, z0 - 0.1),
-          (8 + w / 2 - 0.15, y_guard + 0.75, z1 + 0.1), p["dark"])
-    m.box("ricasso_rim", (8 - w / 2 + 0.05, y_guard + 0.62, z0 - 0.17),
-          (8 + w / 2 - 0.05, y_guard + 0.88, z1 + 0.17), p["gold"])
+    m.box("ricasso", (8 - w / 2 + 0.12, y_guard - 0.1, z0 - 0.1),
+          (8 + w / 2 - 0.12, y_guard + 0.75, z1 + 0.1), p["dark"])
+    m.box("ricasso_rim", (8 - w / 2 + 0.02, y_guard + 0.62, z0 - 0.17),
+          (8 + w / 2 - 0.02, y_guard + 0.88, z1 + 0.17), p["gold"])
     if style == "rune":
-        for i in range(3):
-            yy = y_guard + 1.8 + i * 2.1
-            m.box(f"rune{i}", (8 - 0.34, yy, z0 - 0.14), (8 + 0.34, yy + 0.7, z1 + 0.14),
-                  p["accent"])
-    guard(m, "guard", y_guard - 1.0, 6.4, 0.95, z0 - 0.75, z1 + 0.75, p["dark"],
+        n = int((top - y_guard - 4.0) // 2.0)
+        for i in range(max(2, n)):
+            yy = y_guard + 1.6 + i * 2.0
+            m.box(f"rune{i}", (8 - 0.3, yy, z0 - 0.14), (8 + 0.3, yy + 0.7, z1 + 0.14), p["accent"])
+    if serrated:
+        # 片側 (+x) の鋸歯: 刃元から先端手前まで
+        yy, i = y_guard + 1.2, 0
+        while yy < top - 3.4:
+            _seg(m, f"tooth{i}", (8 + w / 2 + 0.15, yy, 8), (0.7, 0.7, thick * 0.55), 45,
+                 p["blade_edge"])
+            yy += 1.25
+            i += 1
+    guard(m, "guard", y_guard - 1.0, 5.6, 0.9, z0 - 0.7, z1 + 0.7, p["dark"],
           p["accent"] if gem else None, trim=p["gold"])
-    grip(m, "grip", bot + 1.4, y_guard - 1.0, 2.0, z0 - 0.3, z1 + 0.3, p["leather"], p["bronze"])
-    pommel(m, "pommel", bot, bot + 1.4, 2.9, z0 - 0.7, z1 + 0.7, p["dark"],
+    grip(m, "grip", bot + 1.3, y_guard - 1.0, 1.6, z0 - 0.25, z1 + 0.25, p["leather"], p["bronze"])
+    pommel(m, "pommel", bot, bot + 1.3, 2.4, z0 - 0.6, z1 + 0.6, p["dark"],
            p["accent_dim"] if gem else None, trim=p["gold"])
 
 
 def greatsword(m: Model, p: dict) -> None:
-    """大剣。"""
-    z0, z1 = 7.3, 8.7
-    blade(m, "blade", 8.2, 15.2, 3.4, z0, z1, p["blade"], p["blade_mid"],
+    """大剣。1 ブロックを超える長身 + 両手持ちの長い柄 + 幅広の刃。"""
+    z0, z1 = 7.35, 8.65
+    blade(m, "blade", 9.0, 23.0, 3.3, z0, z1, p["blade"], p["blade_mid"],
           edge_mat=p["blade_edge"])
+    # 樋 (フラー) と刃元の紋
+    m.box("fuller", (8 - 0.35, 10.2, z0 - 0.08), (8 + 0.35, 18.6, z1 + 0.08), p["dark"],
+          hide=("up", "down"))
     for i in range(3):
-        yy = 9.2 + i * 1.7
-        m.box(f"gem{i}", (8 - 0.5, yy, z0 - 0.16), (8 + 0.5, yy + 0.9, z1 + 0.16), p["accent"])
-    guard(m, "guard", 7.1, 7.8, 1.1, z0 - 1.05, z1 + 1.05, p["dark"], p["accent"], trim=p["gold"])
-    grip(m, "grip", 3.2, 7.1, 2.4, z0 - 0.4, z1 + 0.4, p["leather"], p["bronze"])
-    pommel(m, "pommel", 1.9, 3.2, 4.0, z0 - 0.95, z1 + 0.95, p["dark"], p["accent_dim"], trim=p["gold"])
+        yy = 9.6 + i * 1.5
+        m.box(f"gem{i}", (8 - 0.45, yy, z0 - 0.18), (8 + 0.45, yy + 0.8, z1 + 0.18), p["accent"])
+    m.box("ricasso", (8 - 1.4, 8.1, z0 - 0.12), (8 + 1.4, 9.1, z1 + 0.12), p["dark"])
+    guard(m, "guard", 7.1, 8.4, 1.1, z0 - 1.0, z1 + 1.0, p["dark"], p["accent"], trim=p["gold"])
+    grip(m, "grip", 1.9, 7.1, 2.0, z0 - 0.3, z1 + 0.3, p["leather"], p["bronze"])
+    pommel(m, "pommel", 0.4, 1.9, 3.0, z0 - 0.8, z1 + 0.8, p["dark"], p["accent_dim"], trim=p["gold"])
 
 
 def katana(m: Model, p: dict, style: str = "steel") -> None:
@@ -435,18 +450,20 @@ def spear(m: Model, p: dict, length: float = 15.0, head: str = "leaf") -> None:
             _bone(m, f"prong_el{s}", (bx - s * 0.34, top - 0.9), (bx + s * 0.06, top + 1.2), 0.2,
                   7.72, 7.9, p["bright"])
     elif head == "astral":
-        # 結晶の穂先 + 周囲を舞う欠片 (浮遊感)
+        # 細長い結晶の穂先 (3 段で細る八角柱) + 根元を囲む浮遊片
         m.box("core", (7.65, top - 2.2, 7.65), (8.35, top + 0.3, 8.35), p["steel"])
-        m.box("crystal", (7.25, top - 1.9, 7.25), (8.75, top + 2.3, 8.75), p["accent"],
-              rotation={"origin": [8, top - 1.9, 8], "axis": "y", "angle": 45})
-        m.box("crystal_low", (7.4, top - 2.9, 7.4), (8.6, top - 1.9, 8.6), p["accent_dim"],
-              rotation={"origin": [8, top - 1.9, 8], "axis": "y", "angle": 45})
-        m.box("crystal_tip", (7.72, top + 2.3, 7.72), (8.28, top + 3.3, 8.28), p["white"])
-        for i, (dx, dy, ang) in enumerate(((-1.9, 1.2, 32), (1.9, 1.2, -32), (0.0, 3.0, 0))):
-            m.box(f"shard{i}", (8 + dx - 0.34, top + dy - 0.7, 7.72),
-                  (8 + dx + 0.34, top + dy + 0.7, 8.28), p["accent"],
-                  rotation={"origin": [8 + dx, top + dy, 8], "axis": "z", "angle": ang})
-        m.box("halo", (7.2, top - 1.5, 6.9), (7.45, top - 0.5, 9.1), p["accent_dim"])
+        for i, (hw, y0, y1, mat) in enumerate(((0.62, top - 2.0, top + 1.6, "accent"),
+                                               (0.44, top + 1.6, top + 3.0, "accent"),
+                                               (0.24, top + 3.0, top + 4.0, "white"))):
+            m.box(f"crystal{i}", (8 - hw, y0, 8 - hw), (8 + hw, y1, 8 + hw), p[mat],
+                  rotation={"origin": [8, y0, 8], "axis": "y", "angle": 45})
+            m.box(f"crystal{i}_f", (8 - hw * 0.8, y0 + 0.1, 8 - hw * 1.15),
+                  (8 + hw * 0.8, y1 - 0.1, 8 + hw * 1.15), p["accent_dim"] if mat == "accent" else p[mat])
+        for i, s in enumerate((-1, 1)):
+            m.box(f"wing{i}", (8 + s * 1.1 - 0.3, top - 1.6, 7.75), (8 + s * 1.1 + 0.3, top + 0.2, 8.25),
+                  p["accent"], rotation={"origin": [8 + s * 1.1, top - 1.6, 8], "axis": "z",
+                                         "angle": -s * 22})
+        m.box("halo", (7.1, top - 2.4, 7.1), (8.9, top - 2.0, 8.9), p["gold"])
     m.box("gem", (7.62, top - 1.6, 7.3), (8.38, top - 0.4, 7.6), p["accent"])
 
 
@@ -826,37 +843,39 @@ def tool_axe(m: Model, p: dict) -> None:
 
 
 def shovel(m: Model, p: dict) -> None:
-    """シャベル。刃は上側 (2D ドット絵と合わせる)。"""
-    m.box("haft", (7.5, 2.0, 7.65), (8.5, 11.4, 8.35), p["wood"])
-    m.box("haft_cap", (7.38, 1.5, 7.55), (8.62, 2.6, 8.45), p["bronze"])
-    m.box("grip", (7.36, 3.0, 7.5), (8.64, 5.2, 8.5), p["leather"])
-    collar(m, "socket", 11.0, 2.0, 1.5, 7.1, 8.9, p["bronze"], rivets=1.0)
-    # 刃 (幅広のスコップ: 凹んだ面 + 立ち上がった縁)
-    m.box("blade", (5.7, 11.7, 7.45), (10.3, 14.5, 8.55), p["steel"])
-    m.box("dish", (6.15, 12.05, 8.5), (9.85, 14.15, 8.66), p["dark"])
-    m.box("lip_l", (5.55, 11.55, 7.4), (5.95, 14.7, 8.9), p["blade_edge"])
-    m.box("lip_r", (10.05, 11.55, 7.4), (10.45, 14.7, 8.9), p["blade_edge"])
-    m.box("lip_t", (5.55, 14.45, 7.4), (10.45, 14.95, 8.9), p["blade_edge"])
-    m.box("tip", (7.15, 14.9, 7.6), (8.85, 15.6, 8.7), p["blade_edge"])
-    m.box("ridge", (7.85, 12.1, 8.55), (8.15, 14.3, 8.82), p["bright"])
-    m.box("gem", (7.6, 12.5, 8.55), (8.4, 13.4, 8.88), p["accent"])
+    """シャベル。縦長で先の尖った刃 (旧版は横長でハンマーに見えた)。"""
+    m.box("haft", (7.5, 1.6, 7.65), (8.5, 9.9, 8.35), p["wood"])
+    m.box("haft_cap", (7.38, 1.1, 7.55), (8.62, 2.2, 8.45), p["bronze"])
+    m.box("grip", (7.36, 2.6, 7.5), (8.64, 4.8, 8.5), p["leather"])
+    collar(m, "socket", 9.4, 1.8, 1.4, 7.15, 8.85, p["bronze"], rivets=1.0)
+    # 刃: 縦 5 の板 + 先端へ 3 段で細る + 立ち上がった縁
+    m.box("blade", (6.1, 10.6, 7.5), (9.9, 13.6, 8.5), p["steel"])
+    for i, (hw, y0, y1) in enumerate(((1.55, 13.6, 14.4), (1.05, 14.4, 15.1), (0.5, 15.1, 15.7))):
+        m.box(f"blade_tip{i}", (8 - hw, y0, 7.55), (8 + hw, y1, 8.45),
+              p["blade_edge"] if i == 2 else p["steel"])
+    m.box("dish", (6.6, 11.0, 8.45), (9.4, 13.8, 8.62), p["dark"])
+    m.box("lip_l", (5.9, 10.5, 7.45), (6.25, 13.7, 8.85), p["blade_edge"])
+    m.box("lip_r", (9.75, 10.5, 7.45), (10.1, 13.7, 8.85), p["blade_edge"])
+    m.box("step", (6.0, 10.3, 7.4), (10.0, 10.75, 8.7), p["bronze"])  # 踏み板
+    m.box("ridge", (7.85, 11.0, 8.5), (8.15, 14.6, 8.78), p["bright"])
+    m.box("gem", (7.6, 11.4, 8.5), (8.4, 12.3, 8.86), p["accent"])
 
 
 def hoe(m: Model, p: dict) -> None:
-    """クワ。首 + 前へ傾いた幅広の刃 + 金具。"""
-    m.box("haft", (7.5, 2.2, 7.65), (8.5, 12.6, 8.35), p["wood"])
-    m.box("haft_cap", (7.38, 1.7, 7.55), (8.62, 2.8, 8.45), p["bronze"])
-    m.box("grip", (7.36, 3.2, 7.5), (8.64, 5.4, 8.5), p["leather"])
-    collar(m, "socket", 12.1, 1.9, 1.5, 7.1, 8.9, p["bronze"], rivets=1.0)
-    # 首 (前へ曲げる)
-    m.box("neck", (7.8, 12.6, 7.8), (8.2, 13.5, 8.2), p["dark"])
-    m.box("neck2", (7.7, 13.35, 7.2), (8.3, 13.95, 8.3), p["dark"])
-    # 刃 (下へ垂れる幅広の板 + 刃先 + 稜線)
-    m.box("blade", (5.2, 12.2, 7.55), (10.8, 14.25, 8.45), p["steel"])
-    m.box("edge", (5.3, 11.85, 7.5), (10.7, 12.35, 8.5), p["blade_edge"])
-    m.box("edge2", (5.45, 11.6, 7.6), (10.55, 11.9, 8.4), p["blade_edge"])
-    m.box("ridge", (7.8, 12.4, 8.4), (8.2, 14.1, 8.7), p["bright"])
-    m.box("gem", (7.55, 12.7, 8.4), (8.45, 13.5, 8.75), p["accent"])
+    """クワ。柄の上から片側へ伸びる首 + 下へ垂れる刃 (L 字。旧版は左右対称でハンマーに見えた)。"""
+    m.box("haft", (7.5, 1.8, 7.65), (8.5, 13.6, 8.35), p["wood"])
+    m.box("haft_cap", (7.38, 1.3, 7.55), (8.62, 2.4, 8.45), p["bronze"])
+    m.box("grip", (7.36, 2.8, 7.5), (8.64, 5.0, 8.5), p["leather"])
+    collar(m, "socket", 12.4, 1.8, 1.6, 7.1, 8.9, p["bronze"], rivets=1.0)
+    # 首: 柄頭から +x へ
+    m.box("neck", (8.4, 13.0, 7.6), (11.6, 14.0, 8.4), p["dark"])
+    m.box("neck_cap", (7.3, 13.6, 7.45), (8.7, 14.3, 8.55), p["bronze"])
+    # 刃: 首の先から下へ垂れる板 (先端ほど薄く広い)
+    m.box("blade", (10.9, 10.6, 7.55), (13.1, 14.2, 8.45), p["steel"])
+    m.box("blade_lo", (10.7, 9.6, 7.65), (13.3, 10.6, 8.35), p["steel"])
+    m.box("edge", (10.6, 9.1, 7.72), (13.4, 9.6, 8.28), p["blade_edge"])
+    m.box("ridge", (11.85, 10.4, 8.4), (12.15, 13.8, 8.66), p["bright"])
+    m.box("gem", (11.55, 12.6, 8.4), (12.45, 13.5, 8.75), p["accent"])
 
 
 # ------------------------------------------------------------------ 防具
