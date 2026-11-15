@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "minecraft:glow_ink_sac"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_eagle",
+    "count": 1
+  }
+}

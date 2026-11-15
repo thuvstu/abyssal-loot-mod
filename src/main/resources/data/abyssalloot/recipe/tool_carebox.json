@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_ash_powder",
+    "minecraft:paper",
+    "minecraft:bread"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_carebox",
+    "count": 1
+  }
+}

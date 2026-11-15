@@ -6,9 +6,7 @@
     "S "
   ],
   "key": {
-    "S": {
-      "item": "abyssalloot:ancient_stone"
-    }
+    "S": "abyssalloot:ancient_stone"
   },
   "result": {
     "id": "abyssalloot:abyss_shears",

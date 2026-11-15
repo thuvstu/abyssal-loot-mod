@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_bone_charm"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_strx",
+    "count": 1
+  }
+}

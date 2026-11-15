@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_frost_prism"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_regenx",
+    "count": 1
+  }
+}

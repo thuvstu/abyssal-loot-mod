@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_lava_pearl",
+    "minecraft:gunpowder"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_depthbomb",
+    "count": 1
+  }
+}

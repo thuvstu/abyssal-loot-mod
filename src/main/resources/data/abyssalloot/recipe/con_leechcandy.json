@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_bloodroot"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_leechcandy",
+    "count": 1
+  }
+}

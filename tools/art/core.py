@@ -23,11 +23,6 @@ def shade(c, k: float) -> RGBA:
     return (clamp(c[0] * k), clamp(c[1] * k), clamp(c[2] * k), c[3] if len(c) > 3 else 255)
 
 
-def luminance(c) -> float:
-    """知覚輝度 (0..255)。"""
-    return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
-
-
 def hi(c, k: float) -> RGBA:
     """ハイライト用の明度倍率。
 
@@ -36,7 +31,7 @@ def hi(c, k: float) -> RGBA:
     """
     if k <= 1.0:
         return shade(c, k)
-    lum = luminance(c) / 255.0
+    lum = luminance(c)  # 0..1
     return shade(c, 1.0 + (k - 1.0) * max(0.15, 1.0 - lum * 0.85))
 
 
@@ -80,6 +75,7 @@ def hsl(h: float, s: float, l: float, a: int = 255) -> RGBA:
 
 
 def luminance(c) -> float:
+    """知覚輝度 (0..1)。"""
     return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255.0
 
 

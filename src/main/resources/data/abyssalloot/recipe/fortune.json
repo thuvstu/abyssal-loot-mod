@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "group": "abyssal_loot",
   "ingredients": [
-    {
-      "item": "abyssalloot:soul_shard"
-    },
-    {
-      "item": "minecraft:gold_nugget"
-    },
-    {
-      "item": "minecraft:lapis_lazuli"
-    }
+    "abyssalloot:soul_shard",
+    "minecraft:gold_nugget",
+    "minecraft:lapis_lazuli"
   ],
   "result": {
     "id": "abyssalloot:abyss_fortune",

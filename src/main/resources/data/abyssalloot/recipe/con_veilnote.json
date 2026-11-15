@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "minecraft:phantom_membrane"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_veilnote",
+    "count": 1
+  }
+}

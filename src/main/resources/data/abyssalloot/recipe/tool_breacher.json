@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "minecraft:gunpowder",
+    "minecraft:blaze_powder"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_breacher",
+    "count": 1
+  }
+}

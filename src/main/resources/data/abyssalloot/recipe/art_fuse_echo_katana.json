@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:art_shard_echo_katana",
+    "abyssalloot:ancient_stone",
+    "abyssalloot:soul_shard",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_echo_katana",
+    "count": 1
+  }
+}

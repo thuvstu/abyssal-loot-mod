@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard_pouch"
+  ],
+  "result": {
+    "id": "abyssalloot:soul_shard",
+    "count": 9
+  }
+}

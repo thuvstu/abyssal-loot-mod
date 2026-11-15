@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "group": "abyssal_loot",
   "ingredients": [
-    {
-      "item": "abyssalloot:soul_shard"
-    },
-    {
-      "item": "minecraft:iron_ingot"
-    },
-    {
-      "item": "minecraft:obsidian"
-    }
+    "abyssalloot:soul_shard",
+    "minecraft:iron_ingot",
+    "minecraft:obsidian"
   ],
   "result": {
     "id": "abyssalloot:abyss_bulwark",

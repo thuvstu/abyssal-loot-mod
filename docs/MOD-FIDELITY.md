@@ -463,3 +463,20 @@ MOD 側の数値・規則はこの文書の対応表に従い、純粋な計算�
 ### 確認用
 - `python tools/preview_hold.py [id...]`: 一人称で並べ、手の位置に十字を描く (`build/model_preview/hold_preview.png`)。
 
+
+## ツール群の再編 (2026-11-15)
+
+旧 `preview_*.py` / `zoom.py` / `verify_*.py` / `gen_vanilla_links.py` / `_gen_recipes.py` などは
+`tools/abyss.py` (gen / data / verify / preview / check) に統合した。使い方は `tools/README.md`。
+
+- 生成は差分書き込み (変わったファイルだけ更新)・`--only` / `--kind` で絞り込み・`--check` で乖離検出。
+- 再編で見つかった不具合を修正:
+  - 融合・欠片圧縮・消耗品のレシピ 71 件が拡張子 `.json` 無しで出力されていて読み込まれていなかった
+    (`tool_*` 7 件も同様)。
+  - レシピ材料が旧書式 `{"item": ...}` で、1.21.2+ では 101 件が読込エラー (`Couldn't parse data file`)
+    になっていた → `"namespace:id"` 文字列に統一。
+  - 脚防具の着用テクスチャが `humanoid/` に出力されていて `humanoid_leggings` レイヤーから見えなかった。
+  - 翻訳漏れ: `ancient_stone` / `chaos_gem` / `void_essence` / `key.abyssalloot.quick`。
+  - 材料が完全一致のレシピ 2 組 (煙玉と氷結爆弾 / 神速と連鎖爆弾) を区別。
+  - `core.hi()` が 0..1 の輝度を 255 で割っていてハイライト抑制が効いていなかった。
+  - 奥義の断片アイコンに縁取り (`emboss`) が適用されていなかった。

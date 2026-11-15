@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "minecraft:rabbit_foot"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_lleap",
+    "count": 1
+  }
+}

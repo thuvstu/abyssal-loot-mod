@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "group": "abyssal_loot",
   "ingredients": [
-    {
-      "item": "abyssalloot:soul_shard"
-    },
-    {
-      "item": "abyssalloot:soul_shard"
-    },
-    {
-      "item": "minecraft:amethyst_shard"
-    }
+    "abyssalloot:soul_shard",
+    "abyssalloot:soul_shard",
+    "minecraft:amethyst_shard"
   ],
   "result": {
     "id": "abyssalloot:abyss_soul_s",

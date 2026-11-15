@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shapeless",
   "group": "abyssal_loot",
   "ingredients": [
-    {
-      "item": "abyssalloot:abyss_heal_s"
-    },
-    {
-      "item": "abyssalloot:abyss_blood_crystal"
-    }
+    "abyssalloot:abyss_heal_s",
+    "abyssalloot:abyss_blood_crystal"
   ],
   "result": {
     "id": "abyssalloot:abyss_heal_m",

@@ -7,32 +7,37 @@
   src/main/resources/assets/abyssalloot/models/item/*.json     立体モデル (elements)
   src/main/resources/assets/abyssalloot/items/*.json           アイテム定義 (1.21.4+)
 
-    python tools/generate_textures.py
+使い方 (どのディレクトリからでも可):
+    python tools/generate_textures.py                       # 全部
+    python tools/generate_textures.py --only katana         # id に katana を含むものだけ
+    python tools/generate_textures.py --kind weapons armor  # 種別で絞る
+    python tools/generate_textures.py --check               # 書き込まず乖離だけ検出 (差分ありで exit 1)
+    python tools/generate_textures.py -v                    # 更新したファイルを列挙
 
-Pillow が必要: pip install pillow
+内容が変わったファイルだけを書き換える。Pillow が必要: pip install pillow
 """
 from __future__ import annotations
 
-import io
-import json
+import argparse
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from PIL import Image
+from art import core, entities, equipment, icons, items, shapes  # noqa: E402
+from art import boxmodel  # noqa: E402
+from art.core import hexcolor  # noqa: E402
+from art.project import Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
+from art.project import ITEM_DEF as ITEM_DIR  # noqa: E402
+from art.project import MODEL_ITEM as MODEL_DIR  # noqa: E402
+from art.project import ROOT  # noqa: E402,F401
+from art.project import TEX_ENTITY as ENT_DIR  # noqa: E402
+from art.project import TEX_EQUIPMENT as EQP_DIR  # noqa: E402
+from art.project import TEX_EQUIPMENT_LEGS as EQP_LEGS_DIR  # noqa: E402
+from art.project import TEX_ITEM as TEX_DIR  # noqa: E402
 
-from art import boxmodel, core, entities, equipment, icons, items, shapes
-from art.core import hexcolor
+KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment")
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-ASSETS = os.path.join(ROOT, "src", "main", "resources", "assets", "abyssalloot")
-TEX_DIR = os.path.join(ASSETS, "textures", "item")
-ENT_DIR = os.path.join(ASSETS, "textures", "entity")
-EQP_DIR = os.path.join(ASSETS, "textures", "entity", "equipment", "humanoid")
-MODEL_DIR = os.path.join(ASSETS, "models", "item")
-ITEM_DIR = os.path.join(ASSETS, "items")
 
 # 装備テクスチャ (防具セット = 本体色, 装飾色)
 EQUIPMENT_SETS = {
@@ -343,19 +348,7 @@ WEAPON_ICONS = {
     "abyss_shears": icons.shears,
 }
 
-# 素材 (2D)
-MATERIAL_ICONS = {
-    "soul_shard": icons.shard,
-    "ancient_stone": icons.ancient_stone,
-    "chaos_gem": None,       # gem() は (outer, inner) なので個別処理
-    "void_essence": None,
-    "abyss_blood_crystal": None,
-    "abyss_shadow_stone": None,
-    "abyss_star_dust": None,
-    "abyss_wyrm_scale": None,
-    "abyss_ancient_core": None,
-    "abyss_void_piece": None,
-}
+
 
 # インベントリ (GUI) 用の 2D ドット絵
 GUI_CONTEXTS = ["gui"]
@@ -368,20 +361,30 @@ HELD_CONTEXTS = [
 
 # ================================================================= 生成
 
+W = Writer()  # main() で差し替える
+
+
+def _png(path: str, img) -> None:
+    W.write_png(path, img)
+
+
 def write_model(item_id: str, data: dict) -> None:
-    with io.open(os.path.join(MODEL_DIR, f"{item_id}.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    W.write_json(os.path.join(MODEL_DIR, f"{item_id}.json"), data)
+
+
+def write_flat_model(item_id: str) -> None:
+    """2D ドット絵 (item/generated) のモデル。"""
+    write_model(item_id, {
+        "parent": "minecraft:item/generated",
+        "textures": {"layer0": f"abyssalloot:item/{item_id}"},
+    })
 
 
 def write_item_def(item_id: str, model: dict | None = None) -> None:
     """アイテム定義。model を省略すると通常の models/item 参照。"""
     if model is None:
         model = {"type": "minecraft:model", "model": f"abyssalloot:item/{item_id}"}
-    data = {"model": model}
-    with io.open(os.path.join(ITEM_DIR, f"{item_id}.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    W.write_json(os.path.join(ITEM_DIR, f"{item_id}.json"), {"model": model})
 
 
 def write_select_def(item_id: str, icon_model: str) -> None:
@@ -400,15 +403,21 @@ def write_select_def(item_id: str, icon_model: str) -> None:
     write_item_def(item_id, select)
 
 
-def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: str | None = None) -> None:
-    """立体モデル + テクスチャ + 定義を生成する。"""
+def build_model(item_id: str, shape_fn, palette: dict) -> boxmodel.Model:
+    """形状関数から箱モデルを組み、テクスチャまで焼く (書き込みはしない)。"""
     m = boxmodel.Model(item_id)
     shape_fn(m, palette)
     m.build_texture()
+    return m
+
+
+def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: str | None = None) -> None:
+    """立体モデル + テクスチャ + 定義を生成する。"""
+    m = build_model(item_id, shape_fn, palette)
     tex = texture_name or item_id
     pose = items.VERTICAL_POSE if item_id in VERTICAL_ITEMS else None
     held_v = item_id not in items.GUI_UPRIGHT_ONLY
-    m.texture.save(os.path.join(TEX_DIR, f"{tex}.png"))
+    _png(os.path.join(TEX_DIR, f"{tex}.png"), m.texture)
     write_model(item_id, m.model_json(f"abyssalloot:item/{tex}",
                                       items.display(kind, pose, held_v, grip=m.grip_point())))
     write_item_def(item_id)
@@ -416,141 +425,57 @@ def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: st
 
 def gen_icon(item_id: str, fn, color) -> None:
     """2D アイコンを生成する (立体的な縁取り加工あり)。"""
-    img = fn(hexcolor(color))
-    img = core.emboss(img)
-    img.save(os.path.join(TEX_DIR, f"{item_id}.png"))
-    write_model(item_id, {
-        "parent": "minecraft:item/generated",
-        "textures": {"layer0": f"abyssalloot:item/{item_id}"},
-    })
+    img = core.emboss(fn(hexcolor(color)))
+    _png(os.path.join(TEX_DIR, f"{item_id}.png"), img)
+    write_flat_model(item_id)
     write_item_def(item_id)
 
 
 def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     """3D アイテム用の 2D ドット絵 (インベントリ表示)。"""
     icon_id = f"{item_id}_icon"
-    if trim is None:
-        img = fn(hexcolor(color))
-    else:
-        img = fn(hexcolor(color), hexcolor(trim))
-    img = core.emboss(img)
-    img.save(os.path.join(TEX_DIR, f"{icon_id}.png"))
-    write_model(icon_id, {
-        "parent": "minecraft:item/generated",
-        "textures": {"layer0": f"abyssalloot:item/{icon_id}"},
-    })
+    img = fn(hexcolor(color)) if trim is None else fn(hexcolor(color), hexcolor(trim))
+    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), core.emboss(img))
+    write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
+
+
+def material_icon(item_id: str, color: int):
+    if item_id == "soul_shard":
+        return icons.shard()
+    if item_id == "ancient_stone":
+        return icons.ancient_stone(hexcolor(color))
+    if item_id in GEM_MATERIALS:
+        return icons.gem(hexcolor(color), (230, 240, 255, 255))
+    return icons._mats3_tex(hexcolor(color))
 
 
 def gen_material_icon(item_id: str, color: int) -> None:
     """素材の 2D ドット絵 (インベントリ表示)。"""
     icon_id = f"{item_id}_icon"
-    if item_id == "soul_shard":
-        img = icons.shard()
-    elif item_id == "ancient_stone":
-        img = icons.ancient_stone(hexcolor(color))
-    elif item_id in GEM_MATERIALS:
-        img = icons.gem(hexcolor(color), (230, 240, 255, 255))
-    else:
-        img = icons._mats3_tex(hexcolor(color))
-    img = core.emboss(img)
-    img.save(os.path.join(TEX_DIR, f"{icon_id}.png"))
-    write_model(icon_id, {
-        "parent": "minecraft:item/generated",
-        "textures": {"layer0": f"abyssalloot:item/{icon_id}"},
-    })
+    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), core.emboss(material_icon(item_id, color)))
+    write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
 
 
-def main() -> None:
-    for d in (TEX_DIR, ENT_DIR, MODEL_DIR, ITEM_DIR):
-        os.makedirs(d, exist_ok=True)
-
-    # --- 武器 (立体 + 2D ドット絵) ---
-    for item_id, (fn, color, style, kind) in WEAPON_MODELS.items():
-        pal = shapes.make_palette(color, style)
-        gen_model(item_id, fn, pal, kind)
-        icon_fn = WEAPON_ICONS.get(item_id)
-        if icon_fn is not None:
-            gen_2d_icon(item_id, icon_fn, color)
-
-    # --- 防具 (立体 + 2D ドット絵) ---
-    for item_id, (fn, base, trim) in ARMOR_MODELS.items():
-        # 本体色は「色付きの鋼」として薄く混ぜ、装飾色を縁・宝石に回す
-        body = hexcolor(base)
-        tcol = hexcolor(trim)
-        pal = shapes.make_palette(trim, "steel")
-        pal["steel"] = shapes.Material("metal", core.mix((108, 116, 140, 255), body, 0.34), metal=0.95, rough=0.26)
-        pal["dark"] = shapes.Material("metal", core.mix((58, 62, 80, 255), body, 0.30), metal=0.85, rough=0.38)
-        pal["bright"] = shapes.Material("metal", core.mix((186, 196, 220, 255), tcol, 0.16), metal=1.0, rough=0.16)
-        pal["cloth"] = shapes.Material("cloth", body)
-        pal["leather"] = shapes.Material("leather", core.mix((78, 54, 38, 255), body, 0.35))
-        pal["gold"] = shapes.Material("metal", tcol, metal=1.0, rough=0.2)
-        pal["accent"] = shapes.Material("crystal", tcol, emissive=True)
-        pal["accent_dim"] = shapes.Material("crystal", core.shade(tcol, 0.76))
-        gen_model(item_id, fn, pal, "armor")
-        icon_fn = ARMOR_ICONS.get(item_id)
-        if icon_fn is not None:
-            gen_2d_icon(item_id, icon_fn, trim, base)
-
-    # --- 素材 (立体 + 2D ドット絵) ---
-    for item_id, (fn, color) in MATERIAL_MODELS.items():
-        pal = shapes.make_palette(color)
-        gen_model(item_id, fn, pal, "flat")
-        gen_material_icon(item_id, color)
-
-    # --- 消耗品 (2D) ---
-    for item_id, (fn, color) in CONSUMABLES.items():
-        gen_icon(item_id, fn, color)
-
-    # --- 魂の欠片 ---
-    for state, item_id in enumerate(SOUL_SHARD_STATES):
-        icons.shard_bag(state).save(os.path.join(TEX_DIR, f"{item_id}.png"))
-        write_model(item_id, {
-            "parent": "minecraft:item/generated",
-            "textures": {"layer0": f"abyssalloot:item/{item_id}"},
-        })
-        write_item_def(item_id)
-
-    # --- 奥義の断片 (WeaponStyle の色から生成) ---
-    styles = read_weapon_styles()
-    for sid, col in styles:
-        gen_art_shard(sid, col)
-
-    # --- 深淵MOB ---
-    for ent_id, (base, accent, pattern) in entities.ENTITIES.items():
-        img = entities.entity_tex(hexcolor(base), hexcolor(accent), pattern)
-        img.save(os.path.join(ENT_DIR, f"{ent_id}.png"))
-
-    # --- 装備 (プレイヤーの防具) ---
-    for _set, (_base, _trim) in EQUIPMENT_SETS.items():
-        base_c = hexcolor(_base)
-        trim_c = hexcolor(_trim)
-        acc_c = hexcolor(_trim)
-        equipment.equipment_tex(base_c, trim_c, acc_c).save(
-            os.path.join(EQP_DIR, f"{_set}.png"))
-        equipment.equipment_tex(base_c, trim_c, acc_c, leggings=True).save(
-            os.path.join(EQP_DIR, f"{_set}_leggings.png"))
-
-    print(f"generated {len(WEAPON_MODELS)} weapon models, {len(ARMOR_MODELS)} armor models, "
-          f"{len(MATERIAL_MODELS)} material models, {len(CONSUMABLES)} icons, "
-          f"{len(entities.ENTITIES)} entity textures, {len(EQUIPMENT_SETS) * 2} equipment textures")
+def armor_palette(base: int, trim: int) -> dict:
+    """防具の配色: 本体色は「色付きの鋼」として薄く混ぜ、装飾色を縁・宝石に回す。"""
+    body = hexcolor(base)
+    tcol = hexcolor(trim)
+    pal = shapes.make_palette(trim, "steel")
+    pal["steel"] = shapes.Material("metal", core.mix((108, 116, 140, 255), body, 0.34), metal=0.95, rough=0.26)
+    pal["dark"] = shapes.Material("metal", core.mix((58, 62, 80, 255), body, 0.30), metal=0.85, rough=0.38)
+    pal["bright"] = shapes.Material("metal", core.mix((186, 196, 220, 255), tcol, 0.16), metal=1.0, rough=0.16)
+    pal["cloth"] = shapes.Material("cloth", body)
+    pal["leather"] = shapes.Material("leather", core.mix((78, 54, 38, 255), body, 0.35))
+    pal["gold"] = shapes.Material("metal", tcol, metal=1.0, rough=0.2)
+    pal["accent"] = shapes.Material("crystal", tcol, emissive=True)
+    pal["accent_dim"] = shapes.Material("crystal", core.shade(tcol, 0.76))
+    return pal
 
 
-def read_weapon_styles() -> list[tuple[str, int]]:
-    """GameData.WeaponStyle から (id, 色) を取り出す。"""
-    path = os.path.join(ROOT, "src", "main", "java", "com", "abyssalloot", "GameData.java")
-    with io.open(path, encoding="utf-8") as f:
-        src = f.read()
-    out = []
-    for _name, sid, col in re.findall(
-            r'(\w+)\("([\w_]+)", "[^"]+", "[^"]+", "[^"]+", (0x[0-9a-fA-F]+)\)', src):
-        out.append((sid, int(col, 16)))
-    return out
-
-
-def gen_art_shard(sid: str, color: int) -> None:
-    """奥義の断片 (2D の欠片)。"""
+def art_shard_icon(color: int):
+    """奥義の断片 (2D の欠片) の絵。"""
     c = hexcolor(color)
     img, d = icons.canvas()
     icons.poly(d, [(3, 5), (8, 2), (13, 5), (13, 9), (8, 13), (3, 9)], (60, 50, 90, 255))
@@ -558,14 +483,114 @@ def gen_art_shard(sid: str, color: int) -> None:
     icons.poly(d, [(6, 7), (8, 5.8), (10, 7), (10, 8), (8, 9), (6, 8)], c)
     d.ellipse([6, 6, 10, 10], outline=(20, 14, 30, 255), width=1)
     d.point((8, 7), fill=icons.WHITE)
-    core.emboss(img)
-    img.save(os.path.join(TEX_DIR, f"art_shard_{sid}.png"))
-    write_model(f"art_shard_{sid}", {
-        "parent": "minecraft:item/generated",
-        "textures": {"layer0": f"abyssalloot:item/art_shard_{sid}"},
-    })
-    write_item_def(f"art_shard_{sid}")
+    return core.emboss(img)
+
+
+def gen_art_shard(sid: str, color: int) -> None:
+    item_id = f"art_shard_{sid}"
+    _png(os.path.join(TEX_DIR, f"{item_id}.png"), art_shard_icon(color))
+    write_flat_model(item_id)
+    write_item_def(item_id)
+
+
+def generate(kinds: set[str], want) -> dict[str, int]:
+    """kinds の種別のうち want(id) が真のものを生成し、種別ごとの件数を返す。"""
+    counts = {k: 0 for k in KINDS}
+
+    if "weapons" in kinds:  # 立体 + 2D ドット絵
+        for item_id, (fn, color, style, kind) in WEAPON_MODELS.items():
+            if not want(item_id):
+                continue
+            gen_model(item_id, fn, shapes.make_palette(color, style), kind)
+            icon_fn = WEAPON_ICONS.get(item_id)
+            if icon_fn is not None:
+                gen_2d_icon(item_id, icon_fn, color)
+            counts["weapons"] += 1
+
+    if "armor" in kinds:  # 立体 + 2D ドット絵
+        for item_id, (fn, base, trim) in ARMOR_MODELS.items():
+            if not want(item_id):
+                continue
+            gen_model(item_id, fn, armor_palette(base, trim), "armor")
+            icon_fn = ARMOR_ICONS.get(item_id)
+            if icon_fn is not None:
+                gen_2d_icon(item_id, icon_fn, trim, base)
+            counts["armor"] += 1
+
+    if "materials" in kinds:  # 立体 + 2D ドット絵
+        for item_id, (fn, color) in MATERIAL_MODELS.items():
+            if not want(item_id):
+                continue
+            gen_model(item_id, fn, shapes.make_palette(color), "flat")
+            gen_material_icon(item_id, color)
+            counts["materials"] += 1
+
+    if "consumables" in kinds:  # 2D
+        for item_id, (fn, color) in CONSUMABLES.items():
+            if want(item_id):
+                gen_icon(item_id, fn, color)
+                counts["consumables"] += 1
+
+    if "shards" in kinds:  # 魂の欠片 (袋・包・核)
+        for state, item_id in enumerate(SOUL_SHARD_STATES):
+            if not want(item_id):
+                continue
+            _png(os.path.join(TEX_DIR, f"{item_id}.png"), icons.shard_bag(state))
+            write_flat_model(item_id)
+            write_item_def(item_id)
+            counts["shards"] += 1
+
+    if "arts" in kinds:  # 奥義の断片 (WeaponStyle の色から生成)
+        for sid, col in read_weapon_styles():
+            if want(f"art_shard_{sid}"):
+                gen_art_shard(sid, col)
+                counts["arts"] += 1
+
+    if "entities" in kinds:  # 深淵MOB
+        for ent_id, (base, accent, pattern) in entities.ENTITIES.items():
+            if want(ent_id):
+                img = entities.entity_tex(hexcolor(base), hexcolor(accent), pattern)
+                _png(os.path.join(ENT_DIR, f"{ent_id}.png"), img)
+                counts["entities"] += 1
+
+    if "equipment" in kinds:  # 装備 (プレイヤーの防具の着用テクスチャ)
+        for set_id, (base, trim) in EQUIPMENT_SETS.items():
+            if not want(set_id):
+                continue
+            base_c, trim_c = hexcolor(base), hexcolor(trim)
+            _png(os.path.join(EQP_DIR, f"{set_id}.png"), equipment.equipment_tex(base_c, trim_c, trim_c))
+            _png(os.path.join(EQP_LEGS_DIR, f"{set_id}_leggings.png"),
+                 equipment.equipment_tex(base_c, trim_c, trim_c, leggings=True))
+            counts["equipment"] += 2
+
+    return counts
+
+
+def main(argv: list[str] | None = None) -> int:
+    global W
+    setup_console()
+    ap = argparse.ArgumentParser(description="Abyssal Loot のテクスチャ / モデル生成")
+    ap.add_argument("--only", nargs="+", metavar="PAT",
+                    help="id で絞る (部分一致。* ? も可)。例: --only katana 'abyss_*_helm'")
+    ap.add_argument("--kind", nargs="+", choices=KINDS, help="生成する種別")
+    ap.add_argument("--check", action="store_true", help="書き込まずに差分の有無だけ調べる")
+    ap.add_argument("-v", "--verbose", action="store_true", help="変更したファイルを列挙")
+    args = ap.parse_args(argv)
+
+    W = Writer(check=args.check, verbose=args.verbose)
+    kinds = set(args.kind or KINDS)
+    counts = generate(kinds, matcher(args.only))
+    W.flush()
+    made = ", ".join(f"{k} {v}" for k, v in counts.items() if v)
+    print(f"生成対象: {made or 'なし'}")
+    print(W.summary("ファイル"))
+    if args.check and W.changed:
+        print("生成スクリプトと生成物が一致していません。python tools/generate_textures.py を実行してください。")
+        for p in W.changed[:20]:
+            print("  ", rel(p))
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
