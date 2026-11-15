@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 層進行・ウェーブ・ボス・職業適用.
@@ -215,23 +216,37 @@ public final class RunManager {
         return true;
     }
 
+    /** 祝福CSVの解析結果キャッシュ (毎tickの boonLv 呼び出しでMapを作り直さない) */
+    private record CachedBoons(String raw, Map<String, Integer> values) {}
+
+    private static final Map<UUID, CachedBoons> BOON_CACHE = new ConcurrentHashMap<>();
+
+    /** ウェーブ実体の不足が連続した秒数 (一時的なチャンク外れで早期開放しないため) */
+    private static final Map<UUID, Integer> MISSING_CHECKS = new ConcurrentHashMap<>();
+
     public static Map<String, Integer> boonsOf(ServerPlayer player) {
-        var map = new HashMap<String, Integer>();
         String raw = player.getData(ModAttachments.BOONS.get());
-        if (raw == null || raw.isBlank()) return map;
-        for (String e : raw.split(",")) {
-            String[] kv = e.split(":");
-            if (kv.length == 2) {
-                try {
-                    map.put(kv[0], map.getOrDefault(kv[0], 0) + Math.max(0, Integer.parseInt(kv[1])));
-                } catch (NumberFormatException ignored) {}
+        String key = raw == null ? "" : raw;
+        CachedBoons cached = BOON_CACHE.get(player.getUUID());
+        if (cached != null && cached.raw().equals(key)) return cached.values();
+        var map = new HashMap<String, Integer>();
+        if (!key.isBlank()) {
+            for (String e : key.split(",")) {
+                String[] kv = e.split(":");
+                if (kv.length == 2) {
+                    try {
+                        map.put(kv[0], map.getOrDefault(kv[0], 0) + Math.max(0, Integer.parseInt(kv[1])));
+                    } catch (NumberFormatException ignored) {}
+                }
             }
         }
-        return map;
+        var values = Map.copyOf(map);
+        BOON_CACHE.put(player.getUUID(), new CachedBoons(key, values));
+        return values;
     }
 
     public static void addBoon(ServerPlayer player, String id) {
-        var map = boonsOf(player);
+        var map = new HashMap<>(boonsOf(player));
         map.put(id, map.getOrDefault(id, 0) + 1);
         var sb = new StringBuilder();
         for (var e : map.entrySet()) {
@@ -239,6 +254,7 @@ public final class RunManager {
             sb.append(e.getKey()).append(":").append(e.getValue());
         }
         player.setData(ModAttachments.BOONS.get(), sb.toString());
+        BOON_CACHE.remove(player.getUUID());
         StatCalc.invalidateCaches(player);
     }
 
@@ -368,7 +384,14 @@ public final class RunManager {
         // 出撃中は呪印・モード・難易度を固定 (原作 /api/expeditions の条件固定に対応)
         player.setData(ModAttachments.RUN_LOCK.get(), 1);
         GameData.HeroClass cls = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
-        int level = "bossrush".equals(mode) ? 10 : player.getData(ModAttachments.LEVEL.get());
+        // 前回の bossrush が異常終了していても、まず本来レベルへ戻す
+        restoreBaseLevel(player);
+        int level = player.getData(ModAttachments.LEVEL.get());
+        if ("bossrush".equals(mode)) {
+            // bossrush の Lv10 は一時的なもの。終了時に元へ戻すため保存する
+            player.setData(ModAttachments.BASE_LEVEL.get(), level);
+            level = 10;
+        }
         grantHeirloom(player);
         StatCalc.applyClass(player, cls, level);
         ArenaManager.buildArena(player);
@@ -386,6 +409,15 @@ public final class RunManager {
         for (GameData.Sigil s : GameData.Sigil.values()) all.add(s.id);
         setSigils(player, all);
         player.sendSystemMessage(Component.literal("§d終焉の契約: 全8呪印を強制付与"));
+    }
+
+    /** bossrush 開始前のレベルが保存されていれば復元する */
+    private static void restoreBaseLevel(ServerPlayer player) {
+        int base = player.getData(ModAttachments.BASE_LEVEL.get());
+        if (base > 0) {
+            player.setData(ModAttachments.LEVEL.get(), base);
+            player.setData(ModAttachments.BASE_LEVEL.get(), 0);
+        }
     }
 
     /** 継承装備があれば受け取る (インベントリ満杯時は足元に落とす) */
@@ -528,8 +560,13 @@ public final class RunManager {
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
         player.setData(ModAttachments.RUN_LOCK.get(), 0);
         clearLingeringRunState(player);
+        // 呪印・祝福・遺物の補正を外し、素のステータスへ戻す (最大HP/攻撃速度の残りを防ぐ)
+        restoreBaseLevel(player);
+        var clsR = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
+        StatCalc.applyClass(player, clsR, player.getData(ModAttachments.LEVEL.get()), true);
         // 開いていたGUI (商店・鍛造・比較など) を強制的に閉じる
         player.closeContainer();
+        CombatHandler.sendHud(player);
         player.sendSystemMessage(Component.literal("§7リタイアした (装備・欠片は保持)。再出撃は /abyss start"));
         if (hadRun) {
             showRunSummary(player, false, boonCount, relicCount, passiveCount);
@@ -538,8 +575,10 @@ public final class RunManager {
 
     /** 戦場の掃除: 前回アリーナのバリア除去・残存MOB消去・ボスバー解除 (再出撃・死亡時に使用) */
     public static void clearRunField(ServerPlayer player) {
-        // 開いている転移門を撤去する (次の出撃で門が残らないように)
+        // 開いている転移門・設置型スキルを撤去する (次の出撃で残らないように)
         TransferGate.close(player);
+        SubSkills.clear(player);
+        MISSING_CHECKS.remove(player.getUUID());
         ArenaManager.clearArenaBarriers(player);
         clearAbyssMobs(player);
         synchronized (BOSS_BARS) {
@@ -556,9 +595,14 @@ public final class RunManager {
         AABB box = center != null
                 ? new AABB(center).inflate(96)
                 : player.getBoundingBox().inflate(96);
-        for (Mob m : level.getEntitiesOfClass(Mob.class, box,
-                e -> e.isAlive() && !e.isRemoved()
-                        && (LootHandler.hasAbyssTag(e) || BOSS_BARS.containsKey(e)))) {
+        UUID ownerId = player.getUUID();
+        for (Mob m : level.getEntitiesOfClass(Mob.class, box, e -> {
+            if (!e.isAlive() || e.isRemoved()) return false;
+            if (!(LootHandler.hasAbyssTag(e) || BOSS_BARS.containsKey(e))) return false;
+            // 他プレイヤーのウェーブを巻き込まない (旧データの所有者なしだけは掃除対象)
+            UUID owner = Enemies.waveOwner(e);
+            return owner == null || owner.equals(ownerId);
+        })) {
             m.discard();
         }
         // 消したボスのバーが残らないようにする
@@ -634,12 +678,14 @@ public final class RunManager {
         player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
         clearLingeringRunState(player);
         // bossrush の Lv10 ステータスなど、ラン中の適用を本来レベルに戻す
+        restoreBaseLevel(player);
         var clsE = GameData.HeroClass.byId(player.getData(ModAttachments.HERO_CLASS.get()));
         StatCalc.applyClass(player, clsE, player.getData(ModAttachments.LEVEL.get()), true);
         player.level().playSound(null, player.blockPosition(),
                 net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1f);
         ArenaManager.clearArenaBarriers(player);
         player.closeContainer();
+        CombatHandler.sendHud(player);
     }
 
     /** ラン中のみ有効な提示・イベント状態を消す (endRun / retire / resetRunState 共通) */
@@ -656,10 +702,16 @@ public final class RunManager {
         player.setData(ModAttachments.FATE_TIME.get(), 0L);
         player.setData(ModAttachments.TRAPS.get(), "");
         player.setData(ModAttachments.DESTRUCT.get(), "");
-        // 祝福・祭壇効果はラン依存 (次の出撃に持ち越さない)
+        // 祝福・遺物・技能・祭壇効果はラン依存 (次の出撃に持ち越さない)
         player.setData(ModAttachments.BOONS.get(), "");
+        player.setData(ModAttachments.RELICS.get(), "");
+        player.setData(ModAttachments.PASSIVES.get(), "");
+        player.setData(ModAttachments.HARVEST.get(), 0);
+        player.setData(ModAttachments.SCYTHE.get(), 0);
         player.setData(ModAttachments.SHRINE_FATE.get(), "");
         player.setData(ModAttachments.SHRINE_UNTIL.get(), 0L);
+        BOON_CACHE.remove(player.getUUID());
+        SubSkills.clear(player);
     }
 
     /** 潜行リザルト (踏破・撤退時のまとめ) */
@@ -710,11 +762,17 @@ public final class RunManager {
 
     /** 次層への進行 (転移門の開放を確認。キー・ボタン用) */
     public static void tryNextFloor(ServerPlayer player) {
+        if (!isRunLocked(player)) {
+            player.sendSystemMessage(Component.literal(
+                    "§c出撃していない。§7/abyss start §cで潜ってから次の層へ進もう"));
+            return;
+        }
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
-        if (total > 0 && player.getData(ModAttachments.PORTAL_OPEN.get()) == 0) {
+        if (player.getData(ModAttachments.PORTAL_OPEN.get()) == 0) {
+            String left = total > 0 ? " (残り" + Math.max(0, total - kills) + "体)" : "";
             player.sendSystemMessage(Component.literal(
-                    "§c転移門が開いていない (残り" + Math.max(0, total - kills) + "体)"));
+                    "§c転移門が開いていない" + left + "。層の敵を全滅させよう"));
             return;
         }
         nextFloor(player);
@@ -779,6 +837,8 @@ public final class RunManager {
         // 前の層の転移門・残存MOB (召喚物含む) を撤去する (次の層に残らない)
         TransferGate.close(player);
         clearAbyssMobs(player);
+        SubSkills.clear(player);
+        MISSING_CHECKS.remove(player.getUUID());
         player.setData(ModAttachments.FLOOR.get(), floor);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -839,7 +899,9 @@ public final class RunManager {
         spawnMobRing(player, level, center, floor, plan, scale, rand);
         spawnBossOrEvent(player, level, center, floor, scale, plan, rollFloor, rand);
         spawnWarden(player, level, center, floor, scale, plan.bossFloor(), rollFloor, rand);
-        ArenaManager.placeHazards(player, level, center, floor);
+        // 追加ウェーブで罠・破壊物を置き直すと、既存の位置データが上書きされて
+        // 解除できなくなるため、層開始時だけ配置する
+        if (rollFloor) ArenaManager.placeHazards(player, level, center, floor);
     }
 
     /** 湧き数・エリート率の決定 (異変・地相・日替わり・弾幕モードの倍率を集約) */
@@ -964,6 +1026,9 @@ public final class RunManager {
         int total = player.getData(ModAttachments.WAVE_TOTAL.get());
         int kills = player.getData(ModAttachments.FLOOR_KILLS.get());
         int alive = aliveWaveMobs(player).size();
+        if (total > 0 && kills >= total && alive == 0) {
+            MISSING_CHECKS.remove(player.getUUID());
+        }
         if (total <= 0) {
             if (alive > 0) {
                 // ノルマ未設定のまま敵だけいる: 実体数をノルマにする
@@ -980,14 +1045,20 @@ public final class RunManager {
         int expected = Math.max(0, total - kills);
         if (alive < expected) {
             // Creeper の自爆や /kill など LivingDeathEvent を経由しない消滅を討伐として補正する。
-            // ノルマ自体を減らすと「倒していないのに達成」になるため、必ず討伐数を進める。
+            // ただしチャンク外れの一瞬の取りこぼしで早期開放しないよう、3秒連続で不足した時だけ補正する。
+            int streak = MISSING_CHECKS.merge(player.getUUID(), 1, Integer::sum);
+            if (streak < 3) return;
             int missing = expected - alive;
             kills = Math.min(total, kills + missing);
             player.setData(ModAttachments.FLOOR_KILLS.get(), kills);
-        } else if (alive > expected) {
-            // 予定より多いノルマ対象がいる (イベント湧きの取りこぼし等) は実体数までノルマを増やす
-            total = kills + alive;
-            player.setData(ModAttachments.WAVE_TOTAL.get(), total);
+            MISSING_CHECKS.remove(player.getUUID());
+        } else {
+            MISSING_CHECKS.remove(player.getUUID());
+            if (alive > expected) {
+                // 予定より多いノルマ対象がいる (イベント湧きの取りこぼし等) は実体数までノルマを増やす
+                total = kills + alive;
+                player.setData(ModAttachments.WAVE_TOTAL.get(), total);
+            }
         }
         if (alive == 0 && kills >= total) {
             openPortalIfCleared(player);
@@ -1007,8 +1078,14 @@ public final class RunManager {
         if (player.getData(ModAttachments.FLOOR_KILLS.get()) < total) return;
         if (!aliveWaveMobs(player).isEmpty()) return;
 
+        // 門の設置に成功してからフラグを立てる (設置失敗で進行不能になるのを防ぐ)
+        if (!TransferGate.open(player, level)) {
+            player.sendSystemMessage(Component.literal(
+                    "§c転移門の設置場所を確保できなかった。少し移動すると再試行する"));
+            return;
+        }
         player.setData(ModAttachments.PORTAL_OPEN.get(), 1);
-        TransferGate.open(player, level);
+        MISSING_CHECKS.remove(player.getUUID());
         player.sendSystemMessage(Component.literal("§a◆ 転移門が開いた！ 門をくぐって次の層へ ")
                 .append(Component.literal("§b[次の層へ進む]").withStyle(s -> s
                         .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/abyss next"))
@@ -1151,6 +1228,8 @@ public final class RunManager {
     /** ログアウトで防具署名・ステータスキャッシュを掃除 (CombatHandler.onPlayerLoggedOut から呼ぶ) */
     static void onLogout(ServerPlayer player) {
         ARMOR_SIG.remove(player.getUUID());
+        BOON_CACHE.remove(player.getUUID());
+        MISSING_CHECKS.remove(player.getUUID());
         StatCalc.invalidateCaches(player);
     }
 

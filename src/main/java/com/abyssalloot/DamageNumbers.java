@@ -69,6 +69,7 @@ public final class DamageNumbers {
      */
     public static void show(ServerPlayer attacker, LivingEntity target, float damage, boolean crit) {
         if (damage <= 0) return;
+        if (CombatUtil.isUtility(target)) return;
         if (!(attacker.level() instanceof ServerLevel level)) return;
         // 攻撃者の反対側 (敵の影側) に表示する。攻撃の邪魔をしないように
         double dx = target.getX() - attacker.getX();
@@ -135,6 +136,8 @@ public final class DamageNumbers {
         stand.setNoGravity(true);
         stand.setSilent(true);
         stand.setInvulnerable(true);
+        // 表示専用: 当たり判定・攻撃対象・自動照準から完全に外す
+        CombatUtil.makeMarker(stand);
         stand.setCustomName(text);
         stand.setCustomNameVisible(true);
         stand.addTag(TAG);

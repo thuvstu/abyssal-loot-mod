@@ -99,7 +99,8 @@ public final class ClientHud {
 
     private static void render(GuiGraphics g, DeltaTracker delta) {
         var hud = last;
-        if (hud == null || hud.soul() < 0) return;
+        // 出撃していないときは前回の層・撃破数・魂を残さない
+        if (hud == null || hud.soul() < 0 || !hud.inRun()) return;
         var mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
         var font = mc.font;
@@ -191,12 +192,15 @@ public final class ClientHud {
         // sub skill (C key), CD shown while active
         var sub = SubSkills.byId(hud.subSkill());
         g.drawString(font, "Sub: " + sub.name() + " (C)", x0, y, 0xFF9FD8FF);
+        y += 10;
         if (subCd > 0) {
             float max = Math.max(1f, subCdMax);
+            // ラベルとバーを同じYに重ねない (旧版は文字がバーに埋もれていた)
             bar(g, x0, y, 90, 5, subCd / max, 0xFF9FD8FF, false);
             g.drawString(font, String.format("%.1fs", subCd), x0 + 96, y - 1, 0xFF9FD8FF);
+            y += 10;
         }
-        y += 12;
+        y += 2;
         if (skillCd > 0) {
             float max = Math.max(1f, skillCdMax);
             bar(g, x0, y, 90, 5, skillCd / max, 0xFFFFD23C, false);

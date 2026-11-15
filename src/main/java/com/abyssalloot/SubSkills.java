@@ -86,6 +86,8 @@ public final class SubSkills {
         stand.setCustomNameVisible(true);
         stand.setInvisible(true);
         stand.setInvulnerable(true);
+        // 囮は表示・ターゲット誘導専用。攻撃判定を持たせない
+        CombatUtil.makeMarker(stand);
         stand.addTag(DECOY_TAG);
         level.addFreshEntity(stand);
         level.sendParticles(ParticleTypes.PORTAL, at.x, player.getY() + 1, at.z, 30, 0.6, 1, 0.6, 0.2);
@@ -125,7 +127,8 @@ public final class SubSkills {
 
     private static boolean placeMine(ServerPlayer player, ServerLevel level) {
         MINES.put(player.getUUID(), player.position().add(0, 0.2, 0));
-        MINE_UNTIL.put(player.getUUID(), (long) 15 * 20);
+        // 寿命は「絶対時刻」で保存する (tickWorld の比較先も level.getGameTime())
+        MINE_UNTIL.put(player.getUUID(), level.getGameTime() + 15L * 20L);
         level.sendParticles(ParticleTypes.END_ROD, player.getX(), player.getY() + 0.2, player.getZ(),
                 12, 0.4, 0.2, 0.4, 0.05);
         return true;
@@ -137,7 +140,7 @@ public final class SubSkills {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - 10, at.y - 5, at.z - 10,
                         at.x + 10, at.y + 5, at.z + 10),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 3, false, false));
             e.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, 100, 1, false, false));
         }
@@ -187,7 +190,8 @@ public final class SubSkills {
             player.displayClientMessage(Component.literal("§c供物には命が足りない"), true);
             return false;
         }
-        player.hurtServer(level, level.damageSources().magic(), cost);
+        // 自己コストは無敵時間・被ダメ軽減・反射の対象にしない (直接減らす)
+        player.setHealth(Math.max(1f, player.getHealth() - cost));
         RunManager.addGauge(player, 35);
         level.sendParticles(ParticleTypes.SCULK_SOUL, player.getX(), player.getY() + 1, player.getZ(),
                 20, 0.5, 1, 0.5, 0.2);
@@ -201,7 +205,7 @@ public final class SubSkills {
     private static boolean gravityWell(ServerPlayer player, ServerLevel level) {
         Vec3 at = player.position().add(player.getLookAngle().scale(8));
         WELLS.put(player.getUUID(), at);
-        WELL_UNTIL.put(player.getUUID(), (long) 4 * 20);
+        WELL_UNTIL.put(player.getUUID(), level.getGameTime() + 4L * 20L);
         level.playSound(null, player.blockPosition(), SoundEvents.PORTAL_AMBIENT,
                 SoundSource.PLAYERS, 0.8f, 0.5f);
         return true;
@@ -214,7 +218,8 @@ public final class SubSkills {
             player.displayClientMessage(Component.literal("§c覚醒には命が足りない"), true);
             return false;
         }
-        player.hurtServer(level, level.damageSources().magic(), cost);
+        // 自己コストは無敵時間・被ダメ軽減・反射の対象にしない (直接減らす)
+        player.setHealth(Math.max(1f, player.getHealth() - cost));
         player.addEffect(new MobEffectInstance(MobEffects.SPEED, 160, 1, false, false));
         player.addEffect(new MobEffectInstance(MobEffects.HASTE, 160, 1, false, false));
         level.sendParticles(ParticleTypes.DAMAGE_INDICATOR,
@@ -275,6 +280,20 @@ public final class SubSkills {
         return true;
     }
 
+    /** ログアウト・リタイア・層移動で設置型スキルの予約を破棄する */
+    public static void clear(ServerPlayer player) {
+        UUID id = player.getUUID();
+        MINES.remove(id);
+        MINE_UNTIL.remove(id);
+        WELLS.remove(id);
+        WELL_UNTIL.remove(id);
+    }
+
+    /** CombatHandler.onPlayerLoggedOut から呼ぶ (UUID再利用時の誤爆防止) */
+    static void onLogout(ServerPlayer player) {
+        clear(player);
+    }
+
     /** 地雷と重力井戸の進行 (CombatHandler.onServerTick から 0.5秒ごとに呼ぶ) */
     public static void tickWorld(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level)) return;
@@ -291,13 +310,13 @@ public final class SubSkills {
         var victims = level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(mine.x - 3, mine.y - 2, mine.z - 3,
                         mine.x + 3, mine.y + 2, mine.z + 3),
-                x -> x.isAlive() && !(x instanceof ServerPlayer));
+                CombatUtil::isValidTarget);
         if (!victims.isEmpty() || now >= until) {
             WeaponArts.pulse(level, player, mine, 3.0, 4.0, false, ParticleTypes.EXPLOSION);
             for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                     new AABB(mine.x - 8, mine.y - 4, mine.z - 8,
                             mine.x + 8, mine.y + 4, mine.z + 8),
-                    x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    CombatUtil::isValidTarget)) {
                 Vec3 pull = mine.subtract(e.position()).normalize().scale(1.4);
                 e.push(pull.x, 0.2, pull.z);
             }
@@ -323,7 +342,7 @@ public final class SubSkills {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(well.x - 6, well.y - 4, well.z - 6,
                         well.x + 6, well.y + 4, well.z + 6),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             Vec3 pull = well.subtract(e.position()).normalize().scale(0.35);
             e.push(pull.x, 0.1, pull.z);
             WeaponArts.artHurt(level, e, level.damageSources().playerAttack(player), 0.5f);
@@ -342,7 +361,7 @@ public final class SubSkills {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - range, origin.y - 5, origin.z - range,
                         origin.x + range, origin.y + 5, origin.z + range),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             double d = e.position().distanceToSqr(origin);
             if (d < bestD) {
                 bestD = d;

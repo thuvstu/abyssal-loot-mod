@@ -86,6 +86,7 @@ public final class CombatHandler {
             LAST_HUD_TICK.remove(player.getUUID());
             KillHandler.onLogout(player);
             RunManager.onLogout(player);
+            SubSkills.onLogout(player);
         }
     }
 
@@ -198,7 +199,8 @@ public final class CombatHandler {
                         player.getData(ModAttachments.WAVE_TOTAL.get()),
                         player.getData(ModAttachments.FLOOR_KILLS.get()),
                         player.getHealth(),
-                        player.getMaxHealth()));    }
+                        player.getMaxHealth(),
+                        RunManager.isRunLocked(player)));    }
 
     /**
      * HUDの間引き送信 (撃破・魂ゲージ変動など頻繁な変化用).
@@ -231,6 +233,8 @@ public final class CombatHandler {
             TransferGate.tick(player);
             if (tickCounter % 10 == 0) ArenaManager.tickTraps(player);
             if (tickCounter % 10 == 0) SubSkills.tickWorld(player);
+            // 魔弾は1.5秒周期 (20tickゲートの中に入れると1秒周期に丸められる)
+            if (tickCounter % 30 == 0) tickAutoBolt(player);
             if (tickCounter % 20 == 0) {
                 tickAbilityBoons(player);
                 RunManager.tickRunEffects(player);
@@ -313,7 +317,6 @@ public final class CombatHandler {
         if (!(player.level() instanceof ServerLevel level)) return;
         if (!player.isAlive()) return;
         var pos = player.position();
-        tickAutoBolt(player);
         tickAuraBoons(player, level, pos);
         tickMissiles(player, level, pos);
         tickFamiliar(player, level, pos);
@@ -322,7 +325,7 @@ public final class CombatHandler {
 
     /** 魔術武器 (ロッド・ワンド) の自動魔弾 (1.5秒ごと)。弾数ボーナスで多重化 */
     private static void tickAutoBolt(ServerPlayer player) {
-        if (tickCounter % 30 != 0) return;
+        if (tickCounter % 30 != 0 || !player.isAlive()) return;
         var style = ModItems.styleOf(player.getMainHandItem().getItem());
         if (style == GameData.WeaponStyle.ROD) {
             int targets = 1 + StatCalc.wbonusOf(player).projectiles()
@@ -377,7 +380,7 @@ public final class CombatHandler {
         WeaponArts.pulse(level, player, pos, 6, 0.4, false, ParticleTypes.SNOWFLAKE);
         for (var e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(pos.x - 6, pos.y - 4, pos.z - 6, pos.x + 6, pos.y + 4, pos.z + 6),
-                e -> e.isAlive() && !(e instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 3));
         }
     }
@@ -387,7 +390,7 @@ public final class CombatHandler {
         return level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(pos.x - radius, pos.y - 6, pos.z - radius,
                         pos.x + radius, pos.y + 6, pos.z + radius),
-                e -> e.isAlive() && !(e instanceof ServerPlayer)).stream()
+                CombatUtil::isValidTarget).stream()
                 .min(Comparator.comparingDouble(e -> e.position().distanceTo(pos)))
                 .orElse(null);
     }

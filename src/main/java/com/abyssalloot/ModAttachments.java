@@ -25,6 +25,9 @@ public final class ModAttachments {
             reg("hero_class", "samurai", Codec.STRING);
     public static final Supplier<AttachmentType<Integer>> LEVEL =
             reg("hero_level", 1, Codec.INT);
+    /** bossrush 開始前の本来レベル (0=保存なし)。終了時に復元する */
+    public static final Supplier<AttachmentType<Integer>> BASE_LEVEL =
+            reg("base_level", 0, Codec.INT);
     public static final Supplier<AttachmentType<Float>> SOUL =
             reg("soul_gauge", 0f, Codec.FLOAT);
     public static final Supplier<AttachmentType<Integer>> FLOOR =

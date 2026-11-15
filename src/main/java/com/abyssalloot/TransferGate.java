@@ -2,6 +2,9 @@ package com.abyssalloot;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -41,25 +44,36 @@ public final class TransferGate {
     /** 門の中にいた時間 (tick) */
     private static final Map<UUID, Integer> CHARGE = new HashMap<>();
 
-    /** 門を開く (層クリア時・プレイヤーの近くに設置) */
-    public static void open(ServerPlayer player, ServerLevel level) {
+    /** 門を開く (層クリア時・プレイヤーの近くに設置)。設置できたら true */
+    public static boolean open(ServerPlayer player, ServerLevel level) {
         close(player);
         BlockPos base = findSpot(player);
-        if (base == null) return;
+        if (base == null) return false;
         build(level, base);
         // ディメンションも保存する (別ディメンションの座標と誤認しないため)
         player.setData(ModAttachments.GATE.get(), level.dimension().identifier().toString()
                 + "," + base.getX() + "," + base.getY() + "," + base.getZ());
         level.playSound(null, base, SoundEvents.PORTAL_TRIGGER, SoundSource.PLAYERS, 0.7f, 1.4f);
+        return true;
     }
 
-    /** 門を撤去する (層移動・リタイア時) */
+    /** 門を撤去する (層移動・リタイア時)。別ディメンションに残った門も消す */
     public static void close(ServerPlayer player) {
         String raw = player.getData(ModAttachments.GATE.get());
-        if (raw == null || raw.isBlank()) return;
-        BlockPos base = parse(raw, player);
-        if (base != null && player.level() instanceof ServerLevel level) {
-            clear(level, base);
+        if (raw != null && !raw.isBlank()) {
+            String[] p = raw.split(",");
+            if (p.length == 4) {
+                try {
+                    var dim = ResourceKey.create(Registries.DIMENSION, Identifier.parse(p[0].trim()));
+                    ServerLevel target = player.level().getServer().getLevel(dim);
+                    if (target != null) {
+                        clear(target, new BlockPos(Integer.parseInt(p[1].trim()),
+                                Integer.parseInt(p[2].trim()), Integer.parseInt(p[3].trim())));
+                    }
+                } catch (RuntimeException ignored) {
+                    // 壊れた座標データは消すだけ (門の撤去漏れより進行を優先)
+                }
+            }
         }
         player.setData(ModAttachments.GATE.get(), "");
         CHARGE.remove(player.getUUID());
@@ -131,19 +145,38 @@ public final class TransferGate {
         BlockPos center = ArenaManager.arenaCenterOf(player);
         for (int[] off : OFFSETS) {
             BlockPos base = origin.offset(off[0], 0, off[1]);
-            // プレイヤーと門の内部が重ならないこと (即時移行の誤発動防止)
-            double dx = player.getX() - (base.getX() + 2.0);
-            double dz = player.getZ() - (base.getZ() + 0.5);
-            if (dx * dx + dz * dz < 4.0) continue;
-            // アリーナの塀に埋めないこと
-            if (center != null) {
-                double cx = base.getX() + 2.0 - center.getX();
-                double cz = base.getZ() + 0.5 - center.getZ();
-                if (cx * cx + cz * cz > 14 * 14) continue;
+            if (validSpot(player, base, center)) return base;
+        }
+        // プレイヤーが壁際にいて候補が全て範囲外になる場合の保険:
+        // アリーナ中心から内側へずらして必ず1箇所は見つける
+        if (center != null) {
+            for (int r = 5; r <= 12; r += 2) {
+                for (int k = 0; k < 8; k++) {
+                    double ang = Math.PI * 2 * k / 8;
+                    BlockPos base = new BlockPos(
+                            center.getX() + (int) Math.round(Math.cos(ang) * r) - 2,
+                            player.blockPosition().getY(),
+                            center.getZ() + (int) Math.round(Math.sin(ang) * r));
+                    if (validSpot(player, base, center)) return base;
+                }
             }
-            return base;
         }
         return null;
+    }
+
+    /** 門の設置候補として安全か (プレイヤー内部と重ならず、アリーナ内に収まる) */
+    private static boolean validSpot(ServerPlayer player, BlockPos base, BlockPos center) {
+        // プレイヤーと門の内部が重ならないこと (即時移行の誤発動防止)
+        double dx = player.getX() - (base.getX() + 2.0);
+        double dz = player.getZ() - (base.getZ() + 0.5);
+        if (dx * dx + dz * dz < 4.0) return false;
+        // アリーナの塀に埋めないこと
+        if (center != null) {
+            double cx = base.getX() + 2.0 - center.getX();
+            double cz = base.getZ() + 0.5 - center.getZ();
+            if (cx * cx + cz * cz > 14 * 14) return false;
+        }
+        return true;
     }
 
     /** 門の構造を組む (左右と上が黒曜石の枠・床はそのまま使う) */
@@ -168,7 +201,8 @@ public final class TransferGate {
     /** 門の構造を撤去する (置いたブロックだけ消す) */
     private static void clear(ServerLevel level, BlockPos base) {
         for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+            // y <= HEIGHT で上部のソウルランタンも撤去する
+            for (int y = 0; y <= HEIGHT; y++) {
                 BlockPos p = base.offset(x, y, 0);
                 var state = level.getBlockState(p);
                 if (state.is(Blocks.OBSIDIAN) || state.is(Blocks.SOUL_LANTERN)) {
@@ -193,7 +227,8 @@ public final class TransferGate {
         double x = player.getX();
         double y = player.getY();
         double z = player.getZ();
-        boolean inX = x >= base.getX() + 0.9 && x <= base.getX() + 2.1;
+        // 開口部は x=1,2 の2ブロック幅 (枠 x=0,3)。0.9〜3.1 が内側
+        boolean inX = x >= base.getX() + 0.9 && x <= base.getX() + 3.1;
         boolean inY = y >= base.getY() - 0.6 && y <= base.getY() + 3.6;
         boolean inZ = z >= base.getZ() - 0.6 && z <= base.getZ() + 1.6;
         return inX && inY && inZ;

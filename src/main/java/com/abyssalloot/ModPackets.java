@@ -279,7 +279,8 @@ public final class ModPackets {
                           float lightCd, float skillCd,
                           int relicPending, int passivePending,
                           String subSkill, float subCd,
-                          int waveTotal, int floorKills, float hp, float maxHp)
+                          int waveTotal, int floorKills, float hp, float maxHp,
+                          boolean inRun)
             implements CustomPacketPayload {
         public static final Type<HudSync> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "hud"));
@@ -303,6 +304,7 @@ public final class ModPackets {
                     buf.writeVarInt(p.floorKills());
                     buf.writeFloat(p.hp());
                     buf.writeFloat(p.maxHp());
+                    buf.writeBoolean(p.inRun());
                 },
                 buf -> new HudSync(buf.readFloat(), buf.readVarInt(), buf.readVarInt(),
                         buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
@@ -310,7 +312,8 @@ public final class ModPackets {
                         buf.readFloat(), buf.readFloat(),
                         buf.readBoolean() ? 1 : 0, buf.readBoolean() ? 1 : 0,
                         buf.readUtf(32), buf.readFloat(),
-                        buf.readVarInt(), buf.readVarInt(), buf.readFloat(), buf.readFloat()));
+                        buf.readVarInt(), buf.readVarInt(), buf.readFloat(), buf.readFloat(),
+                        buf.readBoolean()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -367,7 +370,10 @@ public final class ModPackets {
                 switch (payload.mode()) {
                     case "relic" -> FloorEvents.doRelic(sp, payload.id());
                     case "passive" -> FloorEvents.doPassive(sp, payload.id());
-                    default -> FloorEvents.doEvent(sp, payload.id());
+                    case "sub" -> SkillHandler.setSubSkill(sp, payload.id());
+                    case "event" -> FloorEvents.doEvent(sp, payload.id());
+                    default -> AbyssalLootMod.LOGGER.warn(
+                            "unknown floor event mode: {} (id={})", payload.mode(), payload.id());
                 }
             }
         });

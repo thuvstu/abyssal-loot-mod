@@ -34,6 +34,12 @@ public final class WeaponHitHandler {
     private WeaponHitHandler() {}
 
     /**
+     * 反射ダメージの再入ガード. 反射が反射を呼ぶ無限ループと、
+     * 反射ダメージにフル武器威力の上書きが乗る不整合を防ぐ.
+     */
+    private static int REFLECT_DEPTH = 0;
+
+    /**
      * 鉄壁の護衛兵: 前方±60°からの被ダメ30%、側面・背面は135% (原作 guardMultiplier).
      * 他の補正の後に掛けるため LOW 優先度.
      */
@@ -57,6 +63,8 @@ public final class WeaponHitHandler {
     /** ダメージイベント処理: 魔盾軽減 → 被ダメ側 (軽減・見切り・蘇生) → 攻撃側 (原作式威力上書き) → モブ加害側の順に処理 */
     @SubscribeEvent
     public static void onDamage(LivingDamageEvent.Pre event) {
+        // 反射で発生したダメージはここで再処理しない (装備補正・反射の連鎖を防ぐ)
+        if (REFLECT_DEPTH > 0) return;
         applyEliteShield(event);
         if (event.getEntity() instanceof ServerPlayer player
                 && player.level() instanceof ServerLevel level

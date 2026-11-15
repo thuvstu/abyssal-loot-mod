@@ -43,6 +43,8 @@ public final class WeaponArts {
      * 武器命中の威力上書き・奥義ゲージ蓄積の対象から外す.
      */
     public static void artHurt(ServerLevel level, LivingEntity target, DamageSource source, float dmg) {
+        // 囮・ダメージ数字などの表示用実体には一切ダメージを与えない
+        if (CombatUtil.isUtility(target)) return;
         // 奥義・二次反応もダメージ数字で知らせる (自分の被弾は除く)
         if (source.getEntity() instanceof ServerPlayer attacker && target != attacker) {
             DamageNumbers.show(attacker, target, dmg, false);
@@ -74,7 +76,7 @@ public final class WeaponArts {
 
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - 24, origin.y - 8, origin.z - 24, origin.x + 24, origin.y + 8, origin.z + 24),
-                e -> e.isAlive() && !(e instanceof ServerPlayer));
+                CombatUtil::isValidTarget);
 
         // 41武器種の奥義を3グループ (基礎・上位・最上級) に分けて実行する。
         // 各グループは該当ケースがあれば true、なければ null を返す (ディスパッチのみに徹する)
@@ -144,7 +146,7 @@ public final class WeaponArts {
                 aoe(level, player, at, 3.5, 8.0 * attackDamage, false, ParticleTypes.ELECTRIC_SPARK);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(at.x - 3.5, at.y - 4, at.z - 3.5, at.x + 3.5, at.y + 4, at.z + 3.5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 3));
                     level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                             e.getX(), e.getY() + 1, e.getZ(), 8, 0.4, 0.6, 0.4, 0.1);
@@ -188,7 +190,7 @@ public final class WeaponArts {
                         for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                                 new AABB(at.x - range, at.y - 5, at.z - range,
                                         at.x + range, at.y + 5, at.z + range),
-                                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                                CombatUtil::isValidTarget)) {
                             Vec3 d = e.position().subtract(at);
                             if (d.length() > range + 1) continue;
                             double ang = Math.atan2(d.z, d.x) - Math.atan2(dir.z, dir.x);
@@ -224,7 +226,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 12, origin.y - 5, origin.z - 12,
                                 origin.x + 12, origin.y + 5, origin.z + 12),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
                 }
                 burst(player, "ルーン連斬！", style);
@@ -236,7 +238,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 5, origin.y - 5, origin.z - 5,
                                 origin.x + 5, origin.y + 5, origin.z + 5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     float before = e.getHealth();
                     artHurt(level, e, level.damageSources().playerAttack(player),
                             (float) (3.6 * attackDamage));
@@ -311,7 +313,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 8, origin.y - 4, origin.z - 8,
                                 origin.x + 8, origin.y + 4, origin.z + 8),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
                     e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
                 }
@@ -324,7 +326,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 6, origin.y - 4, origin.z - 6,
                                 origin.x + 6, origin.y + 4, origin.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
                     e.setTicksFrozen(Math.min(200, e.getTicksFrozen() + 120));
                 }
@@ -385,7 +387,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(target.x - 6, target.y - 4, target.z - 6,
                                     target.x + 6, target.y + 4, target.z + 6),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.addEffect(effs[player.getRandom().nextInt(effs.length)]);
                     }
                 });
@@ -401,7 +403,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(target.x - 5, target.y - 4, target.z - 5,
                                     target.x + 5, target.y + 4, target.z + 5),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 1));
                     }
                 });
@@ -470,7 +472,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 8, origin.y - 4, origin.z - 8,
                                 origin.x + 8, origin.y + 4, origin.z + 8),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 120, 1));
                 }
                 level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_CRIT,
@@ -564,7 +566,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(target.x - 5, target.y - 4, target.z - 5,
                                     target.x + 5, target.y + 4, target.z + 5),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 1));
                     }
                 });
@@ -602,7 +604,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(origin.x - 8, origin.y - 4, origin.z - 8,
                                     origin.x + 8, origin.y + 4, origin.z + 8),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 200));
                     }
                     aoe(lv, player, origin.add(look.scale(3)), 4, 2.2 * attackDamage, true, ParticleTypes.EXPLOSION);
@@ -622,7 +624,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 6, origin.y - 4, origin.z - 6,
                                 origin.x + 6, origin.y + 4, origin.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1));
                 }
                 level.sendParticles(ParticleTypes.WITCH, origin.x, origin.y + 1, origin.z, 24, 2, 1, 2, 0.1);
@@ -641,7 +643,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - r, origin.y - 4, origin.z - r,
                                 origin.x + r, origin.y + 4, origin.z + r),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     Vec3 kb = e.position().subtract(origin).normalize().scale(1.2);
                     e.push(kb.x, 0.9, kb.z);
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
@@ -660,7 +662,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 12, origin.y - 5, origin.z - 12,
                                 origin.x + 12, origin.y + 5, origin.z + 12),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     Vec3 pull = origin.subtract(e.position()).normalize().scale(2.4);
                     e.push(pull.x, 0.25, pull.z);
                 }
@@ -672,7 +674,7 @@ public final class WeaponArts {
                         for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                                 new AABB(origin.x - r, origin.y - 5, origin.z - r,
                                         origin.x + r, origin.y + 5, origin.z + r),
-                                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                                CombatUtil::isValidTarget)) {
                             e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
                         }
                     });
@@ -698,7 +700,7 @@ public final class WeaponArts {
 
         List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - 14, origin.y - 8, origin.z - 14, origin.x + 14, origin.y + 8, origin.z + 14),
-                e -> e.isAlive() && !(e instanceof ServerPlayer));
+                CombatUtil::isValidTarget);
 
         level.playSound(null, player.blockPosition(),
                 SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.7f, 1.2f);
@@ -736,7 +738,7 @@ public final class WeaponArts {
                 aoe(level, player, at, 2.5, dmg, false, ParticleTypes.ELECTRIC_SPARK);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(at.x - 3, at.y - 4, at.z - 3, at.x + 3, at.y + 4, at.z + 3),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 1));
                 }
             }
@@ -766,7 +768,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(target.x - 3, target.y - 4, target.z - 3,
                                     target.x + 3, target.y + 4, target.z + 3),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
                     }
                 });
@@ -818,7 +820,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 4.5, origin.y - 4, origin.z - 4.5,
                                 origin.x + 4.5, origin.y + 4, origin.z + 4.5),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1));
                 }
             }
@@ -827,7 +829,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 6, origin.y - 4, origin.z - 6,
                                 origin.x + 6, origin.y + 4, origin.z + 6),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.setTicksFrozen(Math.min(200, e.getTicksFrozen() + 60));
                 }
             }
@@ -856,7 +858,7 @@ public final class WeaponArts {
                     for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
                             new AABB(target.x - 3, target.y - 4, target.z - 3,
                                     target.x + 3, target.y + 4, target.z + 3),
-                            x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                            CombatUtil::isValidTarget)) {
                         e.addEffect(effs[player.getRandom().nextInt(effs.length)]);
                     }
                 });
@@ -897,7 +899,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 7, origin.y - 4, origin.z - 7,
                                 origin.x + 7, origin.y + 4, origin.z + 7),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     if (e.distanceTo(player) > 7) continue;
                     e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
                 }
@@ -937,7 +939,7 @@ public final class WeaponArts {
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin.x - 7, origin.y - 4, origin.z - 7,
                                 origin.x + 7, origin.y + 4, origin.z + 7),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     if (e.distanceTo(player) > 7) continue;
                     e.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
                 }
@@ -947,7 +949,7 @@ public final class WeaponArts {
                 aoe(level, player, at, 2.5, dmg, false, ParticleTypes.FLAME);
                 for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                         new AABB(at.x - 3, at.y - 4, at.z - 3, at.x + 3, at.y + 4, at.z + 3),
-                        x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                        CombatUtil::isValidTarget)) {
                     e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 80));
                 }
             }
@@ -1042,7 +1044,7 @@ public final class WeaponArts {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - 9, origin.y - 4, origin.z - 9,
                         origin.x + 9, origin.y + 4, origin.z + 9),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 2));
             e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0));
         }
@@ -1071,7 +1073,7 @@ public final class WeaponArts {
         double dmg = StatCalc.attackDamageOf(attacker) * mult;
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             if (e.position().distanceTo(at) > radius + 1) continue;
             artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
             if (knockback) {
@@ -1146,7 +1148,7 @@ public final class WeaponArts {
             Vec3 at = origin.add(look.x * d, 0, look.z * d);
             for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                     new AABB(at.x - 2.5, at.y - 4, at.z - 2.5, at.x + 2.5, at.y + 4, at.z + 2.5),
-                    x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                    CombatUtil::isValidTarget)) {
                 if (hit.add(e)) {
                     artHurt(level, e, level.damageSources().playerAttack(player), (float) dmg);
                     if (knockback) {
@@ -1167,7 +1169,7 @@ public final class WeaponArts {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - range, origin.y - 5, origin.z - range,
                         origin.x + range, origin.y + 5, origin.z + range),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             Vec3 d = e.position().subtract(origin);
             double dist = d.length();
             if (dist > range + 1 || dist < 0.5) continue;
@@ -1189,7 +1191,7 @@ public final class WeaponArts {
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - radius, origin.y - 5, origin.z - radius,
                         origin.x + radius, origin.y + 5, origin.z + radius),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             if (e.position().distanceTo(origin) > radius + 1) continue;
             artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
         }
@@ -1203,7 +1205,7 @@ public final class WeaponArts {
         LivingEntity t = nearest(attacker.position(), level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(attacker.getX() - range, attacker.getY() - 8, attacker.getZ() - range,
                         attacker.getX() + range, attacker.getY() + 8, attacker.getZ() + range),
-                e -> e.isAlive() && !(e instanceof ServerPlayer)));
+                CombatUtil::isValidTarget));
         if (t == null) return;
         artHurt(level, t, level.damageSources().playerAttack(attacker), (float) dmg);
         level.sendParticles(particle, t.getX(), t.getY() + 1, t.getZ(), 6, 0.4, 0.6, 0.4, 0.1);
@@ -1214,7 +1216,7 @@ public final class WeaponArts {
         LivingEntity t = nearest(player.position(), level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(player.getX() - range, player.getY() - 8, player.getZ() - range,
                         player.getX() + range, player.getY() + 8, player.getZ() + range),
-                e -> e.isAlive() && !(e instanceof ServerPlayer)));
+                CombatUtil::isValidTarget));
         if (t == null) return;
         artHurt(level, t, level.damageSources().playerAttack(player), (float) dmg);
         Vec3 from = player.position().add(0, 1.5, 0);
@@ -1232,7 +1234,7 @@ public final class WeaponArts {
         double baseAng = Math.atan2(dir.z, dir.x);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(origin.x - range, origin.y - 5, origin.z - range, origin.x + range, origin.y + 5, origin.z + range),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             Vec3 d = e.position().subtract(origin);
             if (d.length() > range + 1) continue;
             double ang = Math.atan2(d.z, d.x);
@@ -1250,7 +1252,7 @@ public final class WeaponArts {
         radius *= StatCalc.areaMult(attacker);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),
-                x -> x.isAlive() && !(x instanceof ServerPlayer))) {
+                CombatUtil::isValidTarget)) {
             if (e.position().distanceTo(at) > radius + 1) continue;
             artHurt(level, e, level.damageSources().playerAttack(attacker), (float) dmg);
             if (knockback) {
