@@ -1,3 +1,4 @@
+for OpenCode AGENT
 # 作業ルール
 
 対象: Abyssal Loot (NeoForge 1.21.11 / Java 21)
