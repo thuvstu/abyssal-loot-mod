@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_wraith",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_shroud_elixir",
+    "count": 1
+  }
+}

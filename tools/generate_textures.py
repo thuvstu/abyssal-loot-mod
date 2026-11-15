@@ -24,10 +24,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import core, entities, equipment, icons, items, shapes  # noqa: E402
+from art import content, core, entities, equipment, icons, items, shapes  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
-from art.project import Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
+from art.project import ASSETS, Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
 from art.project import ITEM_DEF as ITEM_DIR  # noqa: E402
 from art.project import MODEL_ITEM as MODEL_DIR  # noqa: E402
 from art.project import ROOT  # noqa: E402,F401
@@ -36,7 +36,10 @@ from art.project import TEX_EQUIPMENT as EQP_DIR  # noqa: E402
 from art.project import TEX_EQUIPMENT_LEGS as EQP_LEGS_DIR  # noqa: E402
 from art.project import TEX_ITEM as TEX_DIR  # noqa: E402
 
-KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment")
+KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment", "content")
+
+# 追加コンテンツ (abyssalloot_content.json)。防具セットは下の表へ連結される
+CONTENT = content.load()
 
 
 # 装備テクスチャ (防具セット = 本体色, 装飾色)
@@ -146,6 +149,13 @@ ARMOR_SETS = {
     "moon": (0xa8e8ff, 0xeaffff),
     "ember": (0xff6a2b, 0xffd0a0),
 }
+for _s in CONTENT["armor_sets"]:
+    ARMOR_SETS[_s["id"]] = (content.color(_s, "body"), content.color(_s, "trim"))
+    # 着用テクスチャ: 本体は暗めに落とし、装飾に本体色を使う (既存セットと同じ作り)
+    EQUIPMENT_SETS[_s["id"]] = (core.to_hex(core.shade(hexcolor(content.color(_s, "body")), 0.36)),
+                                content.color(_s, "body"))
+del _s
+
 ARMOR_MODELS = {
     "abyss_helm": (shapes.helm, 0xb28ce0, 0xd8b0ff),
     "abyss_chest": (shapes.chest, 0xb28ce0, 0xd8b0ff),
@@ -471,6 +481,13 @@ def gen_material_icon(item_id: str, color: int) -> None:
     write_select_def(item_id, icon_id)
 
 
+def content_material_icon(shape: str, color):
+    """追加素材の 2D ドット絵。chunk は粒入りの塊、それ以外はマスクをそのまま塗る。"""
+    if shape == "chunk":
+        return icons._mats3_tex(color)
+    return icons.mask_icon(shape, color)
+
+
 def armor_palette(base: int, trim: int) -> dict:
     """防具の配色: 本体色は「色付きの鋼」として薄く混ぜ、装飾色を縁・宝石に回す。"""
     body = hexcolor(base)
@@ -558,6 +575,27 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 img = entities.entity_tex(hexcolor(base), hexcolor(accent), pattern)
                 _png(os.path.join(ENT_DIR, f"{ent_id}.png"), img)
                 counts["entities"] += 1
+
+    if "content" in kinds:  # 追加コンテンツ: 魔物素材・区域素材・消耗品 (2D) と装備定義
+        for e in CONTENT["trophies"] + CONTENT["zone_materials"]:
+            if want(e["id"]):
+                gen_icon(e["id"], lambda c, _k=e["shape"]: content_material_icon(_k, c), content.color(e))
+                counts["content"] += 1
+        for e in CONTENT["consumables"]:
+            if want(e["id"]):
+                # icon: icons.py の関数名、または "mask:<形>" (色付きマスク)
+                if e["icon"].startswith("mask:"):
+                    fn = lambda c, _k=e["icon"][5:]: icons.mask_icon(_k, c)  # noqa: E731
+                else:
+                    fn = getattr(icons, e["icon"])
+                gen_icon(e["id"], fn, content.color(e))
+                counts["content"] += 1
+        for s in CONTENT["armor_sets"]:
+            if want(s["id"]):
+                W.write_json(os.path.join(ASSETS, "equipment", f"{s['id']}.json"), {"layers": {
+                    "humanoid": [{"texture": f"abyssalloot:{s['id']}"}],
+                    "humanoid_leggings": [{"texture": f"abyssalloot:{s['id']}_leggings"}],
+                }})
 
     if "equipment" in kinds:  # 装備 (プレイヤーの防具の着用テクスチャ)
         for set_id, (base, trim) in EQUIPMENT_SETS.items():

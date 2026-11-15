@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_skeleton",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_bone_broth",
+    "count": 1
+  }
+}

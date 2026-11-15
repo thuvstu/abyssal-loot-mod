@@ -208,6 +208,11 @@ public final class KillHandler {
     private static void rollMaterialDrops(ServerPlayer player, LivingDeathEvent event, net.minecraft.util.RandomSource rand) {
         boolean isWarden = event.getEntity().getTags().contains(Enemies.WARDEN_TAG);
         boolean isBoss = RunManager.BOSS_BARS.containsKey(event.getEntity());
+        // 魔物素材 (その敵固有) と区域素材 (現在の区域)。出撃中の深淵の敵だけが落とす
+        if (RunManager.isRunLocked(player) && LootHandler.hasAbyssTag(event.getEntity())) {
+            int tier = isBoss ? 3 : isWarden ? 2 : Enemies.isElite(event.getEntity()) ? 1 : 0;
+            ContentHooks.rollKillDrops(player, event.getEntity(), tier, rand);
+        }
         if (isBoss) {
             LootHandler.giveOrDrop(player, new ItemStack(ModItems.VOID_ESSENCE.get(), 1));
             if (rand.nextFloat() < 0.5) LootHandler.giveOrDrop(player, LootHandler.randomMaterial(rand));

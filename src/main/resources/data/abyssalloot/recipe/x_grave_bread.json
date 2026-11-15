@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_grave_soil",
+    "minecraft:wheat"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_grave_bread",
+    "count": 1
+  }
+}

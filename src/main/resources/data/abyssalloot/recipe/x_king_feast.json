@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_goblin_king",
+    "minecraft:cooked_beef",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_king_feast",
+    "count": 1
+  }
+}

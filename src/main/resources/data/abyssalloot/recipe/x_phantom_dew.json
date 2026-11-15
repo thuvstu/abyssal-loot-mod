@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_phantom",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_phantom_dew",
+    "count": 1
+  }
+}

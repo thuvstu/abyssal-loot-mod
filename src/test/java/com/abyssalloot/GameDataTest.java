@@ -532,7 +532,7 @@ public class GameDataTest {
         assertEquals(31, GameData.EXTRA_BOON_MODS.size());
         assertEquals(24, GameData.EXTRA_PASSIVE_MODS.size());
         assertEquals(18, GameData.EXTRA_RELIC_MODS.size());
-        assertEquals(8, GameData.ARMOR_SETS.size());
+        assertEquals(8 + Content.ARMOR_SETS.size(), GameData.ARMOR_SETS.size());
         var setIds = new java.util.HashSet<String>();
         for (var s : GameData.ARMOR_SETS) {
             assertTrue(setIds.add(s.id()));

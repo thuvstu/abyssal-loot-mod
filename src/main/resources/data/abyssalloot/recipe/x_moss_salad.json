@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_corridor_moss",
+    "abyssalloot:abyss_ash_bloom"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_moss_salad",
+    "count": 1
+  }
+}

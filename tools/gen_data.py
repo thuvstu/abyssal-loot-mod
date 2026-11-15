@@ -18,14 +18,15 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import nbt  # noqa: E402
-from art.project import DATA, MOD_ID, Writer, java_source, read_weapon_styles, rel, setup_console  # noqa: E402
+from art import content, nbt  # noqa: E402
+from art.project import LANG, DATA, MOD_ID, Writer, java_source, read_weapon_styles, rel, setup_console  # noqa: E402
 
 NS = f"{MOD_ID}:"
 SHARD = f"{NS}soul_shard"
@@ -182,7 +183,23 @@ def generate(w: Writer) -> dict[str, int]:
     # 消耗品
     for key, ing in CONSUMABLE_RECIPES.items():
         recipe(f"con_{key}", shapeless(ing, f"{NS}abyss_{key}"))
+    # 追加コンテンツの消耗品 (abyssalloot_content.json の recipe)
+    doc = content.load()
+    for c in doc["consumables"]:
+        recipe("x_" + c["id"].removeprefix("abyss_"), shapeless(c["recipe"], NS + c["id"]))
+    # 素材の使い道 (交換・上位素材への変換)
+    for r in doc.get("extra_recipes", []):
+        recipe("x_" + r["name"], shapeless(r["ingredients"], r["result"], r.get("count", 1)))
     counts["recipes"] = n
+
+    # --- 翻訳: 追加コンテンツの名前を lang へ反映 (手書きのキーはそのまま残す)
+    for lang, entries in zip(("ja_jp", "en_us"), content.lang_entries(doc)):
+        path = os.path.join(LANG, f"{lang}.json")
+        with open(path, encoding="utf-8") as f:
+            table = json.load(f)
+        table.update(entries)
+        w.write_json(path, table)
+    counts["lang_keys"] = len(content.lang_entries(doc)[0])
 
     # --- タグ (ビーコンの燃料に欠片を認める)
     w.write_json(os.path.join(DATA, "minecraft", "tags", "item", "beacon_payment_items.json"),
@@ -206,6 +223,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("-v", "--verbose", action="store_true", help="変更したファイルを列挙")
     args = ap.parse_args(argv)
 
+    errs = content.validate()
+    if errs:
+        print("abyssalloot_content.json に問題があります:")
+        for e in errs:
+            print("  ", e)
+        return 1
     w = Writer(check=args.check, verbose=args.verbose)
     counts = generate(w)
     w.flush()

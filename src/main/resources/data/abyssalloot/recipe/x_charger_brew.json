@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_charger",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_charger_brew",
+    "count": 1
+  }
+}

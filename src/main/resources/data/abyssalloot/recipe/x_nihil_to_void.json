@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_nihil"
+  ],
+  "result": {
+    "id": "abyssalloot:void_essence",
+    "count": 3
+  }
+}

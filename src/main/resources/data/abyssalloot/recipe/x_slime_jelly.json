@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:soul_shard",
+    "abyssalloot:abyss_trophy_slime"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_slime_jelly",
+    "count": 1
+  }
+}

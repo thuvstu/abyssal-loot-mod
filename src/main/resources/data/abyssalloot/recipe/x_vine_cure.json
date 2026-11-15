@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_bone_crystal",
+    "abyssalloot:abyss_creeping_vine"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_cure",
+    "count": 2
+  }
+}

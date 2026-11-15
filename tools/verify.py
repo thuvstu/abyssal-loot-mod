@@ -514,6 +514,54 @@ def check_weapon_arts(rep: Report) -> None:
     rep.note(f"weapon styles {len(consts)}")
 
 
+# ================================================================ content
+
+def check_content(rep: Report) -> None:
+    """abyssalloot_content.json: 定義の矛盾 / アイテム定義・翻訳の欠け / 存在しない敵・素材の参照。"""
+    from art import content
+
+    doc = content.load()
+    for e in content.validate(doc):
+        rep.err(e)
+    ids = item_ids()
+    want = [e["id"] for g in ("trophies", "zone_materials", "consumables") for e in doc[g]]
+    want += [f"abyss_{s['id']}_{p}" for s in doc["armor_sets"] for p in content.PIECES]
+    missing = sorted(i for i in want if i not in ids)
+    if missing:
+        rep.err(f"アイテム定義が未生成 ({len(missing)} 件。python tools/abyss.py gen): " + " ".join(missing[:10]))
+    ja, _en = content.lang_entries(doc)
+    with io.open(os.path.join(LANG, "ja_jp.json"), encoding="utf-8") as f:
+        table = json.load(f)
+    stale = sorted(k for k, v in ja.items() if table.get(k) != v)
+    if stale:
+        rep.err(f"翻訳が未反映 ({len(stale)} 件。python tools/abyss.py data): " + " ".join(stale[:6]))
+    mobs = set(re.findall(r'reg\("([a-z_]+)"', java_source("ModEntities.java")))
+    for t in doc["trophies"]:
+        if t["mob"] not in mobs:
+            rep.err(f"{t['id']}: 存在しない敵 {t['mob']}")
+    for m in sorted(mobs - {t["mob"] for t in doc["trophies"]}):
+        rep.warn(f"敵 {m} に魔物素材が無い")
+    zones = set(re.findall(r'new Zone\("([a-z_]+)"', java_source("GameData.java")))
+    for m in doc["zone_materials"]:
+        if m["zone"] not in zones:
+            rep.err(f"{m['id']}: 存在しない区域 {m['zone']}")
+    for zone, pool in doc.get("zone_existing_drops", {}).items():
+        if zone not in zones:
+            rep.err(f"zone_existing_drops: 存在しない区域 {zone}")
+        for i in pool:
+            if i not in ids:
+                rep.err(f"zone_existing_drops[{zone}]: 未登録のアイテム {i}")
+    for z in sorted(zones - {m["zone"] for m in doc["zone_materials"]}):
+        rep.err(f"区域 {z} に素材が 1 つも無い")
+    used = {i.split(":", 1)[1] for c in doc["consumables"] for i in c["recipe"] if i.startswith(NS)}
+    used |= {i.split(":", 1)[1] for r in doc.get("extra_recipes", []) for i in r["ingredients"]
+             if i.startswith(NS)}
+    unused = sorted(e["id"] for g in ("trophies", "zone_materials") for e in doc[g] if e["id"] not in used)
+    if unused:
+        rep.warn(f"使い道 (レシピ) の無い素材 {len(unused)} 件: " + " ".join(unused[:8]))
+    rep.note(f"追加アイテム {content.item_count(doc)}")
+
+
 # ================================================================
 
 CHECKS = {
@@ -525,6 +573,7 @@ CHECKS = {
     "advancements": (check_advancements, "進捗の親・アイコン"),
     "loot": (check_loot_modifiers, "グローバルルートモディファイア"),
     "lang": (check_lang, "翻訳 (ja_jp / en_us)"),
+    "content": (check_content, "追加コンテンツ (abyssalloot_content.json)"),
     "entity_models": (check_entity_models, "AbyssModels の部品名・UV"),
     "entity_textures": (check_entity_textures, "MOB テクスチャの実在"),
     "weapon_arts": (check_weapon_arts, "奥義・小技の網羅"),

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_bat",
+    "minecraft:stick"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_bat_skewer",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_boss_eye"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_reveal",
+    "count": 4
+  }
+}

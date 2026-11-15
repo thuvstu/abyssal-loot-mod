@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_knight"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_bulwark",
+    "count": 4
+  }
+}

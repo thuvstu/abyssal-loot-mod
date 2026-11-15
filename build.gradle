@@ -119,6 +119,8 @@ dependencies {
     // 純粋ロジックの単体テスト (GameData等・MC起動不要)
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Content.java が abyssalloot_content.json を読むのに使う (実行時は Minecraft 同梱の Gson)
+    testRuntimeOnly 'com.google.code.gson:gson:2.11.0'
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"

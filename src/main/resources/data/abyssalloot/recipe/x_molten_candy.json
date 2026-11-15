@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_molten_ingot",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_molten_candy",
+    "count": 1
+  }
+}

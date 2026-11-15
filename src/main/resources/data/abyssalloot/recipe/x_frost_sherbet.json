@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_frost_bloom",
+    "minecraft:snowball"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_frost_sherbet",
+    "count": 1
+  }
+}

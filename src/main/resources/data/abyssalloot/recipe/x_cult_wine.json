@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_cultist",
+    "minecraft:sweet_berries"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_cult_wine",
+    "count": 1
+  }
+}

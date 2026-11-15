@@ -1435,7 +1435,8 @@ public final class GameData {
     public record ArmorSet(String id, String name, int trimColor, int accentColor,
                            java.util.Map<String, Double> bonus2, java.util.Map<String, Double> bonus4) {}
 
-    public static final java.util.List<ArmorSet> ARMOR_SETS = java.util.List.of(
+    /** 基本 8 セット。追加セット (abyssalloot_content.json) は ARMOR_SETS で連結される */
+    private static final java.util.List<ArmorSet> BASE_ARMOR_SETS = java.util.List.of(
             new ArmorSet("blood", "血装", 0xff4d6d, 0xffd0d8,
                     java.util.Map.of("lifestealPct", 3.0),
                     java.util.Map.of("damagePct", 12.0, "lifestealPct", 3.0)),
@@ -1460,6 +1461,16 @@ public final class GameData {
             new ArmorSet("ember", "焔装", 0xff6a2b, 0xffd0a0,
                     java.util.Map.of("explodePct", 8.0),
                     java.util.Map.of("explodePct", 8.0, "damagePct", 8.0)));
+
+    public static final java.util.List<ArmorSet> ARMOR_SETS = buildArmorSets();
+
+    private static java.util.List<ArmorSet> buildArmorSets() {
+        var all = new java.util.ArrayList<>(BASE_ARMOR_SETS);
+        for (Content.SetDef d : Content.ARMOR_SETS) {
+            all.add(new ArmorSet(d.id(), d.name(), d.body(), d.trim(), d.bonus2(), d.bonus4()));
+        }
+        return java.util.List.copyOf(all);
+    }
 
     public static ArmorSet armorSetById(String id) {
         for (ArmorSet s : ARMOR_SETS) {

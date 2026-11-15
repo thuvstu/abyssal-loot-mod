@@ -38,7 +38,26 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 - `art/icons.py` — 2D ドット絵 / `art/entities.py` — MOB / `art/equipment.py` — 防具の着用テクスチャ
 - `art/items.py` — display 変換 (握り位置の自動計算)
 
-## 新しいアイテムを足すとき
+## 新しいアイテムを足すとき (推奨: JSON に 1 件足す)
+
+素材・魔物素材・消耗品・防具セットは `src/main/resources/abyssalloot_content.json` に 1 件足して
+`python tools/abyss.py all` を実行するだけでよい。Java (`Content.java` / `ModItems`) が同じ JSON を読んで
+登録し、ツールがアイコン・モデル・レシピ・翻訳を生成する。
+
+| 区分 | 主な項目 | ゲーム内での働き |
+|---|---|---|
+| `armor_sets` | `body` / `trim` (色), `bonus2` / `bonus4` | 4 部位の防具 + 着用テクスチャ + セット効果 |
+| `trophies` | `mob` (敵 ID), `shape`, `color` | その敵が落とす (通常 10% / 精鋭 35% / 番人・層主は確定) |
+| `zone_materials` | `zone` (区域 ID), `shape`, `color` | その区域の敵が落とす (通常 7% / 精鋭 30% / 層主 2 個) |
+| `consumables` | `kind`, `icon`, `recipe` | 右クリックで使用。`kind` は `mix:heal=20;gauge=10;fx=speed,60,1` 形式 |
+| `extra_recipes` | `ingredients`, `result`, `count` | 素材の交換・変換レシピ |
+
+- `shape`: chunk / gem / drop / crystal / splinter / orb / fang / bone / eye / scale / ingot / feather / leaf
+- `icon`: `icons.py` の関数名 (flask / vial / orb …) か `mask:<形>` (bowl / skewer / bread / candy / jelly など)
+- `fx` の効果名: strength / speed / resistance / regeneration / absorption / fire_resistance / haste /
+  jump_boost / night_vision / luck / slow_falling / water_breathing / invisibility
+
+## 新しいアイテムを足すとき (武器など、表に無い種類)
 
 1. Java (`ModItems`) に登録し、`lang/ja_jp.json`・`en_us.json` に名前を追加
 2. `generate_textures.py` の表 (`WEAPON_MODELS` / `CONSUMABLES` など) に 1 行追加

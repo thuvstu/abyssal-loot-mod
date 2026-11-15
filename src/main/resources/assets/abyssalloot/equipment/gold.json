@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "abyssalloot:gold"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "abyssalloot:gold_leggings"
+      }
+    ]
+  }
+}

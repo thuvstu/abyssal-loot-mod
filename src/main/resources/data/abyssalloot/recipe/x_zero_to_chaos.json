@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_zero"
+  ],
+  "result": {
+    "id": "abyssalloot:chaos_gem",
+    "count": 3
+  }
+}

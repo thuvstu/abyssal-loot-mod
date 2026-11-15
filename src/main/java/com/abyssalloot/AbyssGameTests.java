@@ -14,6 +14,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
@@ -43,7 +44,10 @@ public final class AbyssGameTests {
             new Spec("damage_number_is_marker", AbyssGameTests::damageNumberIsMarker, 20),
             new Spec("start_and_retire", AbyssGameTests::startAndRetire, 200),
             new Spec("floor_clear_opens_gate", AbyssGameTests::floorClearOpensGate, 200),
-            new Spec("bossrush_restores_level", AbyssGameTests::bossrushRestoresLevel, 200));
+            new Spec("bossrush_restores_level", AbyssGameTests::bossrushRestoresLevel, 200),
+            new Spec("content_items_registered", AbyssGameTests::contentItemsRegistered, 20),
+            new Spec("mix_consumable_applies", AbyssGameTests::mixConsumableApplies, 40),
+            new Spec("kill_drops_trophy_and_zone_material", AbyssGameTests::killDropsContent, 40));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -186,5 +190,75 @@ public final class AbyssGameTests {
             p.setData(ModAttachments.MODE.get(), "standard");
             h.succeed();
         });
+    }
+
+    // ------------------------------------------------------------------ 追加コンテンツ
+
+    /** abyssalloot_content.json の全アイテムと、区域ドロップ表の参照先が登録されている */
+    private static void contentItemsRegistered(GameTestHelper h) {
+        var missing = new java.util.TreeSet<String>();
+        for (String id : ModItems.CONTENT_ITEMS.keySet()) {
+            if (ModItems.byId(id) == null) missing.add(id);
+        }
+        for (var pool : Content.ZONE_DROPS.values()) {
+            for (String id : pool) if (ModItems.byId(id) == null) missing.add(id);
+        }
+        for (var set : Content.ARMOR_SETS) {
+            for (String piece : List.of("helm", "chest", "legs", "boots")) {
+                String id = "abyss_" + set.id() + "_" + piece;
+                if (ModItems.byId(id) == null) missing.add(id);
+            }
+        }
+        check(h, missing.isEmpty(), "登録されていないアイテム: %s", missing);
+        int total = ModItems.CONTENT_ITEMS.size() + Content.ARMOR_SETS.size() * 4;
+        check(h, total == 100, "追加アイテムが %s 件 (期待: 100)", total);
+        h.succeed();
+    }
+
+    /** mix: 消耗品を使うと、記述どおりの回復とバフが付く */
+    private static void mixConsumableApplies(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        p.setHealth(4f);
+        check(h, Consumables.useConsumable(p, "mix:heal=50;fx=speed,60,1"), "mix 消耗品を使えなかった");
+        var speed = p.getEffect(net.minecraft.world.effect.MobEffects.SPEED);
+        check(h, speed != null, "移動速度上昇が付いていない");
+        check(h, speed.getAmplifier() == 1, "強度が違う: %s", speed.getAmplifier());
+        check(h, speed.getDuration() > 55 * 20, "持続が短い: %s tick", speed.getDuration());
+        check(h, p.getHealth() > 4f, "回復していない: %s", p.getHealth());
+        // 定義済みの全消耗品が例外なく使える
+        for (var c : Content.CONSUMABLES) {
+            check(h, Consumables.useConsumable(p, c.kind()), "使えない消耗品: %s", c.id());
+        }
+        p.removeAllEffects();
+        h.succeed();
+    }
+
+    /** 層主を倒すと、その敵の魔物素材と現在の区域の素材が手に入る */
+    private static void killDropsContent(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        p.setData(ModAttachments.FLOOR.get(), 12);  // 溶鉄の炉
+        var slime = ModEntities.SLIME.get().create(h.getLevel(), EntitySpawnReason.EVENT);
+        check(h, slime != null, "スライムを生成できない");
+        ItemStack trophy = ContentHooks.trophyOf(slime);
+        check(h, !trophy.isEmpty(), "スライムの魔物素材が無い");
+        ContentHooks.rollKillDrops(p, slime, 3, p.getRandom());
+        check(h, p.getInventory().contains(trophy), "層主撃破で魔物素材が手に入っていない");
+        var forge = new java.util.HashSet<>(Content.ZONE_DROPS.get("forge"));
+        int zoneMats = 0;
+        for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
+            ItemStack st = p.getInventory().getItem(i);
+            if (st.isEmpty()) continue;
+            String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+            if (forge.contains(id)) zoneMats += st.getCount();
+        }
+        check(h, zoneMats == 2, "区域素材が %s 個 (期待: 層主は 2 個確定)", zoneMats);
+        // どの敵にも魔物素材が定義されている
+        for (String mob : Content.TROPHY_BY_MOB.keySet()) {
+            check(h, net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(id(mob)),
+                    "魔物素材の対象が存在しない敵: %s", mob);
+        }
+        p.getInventory().clearContent();
+        slime.discard();
+        h.succeed();
     }
 }

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_icefish_scale",
+    "minecraft:cod"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_icefish_grill",
+    "count": 1
+  }
+}

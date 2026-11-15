@@ -1,0 +1,1055 @@
+{
+  "_comment": "追加コンテンツの定義 (Java: Content.java / Python: tools/art/content.py の両方が読む)。ここに 1 件足して `python tools/abyss.py all` を実行すると、登録・アイコン・レシピ・翻訳まで揃う。",
+  "armor_sets": [
+    {
+      "id": "venom",
+      "name": "毒装",
+      "en": "Venom",
+      "body": "6fd65a",
+      "trim": "d8ffc0",
+      "bonus2": {
+        "lifestealPct": 2.0
+      },
+      "bonus4": {
+        "lifestealPct": 2.0,
+        "damagePct": 8.0
+      }
+    },
+    {
+      "id": "void",
+      "name": "虚装",
+      "en": "Void",
+      "body": "8a5cff",
+      "trim": "e2d4ff",
+      "bonus2": {
+        "critDmgPct": 12.0
+      },
+      "bonus4": {
+        "critDmgPct": 12.0,
+        "critPct": 6.0
+      }
+    },
+    {
+      "id": "bone",
+      "name": "骨装",
+      "en": "Bone",
+      "body": "e8e2d0",
+      "trim": "fffdf2",
+      "bonus2": {
+        "maxHpPct": 8.0
+      },
+      "bonus4": {
+        "maxHpPct": 8.0,
+        "armorPct": 6.0
+      }
+    },
+    {
+      "id": "tide",
+      "name": "潮装",
+      "en": "Tide",
+      "body": "3aa8ff",
+      "trim": "c8ecff",
+      "bonus2": {
+        "moveSpeedPct": 6.0
+      },
+      "bonus4": {
+        "moveSpeedPct": 6.0,
+        "energyPct": 15.0
+      }
+    },
+    {
+      "id": "gold",
+      "name": "金装",
+      "en": "Gilded",
+      "body": "ffd23c",
+      "trim": "fff4c0",
+      "bonus2": {
+        "critPct": 5.0
+      },
+      "bonus4": {
+        "critPct": 5.0,
+        "damagePct": 10.0
+      }
+    },
+    {
+      "id": "wind",
+      "name": "風装",
+      "en": "Gale",
+      "body": "9fe8d8",
+      "trim": "e8fff8",
+      "bonus2": {
+        "attackSpeedPct": 6.0
+      },
+      "bonus4": {
+        "attackSpeedPct": 6.0,
+        "moveSpeedPct": 8.0
+      }
+    }
+  ],
+  "trophies": [
+    {
+      "id": "abyss_trophy_slime",
+      "mob": "abyss_slime",
+      "name": "粘核",
+      "en": "Slime Core",
+      "shape": "orb",
+      "color": "6fd68a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_bat",
+      "mob": "abyss_bat",
+      "name": "蝙蝠の翼膜",
+      "en": "Bat Membrane",
+      "shape": "feather",
+      "color": "6a5a8a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_goblin",
+      "mob": "abyss_goblin",
+      "name": "小鬼の牙",
+      "en": "Goblin Fang",
+      "shape": "fang",
+      "color": "d8d0b0",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_skeleton",
+      "mob": "abyss_skeleton",
+      "name": "呪骨",
+      "en": "Cursed Bone",
+      "shape": "bone",
+      "color": "e8e2d0",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_imp",
+      "mob": "abyss_imp",
+      "name": "小悪魔の角",
+      "en": "Imp Horn",
+      "shape": "fang",
+      "color": "c84a5a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_bomber",
+      "mob": "abyss_bomber",
+      "name": "火薬袋",
+      "en": "Powder Sac",
+      "shape": "drop",
+      "color": "ff8a3c",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_trophy_splitter",
+      "mob": "abyss_splitter",
+      "name": "分裂核",
+      "en": "Split Core",
+      "shape": "orb",
+      "color": "8ff06e",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_wraith",
+      "mob": "abyss_wraith",
+      "name": "怨霊の布",
+      "en": "Wraith Shroud",
+      "shape": "feather",
+      "color": "9a8ecf",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_golem",
+      "mob": "abyss_golem",
+      "name": "岩心",
+      "en": "Golem Heart",
+      "shape": "chunk",
+      "color": "9a8a70",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_phantom",
+      "mob": "abyss_phantom",
+      "name": "幻影の欠片",
+      "en": "Phantom Sliver",
+      "shape": "splinter",
+      "color": "bfd8ff",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_cultist",
+      "mob": "abyss_cultist",
+      "name": "教団の印",
+      "en": "Cult Sigil",
+      "shape": "ingot",
+      "color": "b14bff",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_eye",
+      "mob": "abyss_eye",
+      "name": "魔眼",
+      "en": "Evil Eye",
+      "shape": "eye",
+      "color": "ff4d6d",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_mirrorbat",
+      "mob": "abyss_mirrorbat",
+      "name": "鏡翼",
+      "en": "Mirror Wing",
+      "shape": "feather",
+      "color": "c8e8ff",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_charger",
+      "mob": "abyss_charger",
+      "name": "突角",
+      "en": "Charger Horn",
+      "shape": "fang",
+      "color": "a07850",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_dragonkin",
+      "mob": "abyss_dragonkin",
+      "name": "竜人の鱗",
+      "en": "Dragonkin Scale",
+      "shape": "scale",
+      "color": "4bd07a",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_trophy_guard",
+      "mob": "abyss_guard",
+      "name": "衛兵の徽章",
+      "en": "Guard Crest",
+      "shape": "ingot",
+      "color": "9aa5b5",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_trophy_necromancer",
+      "mob": "abyss_necromancer",
+      "name": "死霊の灯",
+      "en": "Necro Lantern",
+      "shape": "drop",
+      "color": "7cffb2",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_trophy_gate",
+      "mob": "abyss_gate",
+      "name": "門の楔",
+      "en": "Gate Wedge",
+      "shape": "splinter",
+      "color": "8a5cff",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_trophy_goblin_king",
+      "mob": "abyss_goblin_king",
+      "name": "王の冠片",
+      "en": "Crown Fragment",
+      "shape": "ingot",
+      "color": "ffd23c",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_wyrm",
+      "mob": "abyss_wyrm",
+      "name": "竜の逆鱗",
+      "en": "Wyrm Reverse Scale",
+      "shape": "scale",
+      "color": "ff5c2a",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_knight",
+      "mob": "abyss_knight",
+      "name": "騎士の紋章",
+      "en": "Knight Emblem",
+      "shape": "ingot",
+      "color": "d8e0f0",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_boss_eye",
+      "mob": "abyss_boss_eye",
+      "name": "大魔眼",
+      "en": "Great Evil Eye",
+      "shape": "eye",
+      "color": "b14bff",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_nihil",
+      "mob": "abyss_nihil",
+      "name": "虚無の残滓",
+      "en": "Nihil Residue",
+      "shape": "orb",
+      "color": "4a2a6a",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_zero",
+      "mob": "abyss_zero",
+      "name": "零の結晶",
+      "en": "Zero Crystal",
+      "shape": "crystal",
+      "color": "e8f8ff",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_omega",
+      "mob": "abyss_omega",
+      "name": "終焉の核",
+      "en": "Omega Core",
+      "shape": "gem",
+      "color": "ff2a55",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_trophy_ascender",
+      "mob": "abyss_ascender",
+      "name": "超越の羽",
+      "en": "Ascender Plume",
+      "shape": "feather",
+      "color": "ffe9a8",
+      "rarity": "epic"
+    }
+  ],
+  "zone_materials": [
+    {
+      "id": "abyss_ash_bloom",
+      "name": "灰の花",
+      "en": "Ash Bloom",
+      "zone": "ash",
+      "shape": "leaf",
+      "color": "a8a8b0",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_cinder_stone",
+      "name": "残り灰の石",
+      "en": "Cinder Stone",
+      "zone": "ash",
+      "shape": "chunk",
+      "color": "6a6470",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_corridor_moss",
+      "name": "回廊の苔",
+      "en": "Corridor Moss",
+      "zone": "ash",
+      "shape": "leaf",
+      "color": "6a9a5a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_grave_soil",
+      "name": "墓土",
+      "en": "Grave Soil",
+      "zone": "ossuary",
+      "shape": "chunk",
+      "color": "6a5040",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_bone_crystal",
+      "name": "骨粉晶",
+      "en": "Bone Crystal",
+      "zone": "ossuary",
+      "shape": "crystal",
+      "color": "f0ead8",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_creeping_vine",
+      "name": "這う蔦",
+      "en": "Creeping Vine",
+      "zone": "ossuary",
+      "shape": "leaf",
+      "color": "4a8a4a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_molten_ingot",
+      "name": "溶鉄塊",
+      "en": "Molten Ingot",
+      "zone": "forge",
+      "shape": "ingot",
+      "color": "ff7a2a",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_spark_stone",
+      "name": "火花石",
+      "en": "Spark Stone",
+      "zone": "forge",
+      "shape": "gem",
+      "color": "ffc23c",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_soot_steel",
+      "name": "煤鋼",
+      "en": "Soot Steel",
+      "zone": "forge",
+      "shape": "ingot",
+      "color": "5a5a66",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_everfrost",
+      "name": "永久氷",
+      "en": "Everfrost",
+      "zone": "glacier",
+      "shape": "crystal",
+      "color": "bfefff",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_frost_bloom",
+      "name": "霜の花",
+      "en": "Frost Bloom",
+      "zone": "glacier",
+      "shape": "leaf",
+      "color": "d8f4ff",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_icefish_scale",
+      "name": "氷魚の鱗",
+      "en": "Icefish Scale",
+      "zone": "glacier",
+      "shape": "scale",
+      "color": "7cc8e8",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_warp_shard",
+      "name": "歪みの欠片",
+      "en": "Warp Shard",
+      "zone": "voidheart",
+      "shape": "splinter",
+      "color": "b14bff",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_gravity_core",
+      "name": "引力核",
+      "en": "Gravity Core",
+      "zone": "voidheart",
+      "shape": "orb",
+      "color": "5a3a9a",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_hollow_silk",
+      "name": "虚ろな絹",
+      "en": "Hollow Silk",
+      "zone": "voidheart",
+      "shape": "feather",
+      "color": "d0c0f0",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_null_sand",
+      "name": "無の砂",
+      "en": "Null Sand",
+      "zone": "nihil",
+      "shape": "chunk",
+      "color": "3a3448",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_lost_light",
+      "name": "帰らずの灯",
+      "en": "Lost Light",
+      "zone": "nihil",
+      "shape": "drop",
+      "color": "fff0c0",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_abyssal_pearl",
+      "name": "深底の真珠",
+      "en": "Abyssal Pearl",
+      "zone": "lower_abyss",
+      "shape": "orb",
+      "color": "2ad0c0",
+      "rarity": "epic"
+    },
+    {
+      "id": "abyss_endless_iron",
+      "name": "果ての鉄",
+      "en": "Endless Iron",
+      "zone": "lower_abyss",
+      "shape": "ingot",
+      "color": "8090b0",
+      "rarity": "rare"
+    },
+    {
+      "id": "abyss_silent_bloom",
+      "name": "沈黙の花",
+      "en": "Silent Bloom",
+      "zone": "lower_abyss",
+      "shape": "leaf",
+      "color": "6a4a9a",
+      "rarity": "rare"
+    }
+  ],
+  "zone_existing_drops": {
+    "ash": [
+      "abyss_ash_powder",
+      "abyss_bone_charm",
+      "abyss_teardrop"
+    ],
+    "ossuary": [
+      "abyss_bloodroot",
+      "abyss_venom_sac",
+      "abyss_iron_rose"
+    ],
+    "forge": [
+      "abyss_ember",
+      "abyss_lava_pearl",
+      "abyss_gold_vein"
+    ],
+    "glacier": [
+      "abyss_frost_prism",
+      "abyss_mist_wisp",
+      "abyss_moonstone"
+    ],
+    "voidheart": [
+      "abyss_void_splinter",
+      "abyss_night_pearl",
+      "abyss_thunder_thread"
+    ],
+    "nihil": [
+      "abyss_star_seed",
+      "abyss_void_splinter"
+    ],
+    "lower_abyss": [
+      "abyss_star_seed",
+      "abyss_night_pearl",
+      "abyss_thunder_thread"
+    ]
+  },
+  "consumables": [
+    {
+      "id": "abyss_slime_jelly",
+      "name": "粘核ゼリー",
+      "en": "Slime Jelly",
+      "kind": "mix:heal=20;fx=jump_boost,60,1",
+      "icon": "mask:jelly",
+      "color": "6fd68a",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:soul_shard",
+        "abyssalloot:abyss_trophy_slime"
+      ]
+    },
+    {
+      "id": "abyss_bat_skewer",
+      "name": "蝙蝠の串焼き",
+      "en": "Bat Skewer",
+      "kind": "mix:heal=15;fx=night_vision,180,0",
+      "icon": "mask:skewer",
+      "color": "8a6a5a",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_trophy_bat",
+        "minecraft:stick"
+      ]
+    },
+    {
+      "id": "abyss_goblin_stew",
+      "name": "小鬼鍋",
+      "en": "Goblin Stew",
+      "kind": "mix:heal=35;fx=strength,30,0",
+      "icon": "mask:bowl",
+      "color": "c8a060",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_trophy_goblin",
+        "minecraft:bowl",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_bone_broth",
+      "name": "呪骨の出汁",
+      "en": "Bone Broth",
+      "kind": "mix:heal=25;fx=resistance,45,0",
+      "icon": "mask:bowl",
+      "color": "e8e2d0",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_trophy_skeleton",
+        "minecraft:bowl"
+      ]
+    },
+    {
+      "id": "abyss_moss_salad",
+      "name": "苔のサラダ",
+      "en": "Moss Salad",
+      "kind": "mix:heal=15;fx=regeneration,20,0",
+      "icon": "mask:bowl",
+      "color": "6a9a5a",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_corridor_moss",
+        "abyssalloot:abyss_ash_bloom"
+      ]
+    },
+    {
+      "id": "abyss_grave_bread",
+      "name": "墓土パン",
+      "en": "Grave Bread",
+      "kind": "mix:heal=30",
+      "icon": "mask:bread",
+      "color": "8a6a4a",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_grave_soil",
+        "minecraft:wheat"
+      ]
+    },
+    {
+      "id": "abyss_molten_candy",
+      "name": "溶鉄飴",
+      "en": "Molten Candy",
+      "kind": "mix:gauge=25;fx=fire_resistance,120,0",
+      "icon": "mask:candy",
+      "color": "ff7a2a",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_molten_ingot",
+        "minecraft:sugar"
+      ]
+    },
+    {
+      "id": "abyss_frost_sherbet",
+      "name": "霜花シャーベット",
+      "en": "Frost Sherbet",
+      "kind": "mix:heal=20;gauge=20",
+      "icon": "mask:bowl",
+      "color": "d8f4ff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_frost_bloom",
+        "minecraft:snowball"
+      ]
+    },
+    {
+      "id": "abyss_icefish_grill",
+      "name": "氷魚の塩焼き",
+      "en": "Grilled Icefish",
+      "kind": "mix:heal=45;fx=water_breathing,120,0",
+      "icon": "mask:skewer",
+      "color": "7cc8e8",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_icefish_scale",
+        "minecraft:cod"
+      ]
+    },
+    {
+      "id": "abyss_void_tea",
+      "name": "虚ろ茶",
+      "en": "Hollow Tea",
+      "kind": "mix:gauge=50",
+      "icon": "vial",
+      "color": "d0c0f0",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_hollow_silk",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_imp_tonic",
+      "name": "小悪魔の強壮剤",
+      "en": "Imp Tonic",
+      "kind": "mix:fx=strength,90,1",
+      "icon": "vial",
+      "color": "c84a5a",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_imp",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_powder_draught",
+      "name": "火薬酒",
+      "en": "Powder Draught",
+      "kind": "mix:fx=strength,45,1;fx=speed,45,0",
+      "icon": "flask",
+      "color": "ff8a3c",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_bomber",
+        "minecraft:glass_bottle"
+      ]
+    },
+    {
+      "id": "abyss_split_serum",
+      "name": "分裂血清",
+      "en": "Split Serum",
+      "kind": "mix:fx=regeneration,45,1",
+      "icon": "vial",
+      "color": "8ff06e",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_splitter",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_shroud_elixir",
+      "name": "怨霊の霊薬",
+      "en": "Shroud Elixir",
+      "kind": "mix:fx=invisibility,30,0;fx=speed,30,1",
+      "icon": "vial",
+      "color": "9a8ecf",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_wraith",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_golem_draught",
+      "name": "岩心の薬湯",
+      "en": "Golem Draught",
+      "kind": "mix:fx=resistance,90,1",
+      "icon": "flask",
+      "color": "9a8a70",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_golem",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_phantom_dew",
+      "name": "幻影の露",
+      "en": "Phantom Dew",
+      "kind": "mix:fx=slow_falling,90,0;fx=jump_boost,90,1",
+      "icon": "vial",
+      "color": "bfd8ff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_phantom",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_cult_wine",
+      "name": "教団の葡萄酒",
+      "en": "Cult Wine",
+      "kind": "mix:gauge=60;heal=10",
+      "icon": "flask",
+      "color": "b14bff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_cultist",
+        "minecraft:sweet_berries"
+      ]
+    },
+    {
+      "id": "abyss_eye_drops",
+      "name": "魔眼の目薬",
+      "en": "Evil Eye Drops",
+      "kind": "mix:fx=night_vision,300,0;fx=luck,120,0",
+      "icon": "vial",
+      "color": "ff4d6d",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_eye",
+        "minecraft:glass_bottle"
+      ]
+    },
+    {
+      "id": "abyss_mirror_tonic",
+      "name": "鏡翼の妙薬",
+      "en": "Mirror Tonic",
+      "kind": "mix:fx=speed,90,1",
+      "icon": "vial",
+      "color": "c8e8ff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_mirrorbat",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_charger_brew",
+      "name": "突角の醸造酒",
+      "en": "Charger Brew",
+      "kind": "mix:fx=speed,60,2;fx=haste,60,0",
+      "icon": "flask",
+      "color": "a07850",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_charger",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_scale_elixir",
+      "name": "竜鱗の秘薬",
+      "en": "Scale Elixir",
+      "kind": "mix:fx=fire_resistance,180,0;fx=resistance,60,0",
+      "icon": "vial",
+      "color": "4bd07a",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_trophy_dragonkin",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_guard_ration",
+      "name": "衛兵の携行食",
+      "en": "Guard Ration",
+      "kind": "mix:heal=40;fx=absorption,90,1",
+      "icon": "mask:bread",
+      "color": "9aa5b5",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_trophy_guard",
+        "minecraft:bread"
+      ]
+    },
+    {
+      "id": "abyss_necro_oil",
+      "name": "死霊灯の油",
+      "en": "Necro Lamp Oil",
+      "kind": "mix:fx=regeneration,30,2",
+      "icon": "vial",
+      "color": "7cffb2",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_trophy_necromancer",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_spark_tonic",
+      "name": "火花の強壮剤",
+      "en": "Spark Tonic",
+      "kind": "mix:fx=haste,120,1;gauge=15",
+      "icon": "vial",
+      "color": "ffc23c",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_spark_stone",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_everfrost_elixir",
+      "name": "永久氷の霊薬",
+      "en": "Everfrost Elixir",
+      "kind": "mix:fx=resistance,120,0;fx=fire_resistance,120,0",
+      "icon": "vial",
+      "color": "bfefff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_everfrost",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_gravity_draught",
+      "name": "引力の秘薬",
+      "en": "Gravity Draught",
+      "kind": "mix:fx=slow_falling,60,0;fx=strength,60,1",
+      "icon": "flask",
+      "color": "5a3a9a",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_gravity_core",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_lost_light_dew",
+      "name": "帰らずの灯の雫",
+      "en": "Dew of Lost Light",
+      "kind": "mix:heal=100;gauge=100",
+      "icon": "orb",
+      "color": "fff0c0",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_lost_light",
+        "abyssalloot:abyss_null_sand",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_pearl_tonic",
+      "name": "深底真珠の秘薬",
+      "en": "Abyssal Pearl Tonic",
+      "kind": "mix:fx=absorption,120,3;fx=regeneration,60,1",
+      "icon": "orb",
+      "color": "2ad0c0",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_abyssal_pearl",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_king_feast",
+      "name": "王の晩餐",
+      "en": "King's Feast",
+      "kind": "mix:heal=80;fx=strength,120,1;fx=absorption,120,1",
+      "icon": "mask:bowl",
+      "color": "ffd23c",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_trophy_goblin_king",
+        "minecraft:cooked_beef",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_wyrm_blood",
+      "name": "竜血の霊薬",
+      "en": "Wyrm Blood Elixir",
+      "kind": "mix:fx=strength,120,2;fx=regeneration,60,1",
+      "icon": "flask",
+      "color": "ff5c2a",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_trophy_wyrm",
+        "abyssalloot:soul_shard"
+      ]
+    }
+  ],
+  "extra_recipes": [
+    {
+      "name": "gate_to_tele",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_gate",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:abyss_tele_a",
+      "count": 2
+    },
+    {
+      "name": "knight_to_bulwark",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_knight"
+      ],
+      "result": "abyssalloot:abyss_bulwark",
+      "count": 4
+    },
+    {
+      "name": "boss_eye_to_reveal",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_boss_eye"
+      ],
+      "result": "abyssalloot:abyss_reveal",
+      "count": 4
+    },
+    {
+      "name": "nihil_to_void",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_nihil"
+      ],
+      "result": "abyssalloot:void_essence",
+      "count": 3
+    },
+    {
+      "name": "zero_to_chaos",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_zero"
+      ],
+      "result": "abyssalloot:chaos_gem",
+      "count": 3
+    },
+    {
+      "name": "omega_to_bale",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_omega"
+      ],
+      "result": "abyssalloot:soul_shard_bale",
+      "count": 1
+    },
+    {
+      "name": "ascender_to_overcharge",
+      "ingredients": [
+        "abyssalloot:abyss_trophy_ascender"
+      ],
+      "result": "abyssalloot:abyss_overcharge",
+      "count": 4
+    },
+    {
+      "name": "cinder_to_ancient",
+      "ingredients": [
+        "abyssalloot:abyss_cinder_stone",
+        "abyssalloot:abyss_cinder_stone",
+        "abyssalloot:abyss_cinder_stone",
+        "abyssalloot:abyss_cinder_stone"
+      ],
+      "result": "abyssalloot:ancient_stone",
+      "count": 1
+    },
+    {
+      "name": "vine_cure",
+      "ingredients": [
+        "abyssalloot:abyss_bone_crystal",
+        "abyssalloot:abyss_creeping_vine"
+      ],
+      "result": "abyssalloot:abyss_cure",
+      "count": 2
+    },
+    {
+      "name": "soot_iron_skin",
+      "ingredients": [
+        "abyssalloot:abyss_soot_steel",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:abyss_irn",
+      "count": 2
+    },
+    {
+      "name": "warp_to_chaos",
+      "ingredients": [
+        "abyssalloot:abyss_warp_shard",
+        "abyssalloot:abyss_warp_shard",
+        "abyssalloot:abyss_warp_shard"
+      ],
+      "result": "abyssalloot:chaos_gem",
+      "count": 1
+    },
+    {
+      "name": "endless_to_core",
+      "ingredients": [
+        "abyssalloot:abyss_endless_iron",
+        "abyssalloot:abyss_endless_iron",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:abyss_ancient_core",
+      "count": 1
+    },
+    {
+      "name": "silent_smoke",
+      "ingredients": [
+        "abyssalloot:abyss_silent_bloom",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:abyss_smoke",
+      "count": 2
+    }
+  ]
+}

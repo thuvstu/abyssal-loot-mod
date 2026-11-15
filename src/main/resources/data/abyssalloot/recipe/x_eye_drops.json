@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_eye",
+    "minecraft:glass_bottle"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_eye_drops",
+    "count": 1
+  }
+}

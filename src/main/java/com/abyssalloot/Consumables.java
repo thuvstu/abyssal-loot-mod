@@ -28,6 +28,7 @@ public final class Consumables {
     private Consumables() {}
 
     public static String consumableDesc(String kind) {
+        if (Content.isMix(kind)) return Content.describeMix(kind);
         return switch (kind) {
             case "heal_30" -> "HPを30%回復";
             case "heal_70" -> "HPを70%回復";
@@ -107,6 +108,8 @@ public final class Consumables {
 
     /** 効果を適用。false = 未知の種類・使用不可 (個数を消費しない) */
     private static boolean applyConsumable(ServerPlayer player, ServerLevel level, Vec3 origin, String kind) {
+        // 追加コンテンツの消耗品 (回復・ゲージ・バフの組み合わせ)
+        if (Content.isMix(kind)) return ContentHooks.applyMix(player, kind);
         Boolean result = applyRecovery(player, kind);
         if (result == null) result = applyBuffs(player, level, origin, kind);
         if (result == null) result = applyOffensive(player, level, origin, kind);

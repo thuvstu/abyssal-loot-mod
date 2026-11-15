@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_guard",
+    "minecraft:bread"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_guard_ration",
+    "count": 1
+  }
+}

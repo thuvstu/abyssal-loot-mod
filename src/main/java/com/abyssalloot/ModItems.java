@@ -120,7 +120,8 @@ public final class ModItems {
 
     private static java.util.Map<String, DeferredItem<Item>> buildSetPieces() {
         var map = new java.util.LinkedHashMap<String, DeferredItem<Item>>();
-        for (String set : new String[]{"blood", "shadow", "rock", "star", "frost", "storm", "moon", "ember"}) {
+        for (GameData.ArmorSet def : GameData.ARMOR_SETS) {
+            String set = def.id();
             map.put(set + "_helm", armor("abyss_" + set + "_helm", Rarity.COMMON, EquipmentSlot.HEAD, set));
             map.put(set + "_chest", armor("abyss_" + set + "_chest", Rarity.COMMON, EquipmentSlot.CHEST, set));
             map.put(set + "_legs", armor("abyss_" + set + "_legs", Rarity.COMMON, EquipmentSlot.LEGS, set));
@@ -274,6 +275,43 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_STAR_SEED = ITEMS.registerSimpleItem("abyss_star_seed",
             () -> new Item.Properties().rarity(Rarity.RARE));
 
+    /**
+     * 追加コンテンツ (abyssalloot_content.json): 魔物素材・区域素材・消耗品。ID -> アイテム.
+     * ドロップと効果は ContentHooks、アイコン・レシピ・翻訳は tools が同じ JSON から生成する.
+     */
+    public static final java.util.Map<String, DeferredItem<Item>> CONTENT_ITEMS = buildContentItems();
+
+    private static Rarity rarityOf(String name) {
+        return switch (name) {
+            case "uncommon" -> Rarity.UNCOMMON;
+            case "rare" -> Rarity.RARE;
+            case "epic" -> Rarity.EPIC;
+            default -> Rarity.COMMON;
+        };
+    }
+
+    private static java.util.Map<String, DeferredItem<Item>> buildContentItems() {
+        var map = new java.util.LinkedHashMap<String, DeferredItem<Item>>();
+        for (Content.TrophyDef d : Content.TROPHIES) {
+            Rarity r = rarityOf(d.rarity());
+            map.put(d.id(), ITEMS.registerSimpleItem(d.id(), () -> new Item.Properties().rarity(r)));
+        }
+        for (Content.ZoneMaterialDef d : Content.ZONE_MATERIALS) {
+            Rarity r = rarityOf(d.rarity());
+            map.put(d.id(), ITEMS.registerSimpleItem(d.id(), () -> new Item.Properties().rarity(r)));
+        }
+        for (Content.ConsumableDef d : Content.CONSUMABLES) {
+            map.put(d.id(), consumable(d.id(), d.kind(), rarityOf(d.rarity())));
+        }
+        return java.util.Collections.unmodifiableMap(map);
+    }
+
+    /** アイテム ID (abyss_teardrop など) から登録済みアイテムを引く。無ければ null */
+    public static Item byId(String id) {
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
+                net.minecraft.resources.Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, id)).orElse(null);
+    }
+
     /** 魂の欠片圧縮 (9個→袋→包→核。欠片のインベントリを整える) */
     public static final DeferredItem<Item> SOUL_SHARD_POUCH = ITEMS.registerSimpleItem("soul_shard_pouch",
             () -> new Item.Properties().rarity(Rarity.UNCOMMON));
@@ -413,6 +451,7 @@ public final class ModItems {
                         output.accept(ABYSS_LEGS.get());
                         output.accept(ABYSS_BOOTS.get());
                         for (var piece : SET_PIECES.values()) output.accept(piece.get());
+                        for (var extra : CONTENT_ITEMS.values()) output.accept(extra.get());
                         output.accept(SOUL_SHARD_POUCH.get());
                         output.accept(SOUL_SHARD_BALE.get());
                         output.accept(SOUL_SHARD_CORE.get());

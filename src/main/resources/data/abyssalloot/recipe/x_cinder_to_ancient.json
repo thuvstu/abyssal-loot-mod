@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_cinder_stone",
+    "abyssalloot:abyss_cinder_stone",
+    "abyssalloot:abyss_cinder_stone",
+    "abyssalloot:abyss_cinder_stone"
+  ],
+  "result": {
+    "id": "abyssalloot:ancient_stone",
+    "count": 1
+  }
+}
