@@ -2,7 +2,6 @@ package com.abyssalloot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
@@ -25,42 +24,31 @@ public class ForgeScreen extends AbstractContainerScreen<ForgeMenu> {
     @Override
     protected void init() {
         super.init();
-        addRenderableWidget(Button.builder(Component.literal("合成する"), b -> {
+        addRenderableWidget(UiButton.of("合成する", leftPos + 53, topPos + 58, 70, 16, UiKit.GOLD, () -> {
             var conn = Minecraft.getInstance().getConnection();
             if (conn != null) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ForgePacket()));
             }
-        }).bounds(leftPos + 53, topPos + 57, 70, 20).build());
+        }));
     }
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        // 背景パネル (バニラの作業台に寄せた暗色)
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF555566);
-        g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF555566);
-        g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
-        g.fill(leftPos, topPos + imageHeight - 1, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
-        // スロット枠
-        slotFrame(g, 44, 35);
-        slotFrame(g, 116, 35);
-        // 合成方向の矢印
-        g.drawString(font, "→", leftPos + 84, topPos + 39, 0xFFE8C86A, false);
-    }
-
-    private void slotFrame(GuiGraphics g, int x, int y) {
-        int x0 = leftPos + x - 1, y0 = topPos + y - 1;
-        g.fill(x0, y0, x0 + 18, y0 + 18, 0xFF111116);
-        g.fill(x0 + 1, y0 + 1, x0 + 17, y0 + 17, 0xFF3A3A44);
+        UiKit.containerPanel(g, menu, leftPos, topPos, imageWidth, imageHeight, UiKit.GOLD);
+        // 合成スロットを色枠で強調し、間に合成方向の矢印
+        g.renderOutline(leftPos + 42, topPos + 33, 20, 20, UiKit.alpha(UiKit.CYAN, 0xC0));
+        g.renderOutline(leftPos + 114, topPos + 33, 20, 20, UiKit.alpha(UiKit.GOLD, 0xC0));
+        g.drawCenteredString(font, ">>", leftPos + 88, topPos + 39, UiKit.GOLD);
+        UiKit.divider(g, leftPos + 6, leftPos + imageWidth - 6, topPos + inventoryLabelY - 4, UiKit.GOLD);
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(font, title, titleLabelX, titleLabelY, 0xFFFFFFFF, false);
-        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFFAAAAAA, false);
+        g.drawString(font, "◆ " + title.getString(), titleLabelX, titleLabelY, UiKit.TITLE, false);
+        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, UiKit.SUB, false);
         if (minecraft == null || minecraft.player == null) return;
-        g.drawString(font, "本体", 44, 24, 0xFF8BE9FF, false);
-        g.drawString(font, "素材", 116, 24, 0xFFE8C86A, false);
+        g.drawString(font, "本体", 44, 23, UiKit.CYAN, false);
+        g.drawString(font, "素材", 116, 23, UiKit.GOLD, false);
 
         ItemStack main = menu.getSlot(ForgeMenu.SLOT_WEAPON).getItem();
         ItemStack sub = menu.getSlot(ForgeMenu.SLOT_MATERIAL).getItem();

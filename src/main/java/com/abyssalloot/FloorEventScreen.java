@@ -102,22 +102,24 @@ public class FloorEventScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        super.render(g, mouseX, mouseY, partialTick);
         int cx = width / 2;
         int cy = cardY();
         int ch = ids.size() * 34 + (footer != null && !footer.isEmpty() ? 18 : 4)
                 + (portalOpen ? 30 : 0);
-        // パネル背景 (カード群を囲む)
-        int px0 = cx - 200;
-        int px1 = cx + 200;
+        // パネル (カード群を囲む)
+        int px0 = cardX() - 10;
+        int px1 = cardX() + cardW() + 10;
         int py0 = cy - 36;
-        int py1 = cy + ch + 16;
-        g.fill(px0, py0, px1, py1, 0xC010141E);
-        g.fill(px0, py0, px1, py0 + 1, 0xFF5A6478);
-        g.fill(px0, py1 - 1, px1, py1, 0xFF5A6478);
-        g.fill(px0, py0, px0 + 1, py1, 0xFF5A6478);
-        g.fill(px1 - 1, py0, px1, py1, 0xFF5A6478);
-        g.drawCenteredString(font, title, cx, py0 + 6, frameColor());
+        int py1 = cy + ch + 8;
+        UiKit.panel(g, px0, py0, px1, py1, frameColor());
+        UiKit.titleBar(g, font, px0, px1, py0, title, frameColor());
+        String kind = switch (mode) {
+            case "relic" -> "遺物";
+            case "passive" -> "技能";
+            default -> "層間イベント";
+        };
+        UiKit.chip(g, font, kind, px0 + 8, py0 + 20, frameColor());
+        super.render(g, mouseX, mouseY, partialTick);
         int y = cy;
         for (int i = 0; i < ids.size(); i++) {
             drawChoice(g, i, cardX(), y, cardW(), mouseX, mouseY);
@@ -130,24 +132,20 @@ public class FloorEventScreen extends Screen {
         if (portalOpen) {
             boolean hover = mouseX >= cx - 90 && mouseX < cx + 90
                     && mouseY >= y + 8 && mouseY < y + 28;
-            g.fill(cx - 90, y + 8, cx + 90, y + 28, hover ? 0xFF2F5B33 : 0xFF26382A);
-            g.fill(cx - 90, y + 8, cx + 90, y + 9, 0xFF7CFFB2);
-            g.fill(cx - 90, y + 27, cx + 90, y + 28, 0xFF7CFFB2);
-            g.drawCenteredString(font, "▶ 次の層へ進む", cx, y + 13, 0xFF7CFFB2);
+            UiKit.card(g, cx - 90, y + 8, 180, 20, UiKit.GREEN, hover);
+            g.drawCenteredString(font, "▶ 次の層へ進む", cx + 2, y + 14, hover ? UiKit.TITLE : UiKit.GREEN);
         }
+        UiKit.keyHints(g, font, cx, py1 + 6, "1〜" + Math.max(1, ids.size()), "選ぶ", "ESC", "後で選ぶ");
     }
 
     private void drawChoice(GuiGraphics g, int i, int x, int y, int w, int mouseX, int mouseY) {
         boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 30;
-        g.fill(x, y, x + w, y + 30, hover ? 0xFF3A3A46 : 0xFF26262E);
         int frame = frameColor();
-        g.fill(x, y, x + w, y + 1, frame);
-        g.fill(x, y + 29, x + w, y + 30, frame);
-        g.fill(x, y, x + 1, y + 30, frame);
-        g.fill(x + w - 1, y, x + w, y + 30, frame);
-        g.drawString(font, (i + 1) + ". " + (i < names.size() ? names.get(i) : ids.get(i)),
-                x + 12, y + 4, frame, false);
-        g.drawString(font, i < descs.size() ? descs.get(i) : "", x + 12, y + 17, 0xFFC9CFDE, false);
+        UiKit.card(g, x, y, w, 30, frame, hover);
+        g.drawString(font, String.valueOf(i + 1), x + 9, y + 11, frame, true);
+        g.drawString(font, i < names.size() ? names.get(i) : ids.get(i), x + 20, y + 5,
+                hover ? UiKit.TITLE : frame, false);
+        g.drawString(font, i < descs.size() ? descs.get(i) : "", x + 20, y + 17, 0xFFC9CFDE, false);
     }
 
     @Override

@@ -60,35 +60,43 @@ public class BoonSelectScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.drawCenteredString(font, "◆ レベルアップ — 祝福を選べ ◆", width / 2, height / 2 - 108, 0xFFFFD23C);
-        g.drawCenteredString(font, "未選択の残り " + Math.max(1, remaining) + "件 / 閉じても失われない",
-                width / 2, height / 2 - 92, 0xFF9FB0C9);
+        int x0 = choiceX() - 12;
+        int x1 = choiceX() + choiceW() + 12;
+        int y0 = choiceY() - 44;
+        int y1 = choiceY() + choices.size() * 28 + 8;
+        UiKit.panel(g, x0, y0, x1, y1, UiKit.GOLD);
+        UiKit.titleBar(g, font, x0, x1, y0, "レベルアップ — 祝福を選べ", UiKit.GOLD);
+        g.drawCenteredString(font, "未選択の残り " + Math.max(1, remaining) + " 件 (閉じても失われない)",
+                width / 2, y0 + 24, UiKit.SUB);
         int y = choiceY();
         for (int i = 0; i < choices.size(); i++) {
             drawChoice(g, i, choiceX(), y, choiceW(), mouseX, mouseY);
             y += 28;
         }
-        g.drawCenteredString(font, "数字キー 1〜3 でも選択 / ESC で後に選ぶ (G→祝福を選ぶ)", width / 2, y + 12, 0xFF6E7686);
+        UiKit.keyHints(g, font, width / 2, y1 + 6, "1〜" + Math.max(1, choices.size()), "選ぶ", "ESC", "後で (G→祝福を選ぶ)");
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    /** 等級色の枠 + 名前/効果のカード */
+    /** 等級色の帯つきカード: 番号・名前・等級ラベル / 効果 */
     private void drawChoice(GuiGraphics g, int i, int x, int y, int w, int mouseX, int mouseY) {
         var def = Boons.boonById(choices.get(i));
         if (def == null) return;
         boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 24;
-        g.fill(x, y, x + w, y + 24, hover ? 0xFF3A3A46 : 0xFF26262E);
         int frame = switch (def.grade()) {
             case "epic" -> 0xFFB44BFF;
             case "rare" -> 0xFF4BA8FF;
             default -> 0xFF6EF08A;
         };
-        g.fill(x, y, x + w, y + 1, frame);
-        g.fill(x, y + 23, x + w, y + 24, frame);
-        g.fill(x, y, x + 1, y + 24, frame);
-        g.fill(x + w - 1, y, x + w, y + 24, frame);
-        g.drawString(font, (i + 1) + ". " + def.name(), x + 12, y + 3, frame, false);
-        g.drawString(font, def.desc(), x + 12, y + 14, 0xFFC9CFDE, false);
+        String grade = switch (def.grade()) {
+            case "epic" -> "叙事";
+            case "rare" -> "希少";
+            default -> "通常";
+        };
+        UiKit.card(g, x, y, w, 24, frame, hover);
+        g.drawString(font, String.valueOf(i + 1), x + 9, y + 8, UiKit.alpha(frame, 0xFF), true);
+        g.drawString(font, def.name(), x + 20, y + 3, hover ? UiKit.TITLE : frame, false);
+        UiKit.chip(g, font, grade, x + w - font.width(grade) - 18, y + 2, frame);
+        g.drawString(font, def.desc(), x + 20, y + 14, 0xFFC9CFDE, false);
     }
 
     @Override

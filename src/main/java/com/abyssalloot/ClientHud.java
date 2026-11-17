@@ -76,25 +76,7 @@ public final class ClientHud {
     /** 共通バー (背景・枠・明部ハイライト)。MOD内の全HUDバーで同じ見た目にする */
     private static void bar(GuiGraphics g, int x, int y, int w, int h,
                             float pct, int color, boolean segments) {
-        pct = Math.max(0f, Math.min(1f, pct));
-        g.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xB010141E);          // 背景
-        g.fill(x - 1, y - 1, x + w + 1, y, 0xFF5A6478);                   // 枠 (上)
-        g.fill(x - 1, y + h, x + w + 1, y + h + 1, 0xFF5A6478);           // 枠 (下)
-        g.fill(x - 1, y, x, y + h, 0xFF5A6478);                           // 枠 (左)
-        g.fill(x + w, y, x + w + 1, y + h, 0xFF5A6478);                   // 枠 (右)
-        int fill = (int) ((w - 2) * pct);
-        if (fill > 0) {
-            g.fill(x + 1, y + 1, x + 1 + fill, y + h - 1, color);
-            // 明部 (上端ハイライト)
-            g.fill(x + 1, y + 1, x + 1 + fill, y + 2, 0x40FFFFFF);
-        }
-        if (segments) {
-            // 25/50/75 の刻線
-            for (int i = 1; i <= 3; i++) {
-                int sx = x + w * i / 4;
-                g.fill(sx, y + 1, sx + 1, y + h - 1, 0x70000000);
-            }
-        }
+        UiKit.bar(g, x, y, w, h, pct, color, segments);
     }
 
     private static void render(GuiGraphics g, DeltaTracker delta) {
@@ -171,8 +153,11 @@ public final class ClientHud {
     /** 層・レベル (区域名つき) */
     private static void renderFloorLine(GuiGraphics g, Font font, ModPackets.HudSync hud, int x0, int y0) {
         var zone = GameData.zoneForFloor(Math.max(1, hud.floor()));
-        g.drawString(font, "第" + hud.floor() + "層 [" + zone.name() + "] Lv" + hud.level(),
-                x0, y0 + 24, 0xFFFFFFFF);
+        String floor = "第" + hud.floor() + "層";
+        g.drawString(font, floor, x0, y0 + 25, UiKit.TITLE);
+        int x = x0 + font.width(floor) + 4;
+        x += UiKit.chip(g, font, zone.name(), x, y0 + 23, UiKit.CYAN) + 4;
+        g.drawString(font, "Lv" + hud.level(), x, y0 + 25, 0xFFFFFFFF);
     }
 
     /** CT (バー+秒数)。描画後の次行Yを返す */

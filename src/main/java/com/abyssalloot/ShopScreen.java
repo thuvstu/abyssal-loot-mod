@@ -2,7 +2,6 @@ package com.abyssalloot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
@@ -25,33 +24,29 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         super.init();
         for (int i = 0; i < ShopMenu.SHOP_SIZE; i++) {
             final int idx = i + 1;
-            addRenderableWidget(Button.builder(Component.literal("購入" + idx), b -> {
+            addRenderableWidget(UiButton.of("購入", leftPos + 36 + i * 36, topPos + 57, 32, 16, UiKit.GOLD, () -> {
                 var conn = Minecraft.getInstance().getConnection();
                 if (conn != null) {
                     conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ShopPacket(idx)));
                 }
-            }).bounds(leftPos + 32 + i * 36, topPos + 57, 32, 20).build());
+            }));
         }
     }
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF665544);
-        g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF665544);
-        g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
-        g.fill(leftPos, topPos + imageHeight - 1, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
+        UiKit.containerPanel(g, menu, leftPos, topPos, imageWidth, imageHeight, UiKit.GOLD);
+        // 商品棚: 3 品を金の枠で囲む
         for (int i = 0; i < ShopMenu.SHOP_SIZE; i++) {
-            int x0 = leftPos + 44 + i * 36 - 1, y0 = topPos + 35 - 1;
-            g.fill(x0, y0, x0 + 18, y0 + 18, 0xFF111116);
-            g.fill(x0 + 1, y0 + 1, x0 + 17, y0 + 17, 0xFF3A3428);
+            g.renderOutline(leftPos + 42 + i * 36, topPos + 33, 20, 20, UiKit.alpha(UiKit.GOLD, 0xB0));
         }
+        UiKit.divider(g, leftPos + 6, leftPos + imageWidth - 6, topPos + inventoryLabelY - 4, UiKit.GOLD);
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(font, title, titleLabelX, titleLabelY, 0xFFFFFFFF, false);
-        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFFAAAAAA, false);
+        g.drawString(font, "◆ " + title.getString(), titleLabelX, titleLabelY, UiKit.TITLE, false);
+        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, UiKit.SUB, false);
         if (minecraft == null || minecraft.player == null) return;
         int shards = 0;
         var pinv = minecraft.player.getInventory();
@@ -59,7 +54,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             var s = pinv.getItem(i);
             if (s.is(ModItems.SOUL_SHARD.get())) shards += s.getCount();
         }
-        g.drawString(font, "所持欠片: " + shards, 8, 15, 0xFFE8C86A, false);
-        g.drawString(font, "購入品の特性はランダム", 8, 25, 0xFF888899, false);
+        String own = "所持欠片 " + shards;
+        UiKit.chip(g, font, own, imageWidth - font.width(own) - 14, 4, UiKit.GOLD);
+        g.drawString(font, "購入品の特性はランダム", 8, 18, UiKit.MUTED, false);
     }
 }

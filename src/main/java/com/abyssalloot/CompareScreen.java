@@ -2,7 +2,6 @@ package com.abyssalloot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
@@ -24,36 +23,32 @@ public class CompareScreen extends AbstractContainerScreen<CompareMenu> {
     @Override
     protected void init() {
         super.init();
-        addRenderableWidget(Button.builder(Component.literal("比較する"), b -> {
+        addRenderableWidget(UiButton.of("比較する", leftPos + 53, topPos + 58, 70, 16, UiKit.CYAN, () -> {
             var conn = Minecraft.getInstance().getConnection();
             if (conn != null) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ComparePacket()));
             }
-        }).bounds(leftPos + 53, topPos + 57, 70, 20).build());
+        }));
     }
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF262630);
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 1, 0xFF5C6E8B);
-        g.fill(leftPos, topPos, leftPos + 1, topPos + imageHeight, 0xFF5C6E8B);
-        g.fill(leftPos + imageWidth - 1, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
-        g.fill(leftPos, topPos + imageHeight - 1, leftPos + imageWidth, topPos + imageHeight, 0xFF111116);
-        slotFrame(g, 30, 35);
-        slotFrame(g, 130, 35);
-    }
-
-    private void slotFrame(GuiGraphics g, int x, int y) {
-        int x0 = leftPos + x - 1, y0 = topPos + y - 1;
-        g.fill(x0, y0, x0 + 18, y0 + 18, 0xFF111116);
-        g.fill(x0 + 1, y0 + 1, x0 + 17, y0 + 17, 0xFF33333E);
+        UiKit.containerPanel(g, menu, leftPos, topPos, imageWidth, imageHeight, UiKit.CYAN);
+        g.renderOutline(leftPos + 28, topPos + 33, 20, 20, UiKit.alpha(UiKit.CYAN, 0xC0));
+        g.renderOutline(leftPos + 128, topPos + 33, 20, 20, UiKit.alpha(UiKit.GOLD, 0xC0));
+        g.drawCenteredString(font, "VS", leftPos + 88, topPos + 39, UiKit.SUB);
+        // 比較結果の欄 (A / B の 2 列)
+        int ry = topPos + 160;
+        UiKit.divider(g, leftPos + 6, leftPos + imageWidth - 6, ry - 2, UiKit.CYAN);
+        g.fill(leftPos + 4, ry, leftPos + imageWidth - 4, topPos + imageHeight - 4, 0x40000000);
+        g.vLine(leftPos + 88, ry + 2, topPos + imageHeight - 6, UiKit.alpha(UiKit.EDGE, 0xFF));
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        g.drawString(font, title, titleLabelX, titleLabelY, 0xFFFFFFFF, false);
-        g.drawString(font, "A", 30, 24, 0xFF8BE9FF, false);
-        g.drawString(font, "B", 130, 24, 0xFFE8C86A, false);
+        g.drawString(font, "◆ " + title.getString(), titleLabelX, titleLabelY, UiKit.TITLE, false);
+        g.drawString(font, "A", 36, 23, UiKit.CYAN, false);
+        g.drawString(font, "B", 136, 23, UiKit.GOLD, false);
         var left = ClientGui.compareLeft();
         var right = ClientGui.compareRight();
         for (int i = 0; i < Math.max(left.size(), right.size()); i++) {
