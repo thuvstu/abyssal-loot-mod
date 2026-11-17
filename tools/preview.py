@@ -15,6 +15,7 @@
     python tools/preview.py equipment               防具の着用テクスチャ (展開図)
     python tools/preview.py mockup                  着用テクスチャを人型に貼る
     python tools/preview.py diff [--ref HEAD]       git の基準から変わったテクスチャの前後比較
+    python tools/preview.py geo                     エンド武器の GeckoLib 3D モデル (色違い全段階 + 正面/側面)
 
 共通: --only PAT (id の部分一致 / glob) --cols N --size N --out PATH
 """
@@ -168,6 +169,25 @@ def cmd_sheet(args):
     return save_preview(contact_sheet(cells, args.cols or 6), f"sheet_{cat}.png", args.out)
 
 
+def cmd_geo(args):
+    from art import geo_weapons as gw
+
+    s = args.size or 220
+    rows = [
+        [gw.nocturne_model().preview(gw.nocturne_palette(c), gw.nocturne_hidden(c), s) for c in range(5)],
+        [gw.aibou_model().preview(gw.aibou_palette(v), gw.aibou_hidden(v), s) for v in range(6)],
+        [gw.nocturne_model().preview(gw.nocturne_palette(4), set(), s, yaw=80, pitch=10, tilt=0),
+         gw.nocturne_model().preview(gw.nocturne_palette(4), set(), s, yaw=0, pitch=0, tilt=0),
+         gw.aibou_model().preview(gw.aibou_palette(5), set(), s, yaw=80, pitch=10, tilt=0),
+         gw.aibou_model().preview(gw.aibou_palette(5), set(), s, yaw=0, pitch=0, tilt=0)],
+    ]
+    sheet = Image.new("RGBA", (s * 6, s * len(rows)), BG)
+    for r, cells in enumerate(rows):
+        for c, im in enumerate(cells):
+            sheet.paste(im, (c * s, r * s))
+    return save_preview(sheet, "geo_endgame.png", args.out)
+
+
 def cmd_entities(args):
     ids = _ids(args, sorted(f[:-4] for f in os.listdir(TEX_ENTITY) if f.endswith(".png")))
     paths = [os.path.join(TEX_ENTITY, f"{i}.png") for i in ids]
@@ -278,6 +298,7 @@ COMMANDS = {
     "gui": cmd_gui, "icons": cmd_icons, "textures": cmd_textures, "compare": cmd_compare,
     "firstperson": cmd_firstperson, "hold": cmd_hold, "zoom": cmd_zoom, "sheet": cmd_sheet,
     "entities": cmd_entities, "equipment": cmd_equipment, "mockup": cmd_mockup, "diff": cmd_diff,
+    "geo": cmd_geo,
 }
 
 

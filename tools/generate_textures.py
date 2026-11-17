@@ -25,6 +25,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, potions, shapes  # noqa: E402
+from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
 from art.project import ASSETS, Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
@@ -553,19 +554,6 @@ def _handheld(model_id: str) -> None:
     })
 
 
-def write_stage_def(item_id: str, model_ids: list[str]) -> None:
-    """CUSTOM_MODEL_DATA の floats[0] (段階) で見た目を切り替えるアイテム定義。"""
-    write_item_def(item_id, {
-        "type": "minecraft:range_dispatch",
-        "property": "minecraft:custom_model_data",
-        "index": 0,
-        "entries": [{"threshold": float(i),
-                     "model": {"type": "minecraft:model", "model": f"abyssalloot:item/{m}"}}
-                    for i, m in enumerate(model_ids) if i > 0],
-        "fallback": {"type": "minecraft:model", "model": f"abyssalloot:item/{model_ids[0]}"},
-    })
-
-
 def _content_form(e: dict) -> str:
     """追加コンテンツの薬の瓶の形 (名前から: elixir / tonic / draught / dew …)。"""
     name = e["id"]
@@ -577,8 +565,56 @@ def _content_form(e: dict) -> str:
     return "vial" if e["icon"] == "vial" else "flask"
 
 
+GEO_DIR = os.path.join(ASSETS, "geckolib")
+GEO_TEX_DIR = os.path.join(TEX_DIR, "geo")
+
+
+def gen_geo_weapon(item_id: str, model, palettes: list, anim: dict, suffix: str,
+                   scale_tp: float, scale_fp: float) -> None:
+    """GeckoLib の手持ち 3D モデル (骨格・アニメ・色違いテクスチャ + 発光マスク) と表示用の基底モデル。"""
+    W.write_json(os.path.join(GEO_DIR, "models", "item", f"{item_id}.geo.json"), model.geo_json())
+    W.write_json(os.path.join(GEO_DIR, "animations", "item", f"{item_id}.animation.json"), anim)
+    for v, pal in enumerate(palettes):
+        tex, glow = model.paint(pal)
+        _png(os.path.join(GEO_TEX_DIR, f"{item_id}{suffix}{v}.png"), tex)
+        _png(os.path.join(GEO_TEX_DIR, f"{item_id}{suffix}{v}_glowmask.png"), glow)
+    write_model(f"{item_id}_3d", {
+        "parent": "minecraft:item/handheld",
+        "textures": {"layer0": f"abyssalloot:item/{item_id}{suffix}0"},
+        "display": geo_weapons.display(scale_tp, scale_fp),
+    })
+
+
+def write_geo_stage_def(item_id: str, model_ids: list[str]) -> None:
+    """インベントリ = 段階ごとの 2D アイコン / それ以外 = GeckoLib の 3D モデル。"""
+    write_item_def(item_id, {
+        "type": "minecraft:select",
+        "property": "minecraft:display_context",
+        "cases": [{"when": ["gui"], "model": _stage_dispatch(model_ids)}],
+        "fallback": {
+            "type": "minecraft:special",
+            "base": f"abyssalloot:item/{item_id}_3d",
+            "model": {"type": "geckolib:geckolib"},
+        },
+    })
+
+
+def _stage_dispatch(model_ids: list[str]) -> dict:
+    """CUSTOM_MODEL_DATA の floats[0] (段階) で見た目を切り替える。"""
+    return {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "index": 0,
+        "entries": [{"threshold": float(i),
+                     "model": {"type": "minecraft:model", "model": f"abyssalloot:item/{m}"}}
+                    for i, m in enumerate(model_ids) if i > 0],
+        "fallback": {"type": "minecraft:model", "model": f"abyssalloot:item/{model_ids[0]}"},
+    }
+
+
 def gen_endgame(want) -> int:
-    """夜想曲ノクターン (カウント0〜4、1〜4 はアニメ) と相棒の剣 (段階0〜5、3以上はアニメ) と限界突破の楔。"""
+    """夜想曲ノクターン (カウント0〜4、1〜4 はアニメ) と相棒の剣 (段階0〜5、3以上はアニメ) と限界突破の楔。
+    インベントリは 64px の 2D、手持ちは GeckoLib の 3D モデル。"""
     n = 0
 
     def put(mid: str, fn, animated: bool) -> None:
@@ -597,7 +633,10 @@ def gen_endgame(want) -> int:
             mid = f"abyss_nocturne_c{c}"
             put(mid, lambda f, _c=c: endgame.nocturne(_c, f), c > 0)
             ids.append(mid)
-        write_stage_def("abyss_nocturne", ids)
+        write_geo_stage_def("abyss_nocturne", ids)
+        gen_geo_weapon("abyss_nocturne", geo_weapons.nocturne_model(),
+                       [geo_weapons.nocturne_palette(c) for c in range(endgame.NOCTURNE_STAGES)],
+                       geo_weapons.nocturne_anim(), "_c", 0.62, 0.5)
         n += 1
     if want("abyss_aibou"):
         ids = []
@@ -605,7 +644,10 @@ def gen_endgame(want) -> int:
             mid = f"abyss_aibou_s{st}"
             put(mid, lambda f, _s=st: endgame.aibou(_s, f), endgame.is_animated_aibou(st))
             ids.append(mid)
-        write_stage_def("abyss_aibou", ids)
+        write_geo_stage_def("abyss_aibou", ids)
+        gen_geo_weapon("abyss_aibou", geo_weapons.aibou_model(),
+                       [geo_weapons.aibou_palette(s) for s in range(endgame.AIBOU_LOOKS)],
+                       geo_weapons.aibou_anim(), "_s", 0.7, 0.56)
         n += 1
     if want("aibou_limit_stone"):
         _png(os.path.join(TEX_DIR, "aibou_limit_stone.png"), endgame.limit_stone())

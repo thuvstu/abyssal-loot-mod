@@ -145,19 +145,32 @@ def _model_exists(ref: str) -> bool:
     return os.path.exists(os.path.join(ASSETS, "models", ref.split(":", 1)[1] + ".json"))
 
 
+def _model_refs(mdl: dict) -> list[str]:
+    """アイテム定義の模型ツリー (select / range_dispatch / special の入れ子) が参照する全モデル。"""
+    out = []
+    t = mdl.get("type")
+    if t == "minecraft:model":
+        out.append(mdl.get("model", ""))
+    elif t == "minecraft:special":
+        out.append(mdl.get("base", ""))
+    for e in mdl.get("entries", []) + mdl.get("cases", []):
+        out += _model_refs(e.get("model", {}))
+    if "fallback" in mdl:
+        out += _model_refs(mdl["fallback"])
+    return out
+
+
 def _variant_models() -> set[str]:
-    """range_dispatch (段階切替) のアイテム定義から参照されるモデル id。"""
+    """入れ子の定義 (段階切替・3D/2D 切替) から参照される部品モデル id。"""
     out: set[str] = set()
     for f in os.listdir(ITEM_DEF):
         if not f.endswith(".json"):
             continue
         with open(os.path.join(ITEM_DEF, f), encoding="utf-8") as fh:
             mdl = json.load(fh).get("model", {})
-        if mdl.get("type") != "minecraft:range_dispatch":
+        if mdl.get("type") == "minecraft:model":
             continue
-        refs = [e.get("model", {}).get("model", "") for e in mdl.get("entries", [])]
-        refs.append(mdl.get("fallback", {}).get("model", ""))
-        out |= {r.split("/", 1)[-1] for r in refs if r.startswith(NS)}
+        out |= {r.split("/", 1)[-1] for r in _model_refs(mdl) if r.startswith(NS)}
     return out
 
 
@@ -171,29 +184,67 @@ def _check_item_def(item_id: str, mdl: dict, rep: Report, is_icon: bool) -> None
         if th != sorted(th):
             rep.err(f"{item_id}: range_dispatch の threshold が昇順でない {th}")
         for e in entries:
-            ref = e.get("model", {}).get("model", "")
-            if not _model_exists(ref):
-                rep.err(f"{item_id}: range_dispatch の参照モデルが無い {ref}")
-        fb = mdl.get("fallback", {}).get("model")
-        if not fb or not _model_exists(fb):
-            rep.err(f"{item_id}: range_dispatch の fallback が無い {fb}")
+            _check_item_def(item_id, e.get("model", {}), rep, is_icon)
+        if "fallback" not in mdl:
+            rep.err(f"{item_id}: range_dispatch の fallback が無い")
+        else:
+            _check_item_def(item_id, mdl["fallback"], rep, is_icon)
     elif t == "minecraft:select":
         cases = mdl.get("cases", [])
-        if len(cases) < 2:
-            rep.err(f"{item_id}: select の cases が 2 未満")
+        if not cases or (len(cases) < 2 and "fallback" not in mdl):
+            rep.err(f"{item_id}: select の分岐が足りない")
         for case in cases:
-            ref = case.get("model", {}).get("model", "")
-            if not _model_exists(ref):
-                rep.err(f"{item_id}: select の参照モデルが無い {ref}")
-        fb = mdl.get("fallback", {}).get("model")
-        if fb and not _model_exists(fb):
-            rep.err(f"{item_id}: fallback の参照モデルが無い {fb}")
+            _check_item_def(item_id, case.get("model", {}), rep, is_icon)
+        if "fallback" in mdl:
+            _check_item_def(item_id, mdl["fallback"], rep, is_icon)
     elif t == "minecraft:model":
         ref = mdl.get("model", "")
         if not _model_exists(ref):
             rep.err(f"{item_id}: 参照モデルが無い {ref}")
+    elif t == "minecraft:special":
+        base = mdl.get("base", "")
+        if not _model_exists(base):
+            rep.err(f"{item_id}: special の基底モデルが無い {base}")
+        if mdl.get("model", {}).get("type") == "geckolib:geckolib":
+            _check_geckolib(item_id, rep)
     elif not is_icon:
         rep.warn(f"{item_id}: 未検証のアイテム定義 type={t}")
+
+
+def _check_geckolib(item_id: str, rep: Report) -> None:
+    """GeckoLib の骨格モデル・アニメ・テクスチャ (+ 発光マスク) が揃っているか。"""
+    geo_dir = os.path.join(ASSETS, "geckolib")
+    gm = load_json(os.path.join(geo_dir, "models", "item", f"{item_id}.geo.json"), rep)
+    an = load_json(os.path.join(geo_dir, "animations", "item", f"{item_id}.animation.json"), rep)
+    if gm is None or an is None:
+        rep.err(f"{item_id}: GeckoLib のモデルかアニメが無い")
+        return
+    geom = gm.get("minecraft:geometry", [{}])[0]
+    desc = geom.get("description", {})
+    tw, th = desc.get("texture_width", 0), desc.get("texture_height", 0)
+    bones = {b.get("name") for b in geom.get("bones", [])}
+    for b in geom.get("bones", []):
+        if b.get("parent") and b["parent"] not in bones:
+            rep.err(f"{item_id}: 骨 {b['name']} の親 {b['parent']} が無い")
+        for c in b.get("cubes", []):
+            for face, uv in c.get("uv", {}).items():
+                (u, v), (w, h) = uv["uv"], uv["uv_size"]
+                if u < 0 or v < 0 or u + w > tw or v + h > th:
+                    rep.err(f"{item_id}: 骨 {b['name']} の {face} 面の UV がテクスチャ外")
+    for name, anim in an.get("animations", {}).items():
+        for bone in anim.get("bones", {}):
+            if bone not in bones:
+                rep.err(f"{item_id}: アニメ {name} が存在しない骨 {bone} を動かす")
+    tex = [f for f in os.listdir(os.path.join(TEX_ITEM, "geo")) if f.startswith(item_id + "_")]
+    plain = [f for f in tex if not f.endswith("_glowmask.png")]
+    if not plain:
+        rep.err(f"{item_id}: GeckoLib のテクスチャが無い")
+    for f in plain:
+        if f.replace(".png", "_glowmask.png") not in tex:
+            rep.err(f"{item_id}: 発光マスクが無い {f}")
+        with Image.open(os.path.join(TEX_ITEM, "geo", f)) as im:
+            if im.size != (tw, th):
+                rep.err(f"{item_id}: {f} の大きさ {im.size} が geo の宣言 {(tw, th)} と違う")
 
 
 def _check_element(label: str, el: dict, rep: Report) -> None:

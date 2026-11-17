@@ -61,12 +61,18 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 
 | 武器 | Java | 見た目 (`gen --kind endgame`) | レシピ (`gen_data.py` の `ENDGAME_RECIPES`) |
 |---|---|---|---|
-| 夜想曲ノクターン | `Nocturne.java` | `art/src/nocturne_0..4.png` (カウント別。1〜4 は光が流れる 5 コマのアニメ) | 終焉の核・零の結晶・超越の羽・魂の欠片の核 ほか |
-| 相棒の剣 | `Aibou.java` | `art/src/aibou_0..2.png` (段階 0-1 / 2-3 / 4-5) | 終焉の核・虚無の残滓・魂の欠片の核・古核 ほか |
+| 夜想曲ノクターン | `Nocturne.java` | 2D: `art/endgame.py` の `nocturne` (カウント 0〜4 で配色、1〜4 は 8 コマのアニメ) / 3D: `art/geo_weapons.py` | 終焉の核・零の結晶・超越の羽・魂の欠片の核 ほか |
+| 相棒の剣 | `Aibou.java` | 2D: `art/endgame.py` の `aibou` (段階 0〜5、3 以上はアニメ) / 3D: `art/geo_weapons.py` | 終焉の核・虚無の残滓・魂の欠片の核・古核 ほか |
 | 限界突破の楔 | `Aibou.java` | `art/endgame.py` の `limit_stone` | 魂の欠片の包・果ての鉄・虚空のエッセンス・混沌の宝石 |
 
-- 元絵は `mm/life-pve-aibou/resourcepack` のユーザー作ドット絵 (64x64)。差し替えるときは `art/src/` を置き換えて `gen --kind endgame`
-- 見た目は `CUSTOM_MODEL_DATA` の floats[0] で切り替える (`items/*.json` は `range_dispatch`)
+- インベントリは 64px の 2D (陰影レンダラ `art/hd.py`)、手持ち・地面・額縁は GeckoLib の骨格付き 3D モデル
+  (`items/*.json` は `select` の `gui` だけ 2D、ほかは `minecraft:special` + `geckolib:geckolib`)
+- 段階は `CUSTOM_MODEL_DATA` の floats[0]。2D は `range_dispatch`、3D は `EndgameGeoRenderer` がテクスチャを差し替え、
+  音符・翼・欠片の骨を出し入れする (規則は `geo_weapons.nocturne_hidden` / `aibou_hidden` と一致させる)
+- 3D の資産: `geckolib/models/item/*.geo.json`・`geckolib/animations/item/*.animation.json`・
+  `textures/item/geo/*_<段階>.png` (+ 発光部の `_glowmask.png`)。`art/geo.py` は見た目どおりの座標で組んで
+  GeckoLib の規則 (x 反転・x/y 回転の符号反転) へ変換して書き出す。確認は `preview geo`
+- GeckoLib は必須依存 (`gradle.properties` の `geckolib_version`、公式 Maven = cloudsmith)
 - `GameData.WeaponStyle#isEndgame` の武器種はドロップ・商店・報酬・奥義の断片の抽選 (`DROPPABLE`) に出ない
 - シールド・不死・オート反撃・クラフト時の神話化は `Endgame.java`。ゲーム内の説明は `/nocturnehelp`
 

@@ -27,7 +27,14 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Add here additional repositories if required by some of the dependencies below.
+    // GeckoLib (エンド武器の骨格付き手持ちモデル)
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup('software.bernie.geckolib')
+        }
+    }
 }
 
 base {
@@ -116,6 +123,9 @@ configurations {
 }
 
 dependencies {
+    // エンド武器 (ノクターン・相棒の剣) の手持ち 3D モデルとアニメーション
+    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+
     // 純粋ロジックの単体テスト (GameData等・MC起動不要)
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -155,6 +165,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_name               : mod_name,
             mod_license            : mod_license,
             mod_version            : mod_version,
+            geckolib_version       : geckolib_version,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

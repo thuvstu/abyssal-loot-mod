@@ -1,6 +1,13 @@
 package com.abyssalloot;
 
+import java.util.function.Consumer;
+
+import org.jspecify.annotations.Nullable;
+
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,6 +22,15 @@ import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.constant.dataticket.DataTicket;
+import software.bernie.geckolib.renderer.GeoItemRenderer;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * アイテム41武器種 + 深淵防具4種 + 魂の欠片.
@@ -38,9 +54,30 @@ public final class ModItems {
      * エンドコンテンツ武器。カウント・メーター・器Lvを毎打ごとに書き換えるため、
      * 中身の変化では持ち替えの上下アニメーションを出さない (別アイテム・別スロットのときだけ)。
      */
-    public static class EndgameWeaponItem extends Item {
-        public EndgameWeaponItem(Properties props) {
+    public static class EndgameWeaponItem extends Item implements GeoItem {
+        /** 手持ち 3D モデルの色違い (ノクターン=カウント / 相棒=段階)。描画状態へ載せる */
+        public static final DataTicket<Integer> VARIANT = DataTicket.create("abyssalloot_variant", Integer.class);
+        private static final RawAnimation IDLE_NOCTURNE = RawAnimation.begin().thenLoop("animation.abyss_nocturne.idle");
+        private static final RawAnimation IDLE_AIBOU = RawAnimation.begin().thenLoop("animation.abyss_aibou.idle");
+
+        private final String kind;
+        private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
+        public EndgameWeaponItem(Properties props, String kind) {
             super(props);
+            this.kind = kind;
+        }
+
+        /** アイテム id (abyss_nocturne / abyss_aibou)。モデル・テクスチャ・アニメのファイル名 */
+        public String kind() {
+            return kind;
+        }
+
+        /** CUSTOM_MODEL_DATA の floats[0] (Endgame.putInts が書く段階番号) */
+        public static int variantOf(ItemStack stack) {
+            var cmd = stack.get(DataComponents.CUSTOM_MODEL_DATA);
+            Float f = cmd == null ? null : cmd.getFloat(0);
+            return f == null ? 0 : Math.round(f);
         }
 
         @Override
@@ -52,11 +89,50 @@ public final class ModItems {
         public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
             return oldStack.getItem() != newStack.getItem();
         }
+
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
+            super.inventoryTick(stack, level, entity, slot);
+            // 個体 id を固定し、同期でスタックが作り直されてもアニメーションが途切れないようにする
+            GeoItem.getOrAssignId(stack, level);
+        }
+
+        @Override
+        public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+            boolean nocturne = kind.equals("abyss_nocturne");
+            controllers.add(new AnimationController<EndgameWeaponItem>("idle", 0, test -> {
+                Integer v = test.getData(VARIANT);
+                int variant = v == null ? 0 : v;
+                // ノクターンはカウントが進むほど速く回る
+                test.controller().setAnimationSpeed(nocturne ? 1.0 + 0.3 * variant : 1.0);
+                return test.setAndContinue(nocturne ? IDLE_NOCTURNE : IDLE_AIBOU);
+            }));
+        }
+
+        @Override
+        public AnimatableInstanceCache getAnimatableInstanceCache() {
+            return geoCache;
+        }
+
+        @Override
+        public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+            consumer.accept(new GeoRenderProvider() {
+                private GeoItemRenderer<?> renderer;
+
+                @Override
+                public GeoItemRenderer<?> getGeoItemRenderer() {
+                    if (renderer == null) {
+                        renderer = new EndgameGeoRenderer(EndgameWeaponItem.this);
+                    }
+                    return renderer;
+                }
+            });
+        }
     }
 
     private static DeferredItem<Item> endgameWeapon(String id) {
         return ITEMS.registerItem(id, props -> new EndgameWeaponItem(
-                props.stacksTo(1).durability(1561).rarity(Rarity.EPIC).fireResistant()));
+                props.stacksTo(1).durability(1561).rarity(Rarity.EPIC).fireResistant(), id));
     }
 
     /** 防具 (lore 表示つき。右クリック装備は EQUIPPABLE コンポーネントが処理) */
