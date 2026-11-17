@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, icons, items, shapes  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, icons, items, potions, shapes  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
 from art.project import ASSETS, Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
@@ -86,6 +86,16 @@ def _hammer(**kw):
 
 def _gem(**kw):
     return lambda m, p: shapes.gem(m, p, **kw)
+
+
+def _scroll(glyph: str):
+    """巻物 (紋章入り)。potions.scroll を参照。"""
+    return lambda c: potions.scroll(c, glyph)
+
+
+def _pot(form: str, glyph: str | None = None):
+    """薬瓶 (形 + 効果の紋章)。potions.py を参照。"""
+    return lambda c: potions.potion(c, form, glyph)
 
 
 # id -> (形状, accent 色, スタイル, 表示種別)
@@ -204,22 +214,22 @@ MATERIAL_MODELS = {
 # ================================================================= 2D アイコン
 
 CONSUMABLES = {
-    "abyss_heal_s": (icons.flask, 0xff5c5c),
-    "abyss_heal_m": (icons.flask, 0xff2a55),
-    "abyss_heal_l": (icons.flask, 0xffd0d8),
+    "abyss_heal_s": (_pot("flask_s", "cross"), 0xff5c5c),
+    "abyss_heal_m": (_pot("flask_m", "cross"), 0xff2a55),
+    "abyss_heal_l": (_pot("flask", "cross"), 0xffd0d8),
     "abyss_soul_s": (icons.orb, 0xb14bff),
     "abyss_soul_l": (icons.orb, 0xe34bff),
-    "abyss_pwr": (icons.vial, 0xff5c5c),
-    "abyss_spd": (icons.vial, 0x7ce8ff),
-    "abyss_irn": (icons.vial, 0x9aa5b5),
-    "abyss_rgn": (icons.vial, 0x4bd07a),
-    "abyss_abs": (icons.vial, 0xffd700),
-    "abyss_fir": (icons.vial, 0xff8a2b),
-    "abyss_owl": (icons.vial, 0x5cd8ff),
-    "abyss_fth": (icons.vial, 0xe8e8f2),
-    "abyss_lck": (icons.vial, 0x4ae88a),
-    "abyss_cure": (icons.vial, 0xffffff),
-    "abyss_berserk": (icons.vial, 0xd84a6a),
+    "abyss_pwr": (_pot("tonic", "sword"), 0xff5c5c),
+    "abyss_spd": (_pot("vial", "speed"), 0x7ce8ff),
+    "abyss_irn": (_pot("tonic", "shield"), 0x9aa5b5),
+    "abyss_rgn": (_pot("phial", "heart"), 0x4bd07a),
+    "abyss_abs": (_pot("vial", "star"), 0xffd700),
+    "abyss_fir": (_pot("phial", "flame"), 0xff8a2b),
+    "abyss_owl": (_pot("vial", "eye"), 0x5cd8ff),
+    "abyss_fth": (_pot("vial", "feather"), 0xe8e8f2),
+    "abyss_lck": (_pot("phial", "clover"), 0x4ae88a),
+    "abyss_cure": (_pot("flask_m", "drop"), 0xffffff),
+    "abyss_berserk": (_pot("tonic", "skull"), 0xd84a6a),
     "abyss_bomb_f": (icons.bomb, 0xff5c2a),
     "abyss_bomb_t": (icons.bomb, 0xffe14a),
     "abyss_bomb_i": (icons.bomb, 0xaee9ff),
@@ -234,46 +244,46 @@ CONSUMABLES = {
     "abyss_breacher": (icons.bomblet, 0xffa53c),
     "abyss_shardfling": (icons.bomblet, 0x7cd8ff),
     "abyss_netsnare": (icons.net_orb, 0x8ff06e),
-    "abyss_reapple": (icons.scroll_tool, 0x4bd07a),
+    "abyss_reapple": (_scroll("heart"), 0x4bd07a),
     "abyss_soundbell": (icons.bell, 0xffd23c),
     "abyss_carebox": (icons.firstaid, 0xececf2),
     "abyss_wardrums": (icons.drum, 0xff4d6d),
     "abyss_bulwark": (icons.aegis, 0x6a8cff),
     "abyss_fortune": (icons.pouch, 0xffd23c),
     # --- 追加の消費品 (効果名に対応する絵) ---
-    "abyss_flask": (icons.flask, 0xff4d6d),
+    "abyss_flask": (_pot("flask", "heart"), 0xff4d6d),
     "abyss_gut": (icons.feast, 0x9ac86a),
     "abyss_grandfeast": (icons.feast, 0xffd23c),
-    "abyss_regenx": (icons.vial, 0x4bd07a),
-    "abyss_strx": (icons.vial, 0xff8a2b),
-    "abyss_resx": (icons.vial, 0x7ce8ff),
-    "abyss_absx": (icons.vial, 0xffd700),
-    "abyss_stride": (icons.vial, 0x5cd8ff),
+    "abyss_regenx": (_pot("elixir", "heart"), 0x4bd07a),
+    "abyss_strx": (_pot("elixir", "sword"), 0xff8a2b),
+    "abyss_resx": (_pot("elixir", "shield"), 0x7ce8ff),
+    "abyss_absx": (_pot("elixir", "star"), 0xffd700),
+    "abyss_stride": (_pot("tonic", "arrow"), 0x5cd8ff),
     "abyss_nightward": (icons.rune_stone, 0x6a4a9a),
-    "abyss_salamander": (icons.vial, 0xff6a2b),
+    "abyss_salamander": (_pot("elixir", "flame"), 0xff6a2b),
     "abyss_pearldive": (icons.orb, 0x3aa8ff),
     "abyss_veilnote": (icons.scroll, 0xd8d0ff),
     "abyss_purity": (icons.orb, 0xffffff),
     "abyss_chainbomb": (icons.bomb, 0xff3a5a),
     "abyss_depthbomb": (icons.bomb, 0x3a4aff),
-    "abyss_artscroll": (icons.scroll_tool, 0xb14bff),
+    "abyss_artscroll": (_scroll("bolt"), 0xb14bff),
     "abyss_skillreset": (icons.rune_stone, 0x7ce8ff),
-    "abyss_lleap": (icons.scroll_tool, 0x8ff06e),
-    "abyss_goldmist": (icons.vial, 0xffd23c),
+    "abyss_lleap": (_scroll("feather"), 0x8ff06e),
+    "abyss_goldmist": (_pot("phial", "coin"), 0xffd23c),
     "abyss_leechcandy": (icons.ration, 0xff6a7d),
-    "abyss_eagle": (icons.scroll_tool, 0xd8b878),
-    "abyss_overcharge": (icons.vial, 0xff5cff),
-    "abyss_pickvein": (icons.vial, 0xffe14a),
-    "abyss_godspeed": (icons.scroll_tool, 0xffffff),
+    "abyss_eagle": (_scroll("eye"), 0xd8b878),
+    "abyss_overcharge": (_pot("elixir", "bolt"), 0xff5cff),
+    "abyss_pickvein": (_pot("tonic", "pick"), 0xffe14a),
+    "abyss_godspeed": (_scroll("speed"), 0xffffff),
     # --- 职业技能の巻物 ---
-    "abyss_scroll_samurai": (icons.scroll_tool, 0xe9e3d5),
-    "abyss_scroll_mage": (icons.scroll_tool, 0xc58bff),
-    "abyss_scroll_ninja": (icons.scroll_tool, 0x6a8cff),
-    "abyss_scroll_paladin": (icons.scroll_tool, 0xffd23c),
-    "abyss_scroll_gunner": (icons.scroll_tool, 0xff8a2b),
-    "abyss_scroll_berserker": (icons.scroll_tool, 0xff4d5e),
-    "abyss_scroll_monk": (icons.scroll_tool, 0x7cffb2),
-    "abyss_scroll_archer": (icons.scroll_tool, 0x4bd07a),
+    "abyss_scroll_samurai": (_scroll("sword"), 0xe9e3d5),
+    "abyss_scroll_mage": (_scroll("star"), 0xc58bff),
+    "abyss_scroll_ninja": (_scroll("shuriken"), 0x6a8cff),
+    "abyss_scroll_paladin": (_scroll("shield"), 0xffd23c),
+    "abyss_scroll_gunner": (_scroll("gun"), 0xff8a2b),
+    "abyss_scroll_berserker": (_scroll("axe"), 0xff4d5e),
+    "abyss_scroll_monk": (_scroll("swirl"), 0x7cffb2),
+    "abyss_scroll_archer": (_scroll("arrow"), 0x4bd07a),
 }
 
 SOUL_SHARD_STATES = ("soul_shard_pouch", "soul_shard_bale", "soul_shard_core")
@@ -436,7 +446,7 @@ def gen_model(item_id: str, shape_fn, palette: dict, kind: str, texture_name: st
 
 def gen_icon(item_id: str, fn, color) -> None:
     """2D アイコンを生成する (立体的な縁取り加工あり)。"""
-    img = core.emboss(fn(hexcolor(color)))
+    img = finish.finish(fn(hexcolor(color)))
     _png(os.path.join(TEX_DIR, f"{item_id}.png"), img)
     write_flat_model(item_id)
     write_item_def(item_id)
@@ -446,7 +456,7 @@ def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     """3D アイテム用の 2D ドット絵 (インベントリ表示)。"""
     icon_id = f"{item_id}_icon"
     img = fn(hexcolor(color)) if trim is None else fn(hexcolor(color), hexcolor(trim))
-    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), core.emboss(img))
+    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), finish.finish(img))
     write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
 
@@ -477,7 +487,7 @@ def material_icon(item_id: str, color: int):
 def gen_material_icon(item_id: str, color: int) -> None:
     """素材の 2D ドット絵 (インベントリ表示)。"""
     icon_id = f"{item_id}_icon"
-    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), core.emboss(material_icon(item_id, color)))
+    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), finish.finish(material_icon(item_id, color)))
     write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
 
@@ -505,14 +515,19 @@ def armor_palette(base: int, trim: int) -> dict:
     return pal
 
 
-def art_shard_icon(color: int):
-    """奥義の断片: 武器種の色の結晶片。"""
-    return core.emboss(icons.crystal_splinter(hexcolor(color)))
+def art_shard_icon(sid: str, color: int):
+    """奥義の断片: その武器のアイコンを刻印として封じた、割れた結晶の欠片。"""
+    weapon = f"abyss_{sid}"
+    icon_fn = WEAPON_ICONS.get(weapon)
+    if icon_fn is None:
+        return finish.finish(icons.crystal_splinter(hexcolor(color)))
+    accent = WEAPON_MODELS[weapon][1] if weapon in WEAPON_MODELS else color
+    return finish.finish(icons.art_shard(icon_fn(hexcolor(accent)), hexcolor(color)))
 
 
 def gen_art_shard(sid: str, color: int) -> None:
     item_id = f"art_shard_{sid}"
-    _png(os.path.join(TEX_DIR, f"{item_id}.png"), art_shard_icon(color))
+    _png(os.path.join(TEX_DIR, f"{item_id}.png"), art_shard_icon(sid, color))
     write_flat_model(item_id)
     write_item_def(item_id)
 
@@ -535,6 +550,17 @@ def write_stage_def(item_id: str, model_ids: list[str]) -> None:
                     for i, m in enumerate(model_ids) if i > 0],
         "fallback": {"type": "minecraft:model", "model": f"abyssalloot:item/{model_ids[0]}"},
     })
+
+
+def _content_form(e: dict) -> str:
+    """追加コンテンツの薬の瓶の形 (名前から: elixir / tonic / draught / dew …)。"""
+    name = e["id"]
+    for key, form in (("elixir", "elixir"), ("tonic", "tonic"), ("oil", "tonic"), ("wine", "tonic"),
+                      ("draught", "flask"), ("brew", "phial"), ("serum", "phial"), ("blood", "flask_m"),
+                      ("dew", "vial"), ("drops", "vial"), ("tea", "flask_m")):
+        if key in name:
+            return form
+    return "vial" if e["icon"] == "vial" else "flask"
 
 
 def gen_endgame(want) -> int:
@@ -642,6 +668,8 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 # icon: icons.py の関数名、または "mask:<形>" (色付きマスク)
                 if e["icon"].startswith("mask:"):
                     fn = lambda c, _k=e["icon"][5:]: icons.mask_icon(_k, c)  # noqa: E731
+                elif e["icon"] in ("vial", "flask"):
+                    fn = _pot(_content_form(e), potions.glyph_for_kind(e["kind"]))
                 else:
                     fn = getattr(icons, e["icon"])
                 gen_icon(e["id"], fn, content.color(e))

@@ -259,10 +259,10 @@ ABYSS_LIGHT = (120, 92, 190, 255)
 # 記号: o=輪郭 h=光 p=板金 s=影 d=深影 t=金具 g=宝石(発光) w=照り v=面頬の闇 .=透明
 ARMOR_MASKS = {
     "helm": [
-        "................",
-        ".......oo.......",
-        "......otto......",
-        ".....otwtto.....",
+        ".........oo.....",
+        "........oggo....",
+        ".......oggo.....",
+        ".....otgtto.....",
         "...oohtttsoo....",
         "..ohhpppppppso..",
         "..ohppppppppso..",
@@ -316,19 +316,19 @@ ARMOR_MASKS = {
         "................",
         "................",
         "................",
-        ".ooooo...ooooo..",
-        ".otwto...otwto..",
-        ".ohpso...ohpso..",
-        ".ohpso...ohpso..",
-        ".ohgso...ohgso..",
-        ".ohpso...ohpso..",
-        ".ohpso...ohpso..",
-        ".ohppoo..ohppoo.",
-        ".ohpppso.ohpppso",
-        ".ohhpppo.ohhpppo",
-        ".ottttto.ottttto",
-        ".odddddo.odddddo",
-        ".ooooooo.ooooooo",
+        "..ooooo..ooooo..",
+        "..otwto..otwto..",
+        "..ohpso..ohpso..",
+        "..ohpso..ohpso..",
+        "..ohgso..ohgso..",
+        "..ohpso..ohpso..",
+        ".oohpso..ohpsoo.",
+        "ohhppso..ohpppso",
+        "ohppppo..ohppppo",
+        "ohpppso..ohhppso",
+        "ottttto..ottttto",
+        "odddddo..odddddo",
+        "ooooooo..ooooooo",
     ],
 }
 
@@ -1530,3 +1530,73 @@ def howling_claw(accent):
     d.point((6, 11), fill=WHITE)
     return img
 
+
+
+# ---------------------------------------------------------------- 奥義の断片
+
+_SHARD_POLY = [(4, 0), (12, 1), (15, 6), (14, 12), (9, 15), (2, 14), (0, 7)]
+# 割れ目 (左上→右下へ走るギザギザ)。この線より右上側を 1px ずらして「割れた欠片」に見せる
+_SHARD_CRACK = [(7, 0), (8, 3), (7, 5), (10, 8), (9, 11), (12, 14)]
+
+
+def art_shard(weapon_icon, color):
+    """奥義の断片: 武器のアイコンを光る刻印として封じた結晶の欠片。
+
+    weapon_icon はその武器の 2D アイコン (16x16、仕上げ前)。色は武器種の色。
+    """
+    img, d = canvas()
+    glass_dark = mix((26, 20, 48, 255), color, 0.30)
+    glass = mix((40, 34, 70, 255), color, 0.45)
+    d.polygon(_SHARD_POLY, fill=OUTLINE)
+    inner = [(4, 1), (12, 2), (14, 6), (13, 12), (9, 14), (3, 13), (1, 7)]
+    d.polygon(inner, fill=glass_dark)
+    d.polygon([(5, 3), (11, 3), (12, 7), (11, 11), (8, 12), (4, 11), (3, 7)], fill=glass)
+    # 刻印: 武器アイコンの塗り部分を武器種の光で、輪郭部分を暗い溝で描く
+    mask = Image.new("L", (16, 16), 0)
+    ImageDraw.Draw(mask).polygon(inner, fill=255)
+    wp = weapon_icon.load()
+    px = img.load()
+    mp = mask.load()
+    glow = core.hi(color, 1.25)
+    groove = mix(OUTLINE, color, 0.25)
+    for y in range(16):
+        for x in range(16):
+            c = wp[x, y]
+            if c[3] < 128 or mp[x, y] == 0:
+                continue
+            px[x, y] = groove if core.luminance(c) < 0.12 else mix(glow, c, 0.25)
+    # 割れ目: 線の右上側を 1px 右上へずらし、割れ目自体は光らせる
+    shifted = img.copy()
+    sp = shifted.load()
+    crack = Image.new("L", (16, 16), 0)
+    ImageDraw.Draw(crack).line(_SHARD_CRACK, fill=255, width=1)
+    cp = crack.load()
+
+    def right_of_crack(x, y):
+        # 割れ目の各区間で x が線より右なら右上側
+        for (x0, y0), (x1, y1) in zip(_SHARD_CRACK, _SHARD_CRACK[1:]):
+            if y0 <= y <= y1:
+                t = 0 if y1 == y0 else (y - y0) / (y1 - y0)
+                return x > x0 + (x1 - x0) * t
+        return False
+
+    out, _ = canvas()
+    op = out.load()
+    for y in range(16):
+        for x in range(16):
+            if sp[x, y][3] and not right_of_crack(x, y):
+                op[x, y] = sp[x, y]
+    for y in range(16):
+        for x in range(16):
+            if sp[x, y][3] and right_of_crack(x, y):
+                nx, ny = x + 1, y - 1
+                if 0 <= nx < 16 and 0 <= ny < 16:
+                    op[nx, ny] = sp[x, y]
+    for y in range(16):
+        for x in range(16):
+            if cp[x, y] and op[x, y][3]:
+                op[x, y] = core.hi(color, 1.6)
+    # 欠けた先の光の粒
+    op[15, 0] = core.hi(color, 1.5)
+    op[14, 2] = mix(color, WHITE, 0.6)
+    return out
