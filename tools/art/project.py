@@ -86,6 +86,16 @@ class Writer:
         img.save(buf, format="PNG")
         self.write_bytes(path, buf.getvalue())
 
+    def remove(self, path: str) -> None:
+        """不要になった生成物を消す (無ければ何もしない。check 時は差分として数える)。"""
+        if not os.path.exists(path):
+            return
+        self.changed.append(os.path.abspath(path))
+        if self.verbose:
+            print(("  差分(削除) " if self.check else "  削除 ") + rel(path))
+        if not self.check:
+            os.remove(path)
+
     def flush(self) -> "Writer":
         """予約した内容を、既存ファイルと異なるものだけ書き出す。"""
         for path, data in self._staged.items():

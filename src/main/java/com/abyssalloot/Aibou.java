@@ -73,9 +73,9 @@ public final class Aibou {
         return stage + 1;
     }
 
-    /** 見た目の段階 (0-1: 鋼 / 2-3: 金縁 / 4-5: 蒼光) */
+    /** 見た目 = 段階そのもの (鋼 → 金の縁 → ルーン → 翼の鍔 → 蒼光の刃 → 光輝) */
     static int lookOf(int stage) {
-        return stage / 2;
+        return stage;
     }
 
     /** 与ダメ倍率 (StatCalc の倍率に掛かる)。器Lv +1.5%/Lv、段階 +10%/段 */

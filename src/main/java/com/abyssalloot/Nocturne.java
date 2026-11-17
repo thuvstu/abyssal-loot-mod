@@ -215,14 +215,14 @@ public final class Nocturne {
         showStatus(player);
     }
 
-    /** カウントごとの宝石の色 (テクスチャ abyss_nocturne_c0〜c4 と同じ: 白藍→翠→蒼→紫→桃) */
+    /** カウントごとの主色 (tools/art/endgame.py の NOCTURNE_THEMES と同じ: 紫→蒼→水→桃→白金) */
     static int colorOf(int c) {
         return switch (c) {
-            case 1 -> 0x55e6e6;
-            case 2 -> 0x78b4ff;
-            case 3 -> 0xc86eff;
-            case 4 -> 0xff5adc;
-            default -> 0xbff4ff;
+            case 1 -> 0x6f8cff;
+            case 2 -> 0x5ce8ff;
+            case 3 -> 0xff6ad5;
+            case 4 -> 0xffe7a0;
+            default -> 0xb48cff;
         };
     }
 

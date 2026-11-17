@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, icons, items, potions, shapes  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, potions, shapes  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
 from art.project import ASSETS, Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
@@ -461,6 +461,20 @@ def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     write_select_def(item_id, icon_id)
 
 
+def gen_hd_icon(item_id: str, color) -> None:
+    """武器のインベントリ用 64x64 アイコン (hd_weapons)。叙事級はアニメーション。"""
+    icon_id = f"{item_id}_icon"
+    path = os.path.join(TEX_DIR, f"{icon_id}.png")
+    if item_id in hd_weapons.ANIMATED:
+        _png(path, hd_weapons.icon_strip(item_id, color))
+        W.write_json(path + ".mcmeta", {"animation": {"frametime": 2}})
+    else:
+        _png(path, hd_weapons.icon(item_id, color))
+        W.remove(path + ".mcmeta")
+    write_flat_model(icon_id)
+    write_select_def(item_id, icon_id)
+
+
 MATERIAL_ICON_SHAPES = {
     shapes.gem: "gem",
     shapes.crystal: "crystal",
@@ -564,29 +578,32 @@ def _content_form(e: dict) -> str:
 
 
 def gen_endgame(want) -> int:
-    """夜想曲ノクターン (カウント0〜4、1〜4 は光が流れるアニメ) と相棒の剣 (3段階) と限界突破の楔。"""
+    """夜想曲ノクターン (カウント0〜4、1〜4 はアニメ) と相棒の剣 (段階0〜5、3以上はアニメ) と限界突破の楔。"""
     n = 0
+
+    def put(mid: str, fn, animated: bool) -> None:
+        path = os.path.join(TEX_DIR, f"{mid}.png")
+        if animated:
+            _png(path, endgame.frames_strip(fn))
+            W.write_json(path + ".mcmeta", endgame.anim_meta())
+        else:
+            _png(path, fn(0))
+            W.remove(path + ".mcmeta")
+        _handheld(mid)
+
     if want("abyss_nocturne"):
         ids = []
         for c in range(endgame.NOCTURNE_STAGES):
             mid = f"abyss_nocturne_c{c}"
-            img = endgame.source(f"nocturne_{c}")
-            path = os.path.join(TEX_DIR, f"{mid}.png")
-            if c == 0:
-                _png(path, img)
-            else:
-                _png(path, endgame.pulse_frames(img))
-                W.write_json(path + ".mcmeta", endgame.anim_meta())
-            _handheld(mid)
+            put(mid, lambda f, _c=c: endgame.nocturne(_c, f), c > 0)
             ids.append(mid)
         write_stage_def("abyss_nocturne", ids)
         n += 1
     if want("abyss_aibou"):
         ids = []
-        for s in range(endgame.AIBOU_LOOKS):
-            mid = f"abyss_aibou_s{s}"
-            _png(os.path.join(TEX_DIR, f"{mid}.png"), endgame.source(f"aibou_{s}"))
-            _handheld(mid)
+        for st in range(endgame.AIBOU_LOOKS):
+            mid = f"abyss_aibou_s{st}"
+            put(mid, lambda f, _s=st: endgame.aibou(_s, f), endgame.is_animated_aibou(st))
             ids.append(mid)
         write_stage_def("abyss_aibou", ids)
         n += 1
@@ -608,7 +625,9 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 continue
             gen_model(item_id, fn, shapes.make_palette(color, style), kind)
             icon_fn = WEAPON_ICONS.get(item_id)
-            if icon_fn is not None:
+            if item_id in hd_weapons.ICONS:
+                gen_hd_icon(item_id, color)
+            elif icon_fn is not None:
                 gen_2d_icon(item_id, icon_fn, color)
             counts["weapons"] += 1
 

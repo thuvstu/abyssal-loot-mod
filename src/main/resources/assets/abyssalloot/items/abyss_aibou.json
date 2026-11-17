@@ -17,6 +17,27 @@
           "type": "minecraft:model",
           "model": "abyssalloot:item/abyss_aibou_s2"
         }
+      },
+      {
+        "threshold": 3.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_aibou_s3"
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_aibou_s4"
+        }
+      },
+      {
+        "threshold": 5.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_aibou_s5"
+        }
       }
     ],
     "fallback": {
