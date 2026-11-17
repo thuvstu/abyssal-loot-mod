@@ -44,6 +44,10 @@ public class AbyssalLootMod {
         NeoForge.EVENT_BUS.register(TransferGate.class);
         // ダメージ表示のアーマースタンドを誤操作しないようにする
         NeoForge.EVENT_BUS.register(DamageNumbers.class);
+        // エンドコンテンツ武器 (夜想曲ノクターン・相棒の剣) と共通のシールド・不死
+        NeoForge.EVENT_BUS.register(Endgame.class);
+        NeoForge.EVENT_BUS.register(Nocturne.class);
+        NeoForge.EVENT_BUS.register(Aibou.class);
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             ClientKeys.init(modEventBus);

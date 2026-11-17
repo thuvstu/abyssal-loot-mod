@@ -196,7 +196,7 @@ public final class GearFactory {
         if (rand.nextDouble() < 0.35) {
             return makeArmor(null, rand, luck, floor, bonus);
         }
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         return makeWeapon(styles[rand.nextInt(styles.length)], rand, luck, floor, bonus);
     }
 

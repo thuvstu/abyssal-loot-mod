@@ -95,6 +95,7 @@ def check_files(rep: Report) -> None:
 def check_item_models(rep: Report) -> None:
     """models/item と items/ の整合 (UV・テクスチャ実在・select 参照)。"""
     models = sorted(f[:-5] for f in os.listdir(MODEL_ITEM) if f.endswith(".json"))
+    variants = _variant_models()
     for item_id in models:
         data = load_json(os.path.join(MODEL_ITEM, f"{item_id}.json"), rep)
         if data is None:
@@ -102,7 +103,8 @@ def check_item_models(rep: Report) -> None:
         is_icon = item_id.endswith("_icon")
         def_path = os.path.join(ITEM_DEF, f"{item_id}.json")
         if not os.path.exists(def_path):
-            if not is_icon:
+            # 段階切替 (range_dispatch) の部品モデルは他のアイテム定義から参照される
+            if not is_icon and item_id not in variants:
                 rep.err(f"{item_id}: アイテム定義 (items/{item_id}.json) が無い")
         else:
             idef = load_json(def_path, rep) or {}
@@ -143,9 +145,39 @@ def _model_exists(ref: str) -> bool:
     return os.path.exists(os.path.join(ASSETS, "models", ref.split(":", 1)[1] + ".json"))
 
 
+def _variant_models() -> set[str]:
+    """range_dispatch (段階切替) のアイテム定義から参照されるモデル id。"""
+    out: set[str] = set()
+    for f in os.listdir(ITEM_DEF):
+        if not f.endswith(".json"):
+            continue
+        with open(os.path.join(ITEM_DEF, f), encoding="utf-8") as fh:
+            mdl = json.load(fh).get("model", {})
+        if mdl.get("type") != "minecraft:range_dispatch":
+            continue
+        refs = [e.get("model", {}).get("model", "") for e in mdl.get("entries", [])]
+        refs.append(mdl.get("fallback", {}).get("model", ""))
+        out |= {r.split("/", 1)[-1] for r in refs if r.startswith(NS)}
+    return out
+
+
 def _check_item_def(item_id: str, mdl: dict, rep: Report, is_icon: bool) -> None:
     t = mdl.get("type")
-    if t == "minecraft:select":
+    if t == "minecraft:range_dispatch":
+        entries = mdl.get("entries", [])
+        if not entries:
+            rep.err(f"{item_id}: range_dispatch の entries が空")
+        th = [e.get("threshold") for e in entries]
+        if th != sorted(th):
+            rep.err(f"{item_id}: range_dispatch の threshold が昇順でない {th}")
+        for e in entries:
+            ref = e.get("model", {}).get("model", "")
+            if not _model_exists(ref):
+                rep.err(f"{item_id}: range_dispatch の参照モデルが無い {ref}")
+        fb = mdl.get("fallback", {}).get("model")
+        if not fb or not _model_exists(fb):
+            rep.err(f"{item_id}: range_dispatch の fallback が無い {fb}")
+    elif t == "minecraft:select":
         cases = mdl.get("cases", [])
         if len(cases) < 2:
             rep.err(f"{item_id}: select の cases が 2 未満")

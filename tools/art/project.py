@@ -131,9 +131,14 @@ def java_source(name: str) -> str:
         return f.read()
 
 
-def read_weapon_styles() -> list[tuple[str, int]]:
-    """GameData.WeaponStyle の (id, 色) 一覧 (定義順)。"""
-    return [(sid, col) for _const, sid, col in read_weapon_style_consts()]
+# エンドコンテンツ武器 (GameData.WeaponStyle#isEndgame)。奥義の断片・断片レシピを持たない
+ENDGAME_STYLES = ("nocturne", "aibou")
+
+
+def read_weapon_styles(include_endgame: bool = False) -> list[tuple[str, int]]:
+    """GameData.WeaponStyle の (id, 色) 一覧 (定義順)。既定ではエンドコンテンツ武器を除く。"""
+    return [(sid, col) for _const, sid, col in read_weapon_style_consts()
+            if include_endgame or sid not in ENDGAME_STYLES]
 
 
 def read_weapon_style_consts() -> list[tuple[str, str, int]]:

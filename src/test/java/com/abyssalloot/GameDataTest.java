@@ -76,7 +76,11 @@ public class GameDataTest {
 
     @Test
     void allWeaponArtsExist() {
-        assertEquals(41, GameData.WeaponStyle.values().length);
+        // 41 武器種 + エンドコンテンツ 2 種 (夜想曲ノクターン・相棒の剣)。抽選対象は 41 種のまま
+        assertEquals(43, GameData.WeaponStyle.values().length);
+        assertEquals(41, GameData.WeaponStyle.DROPPABLE.length);
+        assertTrue(GameData.WeaponStyle.NOCTURNE.isEndgame());
+        assertTrue(GameData.WeaponStyle.AIBOU.isEndgame());
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(w.artName);
             assertFalse(w.artDesc.isBlank());
@@ -567,7 +571,7 @@ public class GameDataTest {
         assertNotNull(GameData.gearSkillById("w_soul"));
         assertNotNull(GameData.gearSkillById("b_dash"));
         // 全武器に能力・全通常モブに能力・ダンジョン特性8種
-        assertEquals(41, GameData.WEAPON_ABILITIES.size());
+        assertEquals(GameData.WeaponStyle.values().length, GameData.WEAPON_ABILITIES.size());
         for (GameData.WeaponStyle w : GameData.WeaponStyle.values()) {
             assertNotNull(GameData.WEAPON_ABILITIES.get(w.id), "ability missing: " + w.id);
         }
@@ -622,7 +626,7 @@ public class GameDataTest {
 
     @Test
     void weaponClassBonusMatchesCoreTs() {
-        assertEquals(41, GameData.WEAPON_BONUS.size());
+        assertEquals(GameData.WeaponStyle.values().length, GameData.WEAPON_BONUS.size());
         assertEquals(18.0, GameData.weaponBonus("axe").damagePct(), 1e-9);
         assertEquals(-12.0, GameData.weaponBonus("axe").attackSpeedPct(), 1e-9);
         assertEquals(28.0, GameData.weaponBonus("spear").areaPct(), 1e-9);
@@ -680,6 +684,8 @@ public class GameDataTest {
             assertNotNull(l, "light missing: " + w.id);
             assertFalse(l.name().isBlank());
             assertFalse(l.desc().isBlank());
+            // ノクターンの数列詠唱は独自CT (15秒+カウント×3秒) で管理するため範囲外を許す
+            if (w == GameData.WeaponStyle.NOCTURNE) continue;
             assertTrue(l.cd() >= 1.0f && l.cd() <= 3.0f, "cd out of range: " + w.id);
             assertTrue(l.mult() >= 0.3 && l.mult() <= 3.0, "mult out of range: " + w.id);
         }

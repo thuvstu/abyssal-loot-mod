@@ -301,7 +301,8 @@ public final class StatCalc {
                 * (1 + GearData.forgeLv(held) * 0.08)
                 * GearData.curseMultOf(player, held)
                 * (1 + GameData.passiveDamagePct(passives) / 100.0)
-                * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.02);
+                * (1 + player.getData(ModAttachments.HARVEST.get()) * 0.02)
+                * Aibou.damageMult(held); // 相棒の剣: 器Lv・段階による成長
         // 恩寵「呪喰らい」: 技能の欠点無効・正効果2倍
         if (RunManager.boonLv(player, "curse_eater") > 0) {
             mult *= 1 + GameData.curseEaterBonusDamage(passives) / 100.0;

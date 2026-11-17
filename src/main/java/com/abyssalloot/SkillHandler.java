@@ -60,6 +60,14 @@ public final class SkillHandler {
         }
         GameData.WeaponStyle style = ModItems.styleOf(stack.getItem());
         if (style == null) return;
+        // 夜想曲ノクターン: 右クリックは数列詠唱 (入力中はどの右クリックでも取消)
+        if (style == GameData.WeaponStyle.NOCTURNE
+                && (!player.isShiftKeyDown() || Nocturne.inInput(player))) {
+            Nocturne.onRightClick(player);
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            return;
+        }
         // 武器を持ち替えたらその武器種の小技になる
         if (player.isShiftKeyDown()) {
             trySkill(player);

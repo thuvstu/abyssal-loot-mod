@@ -129,7 +129,10 @@ public final class GameData {
         RIFT_BLADE("rift_blade", "虚刃", "虚空断層", "2段瞬移で空間ごと断つ", 0x8a5cff),
         METEOR_LANCE("meteor_lance", "隕槍", "天斥落雁", "隕槍を1点に極大落下させる", 0xffd23c),
         ECHO_KATANA("echo_katana", "残刀", "三影刻", "標的の周囲を3点瞬斬する", 0xa8e8ff),
-        HOWLING_CLAW("howling_claw", "哮爪", "裂空爪", "急所へ突進し三連爪を刻む", 0xffb03c);
+        HOWLING_CLAW("howling_claw", "哮爪", "裂空爪", "急所へ突進し三連爪を刻む", 0xffb03c),
+        // ---- エンドコンテンツ (最上位クラフト専用。ドロップ・商店・奥義の断片には出ない)
+        NOCTURNE("nocturne", "夜想曲ノクターン", "終曲・天命", "律動に応じた旋律を一斉に奏で、HPシールドを纏う", 0xb48cff),
+        AIBOU("aibou", "相棒の剣", "絆断・限界の先", "器Lvと段階に応じて威力が伸びる大斬撃", 0x7ce8ff);
 
         public final String id;
         public final String weaponName;
@@ -152,6 +155,15 @@ public final class GameData {
             WeaponStyle w = INDEX.get(id);
             return w != null ? w : SWORD;
         }
+
+        /** エンドコンテンツ武器 (最上位クラフトでのみ入手。ランダム抽選の対象外) */
+        public boolean isEndgame() {
+            return this == NOCTURNE || this == AIBOU;
+        }
+
+        /** ドロップ・商店・報酬・奥義の断片の抽選対象 (エンドコンテンツ武器を除く) */
+        public static final WeaponStyle[] DROPPABLE = java.util.Arrays.stream(VALUES)
+                .filter(w -> !w.isEndgame()).toArray(WeaponStyle[]::new);
     }
 
     /** 原作 trials.ts の8呪印 (reward = 魂加算%) */
@@ -1117,7 +1129,9 @@ public final class GameData {
             java.util.Map.entry("rift_blade", wb(10, 0, 0, 0, 0, 0, 12, 0, 0, 6, 0)),
             java.util.Map.entry("meteor_lance", wb(20, -18, 8, 0, 0, 1, 0, 0, 12, 0, 0)),
             java.util.Map.entry("echo_katana", wb(8, 12, 0, 0, 0, 0, 10, 0, 0, 0, 0)),
-            java.util.Map.entry("howling_claw", wb(-6, 22, 0, 0, 0, 0, 0, 25, 0, 10, 0)));
+            java.util.Map.entry("howling_claw", wb(-6, 22, 0, 0, 0, 0, 0, 25, 0, 10, 0)),
+            java.util.Map.entry("nocturne", wb(15, 0, 20, 45, 1, 0, 10, 0, 20, 0, 10)),
+            java.util.Map.entry("aibou", wb(25, 10, 10, 0, 0, 0, 10, 20, 0, 8, 0)));
 
     public static WeaponBonus weaponBonus(String styleId) {
         return WEAPON_BONUS.getOrDefault(styleId,
@@ -1158,7 +1172,9 @@ public final class GameData {
             java.util.Map.entry("rift_blade", new ShapeBonus(1, 0, 1)),
             java.util.Map.entry("meteor_lance", new ShapeBonus(1, 0, 0)),
             java.util.Map.entry("echo_katana", new ShapeBonus(0, 1, 1)),
-            java.util.Map.entry("howling_claw", new ShapeBonus(0, 0, 2)));
+            java.util.Map.entry("howling_claw", new ShapeBonus(0, 0, 2)),
+            java.util.Map.entry("nocturne", new ShapeBonus(1, 1, 0)),
+            java.util.Map.entry("aibou", new ShapeBonus(1, 1, 1)));
 
     /* ---------------- 武器の左クリック追撃 (WEAPON_FOLLOWUP) ----------------
      * 武器種ごとの固有連打ボーナス。一定回数の通常攻撃ごとに追加効果が発動する。
@@ -1237,7 +1253,9 @@ public final class GameData {
                     java.util.Map.entry("rift_blade", new WeaponAbility("CHAIN", 0.3, 0.6, "命中時30%で連鎖")),
                     java.util.Map.entry("meteor_lance", new WeaponAbility("BURST", 0.3, 2.2, "命中時30%で爆発")),
                     java.util.Map.entry("echo_katana", new WeaponAbility("SOUL", 0.4, 4, "命中時40%で魂+4")),
-                    java.util.Map.entry("howling_claw", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")));
+                    java.util.Map.entry("howling_claw", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")),
+                    java.util.Map.entry("nocturne", new WeaponAbility("SOUL", 0.5, 6, "命中時50%で魂+6")),
+                    java.util.Map.entry("aibou", new WeaponAbility("EXECUTE", 1.0, 0.5, "瀕死へ+50%")));
 
     /* ---------------- 武器小技 (右クリック。CT1~3秒で連発できる軽い技) ----------------
      * mult は攻撃力倍率 (複数ヒットは合計値)。cd は基底CT (秒) で、
@@ -1288,7 +1306,9 @@ public final class GameData {
                     java.util.Map.entry("rift_blade", new LightSkill("虚斬", "空間ごと斬り裂く", 1.5f, 1.1)),
                     java.util.Map.entry("meteor_lance", new LightSkill("隕落撃", "隕石の槍を落とす", 2.8f, 2.0)),
                     java.util.Map.entry("echo_katana", new LightSkill("残影二刀", "残影が追い斬る", 1.4f, 1.2)),
-                    java.util.Map.entry("howling_claw", new LightSkill("哮爪撃", "3連の爪で引き裂く", 1.2f, 1.65)));
+                    java.util.Map.entry("howling_claw", new LightSkill("哮爪撃", "3連の爪で引き裂く", 1.2f, 1.65)),
+                    java.util.Map.entry("nocturne", new LightSkill("数列詠唱", "数列を数字キーで入力し、桁ごとに旋律を発動", 15f, 1.0)),
+                    java.util.Map.entry("aibou", new LightSkill("相棒の大技", "メーターを消費して周囲を薙ぎ払う", 3.0f, 2.0)));
 
     /** 武器小技のCT (秒)。職業補正を掛け 1.0~3.0秒にクランプ */
     public static double lightCooldown(HeroClass cls, WeaponStyle style) {

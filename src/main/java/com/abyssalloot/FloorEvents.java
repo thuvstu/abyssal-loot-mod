@@ -44,7 +44,7 @@ public final class FloorEvents {
     public static void offerEvent(ServerPlayer player) {
         if (player.getData(ModAttachments.EVENT_DONE.get()) != 0) return;
         // 商店の品揃えを生成。価格は原作 merchant (power比例) の欠片版: 見本の威力から算出
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         var rand = player.getRandom();
         int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
         var shop = new ArrayList<String>();
@@ -152,7 +152,7 @@ public final class FloorEvents {
         completeEvent(player);
         int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
         boolean bossFloor = floor % 5 == 0;
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         var st = styles[player.getRandom().nextInt(styles.length)];
         ItemStack drop;
         if (player.getRandom().nextDouble() < 0.4) {
@@ -358,7 +358,7 @@ public final class FloorEvents {
 
     /** 宝の間: 装備3点 + 遺物の3択 (最大2つまで) */
     private static void grantLootEvent(ServerPlayer player, ServerLevel level, BlockPos center, int floor) {
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         for (int i = 0; i < 3; i++) {
             var drop = GearFactory.makeWeapon(styles[player.getRandom().nextInt(styles.length)],
                     player.getRandom(), StatCalc.luckOf(player), floor, 0);

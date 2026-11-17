@@ -31,6 +31,77 @@ public final class ClientKeys {
     public static void init(IEventBus modBus) {
         registerKeyMappings(modBus);
         registerKeyTickHandler();
+        registerNocturneInput();
+    }
+
+    /* ---------------- 夜想曲ノクターン: 数列入力モード ---------------- */
+
+    /** サーバーから通知される入力モード (NocturneSync) */
+    private static volatile boolean nocturneInput = false;
+
+    public static void setNocturneInput(boolean on) {
+        nocturneInput = on;
+    }
+
+    private static void sendAct(String kind) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn != null) conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket(kind)));
+    }
+
+    private static boolean holdingNocturne() {
+        var p = Minecraft.getInstance().player;
+        return p != null && p.getMainHandItem().is(ModItems.ABYSS_NOCTURNE.get());
+    }
+
+    /**
+     * 入力モード中は数字キーを数列入力として送り、ホットバー切替・ドロップ・持ち替え・
+     * インベントリ・左クリックを止める (数字キーがホットバー切替に吸われて入力できない問題の対策)。
+     * ClientTickEvent.Pre は Minecraft#handleKeybinds より前に走るため、ここで押下を消費すれば切替は起きない。
+     */
+    private static void registerNocturneInput() {
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Pre event) -> {
+            if (!nocturneInput) return;
+            var mc = Minecraft.getInstance();
+            if (mc.player == null) {
+                nocturneInput = false;
+                return;
+            }
+            for (KeyMapping k : mc.options.keyHotbarSlots) {
+                while (k.consumeClick()) { /* 数字は InputEvent.Key 側で送る */ }
+            }
+            while (mc.options.keyDrop.consumeClick()) { }
+            while (mc.options.keySwapOffhand.consumeClick()) { }
+            while (mc.options.keyInventory.consumeClick()) { }
+            while (mc.options.keyAttack.consumeClick()) { }
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.InputEvent.Key event) -> {
+            if (!nocturneInput || event.getAction() != GLFW.GLFW_PRESS) return;
+            if (Minecraft.getInstance().screen != null) return;
+            int key = event.getKey();
+            int digit = -1;
+            if (key >= GLFW.GLFW_KEY_0 && key <= GLFW.GLFW_KEY_9) digit = key - GLFW.GLFW_KEY_0;
+            else if (key >= GLFW.GLFW_KEY_KP_0 && key <= GLFW.GLFW_KEY_KP_9) digit = key - GLFW.GLFW_KEY_KP_0;
+            if (digit >= 0) sendAct("noct_d" + digit);
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.InputEvent.MouseScrollingEvent event) -> {
+            if (nocturneInput) event.setCanceled(true);
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.InputEvent.InteractionKeyMappingTriggered event) -> {
+            if (nocturneInput && event.isAttack()) {
+                event.setCanceled(true);
+                event.setSwingHand(false);
+            }
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ScreenEvent.Opening event) -> {
+            if (nocturneInput && event.getNewScreen()
+                    instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>) {
+                event.setCanceled(true);
+            }
+        });
+        // 空振り: 5m以内の最寄りの敵を狙う律動の追撃 (サーバーでCT判定)
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.LeftClickEmpty event) -> {
+            if (!nocturneInput && holdingNocturne()) sendAct("noct_swing");
+        });
     }
 
     /** キーマッピングの登録 (R/V/X/G/N/C) */

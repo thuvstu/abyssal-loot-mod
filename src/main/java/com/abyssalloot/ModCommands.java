@@ -39,6 +39,13 @@ public final class ModCommands {
         registerBuild(root);
         registerUtility(root);
         event.getDispatcher().register(root);
+        // 夜想曲ノクターンの取扱説明書 (誤爆しないよう操作キーではなくコマンドで開く)
+        event.getDispatcher().register(Commands.literal("nocturnehelp").executes(ctx -> {
+            for (String line : Nocturne.HELP) {
+                ctx.getSource().sendSystemMessage(net.minecraft.network.chat.Component.literal(line));
+            }
+            return 1;
+        }));
     }
 
     private static void registerQuickAndConfig(LiteralArgumentBuilder<CommandSourceStack> root) {
@@ -129,6 +136,7 @@ public final class ModCommands {
                                     GameData.WeaponStyle style = GameData.WeaponStyle.byId(
                                             StringArgumentType.getString(ctx, "id"));
                                     var stack = GearFactory.makeWeapon(style, p.getRandom());
+                                    if (style.isEndgame()) Endgame.stampMythic(stack, style, p);
                                     p.getInventory().add(stack);
                                     p.sendSystemMessage(Component.literal(
                                             "§b武器: " + style.weaponName + " / 奥義: " + style.artName + " — " + style.artDesc

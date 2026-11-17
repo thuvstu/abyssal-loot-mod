@@ -57,6 +57,19 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 - `fx` の効果名: strength / speed / resistance / regeneration / absorption / fire_resistance / haste /
   jump_boost / night_vision / luck / slow_falling / water_breathing / invisibility
 
+## エンドコンテンツ武器 (最上位クラフト専用)
+
+| 武器 | Java | 見た目 (`gen --kind endgame`) | レシピ (`gen_data.py` の `ENDGAME_RECIPES`) |
+|---|---|---|---|
+| 夜想曲ノクターン | `Nocturne.java` | `art/src/nocturne_0..4.png` (カウント別。1〜4 は光が流れる 5 コマのアニメ) | 終焉の核・零の結晶・超越の羽・魂の欠片の核 ほか |
+| 相棒の剣 | `Aibou.java` | `art/src/aibou_0..2.png` (段階 0-1 / 2-3 / 4-5) | 終焉の核・虚無の残滓・魂の欠片の核・古核 ほか |
+| 限界突破の楔 | `Aibou.java` | `art/endgame.py` の `limit_stone` | 魂の欠片の包・果ての鉄・虚空のエッセンス・混沌の宝石 |
+
+- 元絵は `mm/life-pve-aibou/resourcepack` のユーザー作ドット絵 (64x64)。差し替えるときは `art/src/` を置き換えて `gen --kind endgame`
+- 見た目は `CUSTOM_MODEL_DATA` の floats[0] で切り替える (`items/*.json` は `range_dispatch`)
+- `GameData.WeaponStyle#isEndgame` の武器種はドロップ・商店・報酬・奥義の断片の抽選 (`DROPPABLE`) に出ない
+- シールド・不死・オート反撃・クラフト時の神話化は `Endgame.java`。ゲーム内の説明は `/nocturnehelp`
+
 ## 新しいアイテムを足すとき (武器など、表に無い種類)
 
 1. Java (`ModItems`) に登録し、`lang/ja_jp.json`・`en_us.json` に名前を追加

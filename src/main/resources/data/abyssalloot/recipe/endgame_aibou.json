@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_omega",
+    "abyssalloot:abyss_trophy_nihil",
+    "abyssalloot:soul_shard_core",
+    "abyssalloot:abyss_ancient_core",
+    "abyssalloot:abyss_endless_iron",
+    "abyssalloot:abyss_endless_iron",
+    "abyssalloot:void_essence",
+    "abyssalloot:void_essence",
+    "abyssalloot:ancient_stone"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_aibou",
+    "count": 1
+  }
+}

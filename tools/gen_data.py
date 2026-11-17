@@ -62,6 +62,24 @@ ROOT_ADVANCEMENT = {
 
 # ---------------------------------------------------------------- 消耗品レシピ
 # 結果 abyss_<key> <- 材料 (欠片 1 + 素材が基本)
+# 最上位クラフト (エンドコンテンツ武器)。name -> (材料 id, 完成品 id, 個数)。材料は最終層の層主素材が軸
+ENDGAME_RECIPES = {
+    # 夜想曲ノクターン: 終焉神・原初虚無・超越者の素材 + 魂の欠片の核
+    "endgame_nocturne": ([
+        "abyss_trophy_omega", "abyss_trophy_zero", "abyss_trophy_ascender", "soul_shard_core",
+        "chaos_gem", "chaos_gem", "abyss_abyssal_pearl", "abyss_abyssal_pearl", "abyss_lost_light",
+    ], "abyss_nocturne", 1),
+    # 相棒の剣: 終焉神・虚無神の素材 + 魂の欠片の核・古核・果ての鉄
+    "endgame_aibou": ([
+        "abyss_trophy_omega", "abyss_trophy_nihil", "soul_shard_core", "abyss_ancient_core",
+        "abyss_endless_iron", "abyss_endless_iron", "void_essence", "void_essence", "ancient_stone",
+    ], "abyss_aibou", 1),
+    # 限界突破の楔 (段階 n→n+1 で n+1 個。全突破で計15個)
+    "endgame_aibou_limit_stone": ([
+        "soul_shard_bale", "abyss_endless_iron", "void_essence", "chaos_gem",
+    ], "aibou_limit_stone", 1),
+}
+
 CONSUMABLE_RECIPES = {
     "flask": [f"{NS}abyss_teardrop", SHARD],
     "gut": [SHARD, "minecraft:cooked_beef"],
@@ -190,6 +208,9 @@ def generate(w: Writer) -> dict[str, int]:
     # 素材の使い道 (交換・上位素材への変換)
     for r in doc.get("extra_recipes", []):
         recipe("x_" + r["name"], shapeless(r["ingredients"], r["result"], r.get("count", 1)))
+    # 最上位クラフト: エンドコンテンツ武器 (完成時に Endgame.onCrafted が神話級の銘・接辞を刻む)
+    for name, (ing, result, count) in ENDGAME_RECIPES.items():
+        recipe(name, shapeless([NS + i for i in ing], NS + result, count))
     counts["recipes"] = n
 
     # --- 翻訳: 追加コンテンツの名前を lang へ反映 (手書きのキーはそのまま残す)

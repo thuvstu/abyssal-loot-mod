@@ -47,7 +47,10 @@ public final class AbyssGameTests {
             new Spec("bossrush_restores_level", AbyssGameTests::bossrushRestoresLevel, 200),
             new Spec("content_items_registered", AbyssGameTests::contentItemsRegistered, 20),
             new Spec("mix_consumable_applies", AbyssGameTests::mixConsumableApplies, 40),
-            new Spec("kill_drops_trophy_and_zone_material", AbyssGameTests::killDropsContent, 40));
+            new Spec("kill_drops_trophy_and_zone_material", AbyssGameTests::killDropsContent, 40),
+            new Spec("endgame_craft_only", AbyssGameTests::endgameCraftOnly, 20),
+            new Spec("nocturne_sequence_casts_all_skills", AbyssGameTests::nocturneSequence, 120),
+            new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -259,6 +262,93 @@ public final class AbyssGameTests {
         }
         p.getInventory().clearContent();
         slime.discard();
+        h.succeed();
+    }
+
+    /** エンドコンテンツ武器: 最上位クラフトのレシピがあり、ドロップ・断片の抽選には出ず、完成品は神話級 */
+    private static void endgameCraftOnly(GameTestHelper h) {
+        var recipes = h.getLevel().getServer().getRecipeManager();
+        for (String name : List.of("endgame_nocturne", "endgame_aibou", "endgame_aibou_limit_stone")) {
+            check(h, recipes.byKey(ResourceKey.create(Registries.RECIPE, id(name))).isPresent(),
+                    "最上位クラフトのレシピが無い: %s", name);
+        }
+        for (var w : GameData.WeaponStyle.DROPPABLE) {
+            check(h, !w.isEndgame(), "エンドコンテンツ武器がドロップ対象に入っている: %s", w.id);
+        }
+        check(h, !ModItems.ART_SHARDS.containsKey(GameData.WeaponStyle.NOCTURNE), "ノクターンに奥義の断片がある");
+        check(h, ModItems.styleOf(ModItems.ABYSS_NOCTURNE.get()) == GameData.WeaponStyle.NOCTURNE, "ノクターンの武器種が逆引きできない");
+        ServerPlayer p = player(h);
+        var noct = new ItemStack(ModItems.ABYSS_NOCTURNE.get());
+        Endgame.stampMythic(noct, GameData.WeaponStyle.NOCTURNE, p);
+        check(h, GearData.rarityOf(noct).equals("mythic"), "クラフト品が神話級でない: %s", GearData.rarityOf(noct));
+        check(h, noct.getHoverName().getString().contains("ノクターン"), "ノクターンの銘が無い: %s", noct.getHoverName().getString());
+        check(h, GearData.curseOf(noct) == null, "エンドコンテンツ武器に呪いが付いた");
+        h.succeed();
+    }
+
+    /** ノクターン: 空振りでカウント・メーターが進み、メーター100の11+1桁詠唱を正しく入力すると全スキルが発動する */
+    private static void nocturneSequence(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        var noct = new ItemStack(ModItems.ABYSS_NOCTURNE.get());
+        Endgame.stampMythic(noct, GameData.WeaponStyle.NOCTURNE, p);
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, noct);
+        var zombie = EntityType.ZOMBIE.create(h.getLevel(), EntitySpawnReason.EVENT);
+        check(h, zombie != null, "ゾンビを生成できない");
+        Vec3 at = h.absoluteVec(new Vec3(6.5, 1, 4.5));
+        zombie.setPos(at.x, at.y, at.z);
+        zombie.setPersistenceRequired();
+        h.getLevel().addFreshEntity(zombie);
+        float hp0 = zombie.getHealth();
+        Nocturne.onAirSwing(p);
+        ItemStack held = p.getMainHandItem();
+        check(h, Nocturne.countOf(held) == 1 && Nocturne.meterOf(held) == 1,
+                "空振りでカウント/メーターが進まない: %s/%s", Nocturne.countOf(held), Nocturne.meterOf(held));
+        check(h, zombie.getHealth() < hp0, "空振りの律動が最寄りの敵に当たっていない");
+        // カウント4・メーター100 から詠唱 → 12 桁
+        Endgame.putInts(held, java.util.Map.of(Nocturne.COUNT, 4, Nocturne.METER, 100), 4);
+        p.setData(ModAttachments.LIGHT_CD.get(), 0f);
+        Nocturne.onRightClick(p);
+        int[] seq = Nocturne.debugSequence(p);
+        check(h, seq != null && seq.length == 12, "メーター100・カウント4 の数列が 12 桁でない: %s",
+                seq == null ? "null" : seq.length);
+        for (int d : seq) Nocturne.onDigit(p, d);
+        check(h, !Nocturne.inInput(p), "全桁入力後も入力モードのまま");
+        check(h, Nocturne.countOf(held) == 0 && Nocturne.meterOf(held) == 0, "詠唱完了でカウント/メーターが戻らない");
+        check(h, p.getData(ModAttachments.LIGHT_CD.get()) >= 30f, "メーター解放詠唱のCTが2倍になっていない: %s",
+                p.getData(ModAttachments.LIGHT_CD.get()));
+        check(h, Endgame.shieldOf(p) > 0, "⑥/⑫ のHPシールドが付いていない");
+        check(h, Endgame.hasUndying(p), "⑫ の不死が付いていない");
+        // 誤入力で即終了する
+        p.setData(ModAttachments.LIGHT_CD.get(), 0f);
+        Nocturne.onRightClick(p);
+        int[] seq2 = Nocturne.debugSequence(p);
+        check(h, seq2 != null && seq2.length == 2, "カウント0 の数列が 2 桁でない");
+        Nocturne.onDigit(p, (seq2[0] + 1) % 10);
+        check(h, !Nocturne.inInput(p), "誤入力で詠唱が終わらない");
+        // スロット (⑦) の遅延処理が走り切ってから片付ける
+        h.runAfterDelay(40, () -> {
+            zombie.discard();
+            p.getInventory().clearContent();
+            h.succeed();
+        });
+    }
+
+    /** 相棒の剣: 器XPで器Lvが上限まで育ち、限界突破の楔で段階と威力が上がる */
+    private static void aibouGrowth(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        var sword = new ItemStack(ModItems.ABYSS_AIBOU.get());
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, sword);
+        ItemStack held = p.getMainHandItem();
+        double m0 = Aibou.damageMult(held);
+        Aibou.addXp(p, held, 100000);
+        check(h, Aibou.lvOf(held) == Aibou.capOf(0), "器Lvが上限で止まらない: %s", Aibou.lvOf(held));
+        check(h, Aibou.damageMult(held) > m0, "器Lvで威力が伸びていない");
+        var stones = new ItemStack(ModItems.AIBOU_LIMIT_STONE.get(), 1);
+        check(h, Aibou.limitBreak(p, stones), "上限到達で限界突破できない");
+        check(h, Aibou.stageOf(held) == 1 && stones.isEmpty(), "段階が上がらない/楔が消費されない");
+        check(h, !Aibou.limitBreak(p, new ItemStack(ModItems.AIBOU_LIMIT_STONE.get(), 5)),
+                "器Lvが上限未満なのに限界突破できた");
+        p.getInventory().clearContent();
         h.succeed();
     }
 }

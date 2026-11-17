@@ -191,6 +191,9 @@ public final class GearData {
             }
             var ab = GameData.WEAPON_ABILITIES.get(style.id);
             if (ab != null) out.add(Component.literal("§e能力: " + ab.desc()));
+            if (style == GameData.WeaponStyle.NOCTURNE) out.addAll(Nocturne.lore(stack));
+            if (style == GameData.WeaponStyle.AIBOU) out.addAll(Aibou.lore(stack));
+            if (style.isEndgame()) out.add(Component.literal("§5§l✦ エンドコンテンツ — 最上位クラフト専用"));
         } else if (!isWeapon) {
             out.add(Component.literal("§7右クリックで装備。接辞は武器と合算"));
             var aslot = ModItems.slotOf(stack.getItem());

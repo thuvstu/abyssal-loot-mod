@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, entities, equipment, icons, items, shapes  # noqa: E402
+from art import content, core, endgame, entities, equipment, icons, items, shapes  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
 from art.project import ASSETS, Writer, matcher, read_weapon_styles, rel, setup_console  # noqa: E402
@@ -36,7 +36,8 @@ from art.project import TEX_EQUIPMENT as EQP_DIR  # noqa: E402
 from art.project import TEX_EQUIPMENT_LEGS as EQP_LEGS_DIR  # noqa: E402
 from art.project import TEX_ITEM as TEX_DIR  # noqa: E402
 
-KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment", "content")
+KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment", "content",
+         "endgame")
 
 # 追加コンテンツ (abyssalloot_content.json)。防具セットは下の表へ連結される
 CONTENT = content.load()
@@ -516,6 +517,61 @@ def gen_art_shard(sid: str, color: int) -> None:
     write_item_def(item_id)
 
 
+def _handheld(model_id: str) -> None:
+    write_model(model_id, {
+        "parent": "minecraft:item/handheld",
+        "textures": {"layer0": f"abyssalloot:item/{model_id}"},
+    })
+
+
+def write_stage_def(item_id: str, model_ids: list[str]) -> None:
+    """CUSTOM_MODEL_DATA の floats[0] (段階) で見た目を切り替えるアイテム定義。"""
+    write_item_def(item_id, {
+        "type": "minecraft:range_dispatch",
+        "property": "minecraft:custom_model_data",
+        "index": 0,
+        "entries": [{"threshold": float(i),
+                     "model": {"type": "minecraft:model", "model": f"abyssalloot:item/{m}"}}
+                    for i, m in enumerate(model_ids) if i > 0],
+        "fallback": {"type": "minecraft:model", "model": f"abyssalloot:item/{model_ids[0]}"},
+    })
+
+
+def gen_endgame(want) -> int:
+    """夜想曲ノクターン (カウント0〜4、1〜4 は光が流れるアニメ) と相棒の剣 (3段階) と限界突破の楔。"""
+    n = 0
+    if want("abyss_nocturne"):
+        ids = []
+        for c in range(endgame.NOCTURNE_STAGES):
+            mid = f"abyss_nocturne_c{c}"
+            img = endgame.source(f"nocturne_{c}")
+            path = os.path.join(TEX_DIR, f"{mid}.png")
+            if c == 0:
+                _png(path, img)
+            else:
+                _png(path, endgame.pulse_frames(img))
+                W.write_json(path + ".mcmeta", endgame.anim_meta())
+            _handheld(mid)
+            ids.append(mid)
+        write_stage_def("abyss_nocturne", ids)
+        n += 1
+    if want("abyss_aibou"):
+        ids = []
+        for s in range(endgame.AIBOU_LOOKS):
+            mid = f"abyss_aibou_s{s}"
+            _png(os.path.join(TEX_DIR, f"{mid}.png"), endgame.source(f"aibou_{s}"))
+            _handheld(mid)
+            ids.append(mid)
+        write_stage_def("abyss_aibou", ids)
+        n += 1
+    if want("aibou_limit_stone"):
+        _png(os.path.join(TEX_DIR, "aibou_limit_stone.png"), endgame.limit_stone())
+        write_flat_model("aibou_limit_stone")
+        write_item_def("aibou_limit_stone")
+        n += 1
+    return n
+
+
 def generate(kinds: set[str], want) -> dict[str, int]:
     """kinds の種別のうち want(id) が真のものを生成し、種別ごとの件数を返す。"""
     counts = {k: 0 for k in KINDS}
@@ -596,6 +652,9 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                     "humanoid": [{"texture": f"abyssalloot:{s['id']}"}],
                     "humanoid_leggings": [{"texture": f"abyssalloot:{s['id']}_leggings"}],
                 }})
+
+    if "endgame" in kinds:  # エンドコンテンツ武器 (元絵 tools/art/src + CUSTOM_MODEL_DATA で段階切替)
+        counts["endgame"] += gen_endgame(want)
 
     if "equipment" in kinds:  # 装備 (プレイヤーの防具の着用テクスチャ)
         for set_id, (base, trim) in EQUIPMENT_SETS.items():

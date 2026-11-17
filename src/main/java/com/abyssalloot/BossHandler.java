@@ -108,7 +108,7 @@ public final class BossHandler {
 
     /** 神話確定の武器 (真ボス・終焉の座・超越者の報酬)。ランダム武器種に神話ランクと神話の銘、スキルも確定 */
     private static ItemStack mythicWeapon(ServerPlayer player) {
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         var style = styles[player.getRandom().nextInt(styles.length)];
         var stack = GearFactory.makePrizeWeapon(style, player.getRandom(), StatCalc.luckOf(player), 26);
         return withRarity(stack, "mythic", "§d神話の" + style.weaponName);

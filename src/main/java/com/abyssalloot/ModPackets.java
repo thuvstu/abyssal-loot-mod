@@ -40,6 +40,24 @@ public final class ModPackets {
         }
     }
 
+    /** サーバー→クライアント: ノクターンの数列入力モードの開始/終了 (数字キー・持ち替えの横取りに使う) */
+    public record NocturneSync(boolean input) implements CustomPacketPayload {
+        public static final Type<NocturneSync> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "nocturne"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, NocturneSync> CODEC = StreamCodec.of(
+                (buf, p) -> buf.writeBoolean(p.input()),
+                buf -> new NocturneSync(buf.readBoolean()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(NocturneSync payload, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> ClientKeys.setNocturneInput(payload.input()));
+        }
+    }
+
     public record ActPacket(String kind) implements CustomPacketPayload {
         public static final Type<ActPacket> TYPE =
                 new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "act"));
@@ -68,6 +86,7 @@ public final class ModPackets {
         reg.playToServer(BoonPacket.TYPE, BoonPacket.CODEC, ModPackets::handleBoon);
         reg.playToClient(FloorEventSync.TYPE, FloorEventSync.CODEC, FloorEventSync::handle);
         reg.playToServer(FloorEventPacket.TYPE, FloorEventPacket.CODEC, ModPackets::handleFloorEvent);
+        reg.playToClient(NocturneSync.TYPE, NocturneSync.CODEC, NocturneSync::handle);
     }
 
     /** 商店GUIの購入ボタン (1-3) */
@@ -345,7 +364,16 @@ public final class ModPackets {
                     case "next" -> RunManager.tryNextFloor(sp);
                     case "sub" -> SkillHandler.trySubSkill(sp);
                     case "quick" -> Consumables.quickUse(sp);
-                    default -> AbyssalLootMod.LOGGER.warn("unknown act: " + payload.kind());
+                    case "noct_swing" -> Nocturne.onAirSwing(sp);
+                    default -> {
+                        // 数列入力の数字キー: noct_d0 .. noct_d9
+                        String k = payload.kind();
+                        if (k.length() == 7 && k.startsWith("noct_d") && Character.isDigit(k.charAt(6))) {
+                            Nocturne.onDigit(sp, k.charAt(6) - '0');
+                        } else {
+                            AbyssalLootMod.LOGGER.warn("unknown act: " + k);
+                        }
+                    }
                 }
             }
         });

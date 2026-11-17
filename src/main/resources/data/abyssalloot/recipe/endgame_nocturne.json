@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_trophy_omega",
+    "abyssalloot:abyss_trophy_zero",
+    "abyssalloot:abyss_trophy_ascender",
+    "abyssalloot:soul_shard_core",
+    "abyssalloot:chaos_gem",
+    "abyssalloot:chaos_gem",
+    "abyssalloot:abyss_abyssal_pearl",
+    "abyssalloot:abyss_abyssal_pearl",
+    "abyssalloot:abyss_lost_light"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_nocturne",
+    "count": 1
+  }
+}

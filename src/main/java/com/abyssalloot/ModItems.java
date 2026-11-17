@@ -34,6 +34,31 @@ public final class ModItems {
                 props -> new Item(props.stacksTo(1).durability(1561).rarity(rarity).fireResistant()));
     }
 
+    /**
+     * エンドコンテンツ武器。カウント・メーター・器Lvを毎打ごとに書き換えるため、
+     * 中身の変化では持ち替えの上下アニメーションを出さない (別アイテム・別スロットのときだけ)。
+     */
+    public static class EndgameWeaponItem extends Item {
+        public EndgameWeaponItem(Properties props) {
+            super(props);
+        }
+
+        @Override
+        public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+            return slotChanged || oldStack.getItem() != newStack.getItem();
+        }
+
+        @Override
+        public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
+            return oldStack.getItem() != newStack.getItem();
+        }
+    }
+
+    private static DeferredItem<Item> endgameWeapon(String id) {
+        return ITEMS.registerItem(id, props -> new EndgameWeaponItem(
+                props.stacksTo(1).durability(1561).rarity(Rarity.EPIC).fireResistant()));
+    }
+
     /** 防具 (lore 表示つき。右クリック装備は EQUIPPABLE コンポーネントが処理) */
     public static class AbyssArmorItem extends Item {
         private final EquipmentSlot slot;
@@ -109,6 +134,12 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_METEOR_LANCE = weapon("abyss_meteor_lance", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_ECHO_KATANA = weapon("abyss_echo_katana", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_HOWLING_CLAW = weapon("abyss_howling_claw", Rarity.COMMON);
+    // ---- エンドコンテンツ (最上位クラフト専用)
+    public static final DeferredItem<Item> ABYSS_NOCTURNE = endgameWeapon("abyss_nocturne");
+    public static final DeferredItem<Item> ABYSS_AIBOU = endgameWeapon("abyss_aibou");
+    /** 相棒の剣の限界突破に使う楔 (右クリックで手持ち/所持中の相棒の剣を突破) */
+    public static final DeferredItem<Item> AIBOU_LIMIT_STONE = ITEMS.registerSimpleItem("aibou_limit_stone",
+            () -> new Item.Properties().rarity(Rarity.EPIC).fireResistant());
 
     public static final DeferredItem<Item> ABYSS_HELM = armor("abyss_helm", Rarity.COMMON, EquipmentSlot.HEAD);
     public static final DeferredItem<Item> ABYSS_CHEST = armor("abyss_chest", Rarity.COMMON, EquipmentSlot.CHEST);
@@ -325,7 +356,7 @@ public final class ModItems {
 
     private static java.util.Map<GameData.WeaponStyle, DeferredItem<Item>> buildArtShards() {
         var map = new java.util.LinkedHashMap<GameData.WeaponStyle, DeferredItem<Item>>();
-        for (GameData.WeaponStyle style : GameData.WeaponStyle.values()) {
+        for (GameData.WeaponStyle style : GameData.WeaponStyle.DROPPABLE) {
             var shardId = "art_shard_" + style.id;
             map.put(style, ITEMS.registerSimpleItem(shardId,
                     () -> new Item.Properties().rarity(style == GameData.WeaponStyle.SWORD ? Rarity.COMMON
@@ -336,7 +367,7 @@ public final class ModItems {
 
     /** 欠片のランダム1個 (層主・番人の特別報酬用) */
     public static ItemStack randomArtShard(net.minecraft.util.RandomSource rand) {
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         var style = styles[rand.nextInt(styles.length)];
         return new ItemStack(ART_SHARDS.get(style).get());
     }
@@ -440,6 +471,9 @@ public final class ModItems {
                         output.accept(ABYSS_METEOR_LANCE.get());
                         output.accept(ABYSS_ECHO_KATANA.get());
                         output.accept(ABYSS_HOWLING_CLAW.get());
+                        output.accept(ABYSS_NOCTURNE.get());
+                        output.accept(ABYSS_AIBOU.get());
+                        output.accept(AIBOU_LIMIT_STONE.get());
                         output.accept(ABYSS_PICKAXE.get());
                         output.accept(ABYSS_TOOL_AXE.get());
                         output.accept(ABYSS_SHOVEL.get());
@@ -645,6 +679,8 @@ public final class ModItems {
             case METEOR_LANCE -> ABYSS_METEOR_LANCE.get();
             case ECHO_KATANA -> ABYSS_ECHO_KATANA.get();
             case HOWLING_CLAW -> ABYSS_HOWLING_CLAW.get();
+            case NOCTURNE -> ABYSS_NOCTURNE.get();
+            case AIBOU -> ABYSS_AIBOU.get();
         };
     }
 }

@@ -682,6 +682,17 @@ public final class WeaponArts {
                 burst(player, "静潮・大渦！", style);
                 return true;
             }
+            // ---- エンドコンテンツ (固有処理は専用クラス)
+            case NOCTURNE -> {
+                Nocturne.art(player, attackDamage);
+                burst(player, "終曲・天命！", style);
+                return true;
+            }
+            case AIBOU -> {
+                Aibou.art(player, attackDamage);
+                burst(player, "絆断・限界の先！", style);
+                return true;
+            }
         }
         return null;
     }
@@ -973,6 +984,10 @@ public final class WeaponArts {
                             slashCone(lv, player, origin, look, 4.5, dmg / 3, ParticleTypes.CRIT));
                 }
             }
+            case NOCTURNE -> // 数列詠唱 (通常は SkillHandler が Nocturne.onRightClick へ直接渡す)
+                    Nocturne.onRightClick(player);
+            case AIBOU -> // 相棒の大技: メーター消費の薙ぎ払い
+                    Aibou.light(player, attackDamage);
         }
     }
 
@@ -1228,7 +1243,7 @@ public final class WeaponArts {
         }
     }
 
-    private static void slashCone(ServerLevel level, ServerPlayer attacker, Vec3 origin, Vec3 dir, double range, double dmg, ParticleOptions particle) {
+    static void slashCone(ServerLevel level, ServerPlayer attacker, Vec3 origin, Vec3 dir, double range, double dmg, ParticleOptions particle) {
         range *= StatCalc.areaMult(attacker) * StatCalc.reachMult(attacker);
         double arc = StatCalc.sweepArc(attacker);
         double baseAng = Math.atan2(dir.z, dir.x);
@@ -1248,7 +1263,7 @@ public final class WeaponArts {
         level.sendParticles(particle, origin.x + dir.x * 3, origin.y + 1.2, origin.z + dir.z * 3, 12, 1.4, 0.6, 1.4, 0.12);
     }
 
-    private static void aoe(ServerLevel level, ServerPlayer attacker, Vec3 at, double radius, double dmg, boolean knockback, ParticleOptions particle) {
+    static void aoe(ServerLevel level, ServerPlayer attacker, Vec3 at, double radius, double dmg, boolean knockback, ParticleOptions particle) {
         radius *= StatCalc.areaMult(attacker);
         for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
                 new AABB(at.x - radius, at.y - 5, at.z - radius, at.x + radius, at.y + 5, at.z + radius),

@@ -426,6 +426,9 @@ public final class WeaponHitHandler {
         applyShapeStrikes(player, level, target, dmg);
         // 武器ごとの左クリック追撃 (N打ごとの固有ボーナス)
         applyFollowup(player, level, target, dmg, hit.style().id);
+        // エンドコンテンツ武器の固有処理 (律動の追撃 / 相棒のメーター)
+        if (hit.style() == GameData.WeaponStyle.NOCTURNE) Nocturne.onMeleeHit(player, target, hit.atk());
+        if (hit.style() == GameData.WeaponStyle.AIBOU) Aibou.onHit(player);
         // スコア用: 累積与ダメ (切り捨て)
         player.setData(ModAttachments.DMG_DEALT.get(),
                 player.getData(ModAttachments.DMG_DEALT.get()) + (int) dmg);

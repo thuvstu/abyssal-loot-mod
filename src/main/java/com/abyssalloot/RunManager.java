@@ -530,7 +530,7 @@ public final class RunManager {
         int shards = materialCount(player, 16);
         LootHandler.giveOrDrop(player, new ItemStack(ModItems.SOUL_SHARD.get(), shards));
         player.sendSystemMessage(Component.literal("§e魂の欠片 ×" + shards + " (呪印・難易度・幸運の倍率込み)"));
-        var styles = GameData.WeaponStyle.values();
+        var styles = GameData.WeaponStyle.DROPPABLE;
         LootHandler.giveOrDrop(player, GearFactory.makePrizeWeapon(styles[player.getRandom().nextInt(styles.length)],
                 player.getRandom(), StatCalc.luckOf(player), 25));
         sendSoulSummary(player, false);
