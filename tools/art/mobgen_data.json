@@ -1,0 +1,8205 @@
+{
+ "_comment": "MCAssetGen (professional-minecraft-mob-maker) の data/archetypes.ts から焼き出した MOB の骨組み。座標は y 上向き・地面 0 (1 単位 = 1/16 ブロック)。描画・書き出しは tools/art/mobgen.py。",
+ "archetypes": {
+  "humanoid": {
+   "name": "人型",
+   "en": "Humanoid",
+   "tagline": "二足歩行。角・マント・翼を足して種族を分岐できる基本型。",
+   "colors": {
+    "primary": "#3d6b4f",
+    "secondary": "#2a4634",
+    "accent": "#c6f26d",
+    "skin": "#6d8f72",
+    "eye": "#f4ff8a",
+    "detail": "#14241a"
+   },
+   "stats": {
+    "health": 20,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 3,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.23,
+    "flyingSpeed": 0.4,
+    "followRange": 28,
+    "knockbackResistance": 0,
+    "xp": 5
+   },
+   "parts": [
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      24,
+      -4
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      12,
+      -2
+     ],
+     "size": [
+      8,
+      12,
+      4
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "armR",
+     "name": "右腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -8,
+      12,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      -6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "armL",
+     "name": "左腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      12,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "legR",
+     "name": "右脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      0,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      -2,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL",
+     "name": "左脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0,
+      0,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      2,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.2,
+      27.2,
+      -4.55
+     ],
+     "size": [
+      2,
+      2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.2,
+      27.2,
+      -4.55
+     ],
+     "size": [
+      2,
+      2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "browR",
+     "name": "右眉",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -3.4,
+      29.3,
+      -4.7
+     ],
+     "size": [
+      2.4,
+      0.7,
+      0.5
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "browL",
+     "name": "左眉",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      1,
+      29.3,
+      -4.7
+     ],
+     "size": [
+      2.4,
+      0.7,
+      0.5
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "nose",
+     "name": "鼻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      25.2,
+      -5.3
+     ],
+     "size": [
+      1.4,
+      2.2,
+      1.4
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "snout",
+     "name": "口吻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -2,
+      24.4,
+      -6.2
+     ],
+     "size": [
+      4,
+      2.4,
+      2.4
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornR",
+     "name": "右角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4.2,
+      31.2,
+      -1.5
+     ],
+     "size": [
+      1.8,
+      6,
+      1.8
+     ],
+     "pivot": [
+      -3.2,
+      31.2,
+      -0.6
+     ],
+     "rotation": [
+      8,
+      0,
+      22
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornL",
+     "name": "左角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      2.4,
+      31.2,
+      -1.5
+     ],
+     "size": [
+      1.8,
+      6,
+      1.8
+     ],
+     "pivot": [
+      3.2,
+      31.2,
+      -0.6
+     ],
+     "rotation": [
+      8,
+      0,
+      -22
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "crown",
+     "name": "冠",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4.5,
+      31.4,
+      -4.5
+     ],
+     "size": [
+      9,
+      2.2,
+      9
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hat",
+     "name": "帽子",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      31.6,
+      -5
+     ],
+     "size": [
+      10,
+      4,
+      10
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "cape",
+     "name": "マント",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      8,
+      2.1
+     ],
+     "size": [
+      10,
+      16,
+      1
+     ],
+     "pivot": [
+      0,
+      23,
+      2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.18,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "wingR",
+     "name": "右翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -18,
+      16,
+      -1
+     ],
+     "size": [
+      14,
+      1.3,
+      8
+     ],
+     "pivot": [
+      -4,
+      17,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.5,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL",
+     "name": "左翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      4,
+      16,
+      -1
+     ],
+     "size": [
+      14,
+      1.3,
+      8
+     ],
+     "pivot": [
+      4,
+      17,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.5,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "tail",
+     "name": "尾",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.2,
+      10,
+      2
+     ],
+     "size": [
+      2.4,
+      2.4,
+      8
+     ],
+     "pivot": [
+      0,
+      12,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "wag",
+     "phase": 0,
+     "axis": "y",
+     "amp": 0.4,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "pauldronR",
+     "name": "右肩甲",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -9,
+      20,
+      -3
+     ],
+     "size": [
+      5,
+      3.5,
+      6
+     ],
+     "pivot": [
+      -6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "armR"
+    },
+    {
+     "id": "pauldronL",
+     "name": "左肩甲",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      4,
+      20,
+      -3
+     ],
+     "size": [
+      5,
+      3.5,
+      6
+     ],
+     "pivot": [
+      6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "armL"
+    },
+    {
+     "id": "robe",
+     "name": "ローブ",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -6,
+      1,
+      -3
+     ],
+     "size": [
+      12,
+      12,
+      6
+     ],
+     "pivot": [
+      0,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "standard",
+     "name": "標準",
+     "blurb": "等身の二足。素体。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "brute",
+     "name": "剛腕",
+     "blurb": "肩幅と腕を増し、肩甲を付ける。",
+     "scale": 1.12,
+     "enable": [
+      "pauldronR",
+      "pauldronL"
+     ],
+     "disable": [],
+     "partScale": {
+      "armR": [
+       1.25,
+       1.1,
+       1.2
+      ],
+      "armL": [
+       1.25,
+       1.1,
+       1.2
+      ],
+      "body": [
+       1.15,
+       1.05,
+       1.15
+      ]
+     }
+    },
+    {
+     "id": "lanky",
+     "name": "細長",
+     "blurb": "脚と腕が長く、胴が細い。",
+     "scale": 1.05,
+     "enable": [],
+     "disable": [],
+     "partScale": {
+      "armR": [
+       0.8,
+       1.35,
+       0.8
+      ],
+      "armL": [
+       0.8,
+       1.35,
+       0.8
+      ],
+      "legR": [
+       0.8,
+       1.28,
+       0.8
+      ],
+      "legL": [
+       0.8,
+       1.28,
+       0.8
+      ],
+      "body": [
+       0.85,
+       1.15,
+       0.85
+      ]
+     }
+    },
+    {
+     "id": "horned",
+     "name": "有角",
+     "blurb": "角と尾。獣人の起点。",
+     "scale": 1,
+     "enable": [
+      "hornR",
+      "hornL",
+      "tail",
+      "snout"
+     ],
+     "disable": [],
+     "partScale": {}
+    }
+   ]
+  },
+  "quadruped": {
+   "name": "四足",
+   "en": "Quadruped",
+   "tagline": "狼・牛・猫へ比率を振る獣型。角、鬣、翼を後付けできる。",
+   "colors": {
+    "primary": "#3e5c40",
+    "secondary": "#2c4030",
+    "accent": "#d6f58a",
+    "skin": "#4e7050",
+    "eye": "#ffe08a",
+    "detail": "#142016"
+   },
+   "stats": {
+    "health": 16,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 4,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.3,
+    "flyingSpeed": 0.4,
+    "followRange": 24,
+    "knockbackResistance": 0,
+    "xp": 3
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      8,
+      -7
+     ],
+     "size": [
+      8,
+      8,
+      16
+     ],
+     "pivot": [
+      0,
+      12,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      10,
+      -15
+     ],
+     "size": [
+      8,
+      7,
+      8
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "snout",
+     "name": "吻",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2,
+      10.2,
+      -18.2
+     ],
+     "size": [
+      4,
+      3.2,
+      4
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "earR",
+     "name": "右耳",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      16.5,
+      -13
+     ],
+     "size": [
+      2,
+      3.5,
+      1.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      12
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "earL",
+     "name": "左耳",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      2,
+      16.5,
+      -13
+     ],
+     "size": [
+      2,
+      3.5,
+      1.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      -12
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3,
+      13.2,
+      -15.4
+     ],
+     "size": [
+      1.6,
+      1.6,
+      0.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.4,
+      13.2,
+      -15.4
+     ],
+     "size": [
+      1.6,
+      1.6,
+      0.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "legFR",
+     "name": "右前脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -5.2,
+      0,
+      -6
+     ],
+     "size": [
+      3,
+      8.2,
+      3
+     ],
+     "pivot": [
+      -3.6,
+      8,
+      -4.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legFL",
+     "name": "左前脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      2.2,
+      0,
+      -6
+     ],
+     "size": [
+      3,
+      8.2,
+      3
+     ],
+     "pivot": [
+      3.6,
+      8,
+      -4.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legBR",
+     "name": "右後脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -5.2,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      8.2,
+      3
+     ],
+     "pivot": [
+      -3.6,
+      8,
+      6.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legBL",
+     "name": "左後脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      2.2,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      8.2,
+      3
+     ],
+     "pivot": [
+      3.6,
+      8,
+      6.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "tail",
+     "name": "尾",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1.3,
+      12,
+      8.5
+     ],
+     "size": [
+      2.6,
+      2.6,
+      7
+     ],
+     "pivot": [
+      0,
+      13,
+      8.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "wag",
+     "phase": 0,
+     "axis": "y",
+     "amp": 0.45,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "hornR",
+     "name": "右角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -3.4,
+      16.4,
+      -13
+     ],
+     "size": [
+      1.6,
+      5,
+      1.6
+     ],
+     "pivot": [
+      -2.6,
+      16.4,
+      -12
+     ],
+     "rotation": [
+      0,
+      0,
+      18
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornL",
+     "name": "左角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      1.8,
+      16.4,
+      -13
+     ],
+     "size": [
+      1.6,
+      5,
+      1.6
+     ],
+     "pivot": [
+      2.6,
+      16.4,
+      -12
+     ],
+     "rotation": [
+      0,
+      0,
+      -18
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "mane",
+     "name": "鬣",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4.4,
+      15,
+      -8
+     ],
+     "size": [
+      8.8,
+      3,
+      6
+     ],
+     "pivot": [
+      0,
+      12,
+      -4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "hump",
+     "name": "背瘤",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -3,
+      15.5,
+      -2
+     ],
+     "size": [
+      6,
+      3.5,
+      6
+     ],
+     "pivot": [
+      0,
+      16,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    },
+    {
+     "id": "spike1",
+     "name": "背棘1",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      16,
+      -4
+     ],
+     "size": [
+      1.4,
+      3.5,
+      1.4
+     ],
+     "pivot": [
+      0,
+      17.75,
+      -3.3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike2",
+     "name": "背棘2",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      16,
+      0
+     ],
+     "size": [
+      1.4,
+      3.2,
+      1.4
+     ],
+     "pivot": [
+      0,
+      17.6,
+      0.7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike3",
+     "name": "背棘3",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      16,
+      4
+     ],
+     "size": [
+      1.4,
+      2.6,
+      1.4
+     ],
+     "pivot": [
+      0,
+      17.3,
+      4.7
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "wingR",
+     "name": "右翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -16,
+      13,
+      -3
+     ],
+     "size": [
+      12,
+      1.1,
+      8
+     ],
+     "pivot": [
+      -4,
+      14,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL",
+     "name": "左翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      4,
+      13,
+      -3
+     ],
+     "size": [
+      12,
+      1.1,
+      8
+     ],
+     "pivot": [
+      4,
+      14,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "wolf",
+     "name": "狼",
+     "blurb": "細身で尾が長い。群れ向き。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {
+      "tail": [
+       1,
+       1,
+       1.15
+      ]
+     }
+    },
+    {
+     "id": "bovine",
+     "name": "牛",
+     "blurb": "胴が厚く、角と背瘤。",
+     "scale": 1.18,
+     "enable": [
+      "hornR",
+      "hornL",
+      "hump"
+     ],
+     "disable": [],
+     "partScale": {
+      "body": [
+       1.25,
+       1.15,
+       1.05
+      ],
+      "legFR": [
+       1.15,
+       0.82,
+       1.15
+      ],
+      "legFL": [
+       1.15,
+       0.82,
+       1.15
+      ],
+      "legBR": [
+       1.15,
+       0.82,
+       1.15
+      ],
+      "legBL": [
+       1.15,
+       0.82,
+       1.15
+      ],
+      "snout": [
+       1.3,
+       1,
+       1.2
+      ],
+      "earR": [
+       0.8,
+       0.7,
+       1
+      ],
+      "earL": [
+       0.8,
+       0.7,
+       1
+      ]
+     }
+    },
+    {
+     "id": "feline",
+     "name": "猫",
+     "blurb": "小柄で耳と尾が目立つ。",
+     "scale": 0.82,
+     "enable": [],
+     "disable": [],
+     "partScale": {
+      "tail": [
+       0.8,
+       0.8,
+       1.45
+      ],
+      "earR": [
+       1,
+       1.35,
+       1
+      ],
+      "earL": [
+       1,
+       1.35,
+       1
+      ],
+      "snout": [
+       0.75,
+       0.75,
+       0.7
+      ],
+      "body": [
+       0.9,
+       0.85,
+       0.95
+      ]
+     }
+    },
+    {
+     "id": "brute",
+     "name": "巨獣",
+     "blurb": "鬣と背棘。ボス前座に。",
+     "scale": 1.4,
+     "enable": [
+      "mane",
+      "spike1",
+      "spike2",
+      "spike3"
+     ],
+     "disable": [],
+     "partScale": {
+      "body": [
+       1.15,
+       1.1,
+       1.1
+      ]
+     }
+    }
+   ]
+  },
+  "flying": {
+   "name": "飛行",
+   "en": "Flyer",
+   "tagline": "鳥・蛾・コウモリ。翼の枚数と触角で印象が変わる。",
+   "colors": {
+    "primary": "#c4a36a",
+    "secondary": "#efe2c4",
+    "accent": "#ffb15a",
+    "skin": "#e6d2a8",
+    "eye": "#fff4c4",
+    "detail": "#3a2a16"
+   },
+   "stats": {
+    "health": 10,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 2,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.16,
+    "flyingSpeed": 0.45,
+    "followRange": 18,
+    "knockbackResistance": 0,
+    "xp": 2
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3,
+      10,
+      -5
+     ],
+     "size": [
+      6,
+      6,
+      11
+     ],
+     "pivot": [
+      0,
+      13,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3,
+      12,
+      -10
+     ],
+     "size": [
+      6,
+      6,
+      6
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "beak",
+     "name": "嘴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1,
+      13.2,
+      -13
+     ],
+     "size": [
+      2,
+      1.8,
+      3.4
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      14.6,
+      -10.4
+     ],
+     "size": [
+      1.5,
+      1.8,
+      0.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.1,
+      14.6,
+      -10.4
+     ],
+     "size": [
+      1.5,
+      1.8,
+      0.6
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "wingR",
+     "name": "右翼",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -18,
+      13.2,
+      -3
+     ],
+     "size": [
+      15,
+      1.15,
+      9
+     ],
+     "pivot": [
+      -3,
+      14,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL",
+     "name": "左翼",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      3,
+      13.2,
+      -3
+     ],
+     "size": [
+      15,
+      1.15,
+      9
+     ],
+     "pivot": [
+      3,
+      14,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingR2",
+     "name": "右下翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -15,
+      11.2,
+      0
+     ],
+     "size": [
+      12,
+      1,
+      7
+     ],
+     "pivot": [
+      -3,
+      12,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "flap",
+     "phase": 0.4,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL2",
+     "name": "左下翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      3,
+      11.2,
+      0
+     ],
+     "size": [
+      12,
+      1,
+      7
+     ],
+     "pivot": [
+      3,
+      12,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "flap",
+     "phase": 3.541592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "tail",
+     "name": "尾羽",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2,
+      12,
+      6
+     ],
+     "size": [
+      4,
+      0.8,
+      7
+     ],
+     "pivot": [
+      0,
+      12.4,
+      6
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "wag",
+     "phase": 0,
+     "axis": "y",
+     "amp": 0.25,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "legR",
+     "name": "右脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.4,
+      6,
+      -1
+     ],
+     "size": [
+      1.6,
+      4.5,
+      1.6
+     ],
+     "pivot": [
+      -1.6,
+      10,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.3,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL",
+     "name": "左脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0.8,
+      6,
+      -1
+     ],
+     "size": [
+      1.6,
+      4.5,
+      1.6
+     ],
+     "pivot": [
+      1.6,
+      10,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.3,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "antennaR",
+     "name": "右触角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.8,
+      17.6,
+      -8
+     ],
+     "size": [
+      0.55,
+      5.5,
+      0.55
+     ],
+     "pivot": [
+      -1.2,
+      17.6,
+      -7.6
+     ],
+     "rotation": [
+      12,
+      0,
+      16
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "antennaL",
+     "name": "左触角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      1.25,
+      17.6,
+      -8
+     ],
+     "size": [
+      0.55,
+      5.5,
+      0.55
+     ],
+     "pivot": [
+      1.2,
+      17.6,
+      -7.6
+     ],
+     "rotation": [
+      12,
+      0,
+      -16
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "halo",
+     "name": "光環",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4,
+      19.2,
+      -8
+     ],
+     "size": [
+      8,
+      0.7,
+      8
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 0.85,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "crest",
+     "name": "トサカ",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      17.6,
+      -8
+     ],
+     "size": [
+      1.2,
+      3.2,
+      3
+     ],
+     "pivot": [
+      0,
+      14,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    }
+   ],
+   "variants": [
+    {
+     "id": "bird",
+     "name": "鳥",
+     "blurb": "嘴と尾羽。昼の環境モブ向き。",
+     "scale": 1,
+     "enable": [
+      "crest"
+     ],
+     "disable": [
+      "antennaR",
+      "antennaL",
+      "wingR2",
+      "wingL2"
+     ],
+     "partScale": {}
+    },
+    {
+     "id": "moth",
+     "name": "蛾",
+     "blurb": "四枚翅と触角。夜に光る。",
+     "scale": 1.08,
+     "enable": [
+      "antennaR",
+      "antennaL",
+      "wingR2",
+      "wingL2"
+     ],
+     "disable": [
+      "crest"
+     ],
+     "partScale": {
+      "beak": [
+       0.5,
+       0.5,
+       0.45
+      ],
+      "body": [
+       1.15,
+       1.1,
+       0.9
+      ]
+     }
+    },
+    {
+     "id": "bat",
+     "name": "コウモリ",
+     "blurb": "翼が大きく、嘴が小さい。",
+     "scale": 0.95,
+     "enable": [
+      "antennaR",
+      "antennaL"
+     ],
+     "disable": [
+      "crest",
+      "wingR2",
+      "wingL2"
+     ],
+     "partScale": {
+      "wingR": [
+       1.2,
+       1,
+       1.15
+      ],
+      "wingL": [
+       1.2,
+       1,
+       1.15
+      ],
+      "beak": [
+       0.4,
+       0.4,
+       0.35
+      ],
+      "earish": [
+       1,
+       1,
+       1
+      ]
+     }
+    },
+    {
+     "id": "wisp",
+     "name": "妖精",
+     "blurb": "小柄に光環。案内役。",
+     "scale": 0.72,
+     "enable": [
+      "halo"
+     ],
+     "disable": [
+      "crest"
+     ],
+     "partScale": {
+      "wingR": [
+       0.85,
+       1,
+       0.8
+      ],
+      "wingL": [
+       0.85,
+       1,
+       0.8
+      ]
+     }
+    }
+   ]
+  },
+  "aquatic": {
+   "name": "水棲",
+   "en": "Aquatic",
+   "tagline": "魚・エイ・監視体。棘と誘引灯で深海ボスの前座にもなる。",
+   "colors": {
+    "primary": "#1f6a78",
+    "secondary": "#16485a",
+    "accent": "#7ee0e0",
+    "skin": "#2f8a96",
+    "eye": "#d7c6ff",
+    "detail": "#0c2430"
+   },
+   "stats": {
+    "health": 24,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 5,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.22,
+    "flyingSpeed": 0.4,
+    "followRange": 24,
+    "knockbackResistance": 0,
+    "xp": 8
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      6,
+      -8
+     ],
+     "size": [
+      8,
+      7,
+      16
+     ],
+     "pivot": [
+      0,
+      9.5,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.5,
+      7,
+      -13
+     ],
+     "size": [
+      7,
+      6,
+      6
+     ],
+     "pivot": [
+      0,
+      10,
+      -8
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.2,
+      9.4,
+      -13.4
+     ],
+     "size": [
+      1.8,
+      1.8,
+      0.6
+     ],
+     "pivot": [
+      0,
+      10,
+      -8
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.4,
+      9.4,
+      -13.4
+     ],
+     "size": [
+      1.8,
+      1.8,
+      0.6
+     ],
+     "pivot": [
+      0,
+      10,
+      -8
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeBig",
+     "name": "巨眼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -2.2,
+      8.2,
+      -13.8
+     ],
+     "size": [
+      4.4,
+      3.4,
+      0.8
+     ],
+     "pivot": [
+      0,
+      10,
+      -8
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "tail",
+     "name": "尾柄",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1.6,
+      8,
+      8
+     ],
+     "size": [
+      3.2,
+      3.2,
+      6
+     ],
+     "pivot": [
+      0,
+      9.6,
+      8
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "wag",
+     "phase": 0,
+     "axis": "y",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "tailFin",
+     "name": "尾鰭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -5,
+      6,
+      13.2
+     ],
+     "size": [
+      10,
+      7,
+      1.1
+     ],
+     "pivot": [
+      0,
+      9.5,
+      13
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "wag",
+     "phase": 0.4,
+     "axis": "y",
+     "amp": 0.4,
+     "opacity": 1,
+     "group": "tail"
+    },
+    {
+     "id": "dorsal",
+     "name": "背鰭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -0.55,
+      13,
+      -2
+     ],
+     "size": [
+      1.1,
+      4,
+      6
+     ],
+     "pivot": [
+      0,
+      13,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "finR",
+     "name": "右鰭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -8,
+      8,
+      -2
+     ],
+     "size": [
+      4,
+      0.7,
+      5
+     ],
+     "pivot": [
+      -4,
+      8.4,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      18
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "finL",
+     "name": "左鰭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      8,
+      -2
+     ],
+     "size": [
+      4,
+      0.7,
+      5
+     ],
+     "pivot": [
+      4,
+      8.4,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      -18
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike0",
+     "name": "棘1",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      13,
+      -6
+     ],
+     "size": [
+      1.2,
+      3.6,
+      1.2
+     ],
+     "pivot": [
+      0,
+      14.8,
+      -5.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike1",
+     "name": "棘2",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      13,
+      -2
+     ],
+     "size": [
+      1.2,
+      4,
+      1.2
+     ],
+     "pivot": [
+      0,
+      15,
+      -1.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike2",
+     "name": "棘3",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      13,
+      2
+     ],
+     "size": [
+      1.2,
+      3.4,
+      1.2
+     ],
+     "pivot": [
+      0,
+      14.7,
+      2.6
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "spike3",
+     "name": "棘4",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      13,
+      5
+     ],
+     "size": [
+      1.2,
+      2.8,
+      1.2
+     ],
+     "pivot": [
+      0,
+      14.4,
+      5.6
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "lure",
+     "name": "誘引灯",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.8,
+      12,
+      -17.5
+     ],
+     "size": [
+      1.6,
+      1.6,
+      5
+     ],
+     "pivot": [
+      0,
+      12,
+      -12
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "pulse",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "shell",
+     "name": "甲殻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      10,
+      -6
+     ],
+     "size": [
+      10,
+      3,
+      10
+     ],
+     "pivot": [
+      0,
+      11,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "fish",
+     "name": "魚",
+     "blurb": "標準の流線。川にも海にも。",
+     "scale": 1,
+     "enable": [],
+     "disable": [
+      "eyeBig"
+     ],
+     "partScale": {}
+    },
+    {
+     "id": "ray",
+     "name": "エイ",
+     "blurb": "平たく、胸鰭が広い。",
+     "scale": 1.15,
+     "enable": [],
+     "disable": [
+      "eyeBig",
+      "dorsal"
+     ],
+     "partScale": {
+      "body": [
+       1.7,
+       0.38,
+       1.15
+      ],
+      "finR": [
+       1.8,
+       1,
+       1.3
+      ],
+      "finL": [
+       1.8,
+       1,
+       1.3
+      ],
+      "head": [
+       1.3,
+       0.55,
+       0.8
+      ]
+     }
+    },
+    {
+     "id": "watcher",
+     "name": "監視体",
+     "blurb": "巨眼と棘。ビーム役。",
+     "scale": 1.2,
+     "enable": [
+      "eyeBig",
+      "spike0",
+      "spike1",
+      "spike2",
+      "spike3"
+     ],
+     "disable": [],
+     "partScale": {
+      "body": [
+       1.25,
+       1.2,
+       0.85
+      ],
+      "head": [
+       1.15,
+       1.1,
+       0.9
+      ]
+     }
+    },
+    {
+     "id": "eel",
+     "name": "ウナギ",
+     "blurb": "細長く、誘引灯を付けられる。",
+     "scale": 1,
+     "enable": [
+      "lure"
+     ],
+     "disable": [
+      "eyeBig"
+     ],
+     "partScale": {
+      "body": [
+       0.7,
+       0.7,
+       1.55
+      ],
+      "tail": [
+       0.7,
+       0.7,
+       1.3
+      ],
+      "head": [
+       0.85,
+       0.85,
+       1.1
+      ]
+     }
+    }
+   ]
+  },
+  "arachnid": {
+   "name": "節足",
+   "en": "Arachnid",
+   "tagline": "蜘蛛・サソリ・カニ。脚の角度は型に焼き込んである。",
+   "colors": {
+    "primary": "#3a2e28",
+    "secondary": "#5c4638",
+    "accent": "#d94a3a",
+    "skin": "#6a5344",
+    "eye": "#ffb15a",
+    "detail": "#1a120e"
+   },
+   "stats": {
+    "health": 22,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 4,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.28,
+    "flyingSpeed": 0.4,
+    "followRange": 22,
+    "knockbackResistance": 0,
+    "xp": 6
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "腹部",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -5,
+      5,
+      -1
+     ],
+     "size": [
+      10,
+      8,
+      12
+     ],
+     "pivot": [
+      0,
+      9,
+      5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "頭胸",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      6,
+      -9
+     ],
+     "size": [
+      8,
+      6,
+      8
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      9.2,
+      -9.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.3,
+      9.2,
+      -9.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeR2",
+     "name": "右上目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1.6,
+      10.6,
+      -9.35
+     ],
+     "size": [
+      1,
+      1,
+      0.45
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL2",
+     "name": "左上目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0.6,
+      10.6,
+      -9.35
+     ],
+     "size": [
+      1,
+      1,
+      0.45
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "mandibleR",
+     "name": "右牙",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.4,
+      6.2,
+      -11.2
+     ],
+     "size": [
+      1.2,
+      1.6,
+      2.4
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "mandibleL",
+     "name": "左牙",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.2,
+      6.2,
+      -11.2
+     ],
+     "size": [
+      1.2,
+      1.6,
+      2.4
+     ],
+     "pivot": [
+      0,
+      9,
+      -5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "legR1",
+     "name": "右脚1",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -18,
+      7.2,
+      -9.899999999999999
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      -4,
+      8,
+      -9.2
+     ],
+     "rotation": [
+      0,
+      -52,
+      34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL1",
+     "name": "左脚1",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      7.2,
+      -9.899999999999999
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      4,
+      8,
+      -9.2
+     ],
+     "rotation": [
+      0,
+      52,
+      -34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legR2",
+     "name": "右脚2",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -18,
+      7.2,
+      -7.8
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      -4,
+      8,
+      -7.1
+     ],
+     "rotation": [
+      0,
+      -18,
+      34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL2",
+     "name": "左脚2",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      7.2,
+      -7.8
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      4,
+      8,
+      -7.1
+     ],
+     "rotation": [
+      0,
+      18,
+      -34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legR3",
+     "name": "右脚3",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -18,
+      7.2,
+      -5.7
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      -4,
+      8,
+      -5
+     ],
+     "rotation": [
+      0,
+      18,
+      34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL3",
+     "name": "左脚3",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      7.2,
+      -5.7
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      4,
+      8,
+      -5
+     ],
+     "rotation": [
+      0,
+      -18,
+      -34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legR4",
+     "name": "右脚4",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -18,
+      7.2,
+      -3.5999999999999996
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      -4,
+      8,
+      -2.9
+     ],
+     "rotation": [
+      0,
+      50,
+      34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL4",
+     "name": "左脚4",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      7.2,
+      -3.5999999999999996
+     ],
+     "size": [
+      14,
+      1.5,
+      1.5
+     ],
+     "pivot": [
+      4,
+      8,
+      -2.9
+     ],
+     "rotation": [
+      0,
+      -50,
+      -34
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.2,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "pincerR",
+     "name": "右鋏",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -12,
+      6.2,
+      -12
+     ],
+     "size": [
+      8,
+      2.6,
+      2.8
+     ],
+     "pivot": [
+      -4,
+      7.4,
+      -8
+     ],
+     "rotation": [
+      0,
+      -24,
+      10
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm"
+    },
+    {
+     "id": "pincerL",
+     "name": "左鋏",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      4,
+      6.2,
+      -12
+     ],
+     "size": [
+      8,
+      2.6,
+      2.8
+     ],
+     "pivot": [
+      4,
+      7.4,
+      -8
+     ],
+     "rotation": [
+      0,
+      24,
+      -10
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm"
+    },
+    {
+     "id": "tail1",
+     "name": "尾節1",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.4,
+      12,
+      8
+     ],
+     "size": [
+      2.8,
+      5,
+      2.8
+     ],
+     "pivot": [
+      0,
+      12,
+      9.4
+     ],
+     "rotation": [
+      -28,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "tail2",
+     "name": "尾節2",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.2,
+      16,
+      5
+     ],
+     "size": [
+      2.4,
+      4.5,
+      2.4
+     ],
+     "pivot": [
+      0,
+      16,
+      6.2
+     ],
+     "rotation": [
+      -50,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "stinger",
+     "name": "毒針",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      18.5,
+      2.2
+     ],
+     "size": [
+      1.4,
+      4,
+      1.4
+     ],
+     "pivot": [
+      0,
+      18.5,
+      2.8
+     ],
+     "rotation": [
+      -70,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "wingR",
+     "name": "右翅",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -12,
+      12,
+      -4
+     ],
+     "size": [
+      8,
+      0.6,
+      6
+     ],
+     "pivot": [
+      -4,
+      12.4,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL",
+     "name": "左翅",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      4,
+      12,
+      -4
+     ],
+     "size": [
+      8,
+      0.6,
+      6
+     ],
+     "pivot": [
+      4,
+      12.4,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "spider",
+     "name": "蜘蛛",
+     "blurb": "八本脚と複眼。壁登り前提。",
+     "scale": 1,
+     "enable": [],
+     "disable": [
+      "pincerR",
+      "pincerL",
+      "tail1",
+      "tail2",
+      "stinger"
+     ],
+     "partScale": {}
+    },
+    {
+     "id": "scorpion",
+     "name": "サソリ",
+     "blurb": "鋏と反り返る毒針。",
+     "scale": 1.08,
+     "enable": [
+      "pincerR",
+      "pincerL",
+      "tail1",
+      "tail2",
+      "stinger"
+     ],
+     "disable": [
+      "legR1",
+      "legL1"
+     ],
+     "partScale": {
+      "body": [
+       0.95,
+       0.9,
+       1.15
+      ]
+     }
+    },
+    {
+     "id": "crab",
+     "name": "カニ",
+     "blurb": "横幅と大きな鋏。脚は短い。",
+     "scale": 1,
+     "enable": [
+      "pincerR",
+      "pincerL"
+     ],
+     "disable": [
+      "tail1",
+      "tail2",
+      "stinger",
+      "mandibleR",
+      "mandibleL"
+     ],
+     "partScale": {
+      "legR1": [
+       0.58,
+       1,
+       1
+      ],
+      "legL1": [
+       0.58,
+       1,
+       1
+      ],
+      "legR2": [
+       0.58,
+       1,
+       1
+      ],
+      "legL2": [
+       0.58,
+       1,
+       1
+      ],
+      "legR3": [
+       0.58,
+       1,
+       1
+      ],
+      "legL3": [
+       0.58,
+       1,
+       1
+      ],
+      "legR4": [
+       0.58,
+       1,
+       1
+      ],
+      "legL4": [
+       0.58,
+       1,
+       1
+      ],
+      "body": [
+       1.45,
+       0.62,
+       0.75
+      ],
+      "head": [
+       1.35,
+       0.7,
+       0.8
+      ]
+     }
+    }
+   ]
+  },
+  "slime": {
+   "name": "不定形",
+   "en": "Slime",
+   "tagline": "外殻と核。大きさはスケールで。王冠を載せればレア枠。",
+   "colors": {
+    "primary": "#3f9d4a",
+    "secondary": "#2f7a38",
+    "accent": "#b6f25c",
+    "skin": "#67c56e",
+    "eye": "#102010",
+    "detail": "#1c4a22"
+   },
+   "stats": {
+    "health": 16,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 3,
+    "attackInterval": 1,
+    "attackKnockback": 0.8,
+    "movementSpeed": 0.22,
+    "flyingSpeed": 0.4,
+    "followRange": 20,
+    "knockbackResistance": 0,
+    "xp": 4
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "外殻",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -8,
+      0,
+      -8
+     ],
+     "size": [
+      16,
+      16,
+      16
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "pulse",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 0.42,
+     "group": "body"
+    },
+    {
+     "id": "core",
+     "name": "核",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      4,
+      -4
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "pulse",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.2,
+      8.2,
+      -8.5
+     ],
+     "size": [
+      2.2,
+      2.6,
+      0.8
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1,
+      8.2,
+      -8.5
+     ],
+     "size": [
+      2.2,
+      2.6,
+      0.8
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "mouth",
+     "name": "口",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2,
+      5.6,
+      -8.6
+     ],
+     "size": [
+      4,
+      1.4,
+      0.7
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "bubble1",
+     "name": "泡1",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      5,
+      12,
+      2
+     ],
+     "size": [
+      2.2,
+      2.2,
+      2.2
+     ],
+     "pivot": [
+      6.1,
+      13.1,
+      3.1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 0.7,
+     "group": "extra"
+    },
+    {
+     "id": "bubble2",
+     "name": "泡2",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -6,
+      10,
+      -3
+     ],
+     "size": [
+      1.6,
+      1.6,
+      1.6
+     ],
+     "pivot": [
+      -5.2,
+      10.8,
+      -2.2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "bob",
+     "phase": 1,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 0.65,
+     "group": "extra"
+    },
+    {
+     "id": "crown",
+     "name": "王冠",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4,
+      15.2,
+      -4
+     ],
+     "size": [
+      8,
+      2.4,
+      8
+     ],
+     "pivot": [
+      0,
+      8,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "cube",
+     "name": "立方",
+     "blurb": "中型の基本スライム。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "large",
+     "name": "巨大",
+     "blurb": "分裂元。当たり判定も大きい。",
+     "scale": 1.7,
+     "enable": [
+      "bubble1",
+      "bubble2"
+     ],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "core",
+     "name": "核主体",
+     "blurb": "外殻が薄く、核が目立つ。",
+     "scale": 0.9,
+     "enable": [],
+     "disable": [],
+     "partScale": {
+      "body": [
+       0.85,
+       0.85,
+       0.85
+      ],
+      "core": [
+       1.35,
+       1.35,
+       1.35
+      ]
+     }
+    },
+    {
+     "id": "crowned",
+     "name": "戴冠",
+     "blurb": "王冠付きのレア個体。",
+     "scale": 1.15,
+     "enable": [
+      "crown",
+      "bubble1"
+     ],
+     "disable": [],
+     "partScale": {}
+    }
+   ]
+  },
+  "serpent": {
+   "name": "蛇行",
+   "en": "Serpent",
+   "tagline": "節でうねる。フード、角、翼でコブラから小型龍へ。",
+   "colors": {
+    "primary": "#2f6a45",
+    "secondary": "#1e4630",
+    "accent": "#d6f58a",
+    "skin": "#3e7a52",
+    "eye": "#ffe08a",
+    "detail": "#102818"
+   },
+   "stats": {
+    "health": 28,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 6,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.28,
+    "flyingSpeed": 0.4,
+    "followRange": 24,
+    "knockbackResistance": 0,
+    "xp": 10
+   },
+   "parts": [
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.4,
+      3.4,
+      -18
+     ],
+     "size": [
+      6.8,
+      5.2,
+      8
+     ],
+     "pivot": [
+      0,
+      6,
+      -10
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head"
+    },
+    {
+     "id": "jaw",
+     "name": "下顎",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      3.2,
+      -17.2
+     ],
+     "size": [
+      5.2,
+      1.4,
+      6
+     ],
+     "pivot": [
+      0,
+      6,
+      -10
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.8,
+      6.2,
+      -18.3
+     ],
+     "size": [
+      1.4,
+      1.4,
+      0.5
+     ],
+     "pivot": [
+      0,
+      6,
+      -10
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.4,
+      6.2,
+      -18.3
+     ],
+     "size": [
+      1.4,
+      1.4,
+      0.5
+     ],
+     "pivot": [
+      0,
+      6,
+      -10
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "seg1",
+     "name": "節1",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      3.3,
+      -10.5
+     ],
+     "size": [
+      5.2,
+      4.6,
+      5.8
+     ],
+     "pivot": [
+      0,
+      5.5,
+      -7.6
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "wave",
+     "phase": 0.2,
+     "axis": "y",
+     "amp": 0.22,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "seg2",
+     "name": "節2",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.7,
+      3.2,
+      -5
+     ],
+     "size": [
+      5.4,
+      4.8,
+      5.8
+     ],
+     "pivot": [
+      0,
+      5.6,
+      -2.1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "wave",
+     "phase": 0.7,
+     "axis": "y",
+     "amp": 0.24,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "seg3",
+     "name": "節3",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.5,
+      3.1,
+      0.6
+     ],
+     "size": [
+      5,
+      4.5,
+      5.8
+     ],
+     "pivot": [
+      0,
+      5.3,
+      3.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "wave",
+     "phase": 1.2,
+     "axis": "y",
+     "amp": 0.26,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "seg4",
+     "name": "節4",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.3,
+      3,
+      6.2
+     ],
+     "size": [
+      4.6,
+      4.2,
+      5.6
+     ],
+     "pivot": [
+      0,
+      5.1,
+      9
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "wave",
+     "phase": 1.7,
+     "axis": "y",
+     "amp": 0.28,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "seg5",
+     "name": "節5",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2,
+      3,
+      11.5
+     ],
+     "size": [
+      4,
+      3.8,
+      5.2
+     ],
+     "pivot": [
+      0,
+      4.9,
+      14
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "wave",
+     "phase": 2.2,
+     "axis": "y",
+     "amp": 0.3,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "tail",
+     "name": "尾端",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1.2,
+      3.2,
+      16.4
+     ],
+     "size": [
+      2.4,
+      2.4,
+      4.5
+     ],
+     "pivot": [
+      0,
+      4.4,
+      16.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "wave",
+     "phase": 2.7,
+     "axis": "y",
+     "amp": 0.34,
+     "opacity": 1,
+     "group": "tail"
+    },
+    {
+     "id": "hoodR",
+     "name": "右フード",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -8.2,
+      4.2,
+      -15
+     ],
+     "size": [
+      5.5,
+      0.9,
+      6.5
+     ],
+     "pivot": [
+      -2.5,
+      5,
+      -12
+     ],
+     "rotation": [
+      0,
+      8,
+      -26
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hoodL",
+     "name": "左フード",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      2.7,
+      4.2,
+      -15
+     ],
+     "size": [
+      5.5,
+      0.9,
+      6.5
+     ],
+     "pivot": [
+      2.5,
+      5,
+      -12
+     ],
+     "rotation": [
+      0,
+      -8,
+      26
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornR",
+     "name": "右角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -2.6,
+      8.2,
+      -16
+     ],
+     "size": [
+      1.3,
+      4,
+      1.3
+     ],
+     "pivot": [
+      -1.8,
+      8.2,
+      -15.2
+     ],
+     "rotation": [
+      -10,
+      0,
+      16
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornL",
+     "name": "左角",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      1.3,
+      8.2,
+      -16
+     ],
+     "size": [
+      1.3,
+      4,
+      1.3
+     ],
+     "pivot": [
+      1.8,
+      8.2,
+      -15.2
+     ],
+     "rotation": [
+      -10,
+      0,
+      -16
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "wingR",
+     "name": "右翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -14,
+      6,
+      -2
+     ],
+     "size": [
+      11,
+      0.9,
+      6
+     ],
+     "pivot": [
+      -3,
+      7,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "seg2"
+    },
+    {
+     "id": "wingL",
+     "name": "左翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      3,
+      6,
+      -2
+     ],
+     "size": [
+      11,
+      0.9,
+      6
+     ],
+     "pivot": [
+      3,
+      7,
+      1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "seg2"
+    }
+   ],
+   "variants": [
+    {
+     "id": "snake",
+     "name": "蛇",
+     "blurb": "地を這う基本形。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "cobra",
+     "name": "コブラ",
+     "blurb": "フードを広げる威嚇型。",
+     "scale": 1.05,
+     "enable": [
+      "hoodR",
+      "hoodL"
+     ],
+     "disable": [],
+     "partScale": {
+      "head": [
+       1.05,
+       1.1,
+       1
+      ]
+     }
+    },
+    {
+     "id": "wyrm",
+     "name": "小型龍",
+     "blurb": "角と翼。飛行はフラグで足す。",
+     "scale": 1.25,
+     "enable": [
+      "hornR",
+      "hornL",
+      "wingR",
+      "wingL"
+     ],
+     "disable": [],
+     "partScale": {
+      "head": [
+       1.1,
+       1.05,
+       1.05
+      ],
+      "seg2": [
+       1.15,
+       1.1,
+       1
+      ]
+     }
+    },
+    {
+     "id": "worm",
+     "name": "地虫",
+     "blurb": "頭が小さく、節が均一。",
+     "scale": 0.95,
+     "enable": [],
+     "disable": [
+      "jaw"
+     ],
+     "partScale": {
+      "head": [
+       0.8,
+       0.75,
+       0.8
+      ],
+      "seg1": [
+       1.1,
+       1,
+       1
+      ],
+      "seg3": [
+       1.1,
+       1,
+       1
+      ]
+     }
+    }
+   ]
+  },
+  "golem": {
+   "name": "ゴーレム",
+   "en": "Golem",
+   "tagline": "厚い胴と短い脚。鼻、ルーン、結晶で素材を示す。",
+   "colors": {
+    "primary": "#8a8f86",
+    "secondary": "#5e655c",
+    "accent": "#6fbfa8",
+    "skin": "#b7b2a4",
+    "eye": "#ffe08a",
+    "detail": "#3a3d38"
+   },
+   "stats": {
+    "health": 80,
+    "armor": 8,
+    "armorToughness": 0,
+    "attackDamage": 12,
+    "attackInterval": 1.4,
+    "attackKnockback": 1.2,
+    "movementSpeed": 0.22,
+    "flyingSpeed": 0.4,
+    "followRange": 18,
+    "knockbackResistance": 0.7,
+    "xp": 15
+   },
+   "parts": [
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -7,
+      10,
+      -4
+     ],
+     "size": [
+      14,
+      12,
+      8
+     ],
+     "pivot": [
+      0,
+      16,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      22,
+      -4
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "armR",
+     "name": "右腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -13,
+      8,
+      -3
+     ],
+     "size": [
+      6,
+      16,
+      6
+     ],
+     "pivot": [
+      -7,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.4,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "armL",
+     "name": "左腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      7,
+      8,
+      -3
+     ],
+     "size": [
+      6,
+      16,
+      6
+     ],
+     "pivot": [
+      7,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.4,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "legR",
+     "name": "右脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -6,
+      0,
+      -3
+     ],
+     "size": [
+      5,
+      10,
+      6
+     ],
+     "pivot": [
+      -3.5,
+      10,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.28,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL",
+     "name": "左脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1,
+      0,
+      -3
+     ],
+     "size": [
+      5,
+      10,
+      6
+     ],
+     "pivot": [
+      3.5,
+      10,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.28,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      25.4,
+      -4.5
+     ],
+     "size": [
+      1.6,
+      1.6,
+      0.6
+     ],
+     "pivot": [
+      0,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1,
+      25.4,
+      -4.5
+     ],
+     "size": [
+      1.6,
+      1.6,
+      0.6
+     ],
+     "pivot": [
+      0,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "nose",
+     "name": "鼻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1,
+      23.2,
+      -6.2
+     ],
+     "size": [
+      2,
+      4,
+      2.4
+     ],
+     "pivot": [
+      0,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "rune",
+     "name": "ルーン",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -2,
+      15,
+      -4.6
+     ],
+     "size": [
+      4,
+      4,
+      0.8
+     ],
+     "pivot": [
+      0,
+      16,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    },
+    {
+     "id": "crystalR",
+     "name": "右結晶",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -8,
+      20,
+      -1
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      -7,
+      20,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "crystalL",
+     "name": "左結晶",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      6,
+      20,
+      -1
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7,
+      20,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "helm",
+     "name": "兜",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -4.6,
+      28.6,
+      -4.6
+     ],
+     "size": [
+      9.2,
+      2.4,
+      9.2
+     ],
+     "pivot": [
+      0,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "moss",
+     "name": "苔",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      18,
+      -4.4
+     ],
+     "size": [
+      4,
+      2,
+      0.6
+     ],
+     "pivot": [
+      0,
+      16,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "stone",
+     "name": "石",
+     "blurb": "村の守護に近い無骨な像。",
+     "scale": 1.15,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "iron",
+     "name": "鉄",
+     "blurb": "鼻と兜。金属音と相性が良い。",
+     "scale": 1.12,
+     "enable": [
+      "nose",
+      "helm"
+     ],
+     "disable": [],
+     "partScale": {
+      "body": [
+       0.95,
+       1.05,
+       0.95
+      ]
+     }
+    },
+    {
+     "id": "moss",
+     "name": "苔",
+     "blurb": "廃墟に立つ中立。苔パッチ。",
+     "scale": 1.18,
+     "enable": [
+      "moss",
+      "rune"
+     ],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "copper",
+     "name": "銅",
+     "blurb": "結晶とルーン。酸化の色を載せる。",
+     "scale": 1.16,
+     "enable": [
+      "crystalR",
+      "crystalL",
+      "rune"
+     ],
+     "disable": [],
+     "partScale": {}
+    }
+   ]
+  },
+  "multi": {
+   "name": "多頭",
+   "en": "Multi-head",
+   "tagline": "脊骨に頭が並ぶ。双頭か三頭かで役割が変わる。",
+   "colors": {
+    "primary": "#2c3036",
+    "secondary": "#1a1c1f",
+    "accent": "#7ee0e0",
+    "skin": "#3a3f46",
+    "eye": "#b8fff8",
+    "detail": "#101214"
+   },
+   "stats": {
+    "health": 90,
+    "armor": 4,
+    "armorToughness": 0,
+    "attackDamage": 8,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.24,
+    "flyingSpeed": 0.32,
+    "followRange": 32,
+    "knockbackResistance": 0,
+    "xp": 25
+   },
+   "parts": [
+    {
+     "id": "spine",
+     "name": "脊骨",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2,
+      8,
+      -2
+     ],
+     "size": [
+      4,
+      20,
+      4
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "head",
+     "name": "中央の頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      26,
+      -5
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      26,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "spine"
+    },
+    {
+     "id": "headL",
+     "name": "左の頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -14,
+      20,
+      -4
+     ],
+     "size": [
+      7,
+      7,
+      7
+     ],
+     "pivot": [
+      -10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0.9,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "spine"
+    },
+    {
+     "id": "headR",
+     "name": "右の頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      7,
+      20,
+      -4
+     ],
+     "size": [
+      7,
+      7,
+      7
+     ],
+     "pivot": [
+      10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 1.7,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "spine"
+    },
+    {
+     "id": "eyeR",
+     "name": "中央右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.4,
+      29.2,
+      -5.4
+     ],
+     "size": [
+      1.5,
+      1.5,
+      0.55
+     ],
+     "pivot": [
+      0,
+      26,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "中央左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0.9,
+      29.2,
+      -5.4
+     ],
+     "size": [
+      1.5,
+      1.5,
+      0.55
+     ],
+     "pivot": [
+      0,
+      26,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeLR",
+     "name": "左頭の目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -12.2,
+      23.2,
+      -4.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      -10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "headL"
+    },
+    {
+     "id": "eyeLL",
+     "name": "左頭の目2",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -9.6,
+      23.2,
+      -4.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      -10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "headL"
+    },
+    {
+     "id": "eyeRR",
+     "name": "右頭の目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      8.4,
+      23.2,
+      -4.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "headR"
+    },
+    {
+     "id": "eyeRL",
+     "name": "右頭の目2",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      11,
+      23.2,
+      -4.4
+     ],
+     "size": [
+      1.3,
+      1.3,
+      0.5
+     ],
+     "pivot": [
+      10.5,
+      23,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "headR"
+    },
+    {
+     "id": "ribL1",
+     "name": "左肋骨",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -10,
+      18,
+      -1
+     ],
+     "size": [
+      8,
+      1.6,
+      2
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "spine"
+    },
+    {
+     "id": "ribR1",
+     "name": "右肋骨",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      2,
+      18,
+      -1
+     ],
+     "size": [
+      8,
+      1.6,
+      2
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "spine"
+    },
+    {
+     "id": "ribL2",
+     "name": "左肋骨下",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -9,
+      13,
+      -1
+     ],
+     "size": [
+      7,
+      1.6,
+      2
+     ],
+     "pivot": [
+      0,
+      13,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "spine"
+    },
+    {
+     "id": "ribR2",
+     "name": "右肋骨下",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      2,
+      13,
+      -1
+     ],
+     "size": [
+      7,
+      1.6,
+      2
+     ],
+     "pivot": [
+      0,
+      13,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "spine"
+    },
+    {
+     "id": "halo",
+     "name": "光環",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      35,
+      -6
+     ],
+     "size": [
+      10,
+      0.8,
+      10
+     ],
+     "pivot": [
+      0,
+      26,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "tail",
+     "name": "尾骨",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.2,
+      4,
+      1.5
+     ],
+     "size": [
+      2.4,
+      6,
+      2.4
+     ],
+     "pivot": [
+      0,
+      8,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "spine"
+    }
+   ],
+   "variants": [
+    {
+     "id": "triple",
+     "name": "三頭",
+     "blurb": "中央と左右。レンジと近接の兼用。",
+     "scale": 1.15,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "twin",
+     "name": "双頭",
+     "blurb": "中央を消し、左右を上げる。",
+     "scale": 1.1,
+     "enable": [],
+     "disable": [
+      "head",
+      "eyeR",
+      "eyeL"
+     ],
+     "partScale": {
+      "headL": [
+       1.15,
+       1.15,
+       1.15
+      ],
+      "headR": [
+       1.15,
+       1.15,
+       1.15
+      ]
+     }
+    },
+    {
+     "id": "spine",
+     "name": "脊骨",
+     "blurb": "頭が小さく、骨が主役。",
+     "scale": 1.2,
+     "enable": [
+      "tail"
+     ],
+     "disable": [],
+     "partScale": {
+      "head": [
+       0.75,
+       0.75,
+       0.75
+      ],
+      "headL": [
+       0.7,
+       0.7,
+       0.7
+      ],
+      "headR": [
+       0.7,
+       0.7,
+       0.7
+      ],
+      "spine": [
+       1.2,
+       1.15,
+       1.2
+      ]
+     }
+    }
+   ]
+  },
+  "tube": {
+   "name": "筒型",
+   "en": "Tube",
+   "tagline": "頭・胴・四足の縦積み。植物や爆発体の素体。",
+   "colors": {
+    "primary": "#3f6b3a",
+    "secondary": "#2c4a28",
+    "accent": "#f2d36b",
+    "skin": "#4e7d46",
+    "eye": "#111111",
+    "detail": "#1c3018"
+   },
+   "stats": {
+    "health": 18,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 0,
+    "attackInterval": 1,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.2,
+    "flyingSpeed": 0.4,
+    "followRange": 20,
+    "knockbackResistance": 0,
+    "xp": 5
+   },
+   "parts": [
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      18,
+      -4
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      6,
+      -4
+     ],
+     "size": [
+      8,
+      12,
+      8
+     ],
+     "pivot": [
+      0,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "footFR",
+     "name": "右前足",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      0,
+      -4
+     ],
+     "size": [
+      3.2,
+      6,
+      3.2
+     ],
+     "pivot": [
+      -2.4,
+      6,
+      -2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "footFL",
+     "name": "左前足",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0.8,
+      0,
+      -4
+     ],
+     "size": [
+      3.2,
+      6,
+      3.2
+     ],
+     "pivot": [
+      2.4,
+      6,
+      -2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "footBR",
+     "name": "右後足",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      0,
+      0.8
+     ],
+     "size": [
+      3.2,
+      6,
+      3.2
+     ],
+     "pivot": [
+      -2.4,
+      6,
+      2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "footBL",
+     "name": "左後足",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0.8,
+      0,
+      0.8
+     ],
+     "size": [
+      3.2,
+      6,
+      3.2
+     ],
+     "pivot": [
+      2.4,
+      6,
+      2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -2.6,
+      21.4,
+      -4.5
+     ],
+     "size": [
+      1.6,
+      2.2,
+      0.6
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1,
+      21.4,
+      -4.5
+     ],
+     "size": [
+      1.6,
+      2.2,
+      0.6
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "mouth",
+     "name": "口",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -1.6,
+      19.2,
+      -4.6
+     ],
+     "size": [
+      3.2,
+      1.5,
+      0.7
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "leaves",
+     "name": "葉",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      25.5,
+      -5
+     ],
+     "size": [
+      10,
+      2,
+      10
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "crystal",
+     "name": "結晶",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.5,
+      26,
+      -1.5
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "fuse",
+     "name": "芯",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.6,
+      26,
+      -0.6
+     ],
+     "size": [
+      1.2,
+      4,
+      1.2
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    }
+   ],
+   "variants": [
+    {
+     "id": "classic",
+     "name": "標準",
+     "blurb": "頭・胴・四足。爆発体の素体。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {}
+    },
+    {
+     "id": "tall",
+     "name": "背高",
+     "blurb": "胴が長い。遠目に目立つ。",
+     "scale": 1,
+     "enable": [],
+     "disable": [],
+     "partScale": {
+      "body": [
+       0.9,
+       1.4,
+       0.9
+      ],
+      "head": [
+       0.95,
+       1,
+       0.95
+      ]
+     }
+    },
+    {
+     "id": "squat",
+     "name": "ずんぐり",
+     "blurb": "低く広い。植物寄り。",
+     "scale": 1.05,
+     "enable": [
+      "leaves"
+     ],
+     "disable": [],
+     "partScale": {
+      "body": [
+       1.3,
+       0.75,
+       1.3
+      ],
+      "head": [
+       1.2,
+       0.9,
+       1.2
+      ]
+     }
+    }
+   ]
+  },
+  "caster": {
+   "name": "詠唱者",
+   "en": "Caster",
+   "tagline": "ローブと帽子の人型。本か杖で遠隔役にする。",
+   "colors": {
+    "primary": "#2a2158",
+    "secondary": "#3d2e86",
+    "accent": "#e2b657",
+    "skin": "#e6d3c2",
+    "eye": "#9fd0ff",
+    "detail": "#1a1438"
+   },
+   "stats": {
+    "health": 28,
+    "armor": 0,
+    "armorToughness": 0,
+    "attackDamage": 6,
+    "attackInterval": 1.6,
+    "attackKnockback": 0.4,
+    "movementSpeed": 0.25,
+    "flyingSpeed": 0.4,
+    "followRange": 24,
+    "knockbackResistance": 0,
+    "xp": 12
+   },
+   "parts": [
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      24,
+      -4
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      12,
+      -2
+     ],
+     "size": [
+      8,
+      12,
+      4
+     ],
+     "pivot": [
+      0,
+      18,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "armR",
+     "name": "右腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -8,
+      12,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      -6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "armL",
+     "name": "左腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      4,
+      12,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      6,
+      22,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "legR",
+     "name": "右脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -4,
+      0,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      -2,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL",
+     "name": "左脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      0,
+      0,
+      -2
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      2,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.2,
+      27.2,
+      -4.55
+     ],
+     "size": [
+      2,
+      2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.2,
+      27.2,
+      -4.55
+     ],
+     "size": [
+      2,
+      2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "browR",
+     "name": "右眉",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -3.4,
+      29.3,
+      -4.7
+     ],
+     "size": [
+      2.4,
+      0.7,
+      0.5
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "browL",
+     "name": "左眉",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      1,
+      29.3,
+      -4.7
+     ],
+     "size": [
+      2.4,
+      0.7,
+      0.5
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "nose",
+     "name": "鼻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -0.7,
+      25.2,
+      -5.3
+     ],
+     "size": [
+      1.4,
+      2.2,
+      1.4
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hat",
+     "name": "帽子",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      31.6,
+      -5
+     ],
+     "size": [
+      10,
+      4,
+      10
+     ],
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "cape",
+     "name": "マント",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -5,
+      8,
+      2.1
+     ],
+     "size": [
+      10,
+      16,
+      1
+     ],
+     "pivot": [
+      0,
+      23,
+      2.4
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.18,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "robe",
+     "name": "ローブ",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -6,
+      1,
+      -3
+     ],
+     "size": [
+      12,
+      12,
+      6
+     ],
+     "pivot": [
+      0,
+      12,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    },
+    {
+     "id": "book",
+     "name": "魔導書",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      9,
+      16,
+      -2
+     ],
+     "size": [
+      5,
+      1.6,
+      4
+     ],
+     "pivot": [
+      11,
+      17,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "staff",
+     "name": "杖",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      7.2,
+      0,
+      -1
+     ],
+     "size": [
+      1.3,
+      28,
+      1.3
+     ],
+     "pivot": [
+      7.8,
+      14,
+      -0.3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "armL"
+    },
+    {
+     "id": "gem",
+     "name": "杖頭",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      6.4,
+      26.5,
+      -1.8
+     ],
+     "size": [
+      2.8,
+      2.8,
+      2.8
+     ],
+     "pivot": [
+      7.8,
+      14,
+      -0.3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "pulse",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "staff"
+    }
+   ],
+   "variants": [
+    {
+     "id": "scholar",
+     "name": "学者",
+     "blurb": "帽子と浮遊する本。",
+     "scale": 1,
+     "enable": [
+      "hat",
+      "robe",
+      "nose",
+      "browR",
+      "browL",
+      "book"
+     ],
+     "disable": [
+      "staff",
+      "gem"
+     ],
+     "partScale": {}
+    },
+    {
+     "id": "priest",
+     "name": "司祭",
+     "blurb": "高い帽子と杖。回復やバフ役。",
+     "scale": 1.05,
+     "enable": [
+      "hat",
+      "robe",
+      "nose",
+      "staff",
+      "gem"
+     ],
+     "disable": [
+      "book"
+     ],
+     "partScale": {
+      "hat": [
+       0.85,
+       1.8,
+       0.85
+      ]
+     }
+    },
+    {
+     "id": "bare",
+     "name": "軽装",
+     "blurb": "ローブなし。斥候や盗賊。",
+     "scale": 1,
+     "enable": [
+      "nose"
+     ],
+     "disable": [
+      "hat",
+      "robe",
+      "book",
+      "staff",
+      "gem"
+     ],
+     "partScale": {}
+    }
+   ]
+  },
+  "boss": {
+   "name": "ボス",
+   "en": "Boss",
+   "tagline": "大きい人型に冠・翼・核。ボスバー前提の最終型。",
+   "colors": {
+    "primary": "#2a2420",
+    "secondary": "#6e6458",
+    "accent": "#e2b657",
+    "skin": "#d9d1c3",
+    "eye": "#c084fc",
+    "detail": "#14110e"
+   },
+   "stats": {
+    "health": 220,
+    "armor": 8,
+    "armorToughness": 4,
+    "attackDamage": 14,
+    "attackInterval": 1.1,
+    "attackKnockback": 1.1,
+    "movementSpeed": 0.26,
+    "flyingSpeed": 0.4,
+    "followRange": 40,
+    "knockbackResistance": 0.55,
+    "xp": 80
+   },
+   "parts": [
+    {
+     "id": "head",
+     "name": "頭",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -5,
+      28,
+      -5
+     ],
+     "size": [
+      10,
+      10,
+      10
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "look",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "body"
+    },
+    {
+     "id": "body",
+     "name": "胴",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -8,
+      14,
+      -4
+     ],
+     "size": [
+      16,
+      14,
+      8
+     ],
+     "pivot": [
+      0,
+      21,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "primary",
+     "anim": "bob",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body"
+    },
+    {
+     "id": "armR",
+     "name": "右腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -14,
+      14,
+      -3.5
+     ],
+     "size": [
+      6,
+      16,
+      7
+     ],
+     "pivot": [
+      -8,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.5,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "armL",
+     "name": "左腕",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      8,
+      14,
+      -3.5
+     ],
+     "size": [
+      6,
+      16,
+      7
+     ],
+     "pivot": [
+      8,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.5,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "legR",
+     "name": "右脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -7,
+      0,
+      -3.5
+     ],
+     "size": [
+      6,
+      14,
+      7
+     ],
+     "pivot": [
+      -4,
+      14,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "legL",
+     "name": "左脚",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1,
+      0,
+      -3.5
+     ],
+     "size": [
+      6,
+      14,
+      7
+     ],
+     "pivot": [
+      4,
+      14,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "swing",
+     "phase": 3.141592653589793,
+     "axis": "x",
+     "amp": 0.35,
+     "opacity": 1,
+     "group": "leg"
+    },
+    {
+     "id": "eyeR",
+     "name": "右目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      -3.4,
+      32,
+      -5.5
+     ],
+     "size": [
+      2.2,
+      2.2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "eyeL",
+     "name": "左目",
+     "optional": false,
+     "defaultOn": true,
+     "origin": [
+      1.2,
+      32,
+      -5.5
+     ],
+     "size": [
+      2.2,
+      2.2,
+      0.7
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "eye",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornR",
+     "name": "右角",
+     "optional": true,
+     "defaultOn": true,
+     "origin": [
+      -5.5,
+      36.5,
+      -2
+     ],
+     "size": [
+      2.2,
+      8,
+      2.2
+     ],
+     "pivot": [
+      -4.2,
+      36.5,
+      -1
+     ],
+     "rotation": [
+      8,
+      0,
+      18
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "hornL",
+     "name": "左角",
+     "optional": true,
+     "defaultOn": true,
+     "origin": [
+      3.3,
+      36.5,
+      -2
+     ],
+     "size": [
+      2.2,
+      8,
+      2.2
+     ],
+     "pivot": [
+      4.2,
+      36.5,
+      -1
+     ],
+     "rotation": [
+      8,
+      0,
+      -18
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "crown",
+     "name": "冠",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -6,
+      37,
+      -6
+     ],
+     "size": [
+      12,
+      2.6,
+      12
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "cape",
+     "name": "マント",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -7,
+      8,
+      3.2
+     ],
+     "size": [
+      14,
+      22,
+      1.2
+     ],
+     "pivot": [
+      0,
+      27,
+      3.6
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "detail",
+     "anim": "swing",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.12,
+     "opacity": 1,
+     "group": "extra",
+     "attach": "body"
+    },
+    {
+     "id": "wingR",
+     "name": "右翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -24,
+      22,
+      -1
+     ],
+     "size": [
+      16,
+      1.4,
+      10
+     ],
+     "pivot": [
+      -8,
+      24,
+      3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 0,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "wingL",
+     "name": "左翼",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      8,
+      22,
+      -1
+     ],
+     "size": [
+      16,
+      1.4,
+      10
+     ],
+     "pivot": [
+      8,
+      24,
+      3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "flap",
+     "phase": 3.141592653589793,
+     "axis": "z",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "wing",
+     "attach": "body"
+    },
+    {
+     "id": "pauldronR",
+     "name": "右肩甲",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -15,
+      26,
+      -4.5
+     ],
+     "size": [
+      7,
+      4,
+      8
+     ],
+     "pivot": [
+      -8,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "armR"
+    },
+    {
+     "id": "pauldronL",
+     "name": "左肩甲",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      8,
+      26,
+      -4.5
+     ],
+     "size": [
+      7,
+      4,
+      8
+     ],
+     "pivot": [
+      8,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "armL"
+    },
+    {
+     "id": "core",
+     "name": "核",
+     "optional": true,
+     "defaultOn": true,
+     "origin": [
+      -2.2,
+      20,
+      -5.2
+     ],
+     "size": [
+      4.4,
+      4.4,
+      1.6
+     ],
+     "pivot": [
+      0,
+      21,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "pulse",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "body",
+     "attach": "body"
+    },
+    {
+     "id": "tail",
+     "name": "尾",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -1.5,
+      12,
+      3
+     ],
+     "size": [
+      3,
+      3,
+      10
+     ],
+     "pivot": [
+      0,
+      14,
+      3
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "wag",
+     "phase": 0,
+     "axis": "y",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "tail",
+     "attach": "body"
+    },
+    {
+     "id": "snout",
+     "name": "口吻",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -2.5,
+      28.5,
+      -8
+     ],
+     "size": [
+      5,
+      3,
+      3.5
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "secondary",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "halo",
+     "name": "光環",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -7,
+      42,
+      -7
+     ],
+     "size": [
+      14,
+      1,
+      14
+     ],
+     "pivot": [
+      0,
+      28,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "accent",
+     "anim": "none",
+     "phase": 0,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 0.8,
+     "group": "head",
+     "attach": "head"
+    },
+    {
+     "id": "armR2",
+     "name": "右下腕",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      -12,
+      8,
+      1
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      -8,
+      18,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 0.6,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    },
+    {
+     "id": "armL2",
+     "name": "左下腕",
+     "optional": true,
+     "defaultOn": false,
+     "origin": [
+      8,
+      8,
+      1
+     ],
+     "size": [
+      4,
+      12,
+      4
+     ],
+     "pivot": [
+      8,
+      18,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "slot": "skin",
+     "anim": "swing",
+     "phase": 3.741592653589793,
+     "axis": "x",
+     "amp": 0.55,
+     "opacity": 1,
+     "group": "arm",
+     "attach": "body"
+    }
+   ],
+   "variants": [
+    {
+     "id": "monarch",
+     "name": "王",
+     "blurb": "冠、マント、肩甲。王座の主。",
+     "scale": 1.65,
+     "enable": [
+      "hornR",
+      "hornL",
+      "crown",
+      "cape",
+      "pauldronR",
+      "pauldronL",
+      "core"
+     ],
+     "disable": [
+      "snout",
+      "halo",
+      "armR2",
+      "armL2",
+      "wingR",
+      "wingL",
+      "tail"
+     ],
+     "partScale": {}
+    },
+    {
+     "id": "beast",
+     "name": "獣王",
+     "blurb": "口吻と尾。翼なしの猛獣。",
+     "scale": 1.7,
+     "enable": [
+      "hornR",
+      "hornL",
+      "snout",
+      "tail",
+      "core"
+     ],
+     "disable": [
+      "crown",
+      "cape",
+      "halo",
+      "wingR",
+      "wingL"
+     ],
+     "partScale": {
+      "body": [
+       1.1,
+       1,
+       1.15
+      ]
+     }
+    },
+    {
+     "id": "ancient",
+     "name": "古王",
+     "blurb": "光環、翼、四腕。演出全力。",
+     "scale": 1.85,
+     "enable": [
+      "hornR",
+      "hornL",
+      "crown",
+      "halo",
+      "wingR",
+      "wingL",
+      "armR2",
+      "armL2",
+      "core",
+      "cape"
+     ],
+     "disable": [
+      "snout"
+     ],
+     "partScale": {}
+    }
+   ]
+  }
+ }
+}

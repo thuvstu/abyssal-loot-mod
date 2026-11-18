@@ -13,6 +13,11 @@ Python 3.10+ と Pillow (`pip install pillow`) が必要。どのディレクト
 | `python tools/abyss.py gametest` | **実サーバー**で結合テスト (`AbyssGameTests.java`)。レシピの全件読込・出撃・リタイア・層クリア・bossrush のレベル復元など |
 | `python tools/abyss.py matgen <list\|render\|sheet\|content>` | 素材ジェネレータ: 57 形 × 質感 × プリセットで素材アイコンを試す (`art/matgen.py`) |
 | `python tools/abyss.py variants <sheet\|render> <武器id\|png>` | アイコンのバリエーション: 強化段階・特性・属性・素材・形態・状態の案出し (`art/variants.py`) |
+| `python tools/abyss.py swordgen <list\|render\|sheet>` | 剣ジェネレータ: 輪郭 42・鍔 17・柄 11・柄頭 13・地肌 49 (`art/swordgen.py`) |
+| `python tools/abyss.py staffgen <list\|render\|sheet>` | 杖ジェネレータ: 型 45・属性 28・素材 43、浮遊物と粒子のアニメ (`art/staffgen.py`) |
+| `python tools/abyss.py mobgen <list\|build\|sheet>` | MOB の骨組み 12 系統 → 箱 UV テクスチャ・`createBodyLayer()`・見本 (`art/mobgen.py`) |
+| `python tools/abyss.py structgen <list\|sample\|build\|info>` | 構造物: レシピ JSON → `.nbt` / mcfunction、`.nbt` の中身と見本 (`art/structgen.py`) |
+| `python tools/abyss.py extrude <png> --style blade` | 2D アイコンを箱モデル (elements) に押し出す。voxel/relief/dome/blade/terraced (`art/extrude.py`) |
 | `python tools/abyss.py check` | **コミット前に**: 生成物が生成スクリプトと一致しているか + 全検証 |
 | `python tools/abyss.py all` | 生成 + データ + 検証 |
 
@@ -110,3 +115,22 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 `select (CUSTOM_MODEL_DATA strings[0] = 特性)` → `composite [段階の絵, 特性色で tints した気配, 粒子]` にする。
 段階は `range_dispatch (floats[0] = 鍛造レベル)`。値は `GearData.syncLook` が鍛造時・lore 更新時に書く
 (エンドコンテンツ武器は除外)。特性の色と粒子は `art/variants.py` の `TRAITS`。
+
+## MCAssetGen から移植したもの
+
+元リポジトリ (GitHub: thuvstu/MCAssetGen) の各スタジオのうち、この mod (NeoForge 1.21.11・Python + Pillow の生成系) で
+使えるものを、出力の仕上げをこの mod の描画基盤に揃えて移植した。
+
+| 元 | 移植先 | ゲーム内で使っている所 |
+|---|---|---|
+| minecraft-material-texture-generator | `art/matgen.py` | 区域素材・消耗品のアイコン (`mat:<形>`) |
+| texcraft の evolution | `art/variants.py` | 武器アイコンの強化段階・特性の気配と粒子 |
+| minecraft-sword-texture-maker (AegisBlade) | `art/swordgen.py` | 晶剣・桜刀・竜断 (`art/new_weapons.py`) |
+| minecraft-magic-staff-generator (Spellforge) | `art/staffgen.py` | 月杖・刻杖・魂灯杖 (`art/new_weapons.py`) |
+| minecraft-armor-asset-generator | `art/equipment.py` の地模様 | 追加防具セットの着用テクスチャ (`armor_sets[].style`) |
+| professional-minecraft-mob-maker | `art/mobgen.py` | (新しい敵の雛形づくり用の CLI) |
+| minecraft-nbt-structure-generator | `art/structgen.py` | (構造物の雛形づくり用の CLI) |
+| voxelforge-studio の画像押し出し | `art/extrude.py` | (手持ちの立体の雛形づくり用の CLI) |
+
+新しい武器を足すときは `art/new_weapons.py` の `SWORDS` / `STAFFS` に 1 件、`generate_textures.py` の
+`WEAPON_MODELS` に 1 件、Java (GameData.WeaponStyle と各表 / ModItems / WeaponArts) を足す。
