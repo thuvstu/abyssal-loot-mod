@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import math
 import random
 
 from PIL import Image, ImageDraw
@@ -65,9 +66,130 @@ def _grad(d, box, top, bottom):
         d.line([(x0, y), (x1 - 1, y)], fill=mix(top, bottom, t))
 
 
+# ---------------------------------------------------------------- 素材の地模様
+# MCAssetGen の minecraft-armor-asset-generator (generator.ts の patternXxx) を移植したもの。
+# 元実装は面全体を模様で塗っていたが、ここでは「面の上下グラデ × 模様」にして、既存の装飾 (面頬・ベルト・
+# 縁取り) をその上に描く。模様は素材、意匠は既存の線という分担。
+
+STYLES = {"scale": "竜鱗", "plate": "板金", "chain": "鎖帷子", "leather": "革", "crystal": "結晶",
+          "ember": "熔岩", "frost": "氷", "obsidian": "黒曜石"}
+_CTX: dict = {}  # equipment_tex が描いている間の (style, 副色, 差し色, 種)
+
+
+def _hash(x, y, seed):
+    m = 0xFFFFFFFF
+    h = ((x * 374761393) & m) ^ ((y * 668265263) & m) ^ ((seed * 2147483647) & m)
+    h = ((h ^ (h >> 13)) * 1274126177) & m
+    h ^= h >> 16
+    return h / 4294967295
+
+
+def _vnoise(x, y, seed, scale):
+    gx, gy = x / scale, y / scale
+    x0, y0 = int(gx // 1), int(gy // 1)
+    fx, fy = gx - x0, gy - y0
+    sx, sy = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+    a, b = _hash(x0, y0, seed), _hash(x0 + 1, y0, seed)
+    c, e = _hash(x0, y0 + 1, seed), _hash(x0 + 1, y0 + 1, seed)
+    top, bot = a + (b - a) * sx, c + (e - c) * sx
+    return top + (bot - top) * sy
+
+
+def _lt(c, t):
+    return mix(c, (255, 255, 255, 255), t)
+
+
+def _dk(c, t):
+    return mix(c, (0, 0, 0, 255), t)
+
+
+def _pattern(style, x, y, fx, fy, fw, fh, P, Q, A, seed, detail=3):
+    if style == "scale":
+        s = max(2, round(detail / 2) + 1)
+        row = fy // s
+        sx = fx + (row % 2) * (s // 2)
+        lx, ly, cell = sx % s, fy % s, sx // s
+        if ly == s - 1 and lx != 0:
+            return _dk(P, 0.32)
+        if lx == 0 and ly > 0:
+            return _dk(Q, 0.17)
+        base = mix(P, _lt(P, 0.26), 0.8 if ly == 0 else 0.34)
+        return mix(base, Q, _hash(cell + x, row + y, seed) * 0.12)
+    if style == "plate":
+        s = detail + 2
+        gx, gy = x // s, y // s
+        cx, cy = x - gx * s, y - gy * s
+        base = mix(_dk(P, 0.08), _lt(P, 0.1), _hash(gx, gy, seed))
+        if cx == 0 or cy == 0:
+            return _dk(Q, 0.3)
+        if cx == 1 and cy == 1:
+            return A
+        return _lt(base, 0.22) if cx == 1 or cy == 1 else base
+    if style == "chain":
+        s = detail + 1
+        row = y // s
+        off = (row & 1) * (s / 2)
+        col = int((x + off) // s)
+        lx, ly = x + off - col * s - s / 2 + 0.5, y - row * s - s / 2 + 0.5
+        odd = (col + row) & 1
+        kx, ky = (1, 0.55) if odd else (0.55, 1)
+        rr = math.hypot(lx * kx, ly * ky)
+        if rr > s * 0.42 or rr < s * 0.2:
+            return _dk(Q, 0.45)
+        return mix(_lt(P, 0.3) if lx + ly < 0 else _dk(P, 0.15), Q, _hash(col, row, seed) * 0.2)
+    if style == "leather":
+        n = _vnoise(x, y, seed, 3)
+        base = shade(P, 0.82 + 0.3 * n)
+        inset = 1
+        seam = (fx in (inset, fw - 1 - inset) or fy in (inset, fh - 1 - inset)) and fw > 3 and fh > 3
+        if seam and (fx + fy + detail) % 4 < 2:
+            return mix(A, Q, 0.3)
+        return _dk(base, 0.12) if (x + y) % 9 == 0 and n > 0.6 else base
+    if style == "crystal":
+        s = detail + 2
+        gx, gy = x // s, y // s
+        lx, ly = x - gx * s, y - gy * s
+        facet = _hash(gx, gy, seed)
+        col = mix(P, _lt(P, 0.35), facet) if lx > ly else mix(_dk(P, 0.25), P, facet)
+        if lx == ly:
+            col = _lt(col, 0.4)
+        return A if _hash(x, y, seed + 7) > 0.985 else col
+    if style == "ember":
+        n1, n2 = _vnoise(x, y, seed, 4), _vnoise(x, y, seed + 5, 2)
+        v = abs(n1 - 0.5) * 2
+        thr = 0.06 + detail * 0.01
+        if v < thr:
+            return mix(A, (255, 255, 220, 255), 0.4)
+        if v < thr * 2.2:
+            return mix(_dk(P, 0.2), A, 0.5 * (1 - v / (thr * 2.2)))
+        return mix(_dk(P, 0.45), P, n2)
+    if style == "frost":
+        n = _vnoise(x, y, seed, 3)
+        col = mix(P, (255, 255, 255, 255), 0.12 + 0.35 * n)
+        if (x + y * 2) % (detail + 5) == 0:
+            col = _lt(col, 0.25)
+        return mix(col, A, 0.8) if _hash(x, y, seed + 3) > 0.94 else col
+    if style == "obsidian":
+        n = _vnoise(x, y, seed, 6)
+        t = math.sin((x * 0.45 + y * 0.9) * (1 + detail * 0.12) + n * 6) * 0.5 + 0.5
+        col = mix(_dk(P, 0.35), _lt(P, 0.22), t)
+        return A if _hash(x, y, seed + 11) > 0.99 else col
+    raise ValueError(f"未知の防具の地模様 '{style}'。使えるもの: {', '.join(STYLES)}")
+
+
 def _plate(d, box, base, top=1.18, bottom=0.72):
-    """甲羅の面 (上ほど明るいグラデ)。"""
-    _grad(d, box, shade(base, top), shade(base, bottom))
+    """甲羅の面 (上ほど明るいグラデ)。地模様 (style) があれば模様 × グラデで塗る。"""
+    style = _CTX.get("style")
+    if not style:
+        _grad(d, box, shade(base, top), shade(base, bottom))
+        return
+    x0, y0, x1, y1 = box
+    fw, fh = x1 - x0, y1 - y0
+    for y in range(y0, y1):
+        k = top + (bottom - top) * ((y - y0) / max(1, fh - 1))
+        for x in range(x0, x1):
+            c = _pattern(style, x, y, x - x0, y - y0, fw, fh, base, _CTX["second"], _CTX["accent"], _CTX["seed"])
+            d.point((x, y), fill=shade(c, 0.55 + 0.45 * k))
 
 
 def _trim(d, box, color):
@@ -150,8 +272,14 @@ def _legs(d, base, trim, accent):
         d.rectangle([box[0], box[3] - 2, box[2] - 1, box[3] - 1], fill=shade(base, 0.55))
 
 
-def equipment_tex(base, trim, accent, leggings: bool = False) -> Image.Image:
-    """装備テクスチャ (64x32) を生成する。"""
+def equipment_tex(base, trim, accent, leggings: bool = False, style: str | None = None,
+                  seed: int = 7) -> Image.Image:
+    """装備テクスチャ (64x32) を生成する。style で地模様 (STYLES) を付ける。"""
+    _CTX.clear()
+    if style:
+        if style not in STYLES:
+            raise ValueError(f"未知の防具の地模様 '{style}'。使えるもの: {', '.join(STYLES)}")
+        _CTX.update(style=style, second=shade(base, 0.6), accent=accent, seed=seed)
     img = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     if leggings:
@@ -168,4 +296,5 @@ def equipment_tex(base, trim, accent, leggings: bool = False) -> Image.Image:
         y = rnd.randrange(32)
         if px[x, y][3] > 0:
             px[x, y] = shade(px[x, y], rnd.choice([0.9, 1.08]))
+    _CTX.clear()
     return img

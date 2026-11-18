@@ -13,7 +13,8 @@
       "bonus4": {
         "lifestealPct": 2.0,
         "damagePct": 8.0
-      }
+      },
+      "style": "scale"
     },
     {
       "id": "void",
@@ -27,7 +28,8 @@
       "bonus4": {
         "critDmgPct": 12.0,
         "critPct": 6.0
-      }
+      },
+      "style": "obsidian"
     },
     {
       "id": "bone",
@@ -41,7 +43,8 @@
       "bonus4": {
         "maxHpPct": 8.0,
         "armorPct": 6.0
-      }
+      },
+      "style": "plate"
     },
     {
       "id": "tide",
@@ -55,7 +58,8 @@
       "bonus4": {
         "moveSpeedPct": 6.0,
         "energyPct": 15.0
-      }
+      },
+      "style": "frost"
     },
     {
       "id": "gold",
@@ -69,7 +73,8 @@
       "bonus4": {
         "critPct": 5.0,
         "damagePct": 10.0
-      }
+      },
+      "style": "plate"
     },
     {
       "id": "wind",
@@ -83,7 +88,8 @@
       "bonus4": {
         "attackSpeedPct": 6.0,
         "moveSpeedPct": 8.0
-      }
+      },
+      "style": "leather"
     },
     {
       "id": "grave",
@@ -97,7 +103,8 @@
       "bonus4": {
         "armorPct": 6.0,
         "lifestealPct": 3.0
-      }
+      },
+      "style": "chain"
     },
     {
       "id": "chrono",
@@ -112,7 +119,8 @@
         "attackSpeedPct": 5.0,
         "critPct": 5.0,
         "energyPct": 10.0
-      }
+      },
+      "style": "crystal"
     }
   ],
   "trophies": [
