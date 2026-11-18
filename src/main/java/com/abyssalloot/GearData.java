@@ -25,6 +25,23 @@ public final class GearData {
         tag.putInt("abyss_forge", Math.max(0, Math.min(5, lv)));
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.of(tag));
+        syncLook(stack);
+    }
+
+    /**
+     * インベントリでの見た目を鍛造レベルと特性に合わせる (CUSTOM_MODEL_DATA: floats[0] = 鍛造レベル, strings[0] = 特性)。
+     * 武器の items/*.json (tools/generate_textures.py の gen_weapon_looks) がこの 2 値で絵を切り替える。
+     * エンドコンテンツ武器は floats[0] を段階番号に使うので触らない。
+     */
+    public static void syncLook(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+        GameData.WeaponStyle style = ModItems.styleOf(stack.getItem());
+        if (style == null || style.isEndgame()) return;
+        String trait = traitOf(stack);
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                new net.minecraft.world.item.component.CustomModelData(
+                        java.util.List.of((float) forgeLv(stack)), java.util.List.of(),
+                        java.util.List.of(trait == null ? "" : trait), java.util.List.of()));
     }
 
     /* ---------------- 武器特性・レアリティ (原作WEAPON_TRAITS/RARITY準拠) ---------------- */
@@ -243,6 +260,7 @@ public final class GearData {
         boolean isWeapon = ModItems.styleOf(stack.getItem()) != null;
         boolean isArmor = ModItems.slotOf(stack.getItem()) != null;
         if (!isWeapon && !isArmor) return;
+        if (isWeapon) syncLook(stack);
         stack.set(net.minecraft.core.component.DataComponents.LORE,
                 new net.minecraft.world.item.component.ItemLore(loreLines(stack, isWeapon)));
         applyGlint(stack);

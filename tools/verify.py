@@ -155,6 +155,8 @@ def _model_refs(mdl: dict) -> list[str]:
         out.append(mdl.get("base", ""))
     for e in mdl.get("entries", []) + mdl.get("cases", []):
         out += _model_refs(e.get("model", {}))
+    for m in mdl.get("models", []):  # composite (重ね描き)
+        out += _model_refs(m)
     if "fallback" in mdl:
         out += _model_refs(mdl["fallback"])
     return out
@@ -201,6 +203,11 @@ def _check_item_def(item_id: str, mdl: dict, rep: Report, is_icon: bool) -> None
         ref = mdl.get("model", "")
         if not _model_exists(ref):
             rep.err(f"{item_id}: 参照モデルが無い {ref}")
+    elif t == "minecraft:composite":
+        if not mdl.get("models"):
+            rep.err(f"{item_id}: composite の models が空")
+        for m in mdl.get("models", []):
+            _check_item_def(item_id, m, rep, is_icon)
     elif t == "minecraft:special":
         base = mdl.get("base", "")
         if not _model_exists(base):

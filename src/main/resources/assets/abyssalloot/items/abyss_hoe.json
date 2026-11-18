@@ -8,8 +8,583 @@
           "gui"
         ],
         "model": {
-          "type": "minecraft:model",
-          "model": "abyssalloot:item/abyss_hoe_icon"
+          "type": "minecraft:select",
+          "property": "minecraft:custom_model_data",
+          "index": 0,
+          "cases": [
+            {
+              "when": "sharp",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 15267071
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_glint"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "vampiric",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 13639738
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_blood"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "explosive",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16747050
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_burst"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "terminator",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 8014544
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_dark"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "chain_l",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16769354
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_thunder"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "infernus",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16734746
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_fire"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "venomous",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 7329370
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_poison"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "rend",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16731501
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_slash"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "frenzy",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16722474
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_rage"
+                  }
+                ]
+              }
+            },
+            {
+              "when": "fortify",
+              "model": {
+                "type": "minecraft:composite",
+                "models": [
+                  {
+                    "type": "minecraft:range_dispatch",
+                    "property": "minecraft:custom_model_data",
+                    "index": 0,
+                    "entries": [
+                      {
+                        "threshold": 1.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                        }
+                      },
+                      {
+                        "threshold": 3.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                        }
+                      },
+                      {
+                        "threshold": 5.0,
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                        }
+                      }
+                    ],
+                    "fallback": {
+                      "type": "minecraft:model",
+                      "model": "abyssalloot:item/abyss_hoe_icon"
+                    }
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/abyss_hoe_aura",
+                    "tints": [
+                      {
+                        "type": "minecraft:constant",
+                        "value": 16765500
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:model",
+                    "model": "abyssalloot:item/trait_fx_ward"
+                  }
+                ]
+              }
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:range_dispatch",
+            "property": "minecraft:custom_model_data",
+            "index": 0,
+            "entries": [
+              {
+                "threshold": 1.0,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "abyssalloot:item/abyss_hoe_icon_t1"
+                }
+              },
+              {
+                "threshold": 3.0,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "abyssalloot:item/abyss_hoe_icon_t2"
+                }
+              },
+              {
+                "threshold": 5.0,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "abyssalloot:item/abyss_hoe_icon_t3"
+                }
+              }
+            ],
+            "fallback": {
+              "type": "minecraft:model",
+              "model": "abyssalloot:item/abyss_hoe_icon"
+            }
+          }
         }
       },
       {

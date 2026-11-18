@@ -251,3 +251,16 @@ def save_preview(img: Image.Image, name: str, out: str | None = None) -> str:
     img.convert("RGB").save(path)
     print("保存:", rel(path) if path.startswith(ROOT) else path)
     return path
+
+
+def label_font(size: int = 12):
+    """見本帳の文字用フォント。日本語が出るフォントを探し、無ければ Pillow 既定 (日本語は化ける)。"""
+    from PIL import ImageFont
+    for path in ("C:/Windows/Fonts/meiryo.ttc", "C:/Windows/Fonts/YuGothM.ttc", "C:/Windows/Fonts/msgothic.ttc",
+                 "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc", "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"):
+        if os.path.exists(path):
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                continue
+    return ImageFont.load_default()

@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image, ImageDraw  # noqa: E402
 
 from art import content, matgen  # noqa: E402
-from art.project import ROOT, rel, setup_console  # noqa: E402
+from art.project import ROOT, label_font, rel, setup_console  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, "build", "matgen")
 
@@ -36,10 +36,11 @@ def _sheet(cells: list[tuple[str, Image.Image]], scale: int, cols: int = 10) -> 
     rows = (len(cells) + cols - 1) // cols
     sheet = Image.new("RGBA", (min(cols, len(cells)) * cw, rows * ch), (40, 40, 48, 255))
     d = ImageDraw.Draw(sheet)
+    font = label_font(12)
     for i, (label, img) in enumerate(cells):
         x, y = (i % cols) * cw + 4, (i // cols) * ch + 2
         sheet.alpha_composite(img.resize((size, size), Image.NEAREST), (x, y))
-        d.text((x, y + size + 1), label[:14], fill=(220, 220, 220, 255))
+        d.text((x, y + size + 1), label[:14], fill=(220, 220, 220, 255), font=font)
     return sheet
 
 

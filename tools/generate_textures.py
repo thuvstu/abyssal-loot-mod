@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, potions, shapes  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, potions, shapes, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -453,6 +453,69 @@ def gen_icon(item_id: str, fn, color) -> None:
     write_item_def(item_id)
 
 
+def _weapon_icon_frames(item_id: str, color: int) -> list:
+    """武器のインベントリ用アイコンのコマ (静止画なら 1 枚)。"""
+    if item_id in hd_weapons.ICONS:
+        n = hd_weapons.FRAMES if item_id in hd_weapons.ANIMATED else 1
+        return [hd_weapons.icon(item_id, color, f) for f in range(n)]
+    return [finish.finish(WEAPON_ICONS[item_id](hexcolor(color)))]
+
+
+def _put_frames(tex_id: str, imgs: list) -> None:
+    path = os.path.join(TEX_DIR, f"{tex_id}.png")
+    if len(imgs) > 1:
+        _png(path, variants.strip(imgs))
+        W.write_json(path + ".mcmeta", {"animation": {"frametime": 2}})
+    else:
+        _png(path, imgs[0])
+        W.remove(path + ".mcmeta")
+    write_flat_model(tex_id)
+
+
+def gen_trait_fx() -> None:
+    """特性の粒子 (全武器共通の重ね絵)。"""
+    for tid, (_name, _col, kind) in variants.TRAITS.items():
+        _put_frames(f"trait_fx_{kind}", variants.frames(lambda t, _k=kind: variants.trait_particles(_k, t)))
+
+
+def gen_weapon_looks(item_id: str, color: int) -> None:
+    """鍛造レベルで育つアイコン (art/variants.tier) と、特性の気配・粒子の重ね絵。
+
+    インベントリ表示 = CUSTOM_MODEL_DATA の strings[0] (特性) で選び、floats[0] (鍛造レベル) で段を切り替える。
+    値は GearData.syncLook が書く。気配は白い絵を tints で特性の色に染める。
+    """
+    base = _weapon_icon_frames(item_id, color)
+    acc = hexcolor(color)
+    icon_id = f"{item_id}_icon"
+    for look in (1, 2, 3):
+        if look == 3 or len(base) > 1:
+            n = max(len(base), variants.FRAMES)
+            imgs = [variants.tier(base[i % len(base)], look, acc, item_id, i / n) for i in range(n)]
+        else:
+            imgs = [variants.tier(base[0], look, acc, item_id)]
+        _put_frames(f"{icon_id}_t{look}", imgs)
+    _put_frames(f"{item_id}_aura", variants.frames(lambda t: variants.aura(base[0], t)))
+
+    def model(mid, tint=None):
+        m = {"type": "minecraft:model", "model": f"abyssalloot:item/{mid}"}
+        if tint is not None:
+            m["tints"] = [{"type": "minecraft:constant", "value": tint}]
+        return m
+    tiers = {"type": "minecraft:range_dispatch", "property": "minecraft:custom_model_data", "index": 0,
+             "entries": [{"threshold": float(lv), "model": model(f"{icon_id}_t{look}")}
+                         for look, lv in zip((1, 2, 3), variants.TIER_STEPS[1:])],
+             "fallback": model(icon_id)}
+    gui = {"type": "minecraft:select", "property": "minecraft:custom_model_data", "index": 0,
+           "cases": [{"when": tid, "model": {"type": "minecraft:composite", "models": [
+               tiers, model(f"{item_id}_aura", col), model(f"trait_fx_{kind}")]}}
+                     for tid, (_n, col, kind) in variants.TRAITS.items()],
+           "fallback": tiers}
+    held = model(item_id)
+    write_item_def(item_id, {"type": "minecraft:select", "property": "minecraft:display_context",
+                             "cases": [{"when": GUI_CONTEXTS, "model": gui}, {"when": HELD_CONTEXTS, "model": held}],
+                             "fallback": held})
+
+
 def gen_matgen_icon(e: dict, key: str) -> None:
     """素材ジェネレータ (art/matgen.py) の形で 2D アイコンを作る。陰影・輪郭込みで描かれるので finish は掛けない。"""
     _png(os.path.join(TEX_DIR, f"{e['id']}.png"), matgen.entry_icon(e, key))
@@ -678,7 +741,11 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 gen_hd_icon(item_id, color)
             elif icon_fn is not None:
                 gen_2d_icon(item_id, icon_fn, color)
+            if item_id in hd_weapons.ICONS or icon_fn is not None:
+                gen_weapon_looks(item_id, color)  # 鍛造レベル・特性で変わるインベントリ表示
             counts["weapons"] += 1
+        if any(want(i) for i in WEAPON_MODELS):
+            gen_trait_fx()
 
     if "armor" in kinds:  # 立体 + 2D ドット絵
         for item_id, (fn, base, trim) in ARMOR_MODELS.items():

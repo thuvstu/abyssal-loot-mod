@@ -50,7 +50,8 @@ public final class AbyssGameTests {
             new Spec("kill_drops_trophy_and_zone_material", AbyssGameTests::killDropsContent, 40),
             new Spec("endgame_craft_only", AbyssGameTests::endgameCraftOnly, 20),
             new Spec("nocturne_sequence_casts_all_skills", AbyssGameTests::nocturneSequence, 120),
-            new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20));
+            new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20),
+            new Spec("weapon_look_follows_forge_and_trait", AbyssGameTests::weaponLookSync, 20));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -214,7 +215,23 @@ public final class AbyssGameTests {
         }
         check(h, missing.isEmpty(), "登録されていないアイテム: %s", missing);
         int total = ModItems.CONTENT_ITEMS.size() + Content.ARMOR_SETS.size() * 4;
-        check(h, total == 100, "追加アイテムが %s 件 (期待: 100)", total);
+        check(h, total == 146, "追加アイテムが %s 件 (期待: 146)", total);
+        h.succeed();
+    }
+
+    /** 武器の見た目切替: 鍛造レベルと特性が CUSTOM_MODEL_DATA (floats[0] / strings[0]) に写る */
+    private static void weaponLookSync(GameTestHelper h) {
+        var stack = GearFactory.makeWeapon(GameData.WeaponStyle.DROPPABLE[0], h.getLevel().getRandom(), 0, 1, 0);
+        var tag = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
+        tag.putString("abyss_trait", "infernus");
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(tag));
+        GearData.setForgeLv(stack, 3);
+        var cmd = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+        check(h, cmd != null, "CUSTOM_MODEL_DATA が付いていない");
+        check(h, cmd.getFloat(0) != null && cmd.getFloat(0) == 3f, "floats[0] が鍛造レベルでない: %s", cmd);
+        check(h, "infernus".equals(cmd.getString(0)), "strings[0] が特性でない: %s", cmd);
         h.succeed();
     }
 
