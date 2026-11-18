@@ -210,6 +210,12 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_METEOR_LANCE = weapon("abyss_meteor_lance", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_ECHO_KATANA = weapon("abyss_echo_katana", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_HOWLING_CLAW = weapon("abyss_howling_claw", Rarity.COMMON);
+    public static final DeferredItem<Item> ABYSS_CRYSTAL_SWORD = weapon("abyss_crystal_sword", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SAKURA_BLADE = weapon("abyss_sakura_blade", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_DRAGON_CLEAVER = weapon("abyss_dragon_cleaver", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_LUNAR_STAFF = weapon("abyss_lunar_staff", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_CHRONO_STAFF = weapon("abyss_chrono_staff", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SOUL_LANTERN = weapon("abyss_soul_lantern", Rarity.RARE);
     // ---- エンドコンテンツ (最上位クラフト専用)
     public static final DeferredItem<Item> ABYSS_NOCTURNE = endgameWeapon("abyss_nocturne");
     public static final DeferredItem<Item> ABYSS_AIBOU = endgameWeapon("abyss_aibou");
@@ -547,6 +553,12 @@ public final class ModItems {
                         output.accept(ABYSS_METEOR_LANCE.get());
                         output.accept(ABYSS_ECHO_KATANA.get());
                         output.accept(ABYSS_HOWLING_CLAW.get());
+                        output.accept(ABYSS_CRYSTAL_SWORD.get());
+                        output.accept(ABYSS_SAKURA_BLADE.get());
+                        output.accept(ABYSS_DRAGON_CLEAVER.get());
+                        output.accept(ABYSS_LUNAR_STAFF.get());
+                        output.accept(ABYSS_CHRONO_STAFF.get());
+                        output.accept(ABYSS_SOUL_LANTERN.get());
                         output.accept(ABYSS_NOCTURNE.get());
                         output.accept(ABYSS_AIBOU.get());
                         output.accept(AIBOU_LIMIT_STONE.get());
@@ -755,6 +767,12 @@ public final class ModItems {
             case METEOR_LANCE -> ABYSS_METEOR_LANCE.get();
             case ECHO_KATANA -> ABYSS_ECHO_KATANA.get();
             case HOWLING_CLAW -> ABYSS_HOWLING_CLAW.get();
+            case CRYSTAL_SWORD -> ABYSS_CRYSTAL_SWORD.get();
+            case SAKURA_BLADE -> ABYSS_SAKURA_BLADE.get();
+            case DRAGON_CLEAVER -> ABYSS_DRAGON_CLEAVER.get();
+            case LUNAR_STAFF -> ABYSS_LUNAR_STAFF.get();
+            case CHRONO_STAFF -> ABYSS_CHRONO_STAFF.get();
+            case SOUL_LANTERN -> ABYSS_SOUL_LANTERN.get();
             case NOCTURNE -> ABYSS_NOCTURNE.get();
             case AIBOU -> ABYSS_AIBOU.get();
         };

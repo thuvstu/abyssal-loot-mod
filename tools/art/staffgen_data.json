@@ -1,0 +1,1849 @@
+{
+ "_comment": "MCAssetGen (minecraft-magic-staff-generator / Spellforge Atelier) の engine/data.ts から焼き出した杖のデータ。描画は tools/art/staffgen.py。",
+ "elements": {
+  "fire": {
+   "label": "炎",
+   "icon": "🔥",
+   "core": "#ff5a1f",
+   "energy": "#ffc14d",
+   "particle": "embers",
+   "floater": "shards",
+   "stat": "火炎ダメージ",
+   "ability": "インフェルノ・バースト"
+  },
+  "ice": {
+   "label": "氷",
+   "icon": "❄",
+   "core": "#5fd2ff",
+   "energy": "#d8f6ff",
+   "particle": "snow",
+   "floater": "shards",
+   "stat": "凍結力",
+   "ability": "フロストノヴァ"
+  },
+  "thunder": {
+   "label": "雷",
+   "icon": "⚡",
+   "core": "#ffe03a",
+   "energy": "#fff7b0",
+   "particle": "sparks",
+   "floater": "orbs",
+   "stat": "雷撃ダメージ",
+   "ability": "チェインライトニング"
+  },
+  "nature": {
+   "label": "自然",
+   "icon": "🌿",
+   "core": "#5fd35a",
+   "energy": "#c8ff8a",
+   "particle": "leaves",
+   "floater": "petals",
+   "stat": "再生力",
+   "ability": "ワイルドグロース"
+  },
+  "water": {
+   "label": "水",
+   "icon": "💧",
+   "core": "#2f7dff",
+   "energy": "#8fe3ff",
+   "particle": "bubbles",
+   "floater": "orbs",
+   "stat": "潮流の力",
+   "ability": "タイダルウェイブ"
+  },
+  "light": {
+   "label": "光",
+   "icon": "✦",
+   "core": "#ffe9a3",
+   "energy": "#fffbe6",
+   "particle": "twinkle",
+   "floater": "halo",
+   "stat": "神聖力",
+   "ability": "ディバインレイ"
+  },
+  "dark": {
+   "label": "闇",
+   "icon": "☾",
+   "core": "#8a3cff",
+   "energy": "#d7a6ff",
+   "particle": "smoke",
+   "floater": "runes",
+   "stat": "闇の魔力",
+   "ability": "シャドウベール"
+  },
+  "void": {
+   "label": "虚空",
+   "icon": "◈",
+   "core": "#c03cff",
+   "energy": "#f0b8ff",
+   "particle": "endbits",
+   "floater": "cubes",
+   "stat": "虚空浸食",
+   "ability": "ヴォイドリフト"
+  },
+  "arcane": {
+   "label": "秘術",
+   "icon": "✧",
+   "core": "#6c7bff",
+   "energy": "#e2c8ff",
+   "particle": "glyphs",
+   "floater": "runes",
+   "stat": "魔力",
+   "ability": "アーケインミサイル"
+  },
+  "blood": {
+   "label": "血",
+   "icon": "♥",
+   "core": "#d9133b",
+   "energy": "#ff7a8f",
+   "particle": "drips",
+   "floater": "orbs",
+   "stat": "吸血",
+   "ability": "ブラッドパクト"
+  },
+  "earth": {
+   "label": "大地",
+   "icon": "⛰",
+   "core": "#c98a3a",
+   "energy": "#ffd99a",
+   "particle": "pebbles",
+   "floater": "cubes",
+   "stat": "防御力",
+   "ability": "アースクエイク"
+  },
+  "wind": {
+   "label": "風",
+   "icon": "🌀",
+   "core": "#6fe3c0",
+   "energy": "#e6fff7",
+   "particle": "streaks",
+   "floater": "petals",
+   "stat": "速度",
+   "ability": "ゲイルスラッシュ"
+  },
+  "cosmic": {
+   "label": "星辰",
+   "icon": "★",
+   "core": "#4b3cff",
+   "energy": "#ff9cf2",
+   "particle": "stardust",
+   "floater": "stars",
+   "stat": "星の加護",
+   "ability": "スターフォール"
+  },
+  "time": {
+   "label": "時間",
+   "icon": "⧗",
+   "core": "#e0c46a",
+   "energy": "#fff3c4",
+   "particle": "sand",
+   "floater": "candles",
+   "stat": "時間干渉",
+   "ability": "クロノシフト"
+  },
+  "sound": {
+   "label": "音",
+   "icon": "♪",
+   "core": "#ff7ad9",
+   "energy": "#ffd6f5",
+   "particle": "notes",
+   "floater": "bells",
+   "stat": "共鳴力",
+   "ability": "レゾナンスウェーブ"
+  },
+  "metal": {
+   "label": "鋼",
+   "icon": "⚒",
+   "core": "#c3ccd6",
+   "energy": "#eef4ff",
+   "particle": "sparks",
+   "floater": "daggers",
+   "stat": "攻撃力",
+   "ability": "アイアンメイデン"
+  },
+  "poison": {
+   "label": "毒",
+   "icon": "☠",
+   "core": "#8fd42a",
+   "energy": "#dcff8a",
+   "particle": "smoke",
+   "floater": "wisps",
+   "stat": "猛毒",
+   "ability": "ヴェノムクラウド"
+  },
+  "storm": {
+   "label": "嵐",
+   "icon": "🌩",
+   "core": "#7aa6ff",
+   "energy": "#cfe4ff",
+   "particle": "bolts",
+   "floater": "orbs",
+   "stat": "落雷威力",
+   "ability": "テンペストコール"
+  },
+  "soul": {
+   "label": "魂",
+   "icon": "👻",
+   "core": "#5ef2d6",
+   "energy": "#c9fff3",
+   "particle": "fireflies",
+   "floater": "wisps",
+   "stat": "魂の炎",
+   "ability": "ソウルバーン"
+  },
+  "crystal": {
+   "label": "水晶",
+   "icon": "◆",
+   "core": "#a9e8ff",
+   "energy": "#eafcff",
+   "particle": "crystalshards",
+   "floater": "shards",
+   "stat": "屈折率",
+   "ability": "プリズムバースト"
+  },
+  "gravity": {
+   "label": "重力",
+   "icon": "◎",
+   "core": "#8f7bff",
+   "energy": "#dcd2ff",
+   "particle": "pebbles",
+   "floater": "cubes",
+   "stat": "引力",
+   "ability": "グラビティウェル"
+  },
+  "plasma": {
+   "label": "プラズマ",
+   "icon": "✺",
+   "core": "#ff4fd8",
+   "energy": "#ffd6f8",
+   "particle": "bolts",
+   "floater": "orbs",
+   "stat": "電離力",
+   "ability": "プラズマランス"
+  },
+  "sakura": {
+   "label": "桜",
+   "icon": "✿",
+   "core": "#ef8fb2",
+   "energy": "#ffe4ef",
+   "particle": "leaves",
+   "floater": "butterflies",
+   "stat": "花霞",
+   "ability": "桜花夢幻"
+  },
+  "dream": {
+   "label": "夢",
+   "icon": "☁",
+   "core": "#ad8dff",
+   "energy": "#f1e8ff",
+   "particle": "stardust",
+   "floater": "keys",
+   "stat": "夢幻力",
+   "ability": "ドリームゲート"
+  },
+  "aurora": {
+   "label": "極光",
+   "icon": "≈",
+   "core": "#55e6c1",
+   "energy": "#d8fff7",
+   "particle": "streaks",
+   "floater": "sigils",
+   "stat": "極光共鳴",
+   "ability": "オーロラカーテン"
+  },
+  "ink": {
+   "label": "墨",
+   "icon": "●",
+   "core": "#27304f",
+   "energy": "#b8c4ff",
+   "particle": "smoke",
+   "floater": "books",
+   "stat": "墨影",
+   "ability": "墨染結界"
+  },
+  "luck": {
+   "label": "幸運",
+   "icon": "♣",
+   "core": "#55ce70",
+   "energy": "#fff0a8",
+   "particle": "coins",
+   "floater": "coins",
+   "stat": "幸運値",
+   "ability": "フォーチュンロール"
+  },
+  "festival": {
+   "label": "祭",
+   "icon": "✺",
+   "core": "#ff5f72",
+   "energy": "#ffe65c",
+   "particle": "fireflies",
+   "floater": "lanterns",
+   "stat": "祝祭力",
+   "ability": "百花祝砲"
+  }
+ },
+ "materials": {
+  "oak": {
+   "label": "オーク",
+   "color": "#9a6b3c"
+  },
+  "darkoak": {
+   "label": "ダークオーク",
+   "color": "#5a3a22"
+  },
+  "birch": {
+   "label": "シラカバ",
+   "color": "#d8c9a0"
+  },
+  "crimson": {
+   "label": "真紅の木",
+   "color": "#8e2f4d"
+  },
+  "warped": {
+   "label": "歪んだ木",
+   "color": "#2b8a82"
+  },
+  "bone": {
+   "label": "骨",
+   "color": "#e3dcc2"
+  },
+  "gold": {
+   "label": "金",
+   "color": "#f2b632",
+   "metal": true,
+   "contrast": 1.15
+  },
+  "iron": {
+   "label": "鉄",
+   "color": "#b9bec7",
+   "metal": true
+  },
+  "obsidian": {
+   "label": "黒曜石",
+   "color": "#2e1f45",
+   "contrast": 0.8
+  },
+  "netherite": {
+   "label": "ネザライト",
+   "color": "#4a4146",
+   "metal": true
+  },
+  "amethyst": {
+   "label": "アメジスト",
+   "color": "#9b62d9",
+   "metal": true
+  },
+  "prismarine": {
+   "label": "プリズマリン",
+   "color": "#5fb3a1"
+  },
+  "quartz": {
+   "label": "クォーツ",
+   "color": "#ece6dc",
+   "metal": true
+  },
+  "blaze": {
+   "label": "ブレイズロッド",
+   "color": "#ffb81f",
+   "glow": true,
+   "contrast": 1.2
+  },
+  "endrod": {
+   "label": "エンドロッド",
+   "color": "#f4eee6",
+   "glow": true
+  },
+  "copper": {
+   "label": "銅",
+   "color": "#c1743f",
+   "metal": true,
+   "contrast": 1.1
+  },
+  "diamond": {
+   "label": "ダイヤ",
+   "color": "#7fe9e2",
+   "metal": true,
+   "contrast": 1.2
+  },
+  "emerald": {
+   "label": "エメラルド",
+   "color": "#3ad46a",
+   "metal": true
+  },
+  "lapis": {
+   "label": "ラピス",
+   "color": "#2f52b8",
+   "metal": true
+  },
+  "redstone": {
+   "label": "レッドストーン",
+   "color": "#c8262f",
+   "glow": true,
+   "contrast": 1.1
+  },
+  "bamboo": {
+   "label": "竹",
+   "color": "#b9c962"
+  },
+  "mangrove": {
+   "label": "マングローブ",
+   "color": "#7a4a34"
+  },
+  "cherry": {
+   "label": "サクラ",
+   "color": "#c98a9c"
+  },
+  "sculk": {
+   "label": "スカルク",
+   "color": "#12262c",
+   "contrast": 0.75
+  },
+  "mud": {
+   "label": "泥",
+   "color": "#6b5a48",
+   "contrast": 0.85
+  },
+  "brass": {
+   "label": "真鍮",
+   "color": "#c69745",
+   "metal": true,
+   "contrast": 1.12
+  },
+  "steel": {
+   "label": "鋼",
+   "color": "#75849a",
+   "metal": true,
+   "contrast": 1.18
+  },
+  "silver": {
+   "label": "銀",
+   "color": "#d3d7e2",
+   "metal": true,
+   "contrast": 1.12
+  },
+  "coral": {
+   "label": "珊瑚",
+   "color": "#e77868",
+   "contrast": 1.05
+  },
+  "seaGlass": {
+   "label": "シーグラス",
+   "color": "#55bdb1",
+   "metal": true,
+   "contrast": 1.08
+  },
+  "driftwood": {
+   "label": "流木",
+   "color": "#806e59",
+   "contrast": 0.9
+  },
+  "pearlwood": {
+   "label": "真珠木",
+   "color": "#d8c7bb",
+   "contrast": 0.9
+  },
+  "jade": {
+   "label": "翡翠",
+   "color": "#3fa487",
+   "metal": true,
+   "contrast": 1.08
+  },
+  "blackwood": {
+   "label": "黒檀",
+   "color": "#33252a",
+   "contrast": 1.08
+  },
+  "cobalt": {
+   "label": "藍鋼",
+   "color": "#3d5d91",
+   "metal": true,
+   "contrast": 1.15
+  },
+  "amber": {
+   "label": "琥珀",
+   "color": "#d78329",
+   "contrast": 1.12
+  },
+  "seaweed": {
+   "label": "海藻木",
+   "color": "#526a48",
+   "contrast": 0.98
+  },
+  "ruby": {
+   "label": "ルビー",
+   "color": "#e0314f",
+   "metal": true,
+   "contrast": 1.22
+  },
+  "sapphire": {
+   "label": "サファイア",
+   "color": "#2f6fe4",
+   "metal": true,
+   "contrast": 1.22
+  },
+  "vanillaStick": {
+   "label": "バニラ棒",
+   "color": "#8a6239",
+   "contrast": 0.92
+  },
+  "holySilver": {
+   "label": "聖銀",
+   "color": "#dfe6f5",
+   "metal": true,
+   "contrast": 1.1
+  },
+  "shadowSteel": {
+   "label": "影鋼",
+   "color": "#2b2b38",
+   "metal": true,
+   "contrast": 0.85
+  },
+  "prismAlloy": {
+   "label": "虹彩合金",
+   "color": "#9fb7ff",
+   "metal": true,
+   "contrast": 1.15
+  }
+ },
+ "staff_types": {
+  "wizard": {
+   "label": "魔導師の杖",
+   "desc": "爪で抱えた結晶。王道のロングスタッフ",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "darkoak",
+    "pattern": "grain",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "cap",
+    "mount": "prongs",
+    "core": "crystal",
+    "coreSize": 1,
+    "floatingCore": false
+   }
+  },
+  "scepter": {
+   "label": "王笏",
+   "desc": "短く豪奢。王冠とオーブ",
+   "preset": {
+    "length": 0.62,
+    "thickness": 3,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "gold",
+    "pattern": "filigree",
+    "grip": false,
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "crown",
+    "core": "orb",
+    "coreSize": 1.05,
+    "floatingCore": false
+   }
+  },
+  "wand": {
+   "label": "ワンド",
+   "desc": "細身で繊細。星の先端",
+   "preset": {
+    "length": 0.55,
+    "thickness": 1,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "birch",
+    "pattern": "spiral",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "iron",
+    "pommel": "orb",
+    "mount": "none",
+    "core": "star",
+    "coreSize": 0.8,
+    "floatingCore": true
+   }
+  },
+  "druid": {
+   "label": "ドルイドの杖",
+   "desc": "蔦の絡む渦巻き木杖",
+   "preset": {
+    "length": 0.95,
+    "thickness": 3,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "oak",
+    "pattern": "vine",
+    "grip": false,
+    "bands": 0,
+    "trimMaterial": "gold",
+    "pommel": "roots",
+    "mount": "curl",
+    "core": "orb",
+    "coreSize": 0.85,
+    "floatingCore": false
+   }
+  },
+  "lunar": {
+   "label": "月の杖",
+   "desc": "三日月が浮遊する宝石を抱く",
+   "preset": {
+    "length": 0.92,
+    "thickness": 2,
+    "taper": false,
+    "shape": "curved",
+    "shaftMaterial": "quartz",
+    "pattern": "ribbed",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 2,
+    "trimMaterial": "iron",
+    "pommel": "spike",
+    "mount": "crescent",
+    "core": "prism",
+    "coreSize": 0.85,
+    "floatingCore": true
+   }
+  },
+  "necro": {
+   "label": "死霊術の杖",
+   "desc": "骨の柄と光る眼の髑髏",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "bone",
+    "pattern": "ribbed",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 1,
+    "trimMaterial": "netherite",
+    "pommel": "skull",
+    "mount": "none",
+    "core": "skull",
+    "coreSize": 1,
+    "floatingCore": false
+   }
+  },
+  "khakkhara": {
+   "label": "錫杖",
+   "desc": "光輪と揺れる輪",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "crimson",
+    "pattern": "plain",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "cap",
+    "mount": "ring",
+    "core": "orb",
+    "coreSize": 0.7,
+    "floatingCore": false
+   }
+  },
+  "trident": {
+   "label": "三叉の杖",
+   "desc": "海神の如き三叉の先端",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "prismarine",
+    "pattern": "spiral",
+    "grip": false,
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "spike",
+    "mount": "fork",
+    "core": "orb",
+    "coreSize": 0.7,
+    "floatingCore": false
+   }
+  },
+  "seraph": {
+   "label": "熾天使の杖",
+   "desc": "翼を広げた神聖な杖",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "quartz",
+    "pattern": "filigree",
+    "grip": false,
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "wings",
+    "core": "prism",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "voidcaller": {
+   "label": "虚空召喚の杖",
+   "desc": "檻に封じた魔眼",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "obsidian",
+    "pattern": "runes",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 2,
+    "trimMaterial": "amethyst",
+    "pommel": "orb",
+    "mount": "cage",
+    "core": "eye",
+    "coreSize": 0.9,
+    "floatingCore": false
+   }
+  },
+  "shaman": {
+   "label": "シャーマンの杖",
+   "desc": "鹿角とトーテムの原始的な杖",
+   "preset": {
+    "length": 0.98,
+    "thickness": 3,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "mangrove",
+    "pattern": "bark",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 1,
+    "trimMaterial": "bone",
+    "pommel": "roots",
+    "mount": "antler",
+    "core": "totem",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "lanternbearer": {
+   "label": "夜の提灯杖",
+   "desc": "霊炎を灯した吊りランタン",
+   "preset": {
+    "length": 0.9,
+    "thickness": 2,
+    "taper": false,
+    "shape": "hooked",
+    "shaftMaterial": "darkoak",
+    "pattern": "grain",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 2,
+    "trimMaterial": "copper",
+    "pommel": "lantern",
+    "mount": "lantern",
+    "core": "lantern",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "reaper": {
+   "label": "死神の鎌杖",
+   "desc": "魂を刈る大鎌を冠する",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "netherite",
+    "pattern": "cracked",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 1,
+    "trimMaterial": "netherite",
+    "pommel": "blade",
+    "mount": "scythe",
+    "core": "skull",
+    "coreSize": 0.9,
+    "floatingCore": false
+   }
+  },
+  "serpentstaff": {
+   "label": "蛇杖",
+   "desc": "絡みつく二匹の蛇と蛇頭",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "swan",
+    "shaftMaterial": "emerald",
+    "pattern": "scales",
+    "grip": false,
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "hook",
+    "mount": "serpent",
+    "core": "serpenthead",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "chronomancer": {
+   "label": "時術師の杖",
+   "desc": "砂時計が時を刻む",
+   "preset": {
+    "length": 0.92,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "copper",
+    "pattern": "engraved",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "hourglass",
+    "core": "hourglass",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "bard": {
+   "label": "吟遊詩人の杖",
+   "desc": "鈴と音符が舞う楽器杖",
+   "preset": {
+    "length": 0.85,
+    "thickness": 2,
+    "taper": false,
+    "shape": "curved",
+    "shaftMaterial": "cherry",
+    "pattern": "candy",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "orb",
+    "mount": "arch",
+    "core": "star",
+    "coreSize": 0.8,
+    "floatingCore": true
+   }
+  },
+  "geomancer": {
+   "label": "地術師の杖",
+   "desc": "岩と金床の重い杖",
+   "preset": {
+    "length": 0.9,
+    "thickness": 4,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "mud",
+    "pattern": "cracked",
+    "grip": true,
+    "gripStyle": "studded",
+    "bands": 2,
+    "trimMaterial": "iron",
+    "pommel": "spike",
+    "mount": "arch",
+    "core": "anvil",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "stormcaller": {
+   "label": "嵐呼びの杖",
+   "desc": "三叉に稲妻が走る",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "hooked",
+    "shaftMaterial": "lapis",
+    "pattern": "lavavein",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 2,
+    "trimMaterial": "iron",
+    "pommel": "spike",
+    "mount": "fork",
+    "core": "prism",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "soulreaper": {
+   "label": "魂狩りの杖",
+   "desc": "鬼火が揺らめく鎖杖",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": true,
+    "shape": "curved",
+    "shaftMaterial": "sculk",
+    "pattern": "chainlink",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 1,
+    "trimMaterial": "netherite",
+    "pommel": "chain",
+    "mount": "chain",
+    "core": "flame",
+    "coreSize": 0.95,
+    "floatingCore": true
+   }
+  },
+  "archmage": {
+   "label": "大魔導師の杖",
+   "desc": "三連晶簇の重厚な杖",
+   "preset": {
+    "length": 1,
+    "thickness": 3,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "amethyst",
+    "pattern": "runes",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 4,
+    "trimMaterial": "gold",
+    "pommel": "crystal",
+    "mount": "prongs",
+    "core": "cluster",
+    "coreSize": 1.1,
+    "floatingCore": false
+   }
+  },
+  "celestial": {
+   "label": "天界の杖",
+   "desc": "太陽と月を戴く",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "quartz",
+    "pattern": "engraved",
+    "grip": false,
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "arch",
+    "core": "sun",
+    "coreSize": 0.95,
+    "floatingCore": true
+   }
+  },
+  "plaguedoctor": {
+   "label": "疫病医の杖",
+   "desc": "瘴気を纏う鳥頭の杖",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": true,
+    "shape": "hooked",
+    "shaftMaterial": "bone",
+    "pattern": "mossy",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "copper",
+    "pommel": "skull",
+    "mount": "claw",
+    "core": "eye",
+    "coreSize": 0.85,
+    "floatingCore": false
+   }
+  },
+  "runesmith": {
+   "label": "ルーン鍛冶の杖",
+   "desc": "全面に彫られた古代文字",
+   "preset": {
+    "length": 0.9,
+    "thickness": 3,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "iron",
+    "pattern": "engraved",
+    "grip": true,
+    "gripStyle": "studded",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "cap",
+    "mount": "cage",
+    "core": "diamond",
+    "coreSize": 0.9,
+    "floatingCore": false
+   }
+  },
+  "dracolich": {
+   "label": "竜骨の杖",
+   "desc": "竜の骨と燃える眼",
+   "preset": {
+    "length": 1,
+    "thickness": 3,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "bone",
+    "pattern": "cracked",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 2,
+    "trimMaterial": "netherite",
+    "pommel": "skull",
+    "mount": "antler",
+    "core": "skull",
+    "coreSize": 1.05,
+    "floatingCore": false
+   }
+  },
+  "feywild": {
+   "label": "妖精郷の杖",
+   "desc": "花弁と蛍が舞う",
+   "preset": {
+    "length": 0.8,
+    "thickness": 1,
+    "taper": false,
+    "shape": "swan",
+    "shaftMaterial": "cherry",
+    "pattern": "feathered",
+    "grip": false,
+    "bands": 1,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "curl",
+    "core": "heart",
+    "coreSize": 0.8,
+    "floatingCore": true
+   }
+  },
+  "abyssal": {
+   "label": "深淵の杖",
+   "desc": "裂け目が覗く不吉な杖",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": true,
+    "shape": "curved",
+    "shaftMaterial": "sculk",
+    "pattern": "lavavein",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 2,
+    "trimMaterial": "obsidian",
+    "pommel": "hook",
+    "mount": "claw",
+    "core": "portal",
+    "coreSize": 1,
+    "floatingCore": true
+   }
+  },
+  "solar": {
+   "label": "太陽の杖",
+   "desc": "光輪を背負う日輪杖",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "gold",
+    "pattern": "filigree",
+    "grip": false,
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "ring",
+    "core": "sun",
+    "coreSize": 1,
+    "floatingCore": false
+   }
+  },
+  "bloodmage": {
+   "label": "血術師の杖",
+   "desc": "心臓と短剣が漂う",
+   "preset": {
+    "length": 0.95,
+    "thickness": 2,
+    "taper": false,
+    "shape": "curved",
+    "shaftMaterial": "crimson",
+    "pattern": "cracked",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 2,
+    "trimMaterial": "netherite",
+    "pommel": "blade",
+    "mount": "claw",
+    "core": "heart",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "ashen": {
+   "label": "灰燼の杖",
+   "desc": "焼け焦げた木と燃えさし",
+   "preset": {
+    "length": 0.92,
+    "thickness": 3,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "darkoak",
+    "pattern": "cracked",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 1,
+    "trimMaterial": "copper",
+    "pommel": "spike",
+    "mount": "prongs",
+    "core": "flame",
+    "coreSize": 1,
+    "floatingCore": false
+   }
+  },
+  "skyfather": {
+   "label": "天空神の杖",
+   "desc": "雲を裂く荘厳な大杖",
+   "preset": {
+    "length": 1,
+    "thickness": 3,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "quartz",
+    "pattern": "engraved",
+    "grip": false,
+    "bands": 4,
+    "trimMaterial": "gold",
+    "pommel": "crystal",
+    "mount": "wings",
+    "core": "moon",
+    "coreSize": 1,
+    "floatingCore": true
+   }
+  },
+  "valkyrie": {
+   "label": "戦乙女の天槍杖",
+   "desc": "白銀の翼と天衣リボンが舞う気高き杖",
+   "preset": {
+    "length": 1,
+    "thickness": 2,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "quartz",
+    "pattern": "filigree",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "wings",
+    "core": "diamond",
+    "coreSize": 0.95,
+    "floatingCore": true
+   }
+  },
+  "lotus": {
+   "label": "睡蓮華の宝杖",
+   "desc": "咲き誇る蓮華座と雫の宝珠、舞う花弁",
+   "preset": {
+    "length": 0.92,
+    "thickness": 2,
+    "taper": true,
+    "shape": "swan",
+    "shaftMaterial": "cherry",
+    "pattern": "spiral",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "lotus",
+    "core": "prism",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "astrolabe": {
+   "label": "渾天儀の星詠杖",
+   "desc": "交差する天球儀リングと輝く恒星核",
+   "preset": {
+    "length": 0.96,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "lapis",
+    "pattern": "engraved",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "orb",
+    "mount": "astrolabe",
+    "core": "star",
+    "coreSize": 0.9,
+    "floatingCore": true
+   }
+  },
+  "court": {
+   "label": "宮廷魔導の宝杖",
+   "desc": "白磁と金線唐草、ティアラ冠の典雅な杖",
+   "preset": {
+    "length": 0.9,
+    "thickness": 2,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "quartz",
+    "pattern": "filigree",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "crystal",
+    "mount": "tiara",
+    "core": "diamond",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "sylphid": {
+   "label": "風精の竪琴杖",
+   "desc": "竪琴フレームと羽衣が奏でる優美な杖",
+   "preset": {
+    "length": 0.88,
+    "thickness": 1,
+    "taper": true,
+    "shape": "swan",
+    "shaftMaterial": "birch",
+    "pattern": "feathered",
+    "grip": false,
+    "bands": 2,
+    "trimMaterial": "gold",
+    "pommel": "gem",
+    "mount": "lyre",
+    "core": "prism",
+    "coreSize": 0.85,
+    "floatingCore": true
+   }
+  },
+  "eclipse": {
+   "label": "皆既日食の杖",
+   "desc": "黒曜の月とコロナ光輪が重なる神秘の杖",
+   "preset": {
+    "length": 0.98,
+    "thickness": 2,
+    "taper": true,
+    "shape": "curved",
+    "shaftMaterial": "obsidian",
+    "pattern": "filigree",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 3,
+    "trimMaterial": "gold",
+    "pommel": "crystal",
+    "mount": "astrolabe",
+    "core": "moon",
+    "coreSize": 1,
+    "floatingCore": true
+   }
+  },
+  "vanillaRod": {
+   "label": "バニラの細杖",
+   "desc": "太さ1px。棒と小さな先端だけの純正風",
+   "preset": {
+    "length": 1,
+    "thickness": 1,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "vanillaStick",
+    "pattern": "vanillaGrain",
+    "grip": false,
+    "bands": 0,
+    "trimMaterial": "oak",
+    "pommel": "none",
+    "mount": "tipCap",
+    "core": "orb",
+    "coreSize": 0.62,
+    "floatingCore": false
+   }
+  },
+  "vanillaPlus": {
+   "label": "バニラ＋の杖",
+   "desc": "細杖に微細な縁・刻み・先端染めを足した改良純正風",
+   "preset": {
+    "length": 1,
+    "thickness": 1,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "vanillaStick",
+    "pattern": "microEdge",
+    "grip": false,
+    "bands": 1,
+    "trimMaterial": "copper",
+    "pommel": "cap",
+    "mount": "tinyCollar",
+    "core": "prism",
+    "coreSize": 0.66,
+    "floatingCore": false
+   }
+  },
+  "apprentice": {
+   "label": "見習いの枝杖",
+   "desc": "節と斑点のある素朴な一本枝",
+   "preset": {
+    "length": 0.92,
+    "thickness": 2,
+    "taper": true,
+    "shape": "gnarled",
+    "shaftMaterial": "oak",
+    "pattern": "notch",
+    "grip": false,
+    "bands": 0,
+    "trimMaterial": "driftwood",
+    "pommel": "knot",
+    "mount": "none",
+    "core": "none",
+    "coreSize": 0.7,
+    "floatingCore": false
+   }
+  },
+  "rubyTool": {
+   "label": "ルビーツール",
+   "desc": "バニラ工具風の赤い宝石ロッド",
+   "preset": {
+    "length": 0.88,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "oak",
+    "pattern": "thinBand",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "ruby",
+    "pommel": "cap",
+    "mount": "collar",
+    "core": "ruby",
+    "coreSize": 0.85,
+    "floatingCore": false
+   }
+  },
+  "sapphireTool": {
+   "label": "サファイアツール",
+   "desc": "バニラ工具風の青い宝石ロッド",
+   "preset": {
+    "length": 0.88,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "birch",
+    "pattern": "thinBand",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "sapphire",
+    "pommel": "cap",
+    "mount": "collar",
+    "core": "sapphire",
+    "coreSize": 0.85,
+    "floatingCore": false
+   }
+  },
+  "emeraldTool": {
+   "label": "エメラルドツール",
+   "desc": "バニラ工具風の緑の宝石ロッド",
+   "preset": {
+    "length": 0.88,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "darkoak",
+    "pattern": "thinBand",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "emerald",
+    "pommel": "cap",
+    "mount": "collar",
+    "core": "emeraldGem",
+    "coreSize": 0.85,
+    "floatingCore": false
+   }
+  },
+  "prismSword": {
+   "label": "虹彩の剣杖",
+   "desc": "細身に虹色の刃を載せたバニラ寄りの剣",
+   "preset": {
+    "length": 0.9,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "vanillaStick",
+    "pattern": "tipTint",
+    "grip": true,
+    "gripStyle": "wrap",
+    "bands": 1,
+    "trimMaterial": "prismAlloy",
+    "pommel": "cap",
+    "mount": "guard",
+    "core": "prismBlade",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "holySword": {
+   "label": "聖なる剣杖",
+   "desc": "白銀の刃と小さな光輪。清らかな聖剣",
+   "preset": {
+    "length": 0.9,
+    "thickness": 2,
+    "taper": false,
+    "shape": "straight",
+    "shaftMaterial": "birch",
+    "pattern": "speckle",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 1,
+    "trimMaterial": "holySilver",
+    "pommel": "orb",
+    "mount": "guard",
+    "core": "holyBlade",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  },
+  "ominousSword": {
+   "label": "禍々しい剣杖",
+   "desc": "影鋼の刃と赤い目。禍々しい呪剣",
+   "preset": {
+    "length": 0.92,
+    "thickness": 2,
+    "taper": true,
+    "shape": "straight",
+    "shaftMaterial": "blackwood",
+    "pattern": "notch",
+    "grip": true,
+    "gripStyle": "chain",
+    "bands": 1,
+    "trimMaterial": "shadowSteel",
+    "pommel": "spike",
+    "mount": "microRing",
+    "core": "cursedBlade",
+    "coreSize": 0.95,
+    "floatingCore": false
+   }
+  }
+ },
+ "type_signatures": {
+  "wizard": {
+   "gemCut": "brilliant",
+   "ornament": "runeRing",
+   "ornamentScale": 1,
+   "accentGems": 3,
+   "floaterPath": "orbit",
+   "floater": "runes",
+   "floaterCount": 3
+  },
+  "scepter": {
+   "gemCut": "emerald",
+   "ornament": "crownJewels",
+   "ornamentScale": 1.15,
+   "accentGems": 5,
+   "floaterPath": "crown",
+   "floater": "orbs",
+   "floaterCount": 5
+  },
+  "wand": {
+   "gemCut": "starcut",
+   "ornament": "silkRibbons",
+   "ornamentScale": 0.88,
+   "accentGems": 3,
+   "floaterPath": "spiral",
+   "floater": "stars",
+   "floaterCount": 4
+  },
+  "druid": {
+   "gemCut": "raw",
+   "ornament": "vineCrest",
+   "ornamentScale": 1.2,
+   "accentGems": 2,
+   "floaterPath": "figure8",
+   "floater": "leaves",
+   "floaterCount": 5
+  },
+  "lunar": {
+   "gemCut": "teardrop",
+   "ornament": "lunarPhase",
+   "ornamentScale": 1.12,
+   "accentGems": 4,
+   "floaterPath": "orbit",
+   "floater": "moons",
+   "floaterCount": 4
+  },
+  "necro": {
+   "gemCut": "cracked",
+   "ornament": "soulCage",
+   "ornamentScale": 1,
+   "accentGems": 2,
+   "floaterPath": "helix",
+   "floater": "wisps",
+   "floaterCount": 5
+  },
+  "khakkhara": {
+   "gemCut": "caged",
+   "ornament": "beadRosary",
+   "ornamentScale": 1.16,
+   "accentGems": 4,
+   "floaterPath": "pendulum",
+   "floater": "bells",
+   "floaterCount": 5
+  },
+  "trident": {
+   "gemCut": "emerald",
+   "ornament": "alchemicalRing",
+   "ornamentScale": 1,
+   "accentGems": 3,
+   "floaterPath": "orbit",
+   "floater": "orbs",
+   "floaterCount": 4
+  },
+  "seraph": {
+   "gemCut": "brilliant",
+   "ornament": "featherCrest",
+   "ornamentScale": 1.2,
+   "accentGems": 5,
+   "floaterPath": "crown",
+   "floater": "petals",
+   "floaterCount": 5
+  },
+  "voidcaller": {
+   "gemCut": "rune",
+   "ornament": "thornHalo",
+   "ornamentScale": 1.05,
+   "accentGems": 4,
+   "floaterPath": "helix",
+   "floater": "eyes",
+   "floaterCount": 4
+  },
+  "shaman": {
+   "gemCut": "raw",
+   "ornament": "beadRosary",
+   "ornamentScale": 1.15,
+   "accentGems": 3,
+   "floaterPath": "pendulum",
+   "floater": "leaves",
+   "floaterCount": 5
+  },
+  "lanternbearer": {
+   "gemCut": "soul",
+   "ornament": "hangingCharms",
+   "ornamentScale": 1,
+   "accentGems": 2,
+   "floaterPath": "pendulum",
+   "floater": "candles",
+   "floaterCount": 3
+  },
+  "reaper": {
+   "gemCut": "cracked",
+   "ornament": "chainTassel",
+   "ornamentScale": 1.18,
+   "accentGems": 2,
+   "floaterPath": "rain",
+   "floater": "daggers",
+   "floaterCount": 4
+  },
+  "serpentstaff": {
+   "gemCut": "emerald",
+   "ornament": "serpentCoil",
+   "ornamentScale": 1.22,
+   "accentGems": 4,
+   "floaterPath": "helix",
+   "floater": "eyes",
+   "floaterCount": 4
+  },
+  "chronomancer": {
+   "gemCut": "rose",
+   "ornament": "clockwork",
+   "ornamentScale": 1.16,
+   "accentGems": 4,
+   "floaterPath": "constellation",
+   "floater": "candles",
+   "floaterCount": 5
+  },
+  "bard": {
+   "gemCut": "starcut",
+   "ornament": "silkRibbons",
+   "ornamentScale": 1.05,
+   "accentGems": 4,
+   "floaterPath": "figure8",
+   "floater": "bells",
+   "floaterCount": 5
+  },
+  "geomancer": {
+   "gemCut": "raw",
+   "ornament": "crystalLattice",
+   "ornamentScale": 1.2,
+   "accentGems": 3,
+   "floaterPath": "crown",
+   "floater": "cubes",
+   "floaterCount": 4
+  },
+  "stormcaller": {
+   "gemCut": "brilliant",
+   "ornament": "alchemicalRing",
+   "ornamentScale": 1.05,
+   "accentGems": 4,
+   "floaterPath": "spiral",
+   "floater": "orbs",
+   "floaterCount": 5
+  },
+  "soulreaper": {
+   "gemCut": "soul",
+   "ornament": "soulCage",
+   "ornamentScale": 1.12,
+   "accentGems": 3,
+   "floaterPath": "helix",
+   "floater": "wisps",
+   "floaterCount": 5
+  },
+  "archmage": {
+   "gemCut": "rune",
+   "ornament": "crystalLattice",
+   "ornamentScale": 1.25,
+   "accentGems": 6,
+   "floaterPath": "constellation",
+   "floater": "runes",
+   "floaterCount": 6
+  },
+  "celestial": {
+   "gemCut": "brilliant",
+   "ornament": "sunDisk",
+   "ornamentScale": 1.2,
+   "accentGems": 6,
+   "floaterPath": "crown",
+   "floater": "stars",
+   "floaterCount": 6
+  },
+  "plaguedoctor": {
+   "gemCut": "caged",
+   "ornament": "alchemicalRing",
+   "ornamentScale": 1,
+   "accentGems": 3,
+   "floaterPath": "figure8",
+   "floater": "wisps",
+   "floaterCount": 4
+  },
+  "runesmith": {
+   "gemCut": "rune",
+   "ornament": "runeRing",
+   "ornamentScale": 1.1,
+   "accentGems": 5,
+   "floaterPath": "orbit",
+   "floater": "runes",
+   "floaterCount": 5
+  },
+  "dracolich": {
+   "gemCut": "cracked",
+   "ornament": "thornHalo",
+   "ornamentScale": 1.28,
+   "accentGems": 4,
+   "floaterPath": "helix",
+   "floater": "eyes",
+   "floaterCount": 5
+  },
+  "feywild": {
+   "gemCut": "rose",
+   "ornament": "lotusPetals",
+   "ornamentScale": 1.15,
+   "accentGems": 5,
+   "floaterPath": "figure8",
+   "floater": "petals",
+   "floaterCount": 6
+  },
+  "abyssal": {
+   "gemCut": "soul",
+   "ornament": "soulCage",
+   "ornamentScale": 1.18,
+   "accentGems": 5,
+   "floaterPath": "spiral",
+   "floater": "eyes",
+   "floaterCount": 5
+  },
+  "solar": {
+   "gemCut": "starcut",
+   "ornament": "sunDisk",
+   "ornamentScale": 1.32,
+   "accentGems": 6,
+   "floaterPath": "crown",
+   "floater": "stars",
+   "floaterCount": 6
+  },
+  "bloodmage": {
+   "gemCut": "teardrop",
+   "ornament": "thornHalo",
+   "ornamentScale": 1.08,
+   "accentGems": 4,
+   "floaterPath": "rain",
+   "floater": "daggers",
+   "floaterCount": 4
+  },
+  "ashen": {
+   "gemCut": "cracked",
+   "ornament": "crystalLattice",
+   "ornamentScale": 1,
+   "accentGems": 3,
+   "floaterPath": "spiral",
+   "floater": "shards",
+   "floaterCount": 4
+  },
+  "skyfather": {
+   "gemCut": "brilliant",
+   "ornament": "featherCrest",
+   "ornamentScale": 1.35,
+   "accentGems": 6,
+   "floaterPath": "constellation",
+   "floater": "stars",
+   "floaterCount": 6
+  },
+  "valkyrie": {
+   "gemCut": "starcut",
+   "ornament": "silkRibbons",
+   "ornamentScale": 1.25,
+   "accentGems": 5,
+   "floaterPath": "crown",
+   "floater": "stars",
+   "floaterCount": 5
+  },
+  "lotus": {
+   "gemCut": "teardrop",
+   "ornament": "lotusPetals",
+   "ornamentScale": 1.22,
+   "accentGems": 5,
+   "floaterPath": "figure8",
+   "floater": "petals",
+   "floaterCount": 6
+  },
+  "astrolabe": {
+   "gemCut": "starcut",
+   "ornament": "celestialAstrolabe",
+   "ornamentScale": 1.25,
+   "accentGems": 6,
+   "floaterPath": "constellation",
+   "floater": "stars",
+   "floaterCount": 6
+  },
+  "court": {
+   "gemCut": "emerald",
+   "ornament": "arabesque",
+   "ornamentScale": 1.18,
+   "accentGems": 6,
+   "floaterPath": "crown",
+   "floater": "orbs",
+   "floaterCount": 5
+  },
+  "sylphid": {
+   "gemCut": "rose",
+   "ornament": "silkRibbons",
+   "ornamentScale": 1.2,
+   "accentGems": 4,
+   "floaterPath": "figure8",
+   "floater": "petals",
+   "floaterCount": 5
+  },
+  "eclipse": {
+   "gemCut": "brilliant",
+   "ornament": "celestialAstrolabe",
+   "ornamentScale": 1.28,
+   "accentGems": 5,
+   "floaterPath": "orbit",
+   "floater": "moons",
+   "floaterCount": 5
+  },
+  "vanillaRod": {
+   "gemCut": "raw",
+   "ornament": "none",
+   "ornamentScale": 0.7,
+   "accentGems": 0,
+   "floaterPath": "orbit",
+   "floater": "none",
+   "floaterCount": 0
+  },
+  "vanillaPlus": {
+   "gemCut": "rose",
+   "ornament": "none",
+   "ornamentScale": 0.75,
+   "accentGems": 1,
+   "floaterPath": "orbit",
+   "floater": "motes",
+   "floaterCount": 2
+  },
+  "apprentice": {
+   "gemCut": "raw",
+   "ornament": "none",
+   "ornamentScale": 0.8,
+   "accentGems": 0,
+   "floaterPath": "orbit",
+   "floater": "dust",
+   "floaterCount": 2
+  },
+  "rubyTool": {
+   "gemCut": "emerald",
+   "ornament": "none",
+   "ornamentScale": 0.8,
+   "accentGems": 1,
+   "floaterPath": "orbit",
+   "floater": "glints",
+   "floaterCount": 2
+  },
+  "sapphireTool": {
+   "gemCut": "emerald",
+   "ornament": "none",
+   "ornamentScale": 0.8,
+   "accentGems": 1,
+   "floaterPath": "orbit",
+   "floater": "glints",
+   "floaterCount": 2
+  },
+  "emeraldTool": {
+   "gemCut": "emerald",
+   "ornament": "none",
+   "ornamentScale": 0.8,
+   "accentGems": 1,
+   "floaterPath": "orbit",
+   "floater": "glints",
+   "floaterCount": 2
+  },
+  "prismSword": {
+   "gemCut": "starcut",
+   "ornament": "none",
+   "ornamentScale": 0.85,
+   "accentGems": 2,
+   "floaterPath": "orbit",
+   "floater": "sparkCross",
+   "floaterCount": 3
+  },
+  "holySword": {
+   "gemCut": "brilliant",
+   "ornament": "none",
+   "ornamentScale": 0.85,
+   "accentGems": 1,
+   "floaterPath": "crown",
+   "floater": "motes",
+   "floaterCount": 3
+  },
+  "ominousSword": {
+   "gemCut": "cracked",
+   "ornament": "none",
+   "ornamentScale": 0.9,
+   "accentGems": 1,
+   "floaterPath": "helix",
+   "floater": "dust",
+   "floaterCount": 3
+  }
+ }
+}

@@ -8,6 +8,8 @@
     python tools/abyss.py grips                                         武器の握り位置の一覧
     python tools/abyss.py matgen <list|render|sheet|content>            素材ジェネレータ (新素材の形・色を試す)
     python tools/abyss.py variants <sheet|render> <武器id|png>           アイコンのバリエーション (強化・特性・属性…)
+    python tools/abyss.py swordgen <list|render|sheet>                  剣ジェネレータ (輪郭42・地肌49…)
+    python tools/abyss.py staffgen <list|render|sheet>                  杖ジェネレータ (型45・属性28…)
     python tools/abyss.py gametest                                      実サーバーで結合テスト (GameTest。1 分弱)
     python tools/abyss.py check                                         生成物の乖離 + 全検証 (コミット前に)
     python tools/abyss.py all                                           生成 + データ + 検証
@@ -97,6 +99,9 @@ def main(argv: list[str]) -> int:
     if cmd == "matgen":
         import matgen_cli
         return matgen_cli.main(rest)
+    if cmd in ("swordgen", "staffgen"):
+        import weapongen_cli
+        return (weapongen_cli.sword_main if cmd == "swordgen" else weapongen_cli.staff_main)(rest)
     if cmd == "variants":
         import variants_cli
         return variants_cli.main(rest)

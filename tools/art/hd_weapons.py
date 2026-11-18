@@ -894,6 +894,16 @@ ICONS = {
 }
 
 
+def _register_generated() -> None:
+    """MCAssetGen 由来のジェネレータで描く追加武器 (art/new_weapons.py) を表に載せる。"""
+    from . import new_weapons
+    ICONS.update(new_weapons.ICONS)
+    ANIMATED.update(new_weapons.ANIMATED)
+
+
+_register_generated()
+
+
 def icon(item_id: str, accent_hex: int, frame: int = 0) -> Image.Image:
     accent = hexc(accent_hex)
     anim = item_id in ANIMATED

@@ -130,6 +130,13 @@ public final class GameData {
         METEOR_LANCE("meteor_lance", "隕槍", "天斥落雁", "隕槍を1点に極大落下させる", 0xffd23c),
         ECHO_KATANA("echo_katana", "残刀", "三影刻", "標的の周囲を3点瞬斬する", 0xa8e8ff),
         HOWLING_CLAW("howling_claw", "哮爪", "裂空爪", "急所へ突進し三連爪を刻む", 0xffb03c),
+        // ---- MCAssetGen 由来の追加武器 (見た目: tools/art/swordgen.py / staffgen.py)
+        CRYSTAL_SWORD("crystal_sword", "晶剣", "プリズムバースト", "5方向に結晶の斬撃波・凍結を添える", 0xa9e8ff),
+        SAKURA_BLADE("sakura_blade", "桜刀", "桜花乱舞", "周囲を3度斬り払い、斬るたびに回復", 0xef8fb2),
+        DRAGON_CLEAVER("dragon_cleaver", "竜断", "竜牙断", "前方を叩き斬り炎上と弱体を刻む", 0xff7a3c),
+        LUNAR_STAFF("lunar_staff", "月杖", "フロストノヴァ", "周囲を凍てつかせ大きく鈍足にする", 0xcfd8ff),
+        CHRONO_STAFF("chrono_staff", "刻杖", "クロノシフト", "敵の時を止め自身を加速する", 0xe0c46a),
+        SOUL_LANTERN("soul_lantern", "魂灯杖", "ソウルバーン", "周囲を魂炎で3度焼き魂を得る", 0x5ef2d6),
         // ---- エンドコンテンツ (最上位クラフト専用。ドロップ・商店・奥義の断片には出ない)
         NOCTURNE("nocturne", "夜想曲ノクターン", "終曲・天命", "律動に応じた旋律を一斉に奏で、HPシールドを纏う", 0xb48cff),
         AIBOU("aibou", "相棒の剣", "絆断・限界の先", "器Lvと段階に応じて威力が伸びる大斬撃", 0x7ce8ff);
@@ -1130,6 +1137,12 @@ public final class GameData {
             java.util.Map.entry("meteor_lance", wb(20, -18, 8, 0, 0, 1, 0, 0, 12, 0, 0)),
             java.util.Map.entry("echo_katana", wb(8, 12, 0, 0, 0, 0, 10, 0, 0, 0, 0)),
             java.util.Map.entry("howling_claw", wb(-6, 22, 0, 0, 0, 0, 0, 25, 0, 10, 0)),
+            java.util.Map.entry("crystal_sword", wb(4, 6, 10, 0, 0, 1, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("sakura_blade", wb(6, 12, 0, 0, 0, 0, 8, 10, 0, 0, 0)),
+            java.util.Map.entry("dragon_cleaver", wb(26, -16, 12, 0, 0, 0, 0, 0, 8, 0, 0)),
+            java.util.Map.entry("lunar_staff", wb(-6, 0, 18, 30, 0, 0, 0, 0, 0, 0, 0)),
+            java.util.Map.entry("chrono_staff", wb(-8, 10, 0, 35, 0, 0, 0, 0, 0, 6, 0)),
+            java.util.Map.entry("soul_lantern", wb(-4, 0, 10, 38, 0, 0, 0, 0, 0, 0, 0)),
             java.util.Map.entry("nocturne", wb(15, 0, 20, 45, 1, 0, 10, 0, 20, 0, 10)),
             java.util.Map.entry("aibou", wb(25, 10, 10, 0, 0, 0, 10, 20, 0, 8, 0)));
 
@@ -1173,6 +1186,9 @@ public final class GameData {
             java.util.Map.entry("meteor_lance", new ShapeBonus(1, 0, 0)),
             java.util.Map.entry("echo_katana", new ShapeBonus(0, 1, 1)),
             java.util.Map.entry("howling_claw", new ShapeBonus(0, 0, 2)),
+            java.util.Map.entry("crystal_sword", new ShapeBonus(0, 1, 0)),
+            java.util.Map.entry("sakura_blade", new ShapeBonus(0, 1, 1)),
+            java.util.Map.entry("dragon_cleaver", new ShapeBonus(1, 1, 0)),
             java.util.Map.entry("nocturne", new ShapeBonus(1, 1, 0)),
             java.util.Map.entry("aibou", new ShapeBonus(1, 1, 1)));
 
@@ -1203,7 +1219,13 @@ public final class GameData {
             java.util.Map.entry("scythe", "crit3"),            // 毎3打目: 追加打撃
             java.util.Map.entry("ember_flail", "crit3"),
             java.util.Map.entry("echo_katana", "crit3"),
-            java.util.Map.entry("howling_claw", "crit3"));
+            java.util.Map.entry("howling_claw", "crit3"),
+            java.util.Map.entry("crystal_sword", "swipe5"),
+            java.util.Map.entry("sakura_blade", "crit3"),
+            java.util.Map.entry("dragon_cleaver", "burst4"),
+            java.util.Map.entry("lunar_staff", "heal6"),
+            java.util.Map.entry("chrono_staff", "heal6"),
+            java.util.Map.entry("soul_lantern", "soul3"));
 
     /* ---------------- 全武器の固有能力 (命中・撃破・被弾で発動) ----------------
      * kind: CHAIN (確率連鎖) / FROST (確率凍結) / SOUL (命中で魂) /
@@ -1254,6 +1276,12 @@ public final class GameData {
                     java.util.Map.entry("meteor_lance", new WeaponAbility("BURST", 0.3, 2.2, "命中時30%で爆発")),
                     java.util.Map.entry("echo_katana", new WeaponAbility("SOUL", 0.4, 4, "命中時40%で魂+4")),
                     java.util.Map.entry("howling_claw", new WeaponAbility("EXECUTE", 1.0, 0.6, "瀕死へ+60%")),
+                    java.util.Map.entry("crystal_sword", new WeaponAbility("FROST", 0.3, 1.0, "命中時30%で凍結")),
+                    java.util.Map.entry("sakura_blade", new WeaponAbility("SOUL", 0.4, 4, "命中時40%で魂+4")),
+                    java.util.Map.entry("dragon_cleaver", new WeaponAbility("BURST", 0.3, 1.8, "命中時30%で爆発")),
+                    java.util.Map.entry("lunar_staff", new WeaponAbility("FROST", 0.45, 1.2, "命中時45%で凍結")),
+                    java.util.Map.entry("chrono_staff", new WeaponAbility("CHAIN", 0.3, 0.6, "命中時30%で連鎖")),
+                    java.util.Map.entry("soul_lantern", new WeaponAbility("SOUL", 0.55, 8, "命中時55%で魂+8")),
                     java.util.Map.entry("nocturne", new WeaponAbility("SOUL", 0.5, 6, "命中時50%で魂+6")),
                     java.util.Map.entry("aibou", new WeaponAbility("EXECUTE", 1.0, 0.5, "瀕死へ+50%")));
 
@@ -1307,6 +1335,12 @@ public final class GameData {
                     java.util.Map.entry("meteor_lance", new LightSkill("隕落撃", "隕石の槍を落とす", 2.8f, 2.0)),
                     java.util.Map.entry("echo_katana", new LightSkill("残影二刀", "残影が追い斬る", 1.4f, 1.2)),
                     java.util.Map.entry("howling_claw", new LightSkill("哮爪撃", "3連の爪で引き裂く", 1.2f, 1.65)),
+                    java.util.Map.entry("crystal_sword", new LightSkill("晶片斬", "3方向に結晶片を飛ばす", 1.4f, 1.05)),
+                    java.util.Map.entry("sakura_blade", new LightSkill("花散らし", "一閃して少し回復する", 1.2f, 1.0)),
+                    java.util.Map.entry("dragon_cleaver", new LightSkill("竜鱗割り", "前方を叩き割り燃やす", 2.4f, 1.7)),
+                    java.util.Map.entry("lunar_staff", new LightSkill("氷月弾", "最寄りの敵を凍らせる", 1.9f, 1.15)),
+                    java.util.Map.entry("chrono_staff", new LightSkill("刻針", "直線を時の針で貫く", 1.6f, 1.2)),
+                    java.util.Map.entry("soul_lantern", new LightSkill("鬼火", "周囲を魂炎で焼き魂を得る", 1.8f, 1.0)),
                     java.util.Map.entry("nocturne", new LightSkill("数列詠唱", "数列を数字キーで入力し、桁ごとに旋律を発動", 15f, 1.0)),
                     java.util.Map.entry("aibou", new LightSkill("相棒の大技", "メーターを消費して周囲を薙ぎ払う", 3.0f, 2.0)));
 

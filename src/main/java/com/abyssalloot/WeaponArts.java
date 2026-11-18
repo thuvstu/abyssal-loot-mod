@@ -520,6 +520,101 @@ public final class WeaponArts {
                 burst(player, "鋼星乱嵐！", style);
                 return true;
             }
+            case CRYSTAL_SWORD -> {
+                // プリズムバースト: 5方向へ結晶の斬撃波、範囲内を凍結
+                for (int i = -2; i <= 2; i++) {
+                    double ang = Math.atan2(look.z, look.x) + i * 0.22;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    final Vec3 dirf = dir;
+                    later(player, Math.abs(i) * 2, lv ->
+                            slashCone(lv, player, origin, dirf, 11, 1.7 * attackDamage, ParticleTypes.END_ROD));
+                }
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 10, origin.y - 4, origin.z - 10, origin.x + 10, origin.y + 4, origin.z + 10),
+                        CombatUtil::isValidTarget)) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 70, 3));
+                }
+                burst(player, "プリズムバースト！", style);
+                return true;
+            }
+            case SAKURA_BLADE -> {
+                // 桜花乱舞: 周囲を3度斬り払い、そのたびに少し回復
+                for (int i = 0; i < 3; i++) {
+                    final int k = i;
+                    later(player, i * 5, lv -> {
+                        aoe(lv, player, origin, 4.5 + k, (1.5 + k * 0.5) * attackDamage, k == 2, ParticleTypes.CHERRY_LEAVES);
+                        player.heal(1.5f);
+                    });
+                }
+                burst(player, "桜花乱舞！", style);
+                return true;
+            }
+            case DRAGON_CLEAVER -> {
+                // 竜牙断: 前方を2度叩き斬り、炎上と弱体
+                for (int i = 0; i < 2; i++) {
+                    final int k = i;
+                    later(player, i * 6, lv -> {
+                        slashCone(lv, player, origin, look, 7, (k == 0 ? 2.4 : 3.8) * attackDamage, ParticleTypes.FLAME);
+                        for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(origin.x - 7, origin.y - 4, origin.z - 7, origin.x + 7, origin.y + 4, origin.z + 7),
+                                CombatUtil::isValidTarget)) {
+                            e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 120));
+                            e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
+                        }
+                    });
+                }
+                burst(player, "竜牙断！", style);
+                return true;
+            }
+            case LUNAR_STAFF -> {
+                // フロストノヴァ: 周囲を凍てつかせる冷気の輪を2重に広げる
+                aoe(level, player, origin, 5, 2.2 * attackDamage, false, ParticleTypes.SNOWFLAKE);
+                later(player, 8, lv -> aoe(lv, player, origin, 8, 2.6 * attackDamage, true, ParticleTypes.SNOWFLAKE));
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 8, origin.y - 4, origin.z - 8, origin.x + 8, origin.y + 4, origin.z + 8),
+                        CombatUtil::isValidTarget)) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 4));
+                    e.setTicksFrozen(Math.max(e.getTicksFrozen(), 160));
+                }
+                burst(player, "フロストノヴァ！", style);
+                return true;
+            }
+            case CHRONO_STAFF -> {
+                // クロノシフト: 周囲の敵の時を止め (強い鈍足・弱体)、自身を加速して時の針で打つ
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin.x - 9, origin.y - 4, origin.z - 9, origin.x + 9, origin.y + 4, origin.z + 9),
+                        CombatUtil::isValidTarget)) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 6));
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 1));
+                }
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 100, 2));
+                player.addEffect(new MobEffectInstance(MobEffects.HASTE, 100, 1));
+                for (int i = 0; i < 4; i++) {
+                    double ang = Math.atan2(look.z, look.x) + i * Math.PI / 2;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    final Vec3 dirf = dir;
+                    later(player, 6 + i * 3, lv -> lineHit(lv, player, origin, dirf, 9, 1.6 * attackDamage, 0.6, ParticleTypes.WAX_OFF));
+                }
+                level.sendParticles(ParticleTypes.ENCHANT, origin.x, origin.y + 1, origin.z, 60, 4, 1.5, 4, 0.5);
+                burst(player, "クロノシフト！", style);
+                return true;
+            }
+            case SOUL_LANTERN -> {
+                // ソウルバーン: 周囲を魂炎で3度焼く。倒すたびに魂ゲージ
+                for (int i = 0; i < 3; i++) {
+                    later(player, i * 8, lv -> {
+                        for (LivingEntity e : lv.getEntitiesOfClass(LivingEntity.class,
+                                new AABB(origin.x - 6, origin.y - 4, origin.z - 6, origin.x + 6, origin.y + 4, origin.z + 6),
+                                CombatUtil::isValidTarget)) {
+                            artHurt(lv, e, lv.damageSources().playerAttack(player), (float) (1.6 * attackDamage));
+                            RunManager.addGauge(player, e.isAlive() ? 1 : 8);
+                        }
+                        lv.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, origin.x, origin.y + 1, origin.z, 60, 4, 1, 4, 0.05);
+                    });
+                }
+                burst(player, "ソウルバーン！", style);
+                return true;
+            }
             case HOWLING_CLAW -> {
                 // 裂空爪: 急所へ突進し、三連爪 (前に狭い円錐) → 小爆発
                 LivingEntity t = nearest(origin, targets);
@@ -977,6 +1072,43 @@ public final class WeaponArts {
                 slashCone(level, player, origin, look, 5, dmg / 2, ParticleTypes.CRIT);
                 later(player, 4, lv ->
                         slashCone(lv, player, origin, look, 5, dmg / 2, ParticleTypes.CRIT));
+            }
+            case CRYSTAL_SWORD -> { // 晶片斬: 3方向に結晶片を飛ばす
+                for (int i = -1; i <= 1; i++) {
+                    double ang = Math.atan2(look.z, look.x) + i * 0.3;
+                    Vec3 dir = new Vec3(Math.cos(ang), 0, Math.sin(ang));
+                    lineHit(level, player, origin, dir, 7, dmg / 2, 0.6, ParticleTypes.END_ROD);
+                }
+            }
+            case SAKURA_BLADE -> { // 花散らし: 一閃して少し回復する
+                slashCone(level, player, origin, look, 5, dmg, ParticleTypes.CHERRY_LEAVES);
+                player.heal(1.0f);
+            }
+            case DRAGON_CLEAVER -> { // 竜鱗割り: 前方を叩き割り燃やす
+                Vec3 at = origin.add(look.scale(2.5));
+                aoe(level, player, at, 2.8, dmg, true, ParticleTypes.FLAME);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 3, at.y - 3, at.z - 3, at.x + 3, at.y + 3, at.z + 3), CombatUtil::isValidTarget)) {
+                    e.setRemainingFireTicks(Math.max(e.getRemainingFireTicks(), 60));
+                }
+            }
+            case LUNAR_STAFF -> { // 氷月弾: 最寄りの敵を凍らせる
+                Vec3 at = aimPoint(player, origin, targets, look, 7);
+                aoe(level, player, at, 2.4, dmg, false, ParticleTypes.SNOWFLAKE);
+                for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class,
+                        new AABB(at.x - 2.5, at.y - 3, at.z - 2.5, at.x + 2.5, at.y + 3, at.z + 2.5), CombatUtil::isValidTarget)) {
+                    e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 2));
+                }
+            }
+            case CHRONO_STAFF -> // 刻針: 直線を時の針で貫く
+                    lineHit(level, player, origin, look, 9, dmg, 0.7, ParticleTypes.WAX_OFF);
+            case SOUL_LANTERN -> { // 鬼火: 周囲を魂炎で焼き魂を得る
+                for (LivingEntity e : targets) {
+                    if (e.distanceTo(player) > 4.5) continue;
+                    artHurt(level, e, level.damageSources().playerAttack(player), (float) dmg);
+                    RunManager.addGauge(player, 2);
+                }
+                level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, origin.x, origin.y + 1, origin.z, 24, 2.5, 1, 2.5, 0.04);
             }
             case HOWLING_CLAW -> { // 哮爪撃: 3連の爪で引き裂く
                 for (int i = 0; i < 3; i++) {

@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, potions, shapes, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -127,6 +127,13 @@ WEAPON_MODELS = {
     "abyss_fishing_rod": (shapes.fishing_rod, 0x7ce8ff, "steel", "weapon"),
     "abyss_staff": (_staff(), 0xc58bff, "steel", "weapon"),
     "abyss_void_staff": (_staff(orb="void"), 0x8a5cff, "void", "weapon"),
+    # MCAssetGen 由来の追加武器 (インベントリ表示は art/new_weapons.py)
+    "abyss_crystal_sword": (_sw(style="rune", w=2.6), 0xa9e8ff, "ice", "weapon"),
+    "abyss_sakura_blade": (_kat(), 0xef8fb2, "steel", "weapon"),
+    "abyss_dragon_cleaver": (_sw(w=3.0, serrated=True, gem=False), 0xff7a3c, "blood", "weapon"),
+    "abyss_lunar_staff": (_staff(), 0xcfd8ff, "ice", "weapon"),
+    "abyss_chrono_staff": (_staff(), 0xe0c46a, "steel", "weapon"),
+    "abyss_soul_lantern": (_staff(orb="void"), 0x5ef2d6, "void", "weapon"),
     "abyss_wand": (shapes.wand, 0xd6b8ff, "steel", "weapon"),
     "abyss_hammer": (_hammer(), 0xff6a7d, "steel", "weapon"),
     "abyss_quake_hammer": (_hammer(size=6.0), 0xc9a227, "steel", "weapon"),
@@ -317,6 +324,7 @@ VERTICAL_ITEMS = {
     "abyss_shovel", "abyss_hoe", "abyss_ember_flail", "abyss_scythe", "abyss_soul_scythe",
     "abyss_tome", "abyss_chaos_tome", "abyss_flame_grimoire", "abyss_war_horn",
     "abyss_depth_gun", "abyss_gauntlet", "abyss_titan_gauntlet", "abyss_howling_claw",
+    "abyss_lunar_staff", "abyss_chrono_staff", "abyss_soul_lantern",
 }
 
 # 3D モデルを持つアイテムの 2D ドット絵 (インベントリ表示用)
@@ -347,6 +355,7 @@ WEAPON_ICONS = {
     "abyss_fishing_rod": icons.fishing_rod,
     "abyss_staff": icons.staff,
     "abyss_void_staff": icons.void_staff,
+    **{_k: new_weapons.small_icon(_k) for _k in new_weapons.ICONS},
     "abyss_wand": icons.wand,
     "abyss_hammer": icons.hammer,
     "abyss_quake_hammer": icons.quake_hammer,

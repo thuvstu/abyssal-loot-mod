@@ -377,5 +377,17 @@
   "item.abyssalloot.abyss_wisp_lantern": "鬼火の灯",
   "item.abyssalloot.abyss_null_seal": "無の封蝋",
   "item.abyssalloot.abyss_deep_sight_elixir": "深淵の霊視薬",
-  "item.abyssalloot.abyss_end_chalice_wine": "果ての神酒"
+  "item.abyssalloot.abyss_end_chalice_wine": "果ての神酒",
+  "item.abyssalloot.abyss_crystal_sword": "深淵の晶剣",
+  "item.abyssalloot.art_shard_crystal_sword": "奥義の断片・晶剣",
+  "item.abyssalloot.abyss_sakura_blade": "深淵の桜刀",
+  "item.abyssalloot.art_shard_sakura_blade": "奥義の断片・桜刀",
+  "item.abyssalloot.abyss_dragon_cleaver": "深淵の竜断",
+  "item.abyssalloot.art_shard_dragon_cleaver": "奥義の断片・竜断",
+  "item.abyssalloot.abyss_lunar_staff": "深淵の月杖",
+  "item.abyssalloot.art_shard_lunar_staff": "奥義の断片・月杖",
+  "item.abyssalloot.abyss_chrono_staff": "深淵の刻杖",
+  "item.abyssalloot.art_shard_chrono_staff": "奥義の断片・刻杖",
+  "item.abyssalloot.abyss_soul_lantern": "深淵の魂灯杖",
+  "item.abyssalloot.art_shard_soul_lantern": "奥義の断片・魂灯杖"
 }
