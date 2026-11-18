@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_cinder_coin",
+    "abyssalloot:abyss_cinder_coin",
+    "abyssalloot:abyss_cinder_coin",
+    "abyssalloot:abyss_cinder_coin"
+  ],
+  "result": {
+    "id": "abyssalloot:soul_shard",
+    "count": 1
+  }
+}

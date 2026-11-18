@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_magma_egg",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_magma_omelet",
+    "count": 1
+  }
+}

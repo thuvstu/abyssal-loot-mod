@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_ash_candle",
+    "minecraft:torch"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_lit_candle",
+    "count": 1
+  }
+}

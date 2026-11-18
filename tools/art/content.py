@@ -78,4 +78,23 @@ def validate(doc: dict | None = None) -> list[str]:
                 errs.append(f"{c['id']}: 未知の効果種 {part}")
         if not (1 <= len(c.get("recipe", [])) <= 9):
             errs.append(f"{c['id']}: recipe の材料数が 1..9 でない")
+    errs += _matgen_errors(doc)
+    return errs
+
+
+def _matgen_errors(doc: dict) -> list[str]:
+    """"mat:<形>" の形・質感・副色が素材ジェネレータ (matgen.py) で描けるか。"""
+    from . import matgen
+    errs = []
+    for group, key in (("trophies", "shape"), ("zone_materials", "shape"), ("consumables", "icon")):
+        for e in doc[group]:
+            sid = matgen.spec_from_entry(e, key)
+            if sid is None:
+                continue
+            if sid not in matgen.shapes():
+                errs.append(f"{e['id']}: 未知の形 mat:{sid}")
+            if e.get("style") and e["style"] not in matgen.STYLES:
+                errs.append(f"{e['id']}: 未知の質感 {e['style']} ({', '.join(matgen.STYLES)})")
+            if e.get("accent") and len(e["accent"]) != 6:
+                errs.append(f"{e['id']}: accent は rrggbb の 6 桁")
     return errs

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_cinder_coin",
+    "abyssalloot:abyss_cinder_coin",
+    "minecraft:string"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_coin_charm",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_chalice_of_end",
+    "abyssalloot:soul_shard_pouch"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_end_chalice_wine",
+    "count": 1
+  }
+}

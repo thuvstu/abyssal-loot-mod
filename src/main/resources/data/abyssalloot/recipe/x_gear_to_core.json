@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_scorched_gear",
+    "abyssalloot:abyss_scorched_gear",
+    "abyssalloot:abyss_scorched_gear",
+    "abyssalloot:abyss_furnace_chain",
+    "abyssalloot:soul_shard"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_ancient_core",
+    "count": 1
+  }
+}

@@ -6,6 +6,7 @@
     python tools/abyss.py verify [チェック名 ...] [--strict]               静的検証
     python tools/abyss.py preview <種類> [id ...] [--only PAT]           プレビュー画像
     python tools/abyss.py grips                                         武器の握り位置の一覧
+    python tools/abyss.py matgen <list|render|sheet|content>            素材ジェネレータ (新素材の形・色を試す)
     python tools/abyss.py gametest                                      実サーバーで結合テスト (GameTest。1 分弱)
     python tools/abyss.py check                                         生成物の乖離 + 全検証 (コミット前に)
     python tools/abyss.py all                                           生成 + データ + 検証
@@ -92,6 +93,9 @@ def main(argv: list[str]) -> int:
         import report_grips
         report_grips.main()
         return 0
+    if cmd == "matgen":
+        import matgen_cli
+        return matgen_cli.main(rest)
     if cmd == "gametest":
         return _gametest()
     if cmd == "check":

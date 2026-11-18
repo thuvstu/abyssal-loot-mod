@@ -84,6 +84,35 @@
         "attackSpeedPct": 6.0,
         "moveSpeedPct": 8.0
       }
+    },
+    {
+      "id": "grave",
+      "name": "墓装",
+      "en": "Grave",
+      "body": "7a6a5a",
+      "trim": "c8f0c0",
+      "bonus2": {
+        "armorPct": 6.0
+      },
+      "bonus4": {
+        "armorPct": 6.0,
+        "lifestealPct": 3.0
+      }
+    },
+    {
+      "id": "chrono",
+      "name": "刻装",
+      "en": "Chrono",
+      "body": "2ad0c0",
+      "trim": "ffe9a8",
+      "bonus2": {
+        "attackSpeedPct": 5.0
+      },
+      "bonus4": {
+        "attackSpeedPct": 5.0,
+        "critPct": 5.0,
+        "energyPct": 10.0
+      }
     }
   ],
   "trophies": [
@@ -502,6 +531,234 @@
       "shape": "leaf",
       "color": "6a4a9a",
       "rarity": "rare"
+    },
+    {
+      "id": "abyss_ash_candle",
+      "name": "灰蝋燭",
+      "en": "Ash Candle",
+      "zone": "ash",
+      "shape": "mat:candle",
+      "color": "d8d0c0",
+      "accent": "ff9a3a",
+      "rarity": "common",
+      "style": "organic"
+    },
+    {
+      "id": "abyss_cinder_coin",
+      "name": "燻りの古銭",
+      "en": "Smoldering Coin",
+      "zone": "ash",
+      "shape": "mat:coin",
+      "color": "b07a45",
+      "accent": "5fb08a",
+      "rarity": "common",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_ash_cap",
+      "name": "灰茸",
+      "en": "Ash Cap",
+      "zone": "ash",
+      "shape": "mat:mushroom",
+      "color": "7a6a78",
+      "accent": "e8e0d0",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_ossuary_skull",
+      "name": "墓所の頭蓋",
+      "en": "Ossuary Skull",
+      "zone": "ossuary",
+      "shape": "mat:skull",
+      "color": "e6dcc2",
+      "accent": "7cffb2",
+      "rarity": "uncommon",
+      "style": "organic"
+    },
+    {
+      "id": "abyss_rusted_key",
+      "name": "錆びた墓守の鍵",
+      "en": "Rusted Warden Key",
+      "zone": "ossuary",
+      "shape": "mat:ancient_key",
+      "color": "c47a45",
+      "accent": "5fb08a",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "abyss_grave_tooth",
+      "name": "墓守の牙歯",
+      "en": "Grave Tooth",
+      "zone": "ossuary",
+      "shape": "mat:tooth",
+      "color": "f0e6cc",
+      "accent": "8a6a4a",
+      "rarity": "common"
+    },
+    {
+      "id": "abyss_scorched_gear",
+      "name": "焼けた歯車",
+      "en": "Scorched Gear",
+      "zone": "forge",
+      "shape": "mat:gear",
+      "color": "6a6470",
+      "accent": "ff7a2a",
+      "rarity": "uncommon",
+      "style": "metal"
+    },
+    {
+      "id": "abyss_furnace_chain",
+      "name": "炉心の鎖",
+      "en": "Furnace Chain",
+      "zone": "forge",
+      "shape": "mat:chain",
+      "color": "b0b8c4",
+      "accent": "ff9a3a",
+      "rarity": "uncommon",
+      "style": "metal"
+    },
+    {
+      "id": "abyss_magma_egg",
+      "name": "溶岩の卵",
+      "en": "Magma Egg",
+      "zone": "forge",
+      "shape": "mat:egg",
+      "color": "ff6a2b",
+      "accent": "5a2010",
+      "rarity": "rare",
+      "style": "organic"
+    },
+    {
+      "id": "abyss_frost_bell",
+      "name": "氷の鐘",
+      "en": "Frost Bell",
+      "zone": "glacier",
+      "shape": "mat:bell",
+      "color": "bfefff",
+      "accent": "7cc8e8",
+      "rarity": "uncommon",
+      "style": "gem"
+    },
+    {
+      "id": "abyss_frozen_shell",
+      "name": "凍れる巻貝",
+      "en": "Frozen Shell",
+      "zone": "glacier",
+      "shape": "mat:shell",
+      "color": "d8f4ff",
+      "accent": "7cc8e8",
+      "rarity": "uncommon",
+      "style": "gem"
+    },
+    {
+      "id": "abyss_rime_mirror",
+      "name": "霜の手鏡",
+      "en": "Rime Mirror",
+      "zone": "glacier",
+      "shape": "mat:mirror",
+      "color": "9fb8d8",
+      "accent": "c8ecff",
+      "rarity": "rare",
+      "style": "metal"
+    },
+    {
+      "id": "abyss_hollow_mask",
+      "name": "虚ろな仮面",
+      "en": "Hollow Mask",
+      "zone": "voidheart",
+      "shape": "mat:mask",
+      "color": "4b1d7a",
+      "accent": "c86bff",
+      "rarity": "rare",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_warped_hourglass",
+      "name": "歪んだ砂時計",
+      "en": "Warped Hourglass",
+      "zone": "voidheart",
+      "shape": "mat:hourglass",
+      "color": "8a5cff",
+      "accent": "e2d4ff",
+      "rarity": "rare",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_throbbing_heart",
+      "name": "鼓動する心臓",
+      "en": "Throbbing Heart",
+      "zone": "voidheart",
+      "shape": "mat:heart",
+      "color": "b03a6a",
+      "accent": "ff6ad0",
+      "rarity": "rare",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_null_sigil",
+      "name": "無の印章",
+      "en": "Null Sigil",
+      "zone": "nihil",
+      "shape": "mat:sigil",
+      "color": "3a3448",
+      "accent": "e2c24c",
+      "rarity": "epic",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_last_wisp",
+      "name": "最後の鬼火",
+      "en": "Last Wisp",
+      "zone": "nihil",
+      "shape": "mat:wisp",
+      "color": "7fe3ea",
+      "accent": "c8fbff",
+      "rarity": "epic",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_oblivion_crown",
+      "name": "忘却の王冠",
+      "en": "Crown of Oblivion",
+      "zone": "nihil",
+      "shape": "mat:crown",
+      "color": "8a80a0",
+      "accent": "ffd23c",
+      "rarity": "epic",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_abyssal_compass",
+      "name": "深底の羅針盤",
+      "en": "Abyssal Compass",
+      "zone": "lower_abyss",
+      "shape": "mat:compass",
+      "color": "2ad0c0",
+      "accent": "ffd23c",
+      "rarity": "epic",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_chalice_of_end",
+      "name": "果ての聖杯",
+      "en": "Chalice of the End",
+      "zone": "lower_abyss",
+      "shape": "mat:chalice",
+      "color": "d9a441",
+      "accent": "2ad0c0",
+      "rarity": "epic",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_deep_eye",
+      "name": "深淵の魔眼",
+      "en": "Eye of the Deep",
+      "zone": "lower_abyss",
+      "shape": "mat:eye",
+      "color": "6a4a9a",
+      "accent": "ff4d6d",
+      "rarity": "epic",
+      "style": "magic"
     }
   ],
   "zone_existing_drops": {
@@ -933,6 +1190,245 @@
         "abyssalloot:abyss_trophy_wyrm",
         "abyssalloot:soul_shard"
       ]
+    },
+    {
+      "id": "abyss_ash_cap_soup",
+      "name": "灰茸のスープ",
+      "en": "Ash Cap Soup",
+      "kind": "mix:heal=30;fx=night_vision,120,0",
+      "icon": "mask:bowl",
+      "color": "8a8290",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_ash_cap",
+        "minecraft:bowl"
+      ]
+    },
+    {
+      "id": "abyss_lit_candle",
+      "name": "灯した灰蝋燭",
+      "en": "Lit Ash Candle",
+      "kind": "mix:fx=night_vision,300,0;fx=luck,60,0",
+      "icon": "mat:lantern",
+      "color": "d8d0c0",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_ash_candle",
+        "minecraft:torch"
+      ],
+      "accent": "ff9a3a",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_coin_charm",
+      "name": "古銭の御守り",
+      "en": "Old Coin Charm",
+      "kind": "mix:fx=luck,300,1",
+      "icon": "mat:amulet",
+      "color": "b07a45",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_cinder_coin",
+        "abyssalloot:abyss_cinder_coin",
+        "minecraft:string"
+      ],
+      "accent": "5fb08a",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_tooth_powder",
+      "name": "牙歯の粉薬",
+      "en": "Grave Tooth Powder",
+      "kind": "mix:fx=strength,60,0;fx=resistance,60,0",
+      "icon": "mat:dust",
+      "color": "f0e6cc",
+      "rarity": "common",
+      "recipe": [
+        "abyssalloot:abyss_grave_tooth",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "8a6a4a"
+    },
+    {
+      "id": "abyss_skull_wine",
+      "name": "頭蓋の杯酒",
+      "en": "Skull-Cup Wine",
+      "kind": "mix:heal=20;gauge=40",
+      "icon": "flask",
+      "color": "c83a5a",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_ossuary_skull",
+        "minecraft:sweet_berries"
+      ]
+    },
+    {
+      "id": "abyss_forge_oil",
+      "name": "炉心油",
+      "en": "Furnace Oil",
+      "kind": "mix:fx=haste,120,1;fx=fire_resistance,120,0",
+      "icon": "vial",
+      "color": "ff8a2a",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_scorched_gear",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_magma_omelet",
+      "name": "溶岩卵の焼き物",
+      "en": "Magma Omelet",
+      "kind": "mix:heal=50;fx=fire_resistance,60,0",
+      "icon": "mask:bowl",
+      "color": "ffb03c",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_magma_egg",
+        "minecraft:bowl"
+      ]
+    },
+    {
+      "id": "abyss_calming_chime",
+      "name": "鎮めの氷鐘",
+      "en": "Calming Chime",
+      "kind": "mix:fx=resistance,60,1;fx=slow_falling,60,0",
+      "icon": "mat:vial",
+      "color": "e8fbff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_frost_bell",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "9fc3ff",
+      "style": "gem"
+    },
+    {
+      "id": "abyss_shell_broth",
+      "name": "巻貝の潮汁",
+      "en": "Shell Broth",
+      "kind": "mix:heal=35;fx=water_breathing,180,0",
+      "icon": "mask:bowl",
+      "color": "d8f4ff",
+      "rarity": "uncommon",
+      "recipe": [
+        "abyssalloot:abyss_frozen_shell",
+        "minecraft:bowl"
+      ]
+    },
+    {
+      "id": "abyss_heart_elixir",
+      "name": "鼓動の霊薬",
+      "en": "Heartbeat Elixir",
+      "kind": "mix:fx=regeneration,90,1;fx=absorption,90,1",
+      "icon": "flask",
+      "color": "ff4d8a",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_throbbing_heart",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_veil_smoke",
+      "name": "仮面の帳",
+      "en": "Masked Veil",
+      "kind": "mix:fx=invisibility,60,0;fx=speed,60,1",
+      "icon": "mat:wisp",
+      "color": "5a3a8a",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_hollow_mask",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "c86bff",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_time_sand",
+      "name": "刻の砂",
+      "en": "Sand of Hours",
+      "kind": "mix:fx=haste,90,2;fx=speed,90,1",
+      "icon": "mat:dust",
+      "color": "c8b0ff",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_warped_hourglass",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "e2d4ff",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_rime_draught",
+      "name": "霜鏡の雫",
+      "en": "Rime Draught",
+      "kind": "mix:gauge=30;fx=resistance,90,1",
+      "icon": "vial",
+      "color": "c8ecff",
+      "rarity": "rare",
+      "recipe": [
+        "abyssalloot:abyss_rime_mirror",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_wisp_lantern",
+      "name": "鬼火の灯",
+      "en": "Wisp Lantern",
+      "kind": "mix:heal=60;gauge=60",
+      "icon": "mat:lantern",
+      "color": "7fe3ea",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_last_wisp",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "c8fbff",
+      "style": "magic"
+    },
+    {
+      "id": "abyss_null_seal",
+      "name": "無の封蝋",
+      "en": "Null Seal",
+      "kind": "mix:gauge=100;fx=strength,60,2",
+      "icon": "mat:sigil",
+      "color": "3a3448",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_null_sigil",
+        "abyssalloot:soul_shard"
+      ],
+      "accent": "ff4d6d",
+      "style": "ancient"
+    },
+    {
+      "id": "abyss_deep_sight_elixir",
+      "name": "深淵の霊視薬",
+      "en": "Deep Sight Elixir",
+      "kind": "mix:fx=night_vision,600,0;fx=luck,300,2;fx=strength,120,1",
+      "icon": "flask",
+      "color": "ff4d6d",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_deep_eye",
+        "abyssalloot:soul_shard"
+      ]
+    },
+    {
+      "id": "abyss_end_chalice_wine",
+      "name": "果ての神酒",
+      "en": "Nectar of the End",
+      "kind": "mix:heal=100;fx=absorption,180,3;fx=regeneration,90,2",
+      "icon": "mat:chalice",
+      "color": "2ad0c0",
+      "rarity": "epic",
+      "recipe": [
+        "abyssalloot:abyss_chalice_of_end",
+        "abyssalloot:soul_shard_pouch"
+      ],
+      "accent": "d9a441",
+      "style": "ancient"
     }
   ],
   "extra_recipes": [
@@ -1050,6 +1546,54 @@
       ],
       "result": "abyssalloot:abyss_smoke",
       "count": 2
+    },
+    {
+      "name": "crown_to_chaos",
+      "ingredients": [
+        "abyssalloot:abyss_oblivion_crown"
+      ],
+      "result": "abyssalloot:chaos_gem",
+      "count": 2
+    },
+    {
+      "name": "compass_to_reveal",
+      "ingredients": [
+        "abyssalloot:abyss_abyssal_compass"
+      ],
+      "result": "abyssalloot:abyss_reveal",
+      "count": 3
+    },
+    {
+      "name": "key_to_ancient",
+      "ingredients": [
+        "abyssalloot:abyss_rusted_key",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:ancient_stone",
+      "count": 1
+    },
+    {
+      "name": "gear_to_core",
+      "ingredients": [
+        "abyssalloot:abyss_scorched_gear",
+        "abyssalloot:abyss_scorched_gear",
+        "abyssalloot:abyss_scorched_gear",
+        "abyssalloot:abyss_furnace_chain",
+        "abyssalloot:soul_shard"
+      ],
+      "result": "abyssalloot:abyss_ancient_core",
+      "count": 1
+    },
+    {
+      "name": "coins_to_shard",
+      "ingredients": [
+        "abyssalloot:abyss_cinder_coin",
+        "abyssalloot:abyss_cinder_coin",
+        "abyssalloot:abyss_cinder_coin",
+        "abyssalloot:abyss_cinder_coin"
+      ],
+      "result": "abyssalloot:soul_shard",
+      "count": 1
     }
   ]
 }

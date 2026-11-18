@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_ash_cap",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_ash_cap_soup",
+    "count": 1
+  }
+}

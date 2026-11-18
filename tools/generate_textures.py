@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, potions, shapes  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, potions, shapes  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -453,6 +453,13 @@ def gen_icon(item_id: str, fn, color) -> None:
     write_item_def(item_id)
 
 
+def gen_matgen_icon(e: dict, key: str) -> None:
+    """素材ジェネレータ (art/matgen.py) の形で 2D アイコンを作る。陰影・輪郭込みで描かれるので finish は掛けない。"""
+    _png(os.path.join(TEX_DIR, f"{e['id']}.png"), matgen.entry_icon(e, key))
+    write_flat_model(e["id"])
+    write_item_def(e["id"])
+
+
 def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     """3D アイテム用の 2D ドット絵 (インベントリ表示)。"""
     icon_id = f"{item_id}_icon"
@@ -722,11 +729,18 @@ def generate(kinds: set[str], want) -> dict[str, int]:
     if "content" in kinds:  # 追加コンテンツ: 魔物素材・区域素材・消耗品 (2D) と装備定義
         for e in CONTENT["trophies"] + CONTENT["zone_materials"]:
             if want(e["id"]):
-                gen_icon(e["id"], lambda c, _k=e["shape"]: content_material_icon(_k, c), content.color(e))
+                if matgen.spec_from_entry(e, "shape"):  # "mat:<形>" は素材ジェネレータ
+                    gen_matgen_icon(e, "shape")
+                else:
+                    gen_icon(e["id"], lambda c, _k=e["shape"]: content_material_icon(_k, c), content.color(e))
                 counts["content"] += 1
         for e in CONTENT["consumables"]:
             if want(e["id"]):
-                # icon: icons.py の関数名、または "mask:<形>" (色付きマスク)
+                # icon: icons.py の関数名、"mask:<形>" (色付きマスク)、"mat:<形>" (素材ジェネレータ)
+                if matgen.spec_from_entry(e, "icon"):
+                    gen_matgen_icon(e, "icon")
+                    counts["content"] += 1
+                    continue
                 if e["icon"].startswith("mask:"):
                     fn = lambda c, _k=e["icon"][5:]: icons.mask_icon(_k, c)  # noqa: E731
                 elif e["icon"] in ("vial", "flask"):

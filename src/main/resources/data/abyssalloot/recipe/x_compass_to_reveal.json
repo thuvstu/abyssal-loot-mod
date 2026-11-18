@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_abyssal_compass"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_reveal",
+    "count": 3
+  }
+}

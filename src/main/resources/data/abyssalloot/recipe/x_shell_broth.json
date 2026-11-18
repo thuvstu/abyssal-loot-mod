@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "abyssal_loot",
+  "ingredients": [
+    "abyssalloot:abyss_frozen_shell",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "abyssalloot:abyss_shell_broth",
+    "count": 1
+  }
+}
