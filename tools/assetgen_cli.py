@@ -51,7 +51,7 @@ def struct_main(argv) -> int:
     out_dir = os.path.join(ROOT, "build", "structgen")
     try:
         if a.cmd == "list":
-            print("見本:", " ".join(structgen.SAMPLES))
+            print("見本:", " ".join(list(structgen.SAMPLES) + list(structgen.SAMPLE_BUILDERS)))
             print("操作 (ops): box(hollow/walls) ellipsoid(hollow) cylinder(hollow) line set flood replace "
                   "transform(rotY/flipX/flipZ) paste(repeat)")
             return 0
@@ -66,14 +66,21 @@ def struct_main(argv) -> int:
             print(f"見本: {rel(os.path.join(out_dir, 'info_preview.png'))}")
             return 0
         if a.cmd == "sample":
-            if a.src not in structgen.SAMPLES:
-                raise ValueError(f"未知の見本 '{a.src}'。使えるもの: {', '.join(structgen.SAMPLES)}")
-            doc, name = structgen.SAMPLES[a.src], a.src
+            name = a.src
+            if a.src in structgen.SAMPLE_BUILDERS:
+                s = structgen.SAMPLE_BUILDERS[a.src]()
+                doc = None
+            elif a.src in structgen.SAMPLES:
+                doc = structgen.SAMPLES[a.src]
+            else:
+                raise ValueError(f"未知の見本 '{a.src}'。使えるもの: "
+                                 f"{', '.join(list(structgen.SAMPLES) + list(structgen.SAMPLE_BUILDERS))}")
         else:
             with io.open(a.src, encoding="utf-8") as f:
                 doc = json.load(f)
             name = os.path.splitext(os.path.basename(a.src))[0]
-        s = structgen.from_recipe(doc)
+        if doc is not None:
+            s = structgen.from_recipe(doc)
         _write(a.nbt or os.path.join(out_dir, f"{name}.nbt"), s.to_nbt(), "wb")
         _write(a.mcfunction or os.path.join(out_dir, f"{name}.mcfunction"), s.to_mcfunction())
         os.makedirs(out_dir, exist_ok=True)

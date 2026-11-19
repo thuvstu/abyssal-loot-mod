@@ -1845,5 +1845,1306 @@
    "floater": "dust",
    "floaterCount": 3
   }
+ },
+ "design_motifs": {
+  "unbound": {
+   "label": "自由ミックス",
+   "desc": "型・パーツを個別に選ぶ",
+   "recipe": {}
+  },
+  "clockwork": {
+   "label": "機械仕掛け",
+   "desc": "真鍮歯車・鋲・鋼の細工",
+   "recipe": {
+    "shaftMaterial": "brass",
+    "trimMaterial": "steel",
+    "pattern": "gearwork",
+    "shape": "straight",
+    "grip": true,
+    "gripStyle": "studded",
+    "bands": 4,
+    "pommel": "cog",
+    "mount": "astrolabe",
+    "core": "battery",
+    "gemCut": "caged",
+    "ornament": "clockwork",
+    "floater": "gears",
+    "floaterPath": "orbit",
+    "finish": "forged",
+    "glow": 18,
+    "rays": false,
+    "magicCircle": false
+   }
+  },
+  "woodland": {
+   "label": "素朴な木杖",
+   "desc": "ほぼ一本の古木、飾り控えめ",
+   "recipe": {
+    "shaftMaterial": "oak",
+    "trimMaterial": "driftwood",
+    "pattern": "bark",
+    "shape": "gnarled",
+    "grip": false,
+    "bands": 0,
+    "pommel": "knot",
+    "mount": "none",
+    "core": "none",
+    "gemCut": "raw",
+    "ornament": "none",
+    "accentGems": 0,
+    "floater": "none",
+    "glow": 0,
+    "particles": 0,
+    "rays": false,
+    "magicCircle": false,
+    "aura": false,
+    "finish": "weathered",
+    "outline": "color"
+   }
+  },
+  "jewelled": {
+   "label": "宝石尽くし",
+   "desc": "主石・メレ石・象嵌で全面宝飾",
+   "recipe": {
+    "shaftMaterial": "silver",
+    "trimMaterial": "gold",
+    "pattern": "gemInlay",
+    "shape": "straight",
+    "thickness": 1,
+    "grip": false,
+    "bands": 3,
+    "pommel": "gem",
+    "mount": "tiara",
+    "core": "diamond",
+    "gemCut": "brilliant",
+    "ornament": "crystalLattice",
+    "accentGems": 7,
+    "floater": "pearls",
+    "floaterPath": "crown",
+    "floaterCount": 7,
+    "finish": "gilded",
+    "specular": true
+   }
+  },
+  "maritime": {
+   "label": "海洋・珊瑚",
+   "desc": "流木・シーグラス・貝殻・気泡",
+   "recipe": {
+    "shaftMaterial": "driftwood",
+    "trimMaterial": "seaGlass",
+    "pattern": "barnacle",
+    "shape": "curved",
+    "grip": true,
+    "gripStyle": "woven",
+    "gripColor": "#236d70",
+    "bands": 2,
+    "pommel": "shell",
+    "mount": "lotus",
+    "core": "conch",
+    "gemCut": "rose",
+    "ornament": "lotusPetals",
+    "accentGems": 3,
+    "floater": "bubbles",
+    "floaterPath": "spiral",
+    "finish": "weathered"
+   }
+  },
+  "industrial": {
+   "label": "工業遺構",
+   "desc": "鋼板・リベット・導線と蓄電核",
+   "recipe": {
+    "shaftMaterial": "steel",
+    "trimMaterial": "iron",
+    "pattern": "riveted",
+    "shape": "straight",
+    "thickness": 4,
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 4,
+    "pommel": "gear",
+    "mount": "cage",
+    "core": "battery",
+    "gemCut": "caged",
+    "ornament": "clockwork",
+    "floater": "bolts",
+    "floaterPath": "helix",
+    "finish": "forged",
+    "glow": 24
+   }
+  },
+  "minimal": {
+   "label": "ミニマル",
+   "desc": "細い輪郭、小さな真珠核ひとつ",
+   "recipe": {
+    "shaftMaterial": "birch",
+    "trimMaterial": "silver",
+    "pattern": "plain",
+    "shape": "straight",
+    "thickness": 1,
+    "grip": false,
+    "bands": 0,
+    "pommel": "none",
+    "mount": "none",
+    "core": "pearl",
+    "coreSize": 0.7,
+    "gemCut": "rose",
+    "ornament": "none",
+    "accentGems": 0,
+    "floater": "none",
+    "glow": 8,
+    "glowRadius": 2,
+    "particles": 0,
+    "rays": false,
+    "magicCircle": false,
+    "aura": false,
+    "finish": "vanilla",
+    "outline": "color"
+   }
+  },
+  "astral": {
+   "label": "星図・天体",
+   "desc": "羅針盤・天球儀・星座線",
+   "recipe": {
+    "shaftMaterial": "lapis",
+    "trimMaterial": "silver",
+    "pattern": "etched",
+    "core": "star",
+    "gemCut": "starcut",
+    "mount": "astrolabe",
+    "ornament": "celestialAstrolabe",
+    "accentGems": 6,
+    "floater": "stars",
+    "floaterPath": "constellation",
+    "finish": "runic",
+    "rays": true
+   }
+  },
+  "reliquary": {
+   "label": "聖遺物",
+   "desc": "古木・封蝋・封じられた真珠核",
+   "recipe": {
+    "shaftMaterial": "pearlwood",
+    "trimMaterial": "brass",
+    "pattern": "etched",
+    "shape": "gnarled",
+    "grip": true,
+    "gripStyle": "cord",
+    "bands": 2,
+    "pommel": "shell",
+    "mount": "cage",
+    "core": "pearl",
+    "gemCut": "caged",
+    "ornament": "runeRing",
+    "floater": "sigils",
+    "floaterPath": "pendulum",
+    "finish": "weathered"
+   }
+  },
+  "botanical": {
+   "label": "植物標本",
+   "desc": "蔓・木瘤・葉脈を集めた標本杖",
+   "recipe": {
+    "shaftMaterial": "pearlwood",
+    "trimMaterial": "jade",
+    "pattern": "woven",
+    "shape": "swan",
+    "grip": false,
+    "bands": 1,
+    "pommel": "leaf",
+    "mount": "curl",
+    "core": "coralHeart",
+    "gemCut": "rose",
+    "ornament": "vineCrest",
+    "floater": "seeds",
+    "floaterPath": "figure8",
+    "finish": "weathered"
+   }
+  },
+  "dreamlike": {
+   "label": "夢の遺物",
+   "desc": "浮遊する鍵と形の揺らぐ裂け目",
+   "recipe": {
+    "shaftMaterial": "amethyst",
+    "trimMaterial": "silver",
+    "pattern": "gradient",
+    "shape": "curved",
+    "grip": false,
+    "bands": 1,
+    "pommel": "orb",
+    "mount": "crescent",
+    "core": "portal",
+    "gemCut": "soul",
+    "ornament": "silkRibbons",
+    "floater": "keys",
+    "floaterPath": "rain",
+    "finish": "runic",
+    "glow": 24,
+    "rays": false
+   }
+  },
+  "alchemical": {
+   "label": "錬金工房",
+   "desc": "ガラス器・真鍮・泡立つ薬液",
+   "recipe": {
+    "shaftMaterial": "copper",
+    "trimMaterial": "brass",
+    "pattern": "etched",
+    "shape": "straight",
+    "grip": true,
+    "gripStyle": "leather",
+    "bands": 3,
+    "pommel": "cog",
+    "mount": "hourglass",
+    "core": "lanternCore",
+    "gemCut": "caged",
+    "ornament": "alchemicalRing",
+    "floater": "bubbles",
+    "floaterPath": "orbit",
+    "finish": "forged"
+   }
+  },
+  "salvaged": {
+   "label": "漂着物・サルベージ",
+   "desc": "錆びた錨と珊瑚を結び直した海の杖",
+   "recipe": {
+    "shaftMaterial": "driftwood",
+    "trimMaterial": "copper",
+    "pattern": "barnacle",
+    "shape": "gnarled",
+    "grip": true,
+    "gripStyle": "woven",
+    "bands": 1,
+    "pommel": "anchor",
+    "mount": "trident",
+    "core": "shell",
+    "gemCut": "raw",
+    "ornament": "hangingCharms",
+    "floater": "shells",
+    "floaterPath": "pendulum",
+    "finish": "weathered"
+   }
+  },
+  "aquarium": {
+   "label": "小さな水槽",
+   "desc": "透きとおる海色と小魚、真珠の泡",
+   "recipe": {
+    "shaftMaterial": "seaGlass",
+    "trimMaterial": "silver",
+    "pattern": "wave",
+    "shape": "curved",
+    "grip": false,
+    "bands": 2,
+    "pommel": "pearl",
+    "mount": "cage",
+    "core": "pearl",
+    "gemCut": "emerald",
+    "ornament": "celestialAstrolabe",
+    "floater": "fish",
+    "floaterPath": "orbit",
+    "finish": "gilded"
+   }
+  },
+  "mechanical": {
+   "label": "機械・歯車",
+   "desc": "発条式の駆動棒、露出した歯車と導線",
+   "recipe": {
+    "shaftMaterial": "steel",
+    "trimMaterial": "brass",
+    "pattern": "circuit",
+    "shape": "straight",
+    "grip": true,
+    "gripStyle": "studded",
+    "bands": 4,
+    "pommel": "gear",
+    "mount": "astrolabe",
+    "core": "battery",
+    "gemCut": "caged",
+    "ornament": "clockwork",
+    "floater": "cogs",
+    "floaterPath": "helix",
+    "finish": "forged",
+    "glow": 20,
+    "magicCircle": false
+   }
+  },
+  "wooden": {
+   "label": "ただの木の杖",
+   "desc": "節のある一本枝。宝石も魔法陣もない",
+   "recipe": {
+    "shaftMaterial": "oak",
+    "trimMaterial": "driftwood",
+    "pattern": "grain",
+    "shape": "gnarled",
+    "thickness": 2,
+    "grip": false,
+    "bands": 0,
+    "pommel": "knot",
+    "mount": "none",
+    "core": "none",
+    "gemCut": "raw",
+    "ornament": "none",
+    "accentGems": 0,
+    "floater": "none",
+    "glow": 0,
+    "particles": 0,
+    "rays": false,
+    "magicCircle": false,
+    "aura": false,
+    "glint": false,
+    "finish": "weathered",
+    "outline": "color"
+   }
+  },
+  "gemstone": {
+   "label": "宝石だけのワンド",
+   "desc": "柄まで宝石で連ねた短杖、金属を使わない",
+   "recipe": {
+    "shaftMaterial": "amethyst",
+    "trimMaterial": "quartz",
+    "pattern": "crystalSeam",
+    "shape": "straight",
+    "thickness": 1,
+    "grip": false,
+    "bands": 0,
+    "pommel": "crystal",
+    "mount": "prongs",
+    "core": "diamond",
+    "coreSize": 1.12,
+    "gemCut": "brilliant",
+    "ornament": "crystalLattice",
+    "ornamentScale": 1.2,
+    "accentGems": 7,
+    "floater": "pearls",
+    "floaterPath": "crown",
+    "floaterCount": 7,
+    "finish": "gilded",
+    "glow": 48,
+    "rays": false
+   }
+  },
+  "ocean": {
+   "label": "海の漂流遺物",
+   "desc": "流木、真珠、貝殻、気泡。海神ではない海の品",
+   "recipe": {
+    "shaftMaterial": "driftwood",
+    "trimMaterial": "seaGlass",
+    "pattern": "barnacle",
+    "shape": "curved",
+    "grip": false,
+    "bands": 1,
+    "pommel": "anchor",
+    "mount": "coralCrown",
+    "core": "conch",
+    "gemCut": "rose",
+    "ornament": "arabesque",
+    "floater": "bubbles",
+    "floaterPath": "orbit",
+    "finish": "weathered",
+    "glow": 18,
+    "magicCircle": false
+   }
+  },
+  "nonmagical": {
+   "label": "非魔法の道具",
+   "desc": "探索用の測量杖、発光やエネルギーを持たない",
+   "recipe": {
+    "shaftMaterial": "bamboo",
+    "trimMaterial": "iron",
+    "pattern": "runes",
+    "shape": "straight",
+    "thickness": 2,
+    "grip": true,
+    "gripStyle": "woven",
+    "gripColor": "#77634d",
+    "bands": 2,
+    "pommel": "compass",
+    "mount": "none",
+    "core": "compass",
+    "gemCut": "raw",
+    "ornament": "none",
+    "accentGems": 0,
+    "floater": "none",
+    "glow": 0,
+    "glowRadius": 2,
+    "particles": 0,
+    "aura": false,
+    "rays": false,
+    "magicCircle": false,
+    "trail": false,
+    "glint": false,
+    "finish": "vanilla",
+    "outline": "color"
+   }
+  },
+  "skyruin": {
+   "label": "天空文明の残骸",
+   "desc": "欠けた石英、割れた回路、動かない浮遊片",
+   "recipe": {
+    "shaftMaterial": "sculk",
+    "trimMaterial": "cobalt",
+    "pattern": "cracked",
+    "shape": "curved",
+    "grip": false,
+    "bands": 1,
+    "pommel": "crystal",
+    "mount": "cage",
+    "core": "portal",
+    "gemCut": "cracked",
+    "ornament": "crystalLattice",
+    "floater": "cubes",
+    "floaterPath": "constellation",
+    "finish": "weathered",
+    "glow": 22,
+    "particles": 12
+   }
+  },
+  "vanillaRod": {
+   "label": "バニラの細杖",
+   "desc": "太さ1px、棒と小さな先端だけの純正風",
+   "recipe": {
+    "shaftMaterial": "vanillaStick",
+    "trimMaterial": "oak",
+    "pattern": "vanillaGrain",
+    "shape": "straight",
+    "thickness": 1,
+    "grip": false,
+    "bands": 0,
+    "pommel": "none",
+    "mount": "tipCap",
+    "core": "orb",
+    "coreSize": 0.62,
+    "gemCut": "raw",
+    "ornament": "none",
+    "accentGems": 0,
+    "floater": "none",
+    "glow": 0,
+    "glowRadius": 2,
+    "particles": 0,
+    "rays": false,
+    "magicCircle": false,
+    "aura": false,
+    "finish": "vanilla",
+    "outline": "color"
+   }
+  },
+  "vanillaPlus": {
+   "label": "バニラ＋",
+   "desc": "細杖に微細な縁光と先端染め",
+   "recipe": {
+    "shaftMaterial": "vanillaStick",
+    "trimMaterial": "copper",
+    "pattern": "microEdge",
+    "shape": "straight",
+    "thickness": 1,
+    "grip": false,
+    "bands": 1,
+    "pommel": "cap",
+    "mount": "tinyCollar",
+    "core": "prism",
+    "coreSize": 0.66,
+    "gemCut": "rose",
+    "ornament": "none",
+    "accentGems": 1,
+    "floater": "motes",
+    "floaterCount": 2,
+    "floaterPath": "orbit",
+    "finish": "vanilla",
+    "outline": "color"
+   }
+  },
+  "gemTool": {
+   "label": "宝石細工",
+   "desc": "ルビー・サファイア・エメラルドの工具系",
+   "recipe": {
+    "shaftMaterial": "ruby",
+    "trimMaterial": "sapphire",
+    "pattern": "gemInlay",
+    "shape": "straight",
+    "thickness": 2,
+    "grip": false,
+    "bands": 1,
+    "pommel": "cap",
+    "mount": "collar",
+    "core": "ruby",
+    "coreSize": 0.85,
+    "gemCut": "emerald",
+    "ornament": "none",
+    "accentGems": 1,
+    "floater": "glints",
+    "floaterCount": 2,
+    "floaterPath": "orbit",
+    "finish": "forged"
+   }
+  }
+ },
+ "effect_presets": {
+  "graceful": {
+   "label": "優美・天衣",
+   "desc": "上品な光彩と星芒・宝飾反射",
+   "preset": {
+    "glow": 50,
+    "glowRadius": 4,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": true,
+    "particles": 42,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floaterCount": 5,
+    "outline": "selout"
+   }
+  },
+  "haute": {
+   "label": "宮廷宝飾",
+   "desc": "魔法陣と緻密な煌めき・高貴な輝き",
+   "preset": {
+    "glow": 58,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 38,
+    "glint": true,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floaterCount": 6,
+    "outline": "selout"
+   }
+  },
+  "clean": {
+   "label": "クリーン",
+   "desc": "効果なし・素材のみ",
+   "preset": {
+    "glow": 0,
+    "aura": false,
+    "rimLight": false,
+    "trail": false,
+    "particles": 0,
+    "glint": false,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": false,
+    "dither": false,
+    "floater": "none",
+    "outline": "selout"
+   }
+  },
+  "vanilla": {
+   "label": "バニラ風",
+   "desc": "Minecraft純正の雰囲気",
+   "preset": {
+    "glow": 0,
+    "aura": false,
+    "rimLight": false,
+    "trail": false,
+    "particles": 0,
+    "glint": false,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": false,
+    "dither": false,
+    "floater": "none",
+    "outline": "color"
+   }
+  },
+  "enchanted": {
+   "label": "エンチャント",
+   "desc": "紫のグリントが流れる",
+   "preset": {
+    "glow": 35,
+    "glowRadius": 4,
+    "aura": false,
+    "rimLight": false,
+    "trail": false,
+    "particles": 20,
+    "glint": true,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "outline": "selout"
+   }
+  },
+  "legendary": {
+   "label": "レジェンダリー",
+   "desc": "発光と浮遊物・リムライト",
+   "preset": {
+    "glow": 60,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 45,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floaterCount": 3,
+    "outline": "selout"
+   }
+  },
+  "mythic": {
+   "label": "神話級",
+   "desc": "Skyblock風・全部盛り",
+   "preset": {
+    "glow": 64,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": true,
+    "particles": 52,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floaterCount": 4,
+    "outline": "selout"
+   }
+  },
+  "ethereal": {
+   "label": "幽玄",
+   "desc": "淡い光とハロー",
+   "preset": {
+    "glow": 55,
+    "glowRadius": 7,
+    "dither": true,
+    "aura": true,
+    "rimLight": true,
+    "trail": false,
+    "particles": 35,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "halo",
+    "outline": "selout"
+   }
+  },
+  "corrupted": {
+   "label": "侵蝕",
+   "desc": "魔法陣と瘴気のオーラ",
+   "preset": {
+    "glow": 56,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": true,
+    "rimLight": true,
+    "trail": true,
+    "particles": 48,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "runes",
+    "outline": "black"
+   }
+  },
+  "divine": {
+   "label": "神聖",
+   "desc": "魔法陣と煌めきの光",
+   "preset": {
+    "glow": 60,
+    "glowRadius": 6,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 50,
+    "glint": true,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floater": "stars",
+    "outline": "selout"
+   }
+  },
+  "infernal": {
+   "label": "業火",
+   "desc": "熔けるような熱と火の粉",
+   "preset": {
+    "glow": 68,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": true,
+    "particles": 62,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floater": "shards",
+    "outline": "selout"
+   }
+  },
+  "frostbite": {
+   "label": "凍傷",
+   "desc": "冷たい霧と霜の粒",
+   "preset": {
+    "glow": 50,
+    "glowRadius": 6,
+    "dither": true,
+    "aura": true,
+    "rimLight": true,
+    "trail": false,
+    "particles": 55,
+    "glint": false,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "shards",
+    "outline": "selout"
+   }
+  },
+  "plague": {
+   "label": "疫病",
+   "desc": "瘴気と鬼火の群れ",
+   "preset": {
+    "glow": 58,
+    "glowRadius": 6,
+    "dither": true,
+    "aura": true,
+    "rimLight": false,
+    "trail": true,
+    "particles": 65,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": false,
+    "specular": false,
+    "aa": true,
+    "floater": "wisps",
+    "outline": "black"
+   }
+  },
+  "prismatic": {
+   "label": "虹彩",
+   "desc": "多色に屈折する輝き",
+   "preset": {
+    "glow": 58,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": true,
+    "particles": 40,
+    "glint": true,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floater": "shards",
+    "outline": "selout"
+   }
+  },
+  "stormfront": {
+   "label": "雷雨前線",
+   "desc": "稲妻が迸る",
+   "preset": {
+    "glow": 58,
+    "glowRadius": 5,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": true,
+    "particles": 75,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "floater": "orbs",
+    "outline": "selout"
+   }
+  },
+  "celestial": {
+   "label": "天界",
+   "desc": "聖なる光輪と星屑",
+   "preset": {
+    "glow": 66,
+    "glowRadius": 6,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 42,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": true,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "halo",
+    "outline": "selout"
+   }
+  },
+  "soulbound": {
+   "label": "魂縛",
+   "desc": "青白い魂の炎",
+   "preset": {
+    "glow": 62,
+    "glowRadius": 6,
+    "dither": true,
+    "aura": true,
+    "rimLight": true,
+    "trail": true,
+    "particles": 50,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "wisps",
+    "outline": "selout"
+   }
+  },
+  "relic": {
+   "label": "遺物",
+   "desc": "古びた金と静かな輝き",
+   "preset": {
+    "glow": 42,
+    "glowRadius": 4,
+    "dither": true,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 25,
+    "glint": true,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "floater": "coins",
+    "outline": "selout"
+   }
+  },
+  "vanillaThin": {
+   "label": "バニラ細杖",
+   "desc": "効果なし。1pxの素直な棒",
+   "preset": {
+    "glow": 0,
+    "aura": false,
+    "rimLight": false,
+    "trail": false,
+    "particles": 0,
+    "glint": false,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": false,
+    "aa": false,
+    "dither": false,
+    "floater": "none",
+    "scatter": 0,
+    "sparkle": 0,
+    "drift": 0,
+    "outline": "color"
+   }
+  },
+  "vanillaPlus": {
+   "label": "バニラ＋",
+   "desc": "微細な縁光と先端染めだけ",
+   "preset": {
+    "glow": 8,
+    "glowRadius": 2,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 6,
+    "glint": false,
+    "pulse": false,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": false,
+    "floater": "motes",
+    "floaterCount": 2,
+    "scatter": 12,
+    "sparkle": 18,
+    "drift": 10,
+    "outline": "color"
+   }
+  },
+  "rubyTool": {
+   "label": "ルビーツール",
+   "desc": "赤宝石の鈍い輝きと微塵",
+   "preset": {
+    "glow": 22,
+    "glowRadius": 3,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 14,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "floater": "glints",
+    "floaterCount": 2,
+    "scatter": 16,
+    "sparkle": 30,
+    "drift": 8,
+    "outline": "selout"
+   }
+  },
+  "sapphireTool": {
+   "label": "サファイア",
+   "desc": "青宝石の冷たい瞬き",
+   "preset": {
+    "glow": 22,
+    "glowRadius": 3,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 14,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "floater": "glints",
+    "floaterCount": 2,
+    "scatter": 16,
+    "sparkle": 30,
+    "drift": 8,
+    "outline": "selout"
+   }
+  },
+  "emeraldTool": {
+   "label": "エメラルド",
+   "desc": "緑宝石の落ち着いた光",
+   "preset": {
+    "glow": 20,
+    "glowRadius": 3,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 12,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "floater": "motes",
+    "floaterCount": 2,
+    "scatter": 14,
+    "sparkle": 26,
+    "drift": 8,
+    "outline": "selout"
+   }
+  },
+  "prismHoly": {
+   "label": "虹彩・聖",
+   "desc": "虹の屈折と聖なる微光",
+   "preset": {
+    "glow": 46,
+    "glowRadius": 4,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 30,
+    "glint": true,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": true,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "floater": "sparkCross",
+    "floaterCount": 3,
+    "scatter": 30,
+    "sparkle": 55,
+    "drift": 24,
+    "outline": "selout"
+   }
+  },
+  "ominous": {
+   "label": "禍々しい",
+   "desc": "赤黒い滲みと重い残光",
+   "preset": {
+    "glow": 40,
+    "glowRadius": 4,
+    "aura": true,
+    "rimLight": false,
+    "trail": true,
+    "particles": 38,
+    "glint": false,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": false,
+    "aa": true,
+    "dither": true,
+    "floater": "dust",
+    "floaterCount": 4,
+    "scatter": 26,
+    "sparkle": 12,
+    "drift": 34,
+    "outline": "black"
+   }
+  },
+  "plusScatter": {
+   "label": "＋散布",
+   "desc": "全体に散らす装飾・光・浮遊物の全部入り",
+   "preset": {
+    "glow": 30,
+    "glowRadius": 4,
+    "aura": false,
+    "rimLight": true,
+    "trail": false,
+    "particles": 34,
+    "glint": true,
+    "pulse": true,
+    "magicCircle": false,
+    "rays": false,
+    "specular": true,
+    "aa": true,
+    "dither": true,
+    "floater": "motes",
+    "floaterCount": 4,
+    "scatter": 62,
+    "sparkle": 58,
+    "drift": 46,
+    "outline": "selout"
+   }
+  }
+ },
+ "palettes": {
+  "ember": {
+   "label": "燃え殻",
+   "core": "#ff6a2a",
+   "energy": "#ffd08a"
+  },
+  "frost": {
+   "label": "極寒",
+   "core": "#7fd8ff",
+   "energy": "#e8fbff"
+  },
+  "toxic": {
+   "label": "瘴毒",
+   "core": "#9ede2a",
+   "energy": "#e4ffa8"
+  },
+  "royal": {
+   "label": "王家",
+   "core": "#f0c04a",
+   "energy": "#fff2c0"
+  },
+  "void": {
+   "label": "深淵",
+   "core": "#b03cff",
+   "energy": "#eab8ff"
+  },
+  "solar": {
+   "label": "太陽",
+   "core": "#ffb300",
+   "energy": "#fff6d0"
+  },
+  "lunar": {
+   "label": "月夜",
+   "core": "#cfd8ff",
+   "energy": "#f2f6ff"
+  },
+  "blood": {
+   "label": "鮮血",
+   "core": "#c8102e",
+   "energy": "#ff8a9a"
+  },
+  "forest": {
+   "label": "深森",
+   "core": "#3fae5a",
+   "energy": "#b6f0a8"
+  },
+  "ocean": {
+   "label": "深海",
+   "core": "#1f6fd0",
+   "energy": "#8fe8ff"
+  },
+  "storm": {
+   "label": "雷雲",
+   "core": "#7d8cff",
+   "energy": "#dfe6ff"
+  },
+  "candy": {
+   "label": "甘味",
+   "core": "#ff6fb5",
+   "energy": "#ffe0f2"
+  },
+  "bronze": {
+   "label": "古銅",
+   "core": "#c08040",
+   "energy": "#ffe0b0"
+  },
+  "ghost": {
+   "label": "幽霊",
+   "core": "#8ff5e0",
+   "energy": "#e6fffb"
+  },
+  "sunset": {
+   "label": "夕焼",
+   "core": "#ff7a45",
+   "energy": "#ffd9a0"
+  },
+  "pearl": {
+   "label": "真珠母",
+   "core": "#e8dff5",
+   "energy": "#fff9f5"
+  },
+  "rosegold": {
+   "label": "薔薇金",
+   "core": "#e68a9e",
+   "energy": "#ffe8ee"
+  },
+  "celadon": {
+   "label": "秘色青磁",
+   "core": "#6ec9b7",
+   "energy": "#e4fff8"
+  },
+  "imperial": {
+   "label": "紫禁皇室",
+   "core": "#9d50e5",
+   "energy": "#ffe699"
+  },
+  "ruby": {
+   "label": "ルビー",
+   "core": "#e0314f",
+   "energy": "#ffb3c0"
+  },
+  "sapphire": {
+   "label": "サファイア",
+   "core": "#2f6fe4",
+   "energy": "#bcd6ff"
+  },
+  "holy": {
+   "label": "聖光",
+   "core": "#f2e9c8",
+   "energy": "#fffdf2"
+  },
+  "ominous": {
+   "label": "禍々",
+   "core": "#5b1f2e",
+   "energy": "#ff4d5e"
+  },
+  "prism": {
+   "label": "虹彩",
+   "core": "#9fb7ff",
+   "energy": "#e8f4ff"
+  }
+ },
+ "rarities": {
+  "common": {
+   "label": "COMMON",
+   "color": "#ffffff",
+   "tier": 0
+  },
+  "uncommon": {
+   "label": "UNCOMMON",
+   "color": "#55ff55",
+   "tier": 1
+  },
+  "rare": {
+   "label": "RARE",
+   "color": "#5599ff",
+   "tier": 2
+  },
+  "epic": {
+   "label": "EPIC",
+   "color": "#c055ff",
+   "tier": 3
+  },
+  "legendary": {
+   "label": "LEGENDARY",
+   "color": "#ffaa00",
+   "tier": 4
+  },
+  "mythic": {
+   "label": "MYTHIC",
+   "color": "#ff55ff",
+   "tier": 5
+  },
+  "divine": {
+   "label": "DIVINE",
+   "color": "#55ffff",
+   "tier": 6
+  },
+  "artifact": {
+   "label": "ARTIFACT",
+   "color": "#ff7a4d",
+   "tier": 7
+  },
+  "relic": {
+   "label": "RELIC",
+   "color": "#ffe066",
+   "tier": 8
+  }
+ },
+ "texture_finishes": {
+  "vanilla": {
+   "label": "バニラ寄り",
+   "desc": "少数の色と硬い輪郭"
+  },
+  "forged": {
+   "label": "鍛造",
+   "desc": "金属の斜め反射と打痕"
+  },
+  "weathered": {
+   "label": "風化",
+   "desc": "古い木目と深い影"
+  },
+  "engraved": {
+   "label": "彫金",
+   "desc": "細い刻線と明暗の段差"
+  },
+  "gilded": {
+   "label": "金彩",
+   "desc": "縁に金の象嵌を施す"
+  },
+  "runic": {
+   "label": "刻印",
+   "desc": "間隔を揃えた発光ルーン"
+  }
  }
 }

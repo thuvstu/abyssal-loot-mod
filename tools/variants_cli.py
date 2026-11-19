@@ -61,8 +61,15 @@ def rows_for(img, acc, seed) -> list[tuple[str, list[tuple[str, Image.Image]]]]:
         ("特性 (気配 + 粒子)", [(n, with_trait(img, tid)) for tid, (n, _c, _k) in V.TRAITS.items()]),
         ("属性違い", [(n, V.recolor(img, *p)) for _id, (n, *p) in V.ELEMENTS.items()]),
         ("素材違い", [(n, V.recolor(img, *p)) for _id, (n, *p) in V.MATERIALS.items()]),
+        ("限界突破", [("限界突破", V.limit_break(img, "break", acc, seed, 0.3)),
+                  ("覚醒", V.limit_break(img, "awaken", acc, seed, 0.3))]),
+        ("攻撃モーション", [(n, V.attack_pose(img, k, acc, seed)[3]) for k, n in
+                     (("slash", "斬撃"), ("smash", "振り下ろし"), ("thrust", "突き"), ("guard", "防御"),
+                      ("cast", "詠唱"), ("idle", "待機"))]),
         ("形態・状態", [("鋸刃", V.form(img, "serrated", acc, seed)), ("欠け", V.form(img, "broken", acc, seed)),
-                    ("二振り", V.form(img, "twin", acc, seed))]
+                    ("二振り", V.form(img, "twin", acc, seed)), ("双刃", V.form2(img, "dual")),
+                    ("大剣", V.form2(img, "great")), ("短剣", V.form2(img, "dagger")),
+                    ("エンチャント", V.enchanted(img, 0.3))]
          + [(n, V.mode(img, k, 0.3, seed)) for k, n in (("frozen", "凍結"), ("overheat", "過熱"),
                                                          ("blessed", "祝福"), ("stealth", "隠密"),
                                                          ("charged", "充填"))]),

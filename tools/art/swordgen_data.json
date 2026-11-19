@@ -1,0 +1,5621 @@
+{
+ "_comment": "MCAssetGen (minecraft-sword-texture-maker / AegisBlade) の presets.ts・catalog.ts・options.ts・elements.ts から焼き出したデータ。描画は tools/art/swordgen.py。",
+ "elements": {
+  "none": [
+   [
+    200,
+    211,
+    224
+   ],
+   [
+    227,
+    237,
+    249
+   ]
+  ],
+  "flame": [
+   [
+    245,
+    151,
+    95
+   ],
+   [
+    255,
+    209,
+    157
+   ]
+  ],
+  "frost": [
+   [
+    135,
+    216,
+    232
+   ],
+   [
+    204,
+    248,
+    255
+   ]
+  ],
+  "void": [
+   [
+    164,
+    130,
+    214
+   ],
+   [
+    207,
+    180,
+    246
+   ]
+  ],
+  "holy": [
+   [
+    231,
+    202,
+    135
+   ],
+   [
+    255,
+    239,
+    187
+   ]
+  ],
+  "lightning": [
+   [
+    162,
+    179,
+    251
+   ],
+   [
+    217,
+    227,
+    255
+   ]
+  ],
+  "poison": [
+   [
+    157,
+    208,
+    127
+   ],
+   [
+    214,
+    244,
+    184
+   ]
+  ],
+  "shadow": [
+   [
+    159,
+    121,
+    171
+   ],
+   [
+    200,
+    169,
+    222
+   ]
+  ],
+  "blood": [
+   [
+    213,
+    128,
+    147
+   ],
+   [
+    244,
+    183,
+    193
+   ]
+  ],
+  "arcane": [
+   [
+    173,
+    152,
+    223
+   ],
+   [
+    216,
+    199,
+    253
+   ]
+  ],
+  "nature": [
+   [
+    138,
+    196,
+    118
+   ],
+   [
+    204,
+    240,
+    170
+   ]
+  ],
+  "ocean": [
+   [
+    96,
+    178,
+    190
+   ],
+   [
+    178,
+    232,
+    236
+   ]
+  ]
+ },
+ "effect_presets": {
+  "calm": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": false,
+   "element": "none",
+   "elementIntensity": 0
+  },
+  "infernal": {
+   "particles": true,
+   "runePulse": false,
+   "tipGlow": true,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "flame",
+   "elementIntensity": 0.35
+  },
+  "glacial": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": true,
+   "sparkle": true,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": true,
+   "auraBloom": true,
+   "element": "frost",
+   "elementIntensity": 0.35
+  },
+  "celestial": {
+   "particles": false,
+   "runePulse": true,
+   "tipGlow": false,
+   "sparkle": true,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": true,
+   "auraBloom": true,
+   "element": "holy",
+   "elementIntensity": 0.35
+  },
+  "abyssal": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": true,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": true,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "void",
+   "elementIntensity": 0.35
+  },
+  "stormcaller": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": true,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": true,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "lightning",
+   "elementIntensity": 0.35
+  },
+  "necrotic": {
+   "particles": true,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": false,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "shadow",
+   "elementIntensity": 0.35
+  },
+  "verdant": {
+   "particles": true,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": true,
+   "auraBloom": true,
+   "element": "poison",
+   "elementIntensity": 0.35
+  },
+  "stellar": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": true,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": true,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "arcane",
+   "elementIntensity": 0.35
+  },
+  "infernum": {
+   "particles": false,
+   "runePulse": true,
+   "tipGlow": true,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "blood",
+   "elementIntensity": 0.35
+  },
+  "astral": {
+   "particles": false,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": true,
+   "gemGlow": true,
+   "auraBloom": true,
+   "element": "void",
+   "elementIntensity": 0.35
+  },
+  "voidborn": {
+   "particles": true,
+   "runePulse": true,
+   "tipGlow": true,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "void",
+   "elementIntensity": 0.35
+  },
+  "tidal": {
+   "particles": true,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": false,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": true,
+   "auraBloom": true,
+   "element": "ocean",
+   "elementIntensity": 0.35
+  },
+  "sylvan": {
+   "particles": true,
+   "runePulse": false,
+   "tipGlow": false,
+   "sparkle": true,
+   "sparkleDensity": 0.18,
+   "sheen": true,
+   "sheenSpeed": 0.6,
+   "sheenPos": 0.3,
+   "lightning": false,
+   "shatter": false,
+   "holographic": false,
+   "gemGlow": false,
+   "auraBloom": true,
+   "element": "nature",
+   "elementIntensity": 0.35
+  }
+ },
+ "presets": {
+  "Hyperion": {
+   "name": "Hyperion — Aspects of The Void",
+   "category": "skyblock",
+   "tier": "Legendary",
+   "desc": "Forged from the wither impact and infused with the Ender Dragon's breath.",
+   "palette": {
+    "blade": "#1a1532",
+    "bladeEdge": "#dcd6ff",
+    "bladeCore": "#0a0820",
+    "guard": "#3a2960",
+    "guardAccent": "#a78bfa",
+    "handle": "#0e0a1a",
+    "handleAccent": "#7c3aed",
+    "pommel": "#a78bfa",
+    "outline": "#04020a",
+    "spur": "#06b6d4"
+   },
+   "element": "void",
+   "tipColor": "#7c3aed",
+   "midGradientColor": "#1a1532",
+   "gemColor": "#06b6d4",
+   "runeColor": "#a78bfa",
+   "shardColor": "#7c3aed",
+   "effectPreset": "abyssal",
+   "style": {
+    "silhouette": "claymore",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "wings",
+    "gemShape": "hex",
+    "runeInlay": true,
+    "fuller": true,
+    "crystalShards": true
+   }
+  },
+  "AspectOfTheVoid": {
+   "name": "Aspect of The Void (AOTV)",
+   "category": "skyblock",
+   "tier": "Mythic",
+   "desc": "An edict carved from raw Ender energy. Teleports through reality itself.",
+   "palette": {
+    "blade": "#0a0418",
+    "bladeEdge": "#8b5cf6",
+    "bladeCore": "#1e0a3a",
+    "guard": "#1e1b4b",
+    "guardAccent": "#06b6d4",
+    "handle": "#020617",
+    "handleAccent": "#22d3ee",
+    "pommel": "#22d3ee",
+    "outline": "#000000",
+    "spur": "#a78bfa"
+   },
+   "element": "void",
+   "tipColor": "#22d3ee",
+   "midGradientColor": "#312e81",
+   "gemColor": "#06b6d4",
+   "runeColor": "#22d3ee",
+   "shardColor": "#a78bfa",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "straight",
+    "runeInlay": true,
+    "holographic": true,
+    "gemShape": "teardrop"
+   }
+  },
+  "DarkClaymore": {
+   "name": "Dark Claymore",
+   "category": "skyblock",
+   "tier": "Legendary",
+   "desc": "Wither-forged greatsword with bone flanges and infernal edge.",
+   "palette": {
+    "blade": "#3a2a40",
+    "bladeEdge": "#1a0810",
+    "bladeCore": "#0a0410",
+    "guard": "#1a0a14",
+    "guardAccent": "#7a2040",
+    "handle": "#2a0a0a",
+    "handleAccent": "#7a3030",
+    "pommel": "#0a0a0a",
+    "outline": "#000000",
+    "spur": "#ff3344"
+   },
+   "element": "shadow",
+   "tipColor": "#ff3344",
+   "midGradientColor": "#3a2a40",
+   "gemColor": "#ff5566",
+   "runeColor": "#ff3344",
+   "shardColor": "#cccccc",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "claymore",
+    "bladeWidth": 4,
+    "bladeLength": 12,
+    "boneSpurs": true,
+    "spurs": true,
+    "spurCount": 3,
+    "guardStyle": "barbed",
+    "handleStyle": "bone",
+    "pommelStyle": "spiked"
+   }
+  },
+  "Astraea": {
+   "name": "Astraea — Heavenly Judgement",
+   "category": "skyblock",
+   "tier": "Legendary",
+   "desc": "An angelic blade of pure divine light, attuned to Wither key holders.",
+   "palette": {
+    "blade": "#fff8d6",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#fde68a",
+    "guard": "#facc15",
+    "guardAccent": "#fef3c7",
+    "handle": "#1e1b4b",
+    "handleAccent": "#38bdf8",
+    "pommel": "#38bdf8",
+    "outline": "#3a2a05",
+    "spur": "#fde047"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#fde68a",
+   "gemColor": "#38bdf8",
+   "runeColor": "#fef3c7",
+   "shardColor": "#fde047",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "straight",
+    "guardStyle": "wings",
+    "filigree": true,
+    "gemShape": "star"
+   }
+  },
+  "Shadowfury": {
+   "name": "Shadowfury",
+   "category": "skyblock",
+   "tier": "Legendary",
+   "desc": "Crimson scythe-blade; draws the soul of any who dare block it.",
+   "palette": {
+    "blade": "#2a0810",
+    "bladeEdge": "#ff6b6b",
+    "bladeCore": "#0a0205",
+    "guard": "#3a0810",
+    "guardAccent": "#ff4040",
+    "handle": "#0a0205",
+    "handleAccent": "#ff6b6b",
+    "pommel": "#0a0205",
+    "outline": "#000000",
+    "spur": "#ff4d4d"
+   },
+   "element": "blood",
+   "tipColor": "#ff8888",
+   "midGradientColor": "#3a0a14",
+   "gemColor": "#ff4d4d",
+   "runeColor": "#ff6b6b",
+   "shardColor": "#ffaaaa",
+   "effectPreset": "infernum",
+   "style": {
+    "silhouette": "scimitar",
+    "spurs": true,
+    "spurCount": 4,
+    "guardStyle": "crescent",
+    "pommelStyle": "crescent"
+   }
+  },
+  "LividDagger": {
+   "name": "Livid Dagger",
+   "category": "skyblock",
+   "tier": "Epic",
+   "desc": "Forged in the Livid dungeon, hums with erratic arcane energy.",
+   "palette": {
+    "blade": "#1f2937",
+    "bladeEdge": "#60a5fa",
+    "bladeCore": "#0c1322",
+    "guard": "#374151",
+    "guardAccent": "#f472b6",
+    "handle": "#1f2937",
+    "handleAccent": "#a78bfa",
+    "pommel": "#a78bfa",
+    "outline": "#000000",
+    "spur": "#60a5fa"
+   },
+   "element": "arcane",
+   "tipColor": "#f472b6",
+   "midGradientColor": "#374151",
+   "gemColor": "#a78bfa",
+   "runeColor": "#60a5fa",
+   "shardColor": "#f472b6",
+   "effectPreset": "stellar",
+   "style": {
+    "silhouette": "dagger",
+    "bladeLength": 7,
+    "guardStyle": "rapier",
+    "handleStyle": "wire"
+   }
+  },
+  "ScorpionFoil": {
+   "name": "Scorpion Foil",
+   "category": "skyblock",
+   "tier": "Rare",
+   "desc": "A venomous rapier with crystalline spurs. Quick as a desert wind.",
+   "palette": {
+    "blade": "#84cc16",
+    "bladeEdge": "#bef264",
+    "bladeCore": "#365314",
+    "guard": "#3f6212",
+    "guardAccent": "#facc15",
+    "handle": "#1a2e05",
+    "handleAccent": "#facc15",
+    "pommel": "#facc15",
+    "outline": "#0a1502",
+    "spur": "#bef264"
+   },
+   "element": "poison",
+   "tipColor": "#ecfccb",
+   "midGradientColor": "#84cc16",
+   "gemColor": "#facc15",
+   "runeColor": "#bef264",
+   "shardColor": "#84cc16",
+   "effectPreset": "verdant",
+   "style": {
+    "silhouette": "rapier",
+    "crystalShards": true,
+    "guardStyle": "rapier"
+   }
+  },
+  "GlacialScythe": {
+   "name": "Glacial Scythe",
+   "category": "skyblock",
+   "tier": "Legendary",
+   "desc": "Carved from permafrost. The blade exhales freezing mist.",
+   "palette": {
+    "blade": "#cffafe",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#67e8f9",
+    "guard": "#0e7490",
+    "guardAccent": "#e0f2fe",
+    "handle": "#0c1d29",
+    "handleAccent": "#a5f3fc",
+    "pommel": "#a5f3fc",
+    "outline": "#041d24",
+    "spur": "#67e8f9"
+   },
+   "element": "frost",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#67e8f9",
+   "gemColor": "#a5f3fc",
+   "runeColor": "#e0f2fe",
+   "shardColor": "#a5f3fc",
+   "effectPreset": "glacial",
+   "style": {
+    "silhouette": "scimitar",
+    "crystalShards": true,
+    "pommelStyle": "crescent"
+   }
+  },
+  "Terminator": {
+   "name": "Terminator — Atom Splitter",
+   "category": "skyblock",
+   "tier": "Mythic",
+   "desc": "Theorized to cleave the bonds between atoms. Sparks arc from its edge.",
+   "palette": {
+    "blade": "#cbd5e1",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#64748b",
+    "guard": "#1e293b",
+    "guardAccent": "#facc15",
+    "handle": "#0f172a",
+    "handleAccent": "#facc15",
+    "pommel": "#facc15",
+    "outline": "#020617",
+    "spur": "#facc15"
+   },
+   "element": "lightning",
+   "tipColor": "#fef3c7",
+   "midGradientColor": "#94a3b8",
+   "gemColor": "#facc15",
+   "runeColor": "#fef08a",
+   "shardColor": "#facc15",
+   "effectPreset": "stormcaller",
+   "style": {
+    "silhouette": "straight",
+    "surface": "circuit",
+    "runeInlay": true,
+    "guardStyle": "cross",
+    "handleStyle": "wrapped_parchment"
+   }
+  },
+  "Excalibur": {
+   "name": "Excalibur Sovereign",
+   "category": "fantasy",
+   "tier": "Mythic",
+   "desc": "The sword in the stone. Divine rule made steel.",
+   "palette": {
+    "blade": "#e0e7ff",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#a5b4fc",
+    "guard": "#fbbf24",
+    "guardAccent": "#fef08a",
+    "handle": "#1e1b4b",
+    "handleAccent": "#a5b4fc",
+    "pommel": "#38bdf8",
+    "outline": "#1e1b4b",
+    "spur": "#fef08a"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#a5b4fc",
+   "gemColor": "#38bdf8",
+   "runeColor": "#fef08a",
+   "shardColor": "#fef08a",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "straight",
+    "guardStyle": "cross",
+    "filigree": true,
+    "pommelStyle": "gem",
+    "pommelBand": true
+   }
+  },
+  "CalamityClaymore": {
+   "name": "Calamity — Devastator",
+   "category": "fantasy",
+   "tier": "Legendary",
+   "desc": "Inspired by Calamity Mod's greatswords — seismic bone spurs, infernal core.",
+   "palette": {
+    "blade": "#1a0a0a",
+    "bladeEdge": "#f97316",
+    "bladeCore": "#000000",
+    "guard": "#0c0a0a",
+    "guardAccent": "#fbbf24",
+    "handle": "#1c1917",
+    "handleAccent": "#f97316",
+    "pommel": "#fbbf24",
+    "outline": "#000000",
+    "spur": "#fef3c7"
+   },
+   "element": "flame",
+   "tipColor": "#fbbf24",
+   "midGradientColor": "#7c2d12",
+   "gemColor": "#f97316",
+   "runeColor": "#fbbf24",
+   "shardColor": "#fef3c7",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "claymore",
+    "bladeWidth": 4,
+    "boneSpurs": true,
+    "spurs": true,
+    "spurCount": 5,
+    "guardStyle": "dread",
+    "pommelStyle": "spiked"
+   }
+  },
+  "ReBelionCode": {
+   "name": "焔戒剣 ReBelion Code",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "6層・穢汚の洞窟ドロップ。炎の戒めを刻んだCode系武器。",
+   "palette": {
+    "blade": "#ff6b35",
+    "bladeEdge": "#ffaa00",
+    "bladeCore": "#cc4400",
+    "guard": "#cc4400",
+    "guardAccent": "#ffdd00",
+    "handle": "#5a2a0a",
+    "handleAccent": "#ff8c42",
+    "pommel": "#ffdd00",
+    "outline": "#4a1a00",
+    "spur": "#ffdd00"
+   },
+   "element": "flame",
+   "tipColor": "#ffdd00",
+   "midGradientColor": "#ff6b35",
+   "gemColor": "#ffaa00",
+   "runeColor": "#ffdd00",
+   "shardColor": "#ffdd00",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "cross",
+    "handleStyle": "wire",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "hex",
+    "gradientBlade": true,
+    "edgeGradient": false
+   }
+  },
+  "SacredSwordFlame": {
+   "name": "宝剣レーヴァテイン・神炎",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "初心者向け宝剣。炎属性、範囲ダメージ増加、攻撃力+35。",
+   "palette": {
+    "blade": "#ff4500",
+    "bladeEdge": "#ff6b35",
+    "bladeCore": "#cc2200",
+    "guard": "#cc2200",
+    "guardAccent": "#ffaa00",
+    "handle": "#4a1a00",
+    "handleAccent": "#ff6b35",
+    "pommel": "#ffaa00",
+    "outline": "#2a0a00",
+    "spur": "#ffdd00"
+   },
+   "element": "flame",
+   "tipColor": "#ffdd00",
+   "midGradientColor": "#ff4500",
+   "gemColor": "#ffaa00",
+   "runeColor": "#ffaa00",
+   "shardColor": "#ffdd00",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "circle",
+    "gradientBlade": true,
+    "edgeGradient": true,
+    "particles": true,
+    "tipGlow": true
+   }
+  },
+  "SacredSwordFlash": {
+   "name": "宝剣レーヴァテイン・神閃",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "初心者向け宝剣。雷属性、範囲ダメージ増加、攻撃力+35。",
+   "palette": {
+    "blade": "#ffdd00",
+    "bladeEdge": "#fffacd",
+    "bladeCore": "#ccaa00",
+    "guard": "#ccaa00",
+    "guardAccent": "#fffacd",
+    "handle": "#4a3a00",
+    "handleAccent": "#ffdd00",
+    "pommel": "#fffacd",
+    "outline": "#2a2a00",
+    "spur": "#fffacd"
+   },
+   "element": "lightning",
+   "tipColor": "#fffacd",
+   "midGradientColor": "#ffdd00",
+   "gemColor": "#ffdd00",
+   "runeColor": "#ffdd00",
+   "shardColor": "#fffacd",
+   "effectPreset": "stormcaller",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "circle",
+    "gradientBlade": true,
+    "edgeGradient": true,
+    "lightning": true,
+    "tipGlow": true
+   }
+  },
+  "TimeSpear": {
+   "name": "創時槍",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "時計塔製武器。時間属性、槍形状。",
+   "palette": {
+    "blade": "#8a5cf6",
+    "bladeEdge": "#c8b4ff",
+    "bladeCore": "#6a3fc0",
+    "guard": "#6a3fc0",
+    "guardAccent": "#d8c4ff",
+    "handle": "#3a2a5a",
+    "handleAccent": "#a88cd8",
+    "pommel": "#d8c4ff",
+    "outline": "#2a1a4a",
+    "spur": "#e8d8ff"
+   },
+   "element": "arcane",
+   "tipColor": "#e8d8ff",
+   "midGradientColor": "#8a5cf6",
+   "gemColor": "#c8b4ff",
+   "runeColor": "#c8b4ff",
+   "shardColor": "#e8d8ff",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "spear",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "straight",
+    "handleStyle": "wire",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "circle",
+    "gradientBlade": true,
+    "edgeGradient": false
+   }
+  },
+  "SpringNaginata": {
+   "name": "春薙刀 アルコントラルト",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "7層・星影秘蔵院ドロップ。薙刀形状、桜色、音楽用語(Alto)テーマ。",
+   "palette": {
+    "blade": "#ffb7c5",
+    "bladeEdge": "#ffe0e8",
+    "bladeCore": "#e89aaa",
+    "guard": "#e89aaa",
+    "guardAccent": "#ffe0e8",
+    "handle": "#5a3a4a",
+    "handleAccent": "#ffa8b8",
+    "pommel": "#ffe0e8",
+    "outline": "#4a2a3a",
+    "spur": "#ffe0e8"
+   },
+   "element": "none",
+   "tipColor": "#ffe0e8",
+   "midGradientColor": "#ffb7c5",
+   "gemColor": "#ffa8b8",
+   "runeColor": "#ffb7c5",
+   "shardColor": "#ffe0e8",
+   "effectPreset": "calm",
+   "style": {
+    "silhouette": "glaive",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "crescent",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "tassel",
+    "gradientBlade": true,
+    "edgeGradient": false
+   }
+  },
+  "CrystalBlade": {
+   "name": "水晶刃 ヘルデンテノール",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "7層・星影秘蔵院ドロップ。水晶属性、音楽用語(Tenor)テーマ。",
+   "palette": {
+    "blade": "#a8d8ea",
+    "bladeEdge": "#e0f7ff",
+    "bladeCore": "#7ab8d0",
+    "guard": "#7ab8d0",
+    "guardAccent": "#e0f7ff",
+    "handle": "#3a5a6a",
+    "handleAccent": "#a8d8ea",
+    "pommel": "#e0f7ff",
+    "outline": "#2a4a5a",
+    "spur": "#e0f7ff"
+   },
+   "element": "frost",
+   "tipColor": "#e0f7ff",
+   "midGradientColor": "#a8d8ea",
+   "gemColor": "#a8d8ea",
+   "runeColor": "#a8d8ea",
+   "shardColor": "#e0f7ff",
+   "effectPreset": "glacial",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "cross",
+    "handleStyle": "wire",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "hex",
+    "gradientBlade": true,
+    "edgeGradient": false,
+    "crystalShards": true
+   }
+  },
+  "RainbowSword": {
+   "name": "虹彩剣 ソプラノリリコ",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "7層・星影秘蔵院ドロップ。虹色グラデーション、音楽用語(Soprano)テーマ。",
+   "palette": {
+    "blade": "#ff6b9d",
+    "bladeEdge": "#ffa8c8",
+    "bladeCore": "#d84a7a",
+    "guard": "#d84a7a",
+    "guardAccent": "#ffa8c8",
+    "handle": "#4a3a5a",
+    "handleAccent": "#ff8aaa",
+    "pommel": "#ffa8c8",
+    "outline": "#3a2a4a",
+    "spur": "#ffa8c8"
+   },
+   "element": "arcane",
+   "tipColor": "#ffa8c8",
+   "midGradientColor": "#ff6b9d",
+   "gemColor": "#ff8aaa",
+   "runeColor": "#ff6b9d",
+   "shardColor": "#ffa8c8",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "gem",
+    "gem": true,
+    "gemShape": "star",
+    "gradientBlade": true,
+    "edgeGradient": true,
+    "holographic": true
+   }
+  },
+  "Gran": {
+   "name": "黒魔剣:グラン",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "黒魔術系武器。暗紫色、コロン区切りの命名。",
+   "palette": {
+    "blade": "#4a3a5a",
+    "bladeEdge": "#8a6aaa",
+    "bladeCore": "#2a1a3a",
+    "guard": "#2a1a3a",
+    "guardAccent": "#8a6aaa",
+    "handle": "#1a1a2a",
+    "handleAccent": "#6a4a7a",
+    "pommel": "#8a6aaa",
+    "outline": "#0a0a1a",
+    "spur": "#8a6aaa"
+   },
+   "element": "shadow",
+   "tipColor": "#8a6aaa",
+   "midGradientColor": "#4a3a5a",
+   "gemColor": "#6a4a7a",
+   "runeColor": "#4a3a5a",
+   "shardColor": "#8a6aaa",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "dread",
+    "handleStyle": "chain",
+    "pommelStyle": "skull",
+    "gradientBlade": false,
+    "edgeGradient": false
+   }
+  },
+  "VoidwalkerBlade": {
+   "name": "Voidwalker Enderblade",
+   "category": "fantasy",
+   "tier": "Legendary",
+   "desc": "Warped from Ender Dragon breath. Hums in the dark.",
+   "palette": {
+    "blade": "#1b1429",
+    "bladeEdge": "#8b5cf6",
+    "bladeCore": "#0f0a17",
+    "guard": "#2e1a47",
+    "guardAccent": "#06b6d4",
+    "handle": "#0c0812",
+    "handleAccent": "#06b6d4",
+    "pommel": "#06b6d4",
+    "outline": "#05020a",
+    "spur": "#06b6d4"
+   },
+   "element": "void",
+   "tipColor": "#06b6d4",
+   "midGradientColor": "#312e81",
+   "gemColor": "#10e5b2",
+   "runeColor": "#22d3ee",
+   "shardColor": "#8b5cf6",
+   "effectPreset": "voidborn",
+   "style": {
+    "silhouette": "straight",
+    "runeInlay": true,
+    "guardStyle": "wings"
+   }
+  },
+  "GarnetSword": {
+   "name": "石榴石の剣 / Garnet Sword",
+   "category": "serverpack",
+   "tier": "Rare",
+   "desc": "深紅の石榴石を削り出したような、洞窟層の定番ドロップ。",
+   "palette": {
+    "blade": "#7d1f2b",
+    "bladeEdge": "#f4a3ad",
+    "bladeCore": "#4a0f18",
+    "guard": "#3a2a1c",
+    "guardAccent": "#d9a441",
+    "handle": "#2a1a12",
+    "handleAccent": "#6b4423",
+    "pommel": "#d9a441",
+    "outline": "#1a0609",
+    "spur": "#f4a3ad"
+   },
+   "element": "blood",
+   "tipColor": "#ffd2d8",
+   "midGradientColor": "#a83244",
+   "gemColor": "#ff5f74",
+   "runeColor": "#f4a3ad",
+   "shardColor": "#ff8a99",
+   "effectPreset": "infernum",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "cross",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true,
+    "edgeGradient": true,
+    "gradientBlade": true
+   }
+  },
+  "SapphireBlade": {
+   "name": "蒼玉剣 / Sapphire Blade",
+   "category": "serverpack",
+   "tier": "Rare",
+   "desc": "青玉の冷たい輝き。水系ダンジョンの中層報酬。",
+   "palette": {
+    "blade": "#1d3f7a",
+    "bladeEdge": "#9ecbff",
+    "bladeCore": "#0f2247",
+    "guard": "#20304d",
+    "guardAccent": "#c9d8f0",
+    "handle": "#151d2e",
+    "handleAccent": "#3b4d70",
+    "pommel": "#9ecbff",
+    "outline": "#060d1c",
+    "spur": "#9ecbff"
+   },
+   "element": "ocean",
+   "tipColor": "#dceaff",
+   "midGradientColor": "#2f5ca8",
+   "gemColor": "#57a6ff",
+   "runeColor": "#9ecbff",
+   "shardColor": "#bcd8ff",
+   "effectPreset": "tidal",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "wings",
+    "handleStyle": "wire",
+    "pommelStyle": "orb",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "hex",
+    "horimono": true,
+    "gradientBlade": true
+   }
+  },
+  "AmethystSlasher": {
+   "name": "紫晶斬 / Amethyst Slasher",
+   "category": "serverpack",
+   "tier": "Epic",
+   "desc": "紫水晶の刃。軽い振り抜きを想定した細身の斬撃刀。",
+   "palette": {
+    "blade": "#5c2f8f",
+    "bladeEdge": "#dcc3ff",
+    "bladeCore": "#33175a",
+    "guard": "#3d2a56",
+    "guardAccent": "#e0b3ff",
+    "handle": "#231634",
+    "handleAccent": "#5a3d7d",
+    "pommel": "#dcc3ff",
+    "outline": "#120722",
+    "spur": "#e0b3ff"
+   },
+   "element": "arcane",
+   "tipColor": "#f3e6ff",
+   "midGradientColor": "#7b45b8",
+   "gemColor": "#b57cff",
+   "runeColor": "#dcc3ff",
+   "shardColor": "#cfa6ff",
+   "effectPreset": "stellar",
+   "style": {
+    "silhouette": "katana",
+    "bladeWidth": 2,
+    "bladeLength": 12,
+    "guardStyle": "tsuba",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "tassel",
+    "surface": "amethyst",
+    "gem": true,
+    "gemShape": "marquise",
+    "edgeGradient": true,
+    "gradientBlade": true
+   }
+  },
+  "SardonyxBow": {
+   "name": "紅縞瑪瑙弓 / Sardonyx Bow",
+   "category": "serverpack",
+   "tier": "Epic",
+   "desc": "縞瑪瑙の層理をそのまま弓幹に活かした遠距離武器。",
+   "palette": {
+    "blade": "#8e4a2f",
+    "bladeEdge": "#f0c9a8",
+    "bladeCore": "#5a2b1a",
+    "guard": "#4a2c1e",
+    "guardAccent": "#e8a96b",
+    "handle": "#33200f",
+    "handleAccent": "#7a4a24",
+    "pommel": "#e8a96b",
+    "outline": "#1c0d06",
+    "spur": "#f0c9a8"
+   },
+   "element": "flame",
+   "tipColor": "#ffe3c4",
+   "midGradientColor": "#b5673f",
+   "gemColor": "#e8a96b",
+   "runeColor": "#f0c9a8",
+   "shardColor": "#d98f5c",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "bow",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "none",
+    "handleStyle": "cord",
+    "pommelStyle": "flattened",
+    "surface": "banded",
+    "gradientBlade": true,
+    "gem": false
+   }
+  },
+  "TourmalineStaff": {
+   "name": "電気石杖 / Tourmaline Staff",
+   "category": "serverpack",
+   "tier": "Epic",
+   "desc": "電気石の双極性を宿す杖。先端が二色に分かれる。",
+   "palette": {
+    "blade": "#2f6b5e",
+    "bladeEdge": "#a8f0dd",
+    "bladeCore": "#183d36",
+    "guard": "#4a3550",
+    "guardAccent": "#f2a6c9",
+    "handle": "#241a2b",
+    "handleAccent": "#5c4468",
+    "pommel": "#f2a6c9",
+    "outline": "#081613",
+    "spur": "#a8f0dd"
+   },
+   "element": "nature",
+   "tipColor": "#f7c6dd",
+   "midGradientColor": "#4f9c88",
+   "gemColor": "#6fe0bf",
+   "runeColor": "#a8f0dd",
+   "shardColor": "#f2a6c9",
+   "effectPreset": "sylvan",
+   "style": {
+    "silhouette": "essence",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "sigil",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "orb",
+    "surface": "luminous",
+    "gem": true,
+    "gemShape": "teardrop",
+    "gradientBlade": true,
+    "edgeGradient": true
+   }
+  },
+  "MorganiteLamp": {
+   "name": "緑柱石灯 / Morganite Lamp",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "灯りを宿す緑柱石。聖域の奥で静かに燃え続ける。",
+   "palette": {
+    "blade": "#d98f9e",
+    "bladeEdge": "#fff0f3",
+    "bladeCore": "#a85f70",
+    "guard": "#c9a24a",
+    "guardAccent": "#fff0c4",
+    "handle": "#4a3320",
+    "handleAccent": "#8a6534",
+    "pommel": "#fff0c4",
+    "outline": "#3a1c24",
+    "spur": "#ffe0e6"
+   },
+   "element": "holy",
+   "tipColor": "#fffaf0",
+   "midGradientColor": "#efb3bf",
+   "gemColor": "#ffd9e2",
+   "runeColor": "#fff0c4",
+   "shardColor": "#ffc9d4",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "lotus",
+    "bladeWidth": 3,
+    "bladeLength": 9,
+    "guardStyle": "crescent",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "orb",
+    "surface": "divine",
+    "gem": true,
+    "gemShape": "circle",
+    "filigree": true,
+    "gradientBlade": true
+   }
+  },
+  "ReVerenceCode": {
+   "name": "氷律剣 ReVerence Code",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "時計塔製。氷の「律」を刻み込んだ、規則的な結晶刃。",
+   "palette": {
+    "blade": "#2d5f7a",
+    "bladeEdge": "#d6f2ff",
+    "bladeCore": "#16394d",
+    "guard": "#274055",
+    "guardAccent": "#9fd8ef",
+    "handle": "#16222e",
+    "handleAccent": "#3c5a70",
+    "pommel": "#9fd8ef",
+    "outline": "#071620",
+    "spur": "#d6f2ff"
+   },
+   "element": "frost",
+   "tipColor": "#f2fbff",
+   "midGradientColor": "#4d8fae",
+   "gemColor": "#8fd4f0",
+   "runeColor": "#d6f2ff",
+   "shardColor": "#b8e6fa",
+   "effectPreset": "glacial",
+   "style": {
+    "silhouette": "obelisk",
+    "bladeWidth": 4,
+    "bladeLength": 10,
+    "guardStyle": "sigil",
+    "handleStyle": "ribbed",
+    "pommelStyle": "flattened",
+    "surface": "frost",
+    "runeInlay": true,
+    "gem": true,
+    "gemShape": "hex",
+    "gradientBlade": true
+   }
+  },
+  "Tenrei": {
+   "name": "大威太刀 天零",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "天空より零れ落ちた大威の太刀。金と白の対比が神威を表す。",
+   "palette": {
+    "blade": "#e8e2cf",
+    "bladeEdge": "#fffdf2",
+    "bladeCore": "#b3a98c",
+    "guard": "#c9a24a",
+    "guardAccent": "#fff3c4",
+    "handle": "#3a2418",
+    "handleAccent": "#8a5a2c",
+    "pommel": "#c9a24a",
+    "outline": "#2b2416",
+    "spur": "#fff3c4"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#f3eddb",
+   "gemColor": "#ffd970",
+   "runeColor": "#fff3c4",
+   "shardColor": "#ffe9a8",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "nodachi",
+    "bladeWidth": 2,
+    "bladeLength": 12,
+    "guardStyle": "tsuba",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "tassel",
+    "surface": "hamon",
+    "horimono": true,
+    "gem": true,
+    "gemShape": "circle",
+    "filigree": true,
+    "gradientBlade": true
+   }
+  },
+  "Goutetsu": {
+   "name": "業鉄 / Goutetsu",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "業を帯びた鉄。二度折れ、それでも繋がっている。",
+   "palette": {
+    "blade": "#3a3630",
+    "bladeEdge": "#8f887c",
+    "bladeCore": "#1e1b17",
+    "guard": "#2a2622",
+    "guardAccent": "#b06a2c",
+    "handle": "#1a1613",
+    "handleAccent": "#4a3a2a",
+    "pommel": "#b06a2c",
+    "outline": "#080706",
+    "spur": "#c9793a"
+   },
+   "element": "shadow",
+   "tipColor": "#c9793a",
+   "midGradientColor": "#4a443c",
+   "gemColor": "#b06a2c",
+   "runeColor": "#8f887c",
+   "shardColor": "#6b6459",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "fractured",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "asymmetric",
+    "handleStyle": "chain",
+    "pommelStyle": "flattened",
+    "surface": "worn",
+    "gradientBlade": true
+   }
+  },
+  "SuisekiTenen": {
+   "name": "彗棘天淵 / Comet Thorn",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "アーティファクト設計図 AF1。彗星の棘が天淵を穿つ。",
+   "palette": {
+    "blade": "#2a2450",
+    "bladeEdge": "#cfd8ff",
+    "bladeCore": "#141030",
+    "guard": "#3d2f6b",
+    "guardAccent": "#ffd97a",
+    "handle": "#1a1638",
+    "handleAccent": "#4a3f7a",
+    "pommel": "#ffd97a",
+    "outline": "#06050f",
+    "spur": "#ffd97a"
+   },
+   "element": "arcane",
+   "tipColor": "#fff3cf",
+   "midGradientColor": "#4a4090",
+   "gemColor": "#ffd97a",
+   "runeColor": "#cfd8ff",
+   "shardColor": "#9fb0ff",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "fang",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "barbed",
+    "handleStyle": "wire",
+    "pommelStyle": "ring",
+    "surface": "starfield",
+    "spurs": true,
+    "spurCount": 4,
+    "gem": true,
+    "gemShape": "star",
+    "runeInlay": true,
+    "gradientBlade": true,
+    "holographic": true
+   }
+  },
+  "TitanShield": {
+   "name": "金剛撃盾 TitanShield",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "AF2。打撃と防御を兼ねた金剛の巨盾型武器。",
+   "palette": {
+    "blade": "#8a7c4e",
+    "bladeEdge": "#f0e2b0",
+    "bladeCore": "#54492c",
+    "guard": "#6b5f3a",
+    "guardAccent": "#ffe9a8",
+    "handle": "#3a3120",
+    "handleAccent": "#7a6840",
+    "pommel": "#ffe9a8",
+    "outline": "#1c1709",
+    "spur": "#f0e2b0"
+   },
+   "element": "holy",
+   "tipColor": "#fffaea",
+   "midGradientColor": "#b8a670",
+   "gemColor": "#ffd970",
+   "runeColor": "#f0e2b0",
+   "shardColor": "#e0cf98",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "mace",
+    "bladeWidth": 4,
+    "bladeLength": 8,
+    "guardStyle": "cross",
+    "handleStyle": "studded",
+    "pommelStyle": "flattened",
+    "surface": "gilded",
+    "filigree": true,
+    "gem": true,
+    "gemShape": "circle",
+    "pommelBand": true,
+    "gradientBlade": true
+   }
+  },
+  "ShuenHouken": {
+   "name": "終焉の宝剣 / Sword of the End",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "AF4。終わりを告げる宝剣。虚無の縁が静かに光る。",
+   "palette": {
+    "blade": "#1a1430",
+    "bladeEdge": "#a98fd6",
+    "bladeCore": "#0a0718",
+    "guard": "#2e2350",
+    "guardAccent": "#e0c8ff",
+    "handle": "#120e22",
+    "handleAccent": "#3d3160",
+    "pommel": "#e0c8ff",
+    "outline": "#04030a",
+    "spur": "#c9a6ff"
+   },
+   "element": "void",
+   "tipColor": "#e0c8ff",
+   "midGradientColor": "#2e2350",
+   "gemColor": "#a98fd6",
+   "runeColor": "#c9a6ff",
+   "shardColor": "#8f76c4",
+   "effectPreset": "voidborn",
+   "style": {
+    "silhouette": "essence",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "none",
+    "handleStyle": "wire",
+    "pommelStyle": "orb",
+    "surface": "ender",
+    "gem": true,
+    "gemShape": "marquise",
+    "runeInlay": true,
+    "edgeGradient": true,
+    "gradientBlade": true,
+    "holographic": true
+   }
+  },
+  "HoshiNoMichibiki": {
+   "name": "星の導き / Guiding Star",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "AF5。道を示す淡い光。金属ではなく光そのものの刃。",
+   "palette": {
+    "blade": "#cfd8ee",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#9aa8cc",
+    "guard": "#d9c48a",
+    "guardAccent": "#fff6dc",
+    "handle": "#4a4458",
+    "handleAccent": "#8a82a0",
+    "pommel": "#fff6dc",
+    "outline": "#2c2f3c",
+    "spur": "#fff6dc"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#e8eef8",
+   "gemColor": "#ffe9a8",
+   "runeColor": "#fff6dc",
+   "shardColor": "#dfe8f8",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "ribbon",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "sigil",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "ring",
+    "surface": "luminous",
+    "gem": true,
+    "gemShape": "star",
+    "sparkle": true,
+    "gradientBlade": true
+   }
+  },
+  "ShinenNoGouka": {
+   "name": "思念の業火 / Thought Hellfire",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "闇森の-drop。思念が形を持った業火。絹のように揺らめく。",
+   "palette": {
+    "blade": "#7a2410",
+    "bladeEdge": "#ffc46b",
+    "bladeCore": "#3d1006",
+    "guard": "#4a1c0c",
+    "guardAccent": "#ff9a3d",
+    "handle": "#2a1008",
+    "handleAccent": "#6b2c14",
+    "pommel": "#ff9a3d",
+    "outline": "#170602",
+    "spur": "#ffc46b"
+   },
+   "element": "flame",
+   "tipColor": "#fff0c4",
+   "midGradientColor": "#b8481c",
+   "gemColor": "#ff9a3d",
+   "runeColor": "#ffc46b",
+   "shardColor": "#ff7a2e",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "ribbon",
+    "bladeWidth": 2,
+    "bladeLength": 12,
+    "guardStyle": "none",
+    "handleStyle": "cord",
+    "pommelStyle": "tassel",
+    "surface": "magma",
+    "particles": true,
+    "edgeGradient": true,
+    "gradientBlade": true
+   }
+  },
+  "ZetsugenNoKoori": {
+   "name": "絶幻の氷 / Absolute Illusion Ice",
+   "category": "serverpack",
+   "tier": "Epic",
+   "desc": "1〜5層の報酬。幻のように消える、絶対零度の薄刃。",
+   "palette": {
+    "blade": "#8fd4e8",
+    "bladeEdge": "#f2fdff",
+    "bladeCore": "#4a9ab5",
+    "guard": "#3d7a8f",
+    "guardAccent": "#d6f4ff",
+    "handle": "#1c3038",
+    "handleAccent": "#4a7080",
+    "pommel": "#d6f4ff",
+    "outline": "#0b2028",
+    "spur": "#f2fdff"
+   },
+   "element": "frost",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#b8e8f5",
+   "gemColor": "#8fd4e8",
+   "runeColor": "#d6f4ff",
+   "shardColor": "#cdeef8",
+   "effectPreset": "glacial",
+   "style": {
+    "silhouette": "sakura",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "crescent",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "crescent",
+    "surface": "frost",
+    "crystalShards": true,
+    "sparkle": true,
+    "gradientBlade": true
+   }
+  },
+  "KokuMaKenGran": {
+   "name": "黒魔剣グラン / Black Magic Sword Gran",
+   "category": "serverpack",
+   "tier": "Epic",
+   "desc": "低レベル帯の定番。黒魔の気配を纏う骨組みの剣。",
+   "palette": {
+    "blade": "#2b2536",
+    "bladeEdge": "#7a6b96",
+    "bladeCore": "#14101c",
+    "guard": "#3a2f4d",
+    "guardAccent": "#9b6bd6",
+    "handle": "#1a1524",
+    "handleAccent": "#453860",
+    "pommel": "#9b6bd6",
+    "outline": "#07050c",
+    "spur": "#7a6b96"
+   },
+   "element": "shadow",
+   "tipColor": "#c9a6ff",
+   "midGradientColor": "#3a2f4d",
+   "gemColor": "#9b6bd6",
+   "runeColor": "#7a6b96",
+   "shardColor": "#5c4d78",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "spine",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "dread",
+    "handleStyle": "bone",
+    "pommelStyle": "skull",
+    "surface": "bone",
+    "boneSpurs": true,
+    "runeInlay": true,
+    "gradientBlade": true
+   }
+  },
+  "Levatein": {
+   "name": "宝剣レーヴァテイン / Laevatein",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "神炎と神閃の二面を持つ伝説の宝剣。",
+   "palette": {
+    "blade": "#8f3a12",
+    "bladeEdge": "#ffd97a",
+    "bladeCore": "#4d1c06",
+    "guard": "#6b3410",
+    "guardAccent": "#ffe9a8",
+    "handle": "#2e1608",
+    "handleAccent": "#7a4420",
+    "pommel": "#ffe9a8",
+    "outline": "#1c0a02",
+    "spur": "#ffd97a"
+   },
+   "element": "flame",
+   "tipColor": "#fff6dc",
+   "midGradientColor": "#d9691f",
+   "gemColor": "#ffb03d",
+   "runeColor": "#ffd97a",
+   "shardColor": "#ff8a3d",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "fang",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "wing",
+    "surface": "nightflame",
+    "gem": true,
+    "gemShape": "diamond",
+    "tipGlow": true,
+    "edgeGradient": true,
+    "gradientBlade": true
+   }
+  },
+  "Seiryoukai": {
+   "name": "星瞭海 / Starlit Sea",
+   "category": "serverpack",
+   "tier": "Legendary",
+   "desc": "星が見える海。広範囲を薙ぐ、水面のような刃。",
+   "palette": {
+    "blade": "#1f4f6b",
+    "bladeEdge": "#a8e8f5",
+    "bladeCore": "#0e2c40",
+    "guard": "#2a5f7a",
+    "guardAccent": "#ffe9a8",
+    "handle": "#14262f",
+    "handleAccent": "#3d6b80",
+    "pommel": "#ffe9a8",
+    "outline": "#05151f",
+    "spur": "#a8e8f5"
+   },
+   "element": "ocean",
+   "tipColor": "#e8fbff",
+   "midGradientColor": "#3d8fb0",
+   "gemColor": "#ffd97a",
+   "runeColor": "#a8e8f5",
+   "shardColor": "#7ad0e8",
+   "effectPreset": "tidal",
+   "style": {
+    "silhouette": "lotus",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "crescent",
+    "handleStyle": "cord",
+    "pommelStyle": "orb",
+    "surface": "prismarine",
+    "gem": true,
+    "gemShape": "teardrop",
+    "gradientBlade": true,
+    "edgeGradient": true
+   }
+  },
+  "TeniMuhouZan": {
+   "name": "天衣無縫斬 / Seamless Slash",
+   "category": "serverpack",
+   "tier": "Mythic",
+   "desc": "継ぎ目のない一刀。刃文が天衣のように流れる。",
+   "palette": {
+    "blade": "#d8dce8",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#a0a8bc",
+    "guard": "#c9a24a",
+    "guardAccent": "#fff6dc",
+    "handle": "#2e2438",
+    "handleAccent": "#6b5a80",
+    "pommel": "#c9a24a",
+    "outline": "#22242e",
+    "spur": "#fff6dc"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#eef1f8",
+   "gemColor": "#ffd97a",
+   "runeColor": "#fff6dc",
+   "shardColor": "#dfe4f0",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "uchigatana",
+    "bladeWidth": 2,
+    "bladeLength": 12,
+    "guardStyle": "tsuba",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "tassel",
+    "surface": "notare",
+    "horimono": true,
+    "ricasso": true,
+    "filigree": true,
+    "gradientBlade": true
+   }
+  },
+  "RubySword": {
+   "name": "ルビーの剣 / Ruby Sword",
+   "category": "gemtools",
+   "tier": "Epic",
+   "desc": "深紅のルビーを刃に研磨。素直な宝石ツールの基本形。",
+   "palette": {
+    "blade": "#9b1030",
+    "bladeEdge": "#ff8fa3",
+    "bladeCore": "#5c0718",
+    "guard": "#3a2a1c",
+    "guardAccent": "#ffd166",
+    "handle": "#2a1a12",
+    "handleAccent": "#7a5a3a",
+    "pommel": "#ff5f74",
+    "outline": "#1a0409",
+    "spur": "#ff8fa3"
+   },
+   "element": "blood",
+   "tipColor": "#ffd2d8",
+   "midGradientColor": "#c2183c",
+   "gemColor": "#ff3355",
+   "runeColor": "#ff8fa3",
+   "shardColor": "#ff5f74",
+   "effectPreset": "infernum",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true,
+    "gradientBlade": true
+   }
+  },
+  "SapphireSword": {
+   "name": "サファイアの剣 / Sapphire Sword",
+   "category": "gemtools",
+   "tier": "Epic",
+   "desc": "蒼青のサファイア。透明感のある冷たい光沢。",
+   "palette": {
+    "blade": "#1448a0",
+    "bladeEdge": "#a8d8ff",
+    "bladeCore": "#0a2760",
+    "guard": "#20304d",
+    "guardAccent": "#c9d8f0",
+    "handle": "#151d2e",
+    "handleAccent": "#3b4d70",
+    "pommel": "#57a6ff",
+    "outline": "#040c1e",
+    "spur": "#a8d8ff"
+   },
+   "element": "ocean",
+   "tipColor": "#e6f4ff",
+   "midGradientColor": "#1e5fc4",
+   "gemColor": "#3b82f6",
+   "runeColor": "#a8d8ff",
+   "shardColor": "#57a6ff",
+   "effectPreset": "tidal",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true,
+    "gradientBlade": true
+   }
+  },
+  "EmeraldSword": {
+   "name": "エメラルドの剣 / Emerald Sword",
+   "category": "gemtools",
+   "tier": "Epic",
+   "desc": "深緑のエメラルド。 jungleの王の宝石。",
+   "palette": {
+    "blade": "#17a55a",
+    "bladeEdge": "#a8f5c0",
+    "bladeCore": "#0b5c30",
+    "guard": "#1e3a24",
+    "guardAccent": "#ffe08a",
+    "handle": "#14251a",
+    "handleAccent": "#2e5c3e",
+    "pommel": "#3ddc84",
+    "outline": "#03140a",
+    "spur": "#a8f5c0"
+   },
+   "element": "nature",
+   "tipColor": "#e6ffee",
+   "midGradientColor": "#1fc466",
+   "gemColor": "#22c55e",
+   "runeColor": "#a8f5c0",
+   "shardColor": "#3ddc84",
+   "effectPreset": "sylvan",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true,
+    "gradientBlade": true
+   }
+  },
+  "TopazSword": {
+   "name": "トパーズの剣 / Topaz Sword",
+   "category": "gemtools",
+   "tier": "Rare",
+   "desc": "黄金のトパーズ。陽光を煮詰めたような暖色。",
+   "palette": {
+    "blade": "#d9900f",
+    "bladeEdge": "#ffe9a8",
+    "bladeCore": "#8a5406",
+    "guard": "#3a2a14",
+    "guardAccent": "#fff2c2",
+    "handle": "#2a1e10",
+    "handleAccent": "#6b4a1e",
+    "pommel": "#fbbf24",
+    "outline": "#1c1204",
+    "spur": "#ffe9a8"
+   },
+   "element": "holy",
+   "tipColor": "#fffbe6",
+   "midGradientColor": "#f0a818",
+   "gemColor": "#f59e0b",
+   "runeColor": "#ffe9a8",
+   "shardColor": "#fbbf24",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true,
+    "gradientBlade": true
+   }
+  },
+  "OnyxSword": {
+   "name": "オニキスの剣 / Onyx Sword",
+   "category": "gemtools",
+   "tier": "Epic",
+   "desc": "漆黒のオニキス。光を吸う黒曜の宝石。",
+   "palette": {
+    "blade": "#1c1a22",
+    "bladeEdge": "#5c5568",
+    "bladeCore": "#0c0a10",
+    "guard": "#141218",
+    "guardAccent": "#8b7fa3",
+    "handle": "#0e0c12",
+    "handleAccent": "#2e2838",
+    "pommel": "#7c3aed",
+    "outline": "#030208",
+    "spur": "#5c5568"
+   },
+   "element": "shadow",
+   "tipColor": "#c4b5fd",
+   "midGradientColor": "#2d2440",
+   "gemColor": "#8b5cf6",
+   "runeColor": "#5c5568",
+   "shardColor": "#6b21a8",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "gem",
+    "surface": "obsidian",
+    "gem": true,
+    "gemShape": "diamond",
+    "fuller": true
+   }
+  },
+  "DragonsteelFire": {
+   "name": "火竜鋼の剣 / Fire Dragonsteel",
+   "category": "dragon",
+   "tier": "Legendary",
+   "desc": "Fire Dragonの血で鍛えた竜鋼。Ice & Fire Modの ENDGAME武器。",
+   "palette": {
+    "blade": "#8a2c0e",
+    "bladeEdge": "#ffb457",
+    "bladeCore": "#431505",
+    "guard": "#5c2410",
+    "guardAccent": "#ff8c1a",
+    "handle": "#2a1208",
+    "handleAccent": "#b45309",
+    "pommel": "#f97316",
+    "outline": "#1c0902",
+    "spur": "#ffb457"
+   },
+   "element": "flame",
+   "tipColor": "#fff0c4",
+   "midGradientColor": "#c2410c",
+   "gemColor": "#f97316",
+   "runeColor": "#ffb457",
+   "shardColor": "#fb923c",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "dread",
+    "handleStyle": "dragon_scale",
+    "pommelStyle": "spiked",
+    "surface": "dragonsteel",
+    "gem": true,
+    "gemShape": "diamond",
+    "spurs": true,
+    "spurCount": 3,
+    "gradientBlade": true,
+    "tipGlow": true
+   }
+  },
+  "DragonsteelIce": {
+   "name": "氷竜鋼の剣 / Ice Dragonsteel",
+   "category": "dragon",
+   "tier": "Legendary",
+   "desc": "Ice Dragonの血で鍛えた竜鋼。凍てつく永遠の冬。",
+   "palette": {
+    "blade": "#1e5a78",
+    "bladeEdge": "#c9f0ff",
+    "bladeCore": "#0c2c3e",
+    "guard": "#163244",
+    "guardAccent": "#a5e8ff",
+    "handle": "#0e1f2a",
+    "handleAccent": "#2e5a70",
+    "pommel": "#06b6d4",
+    "outline": "#041219",
+    "spur": "#c9f0ff"
+   },
+   "element": "frost",
+   "tipColor": "#f0fbff",
+   "midGradientColor": "#2478a8",
+   "gemColor": "#06b6d4",
+   "runeColor": "#c9f0ff",
+   "shardColor": "#67e8f9",
+   "effectPreset": "glacial",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "dread",
+    "handleStyle": "dragon_scale",
+    "pommelStyle": "spiked",
+    "surface": "dragonsteel",
+    "gem": true,
+    "gemShape": "diamond",
+    "spurs": true,
+    "spurCount": 3,
+    "gradientBlade": true,
+    "tipGlow": true
+   }
+  },
+  "DragonsteelLightning": {
+   "name": "雷竜鋼の剣 / Lightning Dragonsteel",
+   "category": "dragon",
+   "tier": "Legendary",
+   "desc": "Lightning Dragonの血で鍛えた竜鋼。稲妻を纏う。",
+   "palette": {
+    "blade": "#4a3a6e",
+    "bladeEdge": "#e0d0ff",
+    "bladeCore": "#231a38",
+    "guard": "#2e2444",
+    "guardAccent": "#c4b5fd",
+    "handle": "#1a1428",
+    "handleAccent": "#4c3a68",
+    "pommel": "#a78bfa",
+    "outline": "#0c0814",
+    "spur": "#e0d0ff"
+   },
+   "element": "lightning",
+   "tipColor": "#f5f0ff",
+   "midGradientColor": "#5b4a8a",
+   "gemColor": "#a78bfa",
+   "runeColor": "#e0d0ff",
+   "shardColor": "#c4b5fd",
+   "effectPreset": "stormcaller",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "dread",
+    "handleStyle": "dragon_scale",
+    "pommelStyle": "spiked",
+    "surface": "dragonsteel",
+    "gem": true,
+    "gemShape": "diamond",
+    "spurs": true,
+    "spurCount": 3,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "lightning": true
+   }
+  },
+  "DragonboneSword": {
+   "name": "竜骨の剣 / Dragonbone Sword",
+   "category": "dragon",
+   "tier": "Rare",
+   "desc": "Dragon Boneを削り出した素朴な白骨刃。アップグレードの素地。",
+   "palette": {
+    "blade": "#e8e0cc",
+    "bladeEdge": "#fffbe8",
+    "bladeCore": "#b8ae94",
+    "guard": "#8a7a5c",
+    "guardAccent": "#d9c9a0",
+    "handle": "#3a2e1c",
+    "handleAccent": "#6b5a38",
+    "pommel": "#c4b490",
+    "outline": "#1e1808",
+    "spur": "#fffbe8"
+   },
+   "element": "none",
+   "tipColor": "#fffbf0",
+   "midGradientColor": "#d4c8a8",
+   "gemColor": "#d4d4d8",
+   "runeColor": "#b8ae94",
+   "shardColor": "#e8e0cc",
+   "effectPreset": "calm",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "bone",
+    "pommelStyle": "round",
+    "surface": "dragonbone",
+    "gem": false,
+    "fuller": false,
+    "gradientBlade": true
+   }
+  },
+  "WitherbornScythe": {
+   "name": "禍々しき大鎌 / Witherborn Scythe",
+   "category": "dragon",
+   "tier": "Mythic",
+   "desc": "Witherの呪いを帯びた呪われた大鎌。見る者に不安を植え付ける。",
+   "palette": {
+    "blade": "#2b1a35",
+    "bladeEdge": "#a855f7",
+    "bladeCore": "#140a1c",
+    "guard": "#1f1428",
+    "guardAccent": "#c084fc",
+    "handle": "#0e0814",
+    "handleAccent": "#4c1d95",
+    "pommel": "#7e22ce",
+    "outline": "#050208",
+    "spur": "#a855f7"
+   },
+   "element": "shadow",
+   "tipColor": "#e9d5ff",
+   "midGradientColor": "#3b2060",
+   "gemColor": "#a855f7",
+   "runeColor": "#c084fc",
+   "shardColor": "#9333ea",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "glaive",
+    "bladeWidth": 3,
+    "bladeLength": 12,
+    "guardStyle": "dread",
+    "handleStyle": "bone",
+    "pommelStyle": "skull",
+    "surface": "ender",
+    "gem": true,
+    "gemShape": "circle",
+    "boneSpurs": true,
+    "spurs": true,
+    "spurCount": 4,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "particles": true
+   }
+  },
+  "ChainsawBlade": {
+   "name": "チェーンソーブレード / Chainsaw Sword",
+   "category": "machine",
+   "tier": "Epic",
+   "desc": "回転する鋸刃が敵を引き裂く工業武器。ガソリンの匂い。",
+   "palette": {
+    "blade": "#6b7280",
+    "bladeEdge": "#e5e7eb",
+    "bladeCore": "#374151",
+    "guard": "#1f2937",
+    "guardAccent": "#fbbf24",
+    "handle": "#111827",
+    "handleAccent": "#f97316",
+    "pommel": "#fbbf24",
+    "outline": "#0a0e14",
+    "spur": "#e5e7eb"
+   },
+   "element": "lightning",
+   "tipColor": "#fef3c7",
+   "midGradientColor": "#4b5563",
+   "gemColor": "#fbbf24",
+   "runeColor": "#e5e7eb",
+   "shardColor": "#9ca3af",
+   "effectPreset": "stormcaller",
+   "style": {
+    "silhouette": "cleaver",
+    "bladeWidth": 4,
+    "bladeLength": 9,
+    "guardStyle": "jagged",
+    "handleStyle": "studded",
+    "pommelStyle": "flattened",
+    "surface": "circuit",
+    "gem": true,
+    "gemShape": "hex",
+    "serrated": true,
+    "spurs": true,
+    "spurCount": 4,
+    "gradientBlade": false
+   }
+  },
+  "IonRepeater": {
+   "name": "イオンリピーター / Ion Repeater",
+   "category": "machine",
+   "tier": "Legendary",
+   "desc": "エネルギーセル駆動の近未来剣。青白いプラズマが刃となる。",
+   "palette": {
+    "blade": "#0ea5e9",
+    "bladeEdge": "#e0f2fe",
+    "bladeCore": "#075985",
+    "guard": "#1e293b",
+    "guardAccent": "#38bdf8",
+    "handle": "#0f172a",
+    "handleAccent": "#0ea5e9",
+    "pommel": "#38bdf8",
+    "outline": "#020617",
+    "spur": "#e0f2fe"
+   },
+   "element": "lightning",
+   "tipColor": "#f0f9ff",
+   "midGradientColor": "#0284c7",
+   "gemColor": "#22d3ee",
+   "runeColor": "#38bdf8",
+   "shardColor": "#7dd3fc",
+   "effectPreset": "stellar",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "crescent",
+    "handleStyle": "ribbed",
+    "pommelStyle": "disc",
+    "surface": "circuit",
+    "gem": true,
+    "gemShape": "hex",
+    "holographic": true,
+    "gradientBlade": true,
+    "tipGlow": true
+   }
+  },
+  "SteamworkAxe": {
+   "name": "蒸気機関の斧 / Steamwork Axe",
+   "category": "machine",
+   "tier": "Rare",
+   "desc": "蒸気圧で駆動する工業斧。レトロフューチャーの塊。",
+   "palette": {
+    "blade": "#92400e",
+    "bladeEdge": "#fcd34d",
+    "bladeCore": "#451a03",
+    "guard": "#292524",
+    "guardAccent": "#facc15",
+    "handle": "#1c1917",
+    "handleAccent": "#a16207",
+    "pommel": "#eab308",
+    "outline": "#140c06",
+    "spur": "#fcd34d"
+   },
+   "element": "flame",
+   "tipColor": "#fef9c3",
+   "midGradientColor": "#b45309",
+   "gemColor": "#f59e0b",
+   "runeColor": "#fcd34d",
+   "shardColor": "#facc15",
+   "effectPreset": "infernal",
+   "style": {
+    "silhouette": "battleaxe",
+    "bladeWidth": 4,
+    "bladeLength": 8,
+    "guardStyle": "straight",
+    "handleStyle": "studded",
+    "pommelStyle": "flattened",
+    "surface": "circuit",
+    "gem": true,
+    "gemShape": "circle",
+    "gradientBlade": true
+   }
+  },
+  "ArcaneFocusBlade": {
+   "name": "秘術の焦点剣 / Arcane Focus Blade",
+   "category": "magic",
+   "tier": "Epic",
+   "desc": "魔力を収束する焦点装置付きの魔術剣。ルーンが脈打つ。",
+   "palette": {
+    "blade": "#6d28d9",
+    "bladeEdge": "#ddd6fe",
+    "bladeCore": "#3b0764",
+    "guard": "#4c1d95",
+    "guardAccent": "#c4b5fd",
+    "handle": "#2e1065",
+    "handleAccent": "#7c3aed",
+    "pommel": "#a78bfa",
+    "outline": "#170a2b",
+    "spur": "#ddd6fe"
+   },
+   "element": "arcane",
+   "tipColor": "#f5f3ff",
+   "midGradientColor": "#7c3aed",
+   "gemColor": "#a78bfa",
+   "runeColor": "#c4b5fd",
+   "shardColor": "#8b5cf6",
+   "effectPreset": "stellar",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 2,
+    "bladeLength": 11,
+    "guardStyle": "sigil",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "orb",
+    "surface": "simply_runic",
+    "gem": true,
+    "gemShape": "circle",
+    "runeInlay": true,
+    "gradientBlade": true,
+    "holographic": true,
+    "tipGlow": true
+   }
+  },
+  "Necronomicon": {
+   "name": "ネクロノミコン / Necronomic Blade",
+   "category": "magic",
+   "tier": "Legendary",
+   "desc": "禁呪の書から生まれた骨の魔剣。囁き声が聞こえる。",
+   "palette": {
+    "blade": "#365314",
+    "bladeEdge": "#bef264",
+    "bladeCore": "#1a2e05",
+    "guard": "#3f6212",
+    "guardAccent": "#a3e635",
+    "handle": "#1c2e0a",
+    "handleAccent": "#65a30d",
+    "pommel": "#84cc16",
+    "outline": "#0a1403",
+    "spur": "#bef264"
+   },
+   "element": "poison",
+   "tipColor": "#f7fce7",
+   "midGradientColor": "#4d7c0f",
+   "gemColor": "#a3e635",
+   "runeColor": "#bef264",
+   "shardColor": "#65a30d",
+   "effectPreset": "verdant",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "dread",
+    "handleStyle": "bone",
+    "pommelStyle": "skull",
+    "surface": "bone",
+    "gem": true,
+    "gemShape": "diamond",
+    "runeInlay": true,
+    "boneSpurs": true,
+    "gradientBlade": true,
+    "particles": true
+   }
+  },
+  "ElementalTrinity": {
+   "name": "三元の魔剣 / Elemental Trinity",
+   "category": "magic",
+   "tier": "Mythic",
+   "desc": "炎・氷・雷の三属性を一刀に封じた超装飾魔法剣。",
+   "palette": {
+    "blade": "#7c3aed",
+    "bladeEdge": "#fef08a",
+    "bladeCore": "#1e1065",
+    "guard": "#f97316",
+    "guardAccent": "#38bdf8",
+    "handle": "#1e1b4b",
+    "handleAccent": "#c084fc",
+    "pommel": "#22d3ee",
+    "outline": "#0d0a1f",
+    "spur": "#fef08a"
+   },
+   "element": "arcane",
+   "tipColor": "#fef9c3",
+   "midGradientColor": "#9333ea",
+   "gemColor": "#38bdf8",
+   "runeColor": "#f97316",
+   "shardColor": "#e879f9",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 12,
+    "guardStyle": "sigil",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "orb",
+    "surface": "dualtone",
+    "gem": true,
+    "gemShape": "star",
+    "runeInlay": true,
+    "spurs": true,
+    "spurCount": 3,
+    "crystalShards": true,
+    "filigree": true,
+    "gradientBlade": true,
+    "holographic": true,
+    "tipGlow": true,
+    "sparkle": true
+   }
+  },
+  "HolyAvenger": {
+   "name": "ホーリーアベンジャー / Holy Avenger",
+   "category": "holy",
+   "tier": "Legendary",
+   "desc": "聖騎士の誓いが込められた聖剣。闇を浄化する白金の輝き。",
+   "palette": {
+    "blade": "#fef3c7",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#f59e0b",
+    "guard": "#d97706",
+    "guardAccent": "#fffbeb",
+    "handle": "#78350f",
+    "handleAccent": "#fbbf24",
+    "pommel": "#fde68a",
+    "outline": "#451a03",
+    "spur": "#ffffff"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#fde68a",
+   "gemColor": "#fbbf24",
+   "runeColor": "#fff7ed",
+   "shardColor": "#fef08a",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "gem",
+    "surface": "divine",
+    "gem": true,
+    "gemShape": "marquise",
+    "runeInlay": true,
+    "filigree": true,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "sparkle": true
+   }
+  },
+  "SeraphBlade": {
+   "name": "熾天使の剣 / Seraph Blade",
+   "category": "holy",
+   "tier": "Mythic",
+   "desc": "六枚の翼を持つ熾天使の剣。全てを照らす光。",
+   "palette": {
+    "blade": "#ffffff",
+    "bladeEdge": "#ffffff",
+    "bladeCore": "#bfdbfe",
+    "guard": "#fbbf24",
+    "guardAccent": "#fef08a",
+    "handle": "#1e3a8a",
+    "handleAccent": "#93c5fd",
+    "pommel": "#fde68a",
+    "outline": "#312e81",
+    "spur": "#fef08a"
+   },
+   "element": "holy",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#ffffff",
+   "gemColor": "#fde047",
+   "runeColor": "#fef9c3",
+   "shardColor": "#ffffff",
+   "effectPreset": "celestial",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 12,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "wing",
+    "surface": "luminous",
+    "gem": true,
+    "gemShape": "star",
+    "filigree": true,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "sparkle": true,
+    "particles": true
+   }
+  },
+  "CursedMurmur": {
+   "name": "呪詛の囁き / Cursed Murmur",
+   "category": "cursed",
+   "tier": "Legendary",
+   "desc": "触れた者の心に囁きかける呪われた刃。禍々しい気配。",
+   "palette": {
+    "blade": "#3b0764",
+    "bladeEdge": "#a21caf",
+    "bladeCore": "#1e0430",
+    "guard": "#2e1065",
+    "guardAccent": "#d946ef",
+    "handle": "#170a2e",
+    "handleAccent": "#6b21a8",
+    "pommel": "#a21caf",
+    "outline": "#0a0216",
+    "spur": "#d946ef"
+   },
+   "element": "shadow",
+   "tipColor": "#f5d0fe",
+   "midGradientColor": "#701a75",
+   "gemColor": "#c026d3",
+   "runeColor": "#d946ef",
+   "shardColor": "#a21caf",
+   "effectPreset": "necrotic",
+   "style": {
+    "silhouette": "flamberge",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "dread",
+    "handleStyle": "bone",
+    "pommelStyle": "skull",
+    "surface": "ender",
+    "gem": true,
+    "gemShape": "circle",
+    "runeInlay": true,
+    "boneSpurs": true,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "particles": true
+   }
+  },
+  "Bloodhunger": {
+   "name": "血の飢え / Bloodhunger",
+   "category": "cursed",
+   "tier": "Legendary",
+   "desc": "血を啜る呪物の剣。持ち主の生気を少しずつ奪う。",
+   "palette": {
+    "blade": "#7f1d1d",
+    "bladeEdge": "#fca5a5",
+    "bladeCore": "#450a0a",
+    "guard": "#2c0707",
+    "guardAccent": "#ef4444",
+    "handle": "#1c0505",
+    "handleAccent": "#991b1b",
+    "pommel": "#dc2626",
+    "outline": "#140202",
+    "spur": "#fca5a5"
+   },
+   "element": "blood",
+   "tipColor": "#fee2e2",
+   "midGradientColor": "#b91c1c",
+   "gemColor": "#ef4444",
+   "runeColor": "#fca5a5",
+   "shardColor": "#dc2626",
+   "effectPreset": "infernum",
+   "style": {
+    "silhouette": "fang",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "barbed",
+    "handleStyle": "leather",
+    "pommelStyle": "fang",
+    "surface": "nightflame",
+    "gem": true,
+    "gemShape": "teardrop",
+    "spurs": true,
+    "spurCount": 3,
+    "gradientBlade": true,
+    "tipGlow": true,
+    "particles": true
+   }
+  },
+  "VoidDevourer": {
+   "name": "虚無を喰らう者 / Void Devourer",
+   "category": "cursed",
+   "tier": "Mythic",
+   "desc": "虚無そのものが刃になった災厄。存在を消し去る。",
+   "palette": {
+    "blade": "#0c0a1a",
+    "bladeEdge": "#8b5cf6",
+    "bladeCore": "#020208",
+    "guard": "#1e1b4b",
+    "guardAccent": "#a78bfa",
+    "handle": "#050410",
+    "handleAccent": "#4c1d95",
+    "pommel": "#7c3aed",
+    "outline": "#000000",
+    "spur": "#a78bfa"
+   },
+   "element": "void",
+   "tipColor": "#c4b5fd",
+   "midGradientColor": "#1e1b4b",
+   "gemColor": "#8b5cf6",
+   "runeColor": "#a78bfa",
+   "shardColor": "#6d28d9",
+   "effectPreset": "voidborn",
+   "style": {
+    "silhouette": "essence",
+    "bladeWidth": 3,
+    "bladeLength": 12,
+    "guardStyle": "none",
+    "handleStyle": "wire",
+    "pommelStyle": "orb",
+    "surface": "ender",
+    "gem": true,
+    "gemShape": "marquise",
+    "runeInlay": true,
+    "gradientBlade": true,
+    "holographic": true,
+    "tipGlow": true,
+    "shatter": true,
+    "lightning": true
+   }
+  },
+  "IronGuard": {
+   "name": "鉄衛の剣 / Iron Guard",
+   "category": "simple",
+   "tier": "Uncommon",
+   "desc": "誰にでも扱える素朴な鉄の剣。装飾なし、実用一点張り。",
+   "palette": {
+    "blade": "#d4d4d8",
+    "bladeEdge": "#fafafa",
+    "bladeCore": "#a1a1aa",
+    "guard": "#71717a",
+    "guardAccent": "#e4e4e7",
+    "handle": "#3f2d1a",
+    "handleAccent": "#57534e",
+    "pommel": "#a1a1aa",
+    "outline": "#18181b",
+    "spur": "#fafafa"
+   },
+   "element": "none",
+   "tipColor": "#fafafa",
+   "midGradientColor": "#d4d4d8",
+   "gemColor": "#e4e4e7",
+   "runeColor": "#a1a1aa",
+   "shardColor": "#d4d4d8",
+   "effectPreset": "calm",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "straight",
+    "handleStyle": "leather",
+    "pommelStyle": "round",
+    "surface": "vanilla",
+    "gem": false,
+    "filigree": false,
+    "gradientBlade": true
+   }
+  },
+  "BronzeAge": {
+   "name": "青銅器時代の剣 / Bronze Age",
+   "category": "simple",
+   "tier": "Common",
+   "desc": "古代の青銅剣。歴史を感じる緑青の質感。",
+   "palette": {
+    "blade": "#a16207",
+    "bladeEdge": "#fde047",
+    "bladeCore": "#713f12",
+    "guard": "#57534e",
+    "guardAccent": "#d97706",
+    "handle": "#44403c",
+    "handleAccent": "#a8a29e",
+    "pommel": "#78716c",
+    "outline": "#1c1917",
+    "spur": "#fde047"
+   },
+   "element": "none",
+   "tipColor": "#fef08a",
+   "midGradientColor": "#a16207",
+   "gemColor": "#d97706",
+   "runeColor": "#fde047",
+   "shardColor": "#a16207",
+   "effectPreset": "calm",
+   "style": {
+    "silhouette": "gladius",
+    "bladeWidth": 3,
+    "bladeLength": 8,
+    "guardStyle": "round",
+    "handleStyle": "smooth",
+    "pommelStyle": "disc",
+    "surface": "worn",
+    "gem": false,
+    "filigree": false,
+    "gradientBlade": true
+   }
+  },
+  "ObsidianEdge": {
+   "name": "黒曜石の刃 / Obsidian Edge",
+   "category": "simple",
+   "tier": "Rare",
+   "desc": "黒曜石を割って作った刃。マヤの儀式刀の実用版。",
+   "palette": {
+    "blade": "#1c1917",
+    "bladeEdge": "#52525b",
+    "bladeCore": "#0c0a09",
+    "guard": "#292524",
+    "guardAccent": "#a8a29e",
+    "handle": "#1c1917",
+    "handleAccent": "#44403c",
+    "pommel": "#78716c",
+    "outline": "#000000",
+    "spur": "#52525b"
+   },
+   "element": "none",
+   "tipColor": "#d4d4d8",
+   "midGradientColor": "#292524",
+   "gemColor": "#71717a",
+   "runeColor": "#52525b",
+   "shardColor": "#3f3f46",
+   "effectPreset": "calm",
+   "style": {
+    "silhouette": "macuahuitl",
+    "bladeWidth": 4,
+    "bladeLength": 9,
+    "guardStyle": "straight",
+    "handleStyle": "smooth",
+    "pommelStyle": "round",
+    "surface": "obsidian",
+    "gem": false,
+    "filigree": false,
+    "gradientBlade": false
+   }
+  },
+  "PrismaticBlade": {
+   "name": "プリズムブレード / Prismatic Blade",
+   "category": "rainbow",
+   "tier": "Legendary",
+   "desc": "全波長の光を反射する虹彩の刃。見る角度で色が変わる。",
+   "palette": {
+    "blade": "#a855f7",
+    "bladeEdge": "#fef08a",
+    "bladeCore": "#6366f1",
+    "guard": "#8b5cf6",
+    "guardAccent": "#f0abfc",
+    "handle": "#312e81",
+    "handleAccent": "#c084fc",
+    "pommel": "#22d3ee",
+    "outline": "#1e1b4b",
+    "spur": "#fef08a"
+   },
+   "element": "arcane",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#8b5cf6",
+   "gemColor": "#f0abfc",
+   "runeColor": "#a5f3fc",
+   "shardColor": "#fbcfe8",
+   "effectPreset": "astral",
+   "style": {
+    "silhouette": "straight",
+    "bladeWidth": 3,
+    "bladeLength": 11,
+    "guardStyle": "wings",
+    "handleStyle": "gold_ribbon",
+    "pommelStyle": "gem",
+    "surface": "crystal",
+    "gem": true,
+    "gemShape": "diamond",
+    "crystalShards": true,
+    "gradientBlade": true,
+    "holographic": true,
+    "tipGlow": true,
+    "sparkle": true
+   }
+  },
+  "ChromaticFang": {
+   "name": "彩色の牙 / Chromatic Fang",
+   "category": "rainbow",
+   "tier": "Epic",
+   "desc": "色が流れるように移り変わる牙状の刃。",
+   "palette": {
+    "blade": "#f43f5e",
+    "bladeEdge": "#fde68a",
+    "bladeCore": "#8b5cf6",
+    "guard": "#d946ef",
+    "guardAccent": "#5eead4",
+    "handle": "#4c1d95",
+    "handleAccent": "#f0abfc",
+    "pommel": "#22d3ee",
+    "outline": "#2e1065",
+    "spur": "#fde68a"
+   },
+   "element": "arcane",
+   "tipColor": "#ffffff",
+   "midGradientColor": "#d946ef",
+   "gemColor": "#2dd4bf",
+   "runeColor": "#fde68a",
+   "shardColor": "#f0abfc",
+   "effectPreset": "stellar",
+   "style": {
+    "silhouette": "fang",
+    "bladeWidth": 3,
+    "bladeLength": 10,
+    "guardStyle": "crescent",
+    "handleStyle": "wrapped_parchment",
+    "pommelStyle": "gem",
+    "surface": "dualtone",
+    "gem": true,
+    "gemShape": "teardrop",
+    "gradientBlade": true,
+    "holographic": true,
+    "tipGlow": true,
+    "sparkle": true
+   }
+  }
+ },
+ "palette_kits": [
+  {
+   "id": "silver",
+   "label": "月銀 / Moonsteel",
+   "element": "none",
+   "accent": "#ccdbe7",
+   "surfaces": [
+    "polished",
+    "damascus",
+    "hamon",
+    "hammered",
+    "suguha",
+    "notare",
+    "gunome",
+    "bevel",
+    "faithful",
+    "vanilla_plus"
+   ],
+   "palette": {
+    "blade": "#95a7bd",
+    "bladeEdge": "#edf1f4",
+    "bladeCore": "#49596e",
+    "guard": "#69798b",
+    "guardAccent": "#ccdbe7",
+    "handle": "#282935",
+    "handleAccent": "#49596e",
+    "pommel": "#69798b",
+    "outline": "#141522",
+    "spur": "#49596e"
+   }
+  },
+  {
+   "id": "iron",
+   "label": "鍛鉄 / Iron",
+   "element": "none",
+   "accent": "#b8bcc4",
+   "surfaces": [
+    "polished",
+    "hammered",
+    "worn",
+    "damascus",
+    "suguha",
+    "gunome",
+    "bevel",
+    "vanilla_plus"
+   ],
+   "palette": {
+    "blade": "#8c8f96",
+    "bladeEdge": "#dadde2",
+    "bladeCore": "#4a4d55",
+    "guard": "#5e6068",
+    "guardAccent": "#b8bcc4",
+    "handle": "#3a2e28",
+    "handleAccent": "#4a4d55",
+    "pommel": "#5e6068",
+    "outline": "#141522",
+    "spur": "#4a4d55"
+   }
+  },
+  {
+   "id": "gold",
+   "label": "純金 / Gold",
+   "element": "holy",
+   "accent": "#ffe9a8",
+   "surfaces": [
+    "gilded",
+    "polished",
+    "etched",
+    "divine",
+    "luminous",
+    "rengoku"
+   ],
+   "palette": {
+    "blade": "#d6b45a",
+    "bladeEdge": "#fff2c2",
+    "bladeCore": "#8a6a24",
+    "guard": "#a67c2c",
+    "guardAccent": "#ffe9a8",
+    "handle": "#3b2f2a",
+    "handleAccent": "#8a6a24",
+    "pommel": "#a67c2c",
+    "outline": "#141522",
+    "spur": "#8a6a24"
+   }
+  },
+  {
+   "id": "royal",
+   "label": "王金 / Sovereign",
+   "element": "holy",
+   "accent": "#ead29d",
+   "surfaces": [
+    "polished",
+    "etched",
+    "gilded",
+    "divine",
+    "luminous",
+    "rengoku"
+   ],
+   "palette": {
+    "blade": "#c5c1b2",
+    "bladeEdge": "#fff9e8",
+    "bladeCore": "#7e808e",
+    "guard": "#b99654",
+    "guardAccent": "#ead29d",
+    "handle": "#343047",
+    "handleAccent": "#7e808e",
+    "pommel": "#b99654",
+    "outline": "#141522",
+    "spur": "#7e808e"
+   }
+  },
+  {
+   "id": "rosegold",
+   "label": "薔薇金 / Rose Gold",
+   "element": "holy",
+   "accent": "#f5cfc0",
+   "surfaces": [
+    "polished",
+    "etched",
+    "gilded",
+    "rengoku",
+    "divine"
+   ],
+   "palette": {
+    "blade": "#d4a08a",
+    "bladeEdge": "#ffe6da",
+    "bladeCore": "#8a5a48",
+    "guard": "#b07a60",
+    "guardAccent": "#f5cfc0",
+    "handle": "#3a2a2e",
+    "handleAccent": "#8a5a48",
+    "pommel": "#b07a60",
+    "outline": "#141522",
+    "spur": "#8a5a48"
+   }
+  },
+  {
+   "id": "bronze",
+   "label": "青銅 / Bronze",
+   "element": "none",
+   "accent": "#c8a86a",
+   "surfaces": [
+    "worn",
+    "hammered",
+    "etched",
+    "banded",
+    "gunome",
+    "kinsuji",
+    "notare"
+   ],
+   "palette": {
+    "blade": "#b08a5a",
+    "bladeEdge": "#e8d0a0",
+    "bladeCore": "#5e4a2a",
+    "guard": "#7a6236",
+    "guardAccent": "#c8a86a",
+    "handle": "#2e2a26",
+    "handleAccent": "#5e4a2a",
+    "pommel": "#7a6236",
+    "outline": "#141522",
+    "spur": "#5e4a2a"
+   }
+  },
+  {
+   "id": "copper",
+   "label": "緑青 / Patina",
+   "element": "ocean",
+   "accent": "#9fd9c0",
+   "surfaces": [
+    "worn",
+    "banded",
+    "hammered",
+    "notare",
+    "gunome"
+   ],
+   "palette": {
+    "blade": "#8fa892",
+    "bladeEdge": "#dbeadb",
+    "bladeCore": "#3f5e52",
+    "guard": "#a06a48",
+    "guardAccent": "#9fd9c0",
+    "handle": "#2c2a2a",
+    "handleAccent": "#3f5e52",
+    "pommel": "#a06a48",
+    "outline": "#141522",
+    "spur": "#3f5e52"
+   }
+  },
+  {
+   "id": "glacier",
+   "label": "氷晶 / Glacier",
+   "element": "frost",
+   "accent": "#a6eeec",
+   "surfaces": [
+    "frost",
+    "crystal",
+    "polished",
+    "suguha",
+    "luminous",
+    "notare"
+   ],
+   "palette": {
+    "blade": "#8dc9d8",
+    "bladeEdge": "#e8ffff",
+    "bladeCore": "#396784",
+    "guard": "#aa8d59",
+    "guardAccent": "#a6eeec",
+    "handle": "#242638",
+    "handleAccent": "#396784",
+    "pommel": "#aa8d59",
+    "outline": "#141522",
+    "spur": "#396784"
+   }
+  },
+  {
+   "id": "frostbone",
+   "label": "霜骨 / Frostbone",
+   "element": "frost",
+   "accent": "#c1ecf2",
+   "surfaces": [
+    "bone",
+    "frost",
+    "worn",
+    "gunome",
+    "notare"
+   ],
+   "palette": {
+    "blade": "#c9d6d8",
+    "bladeEdge": "#f4fbfb",
+    "bladeCore": "#6c7f86",
+    "guard": "#8c9aa0",
+    "guardAccent": "#c1ecf2",
+    "handle": "#2a3038",
+    "handleAccent": "#6c7f86",
+    "pommel": "#8c9aa0",
+    "outline": "#141522",
+    "spur": "#6c7f86"
+   }
+  },
+  {
+   "id": "prismarine",
+   "label": "海晶 / Prismarine",
+   "element": "ocean",
+   "accent": "#9fe3d8",
+   "surfaces": [
+    "prismarine",
+    "scales",
+    "polished",
+    "whorl",
+    "dragonscale"
+   ],
+   "palette": {
+    "blade": "#6fb3ad",
+    "bladeEdge": "#d2f5ef",
+    "bladeCore": "#2f5f5e",
+    "guard": "#8a9a70",
+    "guardAccent": "#9fe3d8",
+    "handle": "#233238",
+    "handleAccent": "#2f5f5e",
+    "pommel": "#8a9a70",
+    "outline": "#141522",
+    "spur": "#2f5f5e"
+   }
+  },
+  {
+   "id": "abyss",
+   "label": "深海 / Abyss",
+   "element": "ocean",
+   "accent": "#7fc4dc",
+   "surfaces": [
+    "scales",
+    "banded",
+    "worn",
+    "whorl",
+    "dragonscale",
+    "dualtone"
+   ],
+   "palette": {
+    "blade": "#4f7a93",
+    "bladeEdge": "#bfe3f2",
+    "bladeCore": "#22394a",
+    "guard": "#5c6d78",
+    "guardAccent": "#7fc4dc",
+    "handle": "#1c2430",
+    "handleAccent": "#22394a",
+    "pommel": "#5c6d78",
+    "outline": "#141522",
+    "spur": "#22394a"
+   }
+  },
+  {
+   "id": "jade",
+   "label": "翠玉 / Jade",
+   "element": "nature",
+   "accent": "#b5deab",
+   "surfaces": [
+    "polished",
+    "etched",
+    "crystal",
+    "divine",
+    "whorl"
+   ],
+   "palette": {
+    "blade": "#89b7a1",
+    "bladeEdge": "#def7e2",
+    "bladeCore": "#406c65",
+    "guard": "#a28b57",
+    "guardAccent": "#b5deab",
+    "handle": "#26352f",
+    "handleAccent": "#406c65",
+    "pommel": "#a28b57",
+    "outline": "#141522",
+    "spur": "#406c65"
+   }
+  },
+  {
+   "id": "emerald",
+   "label": "翡翠 / Emerald",
+   "element": "nature",
+   "accent": "#9be7b9",
+   "surfaces": [
+    "crystal",
+    "polished",
+    "whorl",
+    "dragonscale"
+   ],
+   "palette": {
+    "blade": "#4fae7e",
+    "bladeEdge": "#c9f5dc",
+    "bladeCore": "#1f5d43",
+    "guard": "#7d7f5a",
+    "guardAccent": "#9be7b9",
+    "handle": "#22302a",
+    "handleAccent": "#1f5d43",
+    "pommel": "#7d7f5a",
+    "outline": "#141522",
+    "spur": "#1f5d43"
+   }
+  },
+  {
+   "id": "venom",
+   "label": "毒緑 / Venom",
+   "element": "poison",
+   "accent": "#c6ef8a",
+   "surfaces": [
+    "banded",
+    "scales",
+    "worn",
+    "inazuma",
+    "dualtone"
+   ],
+   "palette": {
+    "blade": "#8fb26a",
+    "bladeEdge": "#e4f7c3",
+    "bladeCore": "#4a5e2c",
+    "guard": "#5f6a52",
+    "guardAccent": "#c6ef8a",
+    "handle": "#282c22",
+    "handleAccent": "#4a5e2c",
+    "pommel": "#5f6a52",
+    "outline": "#141522",
+    "spur": "#4a5e2c"
+   }
+  },
+  {
+   "id": "ember",
+   "label": "熾火 / Ember",
+   "element": "flame",
+   "accent": "#f7b378",
+   "surfaces": [
+    "magma",
+    "damascus",
+    "hammered",
+    "rengoku",
+    "nightflame",
+    "kinsuji"
+   ],
+   "palette": {
+    "blade": "#99756e",
+    "bladeEdge": "#ffe1ba",
+    "bladeCore": "#523e4a",
+    "guard": "#946851",
+    "guardAccent": "#f7b378",
+    "handle": "#2b222d",
+    "handleAccent": "#523e4a",
+    "pommel": "#946851",
+    "outline": "#141522",
+    "spur": "#523e4a"
+   }
+  },
+  {
+   "id": "netherite",
+   "label": "ネザライト / Netherite",
+   "element": "flame",
+   "accent": "#c9925a",
+   "surfaces": [
+    "banded",
+    "worn",
+    "magma",
+    "nightflame",
+    "rengoku",
+    "choji"
+   ],
+   "palette": {
+    "blade": "#5a4e52",
+    "bladeEdge": "#b8a8a4",
+    "bladeCore": "#2c2426",
+    "guard": "#3f3538",
+    "guardAccent": "#c9925a",
+    "handle": "#241e20",
+    "handleAccent": "#2c2426",
+    "pommel": "#3f3538",
+    "outline": "#141522",
+    "spur": "#2c2426"
+   }
+  },
+  {
+   "id": "obsidian",
+   "label": "黒曜 / Obsidian",
+   "element": "void",
+   "accent": "#a67cf0",
+   "surfaces": [
+    "obsidian",
+    "ender",
+    "crystal",
+    "dualtone",
+    "helix",
+    "nightflame"
+   ],
+   "palette": {
+    "blade": "#4a3d5e",
+    "bladeEdge": "#c4b0e6",
+    "bladeCore": "#1d1628",
+    "guard": "#3a3142",
+    "guardAccent": "#a67cf0",
+    "handle": "#1c1822",
+    "handleAccent": "#1d1628",
+    "pommel": "#3a3142",
+    "outline": "#141522",
+    "spur": "#1d1628"
+   }
+  },
+  {
+   "id": "void",
+   "label": "宵闇 / Dusk",
+   "element": "void",
+   "accent": "#b6a2e3",
+   "surfaces": [
+    "obsidian",
+    "starfield",
+    "polished",
+    "dualtone",
+    "helix",
+    "nightflame",
+    "luminous"
+   ],
+   "palette": {
+    "blade": "#746986",
+    "bladeEdge": "#ddd2f0",
+    "bladeCore": "#373044",
+    "guard": "#686179",
+    "guardAccent": "#b6a2e3",
+    "handle": "#211e2c",
+    "handleAccent": "#373044",
+    "pommel": "#686179",
+    "outline": "#141522",
+    "spur": "#373044"
+   }
+  },
+  {
+   "id": "ender",
+   "label": "終末 / Ender",
+   "element": "void",
+   "accent": "#8f5fe0",
+   "surfaces": [
+    "ender",
+    "obsidian",
+    "starfield",
+    "dualtone",
+    "helix",
+    "nightflame"
+   ],
+   "palette": {
+    "blade": "#3a3244",
+    "bladeEdge": "#b79ce8",
+    "bladeCore": "#17121e",
+    "guard": "#2f2938",
+    "guardAccent": "#8f5fe0",
+    "handle": "#16121c",
+    "handleAccent": "#17121e",
+    "pommel": "#2f2938",
+    "outline": "#141522",
+    "spur": "#17121e"
+   }
+  },
+  {
+   "id": "amethyst",
+   "label": "紫水晶 / Amethyst",
+   "element": "arcane",
+   "accent": "#d8bcff",
+   "surfaces": [
+    "amethyst",
+    "crystal",
+    "starfield",
+    "dualtone",
+    "whorl",
+    "luminous"
+   ],
+   "palette": {
+    "blade": "#9f86c8",
+    "bladeEdge": "#efe2ff",
+    "bladeCore": "#4f3c72",
+    "guard": "#6c5c86",
+    "guardAccent": "#d8bcff",
+    "handle": "#2a2434",
+    "handleAccent": "#4f3c72",
+    "pommel": "#6c5c86",
+    "outline": "#141522",
+    "spur": "#4f3c72"
+   }
+  },
+  {
+   "id": "astral",
+   "label": "星鋼 / Astral",
+   "element": "arcane",
+   "accent": "#cbb8f0",
+   "surfaces": [
+    "starfield",
+    "circuit",
+    "polished",
+    "divine",
+    "luminous",
+    "dualtone",
+    "whorl"
+   ],
+   "palette": {
+    "blade": "#a293c1",
+    "bladeEdge": "#efe7ff",
+    "bladeCore": "#534768",
+    "guard": "#7d7095",
+    "guardAccent": "#cbb8f0",
+    "handle": "#292333",
+    "handleAccent": "#534768",
+    "pommel": "#7d7095",
+    "outline": "#141522",
+    "spur": "#534768"
+   }
+  },
+  {
+   "id": "blood",
+   "label": "紅鉄 / Crimson",
+   "element": "blood",
+   "accent": "#e19aa6",
+   "surfaces": [
+    "damascus",
+    "worn",
+    "banded",
+    "rengoku",
+    "choji",
+    "dualtone"
+   ],
+   "palette": {
+    "blade": "#926979",
+    "bladeEdge": "#f4c9d0",
+    "bladeCore": "#4c2d43",
+    "guard": "#706574",
+    "guardAccent": "#e19aa6",
+    "handle": "#291e2b",
+    "handleAccent": "#4c2d43",
+    "pommel": "#706574",
+    "outline": "#141522",
+    "spur": "#4c2d43"
+   }
+  },
+  {
+   "id": "nightshade",
+   "label": "夜影 / Nightshade",
+   "element": "shadow",
+   "accent": "#9a8fbd",
+   "surfaces": [
+    "obsidian",
+    "polished",
+    "worn",
+    "dualtone",
+    "inazuma",
+    "kinsuji"
+   ],
+   "palette": {
+    "blade": "#5c5670",
+    "bladeEdge": "#c9c2dc",
+    "bladeCore": "#2b2738",
+    "guard": "#48435a",
+    "guardAccent": "#9a8fbd",
+    "handle": "#1d1a26",
+    "handleAccent": "#2b2738",
+    "pommel": "#48435a",
+    "outline": "#141522",
+    "spur": "#2b2738"
+   }
+  },
+  {
+   "id": "stormsteel",
+   "label": "嵐鋼 / Stormsteel",
+   "element": "lightning",
+   "accent": "#c5ceff",
+   "surfaces": [
+    "circuit",
+    "polished",
+    "damascus",
+    "inazuma",
+    "dualtone",
+    "divine"
+   ],
+   "palette": {
+    "blade": "#8f9bbf",
+    "bladeEdge": "#e9edff",
+    "bladeCore": "#3f4870",
+    "guard": "#636a8c",
+    "guardAccent": "#c5ceff",
+    "handle": "#262a3a",
+    "handleAccent": "#3f4870",
+    "pommel": "#636a8c",
+    "outline": "#141522",
+    "spur": "#3f4870"
+   }
+  },
+  {
+   "id": "sakura",
+   "label": "桜 / Sakura",
+   "element": "nature",
+   "accent": "#f6c9d3",
+   "surfaces": [
+    "hamon",
+    "polished",
+    "etched",
+    "choji",
+    "suguha",
+    "rengoku",
+    "divine"
+   ],
+   "palette": {
+    "blade": "#d9b4bf",
+    "bladeEdge": "#fff0f3",
+    "bladeCore": "#7d5a66",
+    "guard": "#8d7a70",
+    "guardAccent": "#f6c9d3",
+    "handle": "#332a30",
+    "handleAccent": "#7d5a66",
+    "pommel": "#8d7a70",
+    "outline": "#141522",
+    "spur": "#7d5a66"
+   }
+  },
+  {
+   "id": "driftwood",
+   "label": "流木 / Driftwood",
+   "element": "nature",
+   "accent": "#c7b092",
+   "surfaces": [
+    "wood",
+    "worn",
+    "gunome"
+   ],
+   "palette": {
+    "blade": "#a8927a",
+    "bladeEdge": "#e6d7c2",
+    "bladeCore": "#5e4c3c",
+    "guard": "#6f6154",
+    "guardAccent": "#c7b092",
+    "handle": "#2e2823",
+    "handleAccent": "#5e4c3c",
+    "pommel": "#6f6154",
+    "outline": "#141522",
+    "spur": "#5e4c3c"
+   }
+  }
+ ],
+ "themes": [
+  {
+   "id": "classic",
+   "label": "クラシック",
+   "name": "Tempered",
+   "description": "輪郭と金属の質感を主役に。",
+   "blades": [
+    "straight",
+    "dagger",
+    "cutlass",
+    "spear",
+    "sabre",
+    "estoc",
+    "jian",
+    "bow"
+   ],
+   "palettes": [
+    "silver",
+    "iron",
+    "royal"
+   ],
+   "elements": [
+    "none",
+    "frost"
+   ],
+   "pommels": [
+    "round",
+    "ring",
+    "disc",
+    "tassel"
+   ],
+   "guards": [
+    "straight",
+    "cross",
+    "rapier",
+    "round",
+    "swept",
+    "shell",
+    "jian"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "smooth",
+    "cord"
+   ],
+   "surfaces": [
+    "polished",
+    "hammered",
+    "damascus",
+    "worn",
+    "vanilla",
+    "vanilla_plus",
+    "faithful",
+    "bevel",
+    "suguha",
+    "notare"
+   ]
+  },
+  {
+   "id": "royal",
+   "label": "ロイヤル",
+   "name": "Sovereign",
+   "description": "整った刀身に、控えめな金細工。",
+   "blades": [
+    "straight",
+    "claymore",
+    "rapier",
+    "zweihander",
+    "lotus"
+   ],
+   "palettes": [
+    "royal",
+    "gold",
+    "silver",
+    "rosegold"
+   ],
+   "elements": [
+    "holy",
+    "lightning",
+    "none"
+   ],
+   "pommels": [
+    "gem",
+    "round",
+    "orb",
+    "flattened"
+   ],
+   "guards": [
+    "cross",
+    "wings",
+    "rapier",
+    "straight",
+    "shell",
+    "sigil"
+   ],
+   "grips": [
+    "wire",
+    "gold_ribbon",
+    "leather",
+    "ribbed"
+   ],
+   "surfaces": [
+    "polished",
+    "etched",
+    "gilded",
+    "bevel",
+    "vanilla",
+    "divine",
+    "luminous",
+    "skyblock"
+   ]
+  },
+  {
+   "id": "eastern",
+   "label": "オリエンタル",
+   "name": "Silent",
+   "description": "反りのある刃と、小ぶりな鍔。",
+   "blades": [
+    "katana",
+    "nodachi",
+    "tanto",
+    "scimitar",
+    "uchigatana",
+    "lotus",
+    "sakura",
+    "liuyedao"
+   ],
+   "palettes": [
+    "silver",
+    "sakura",
+    "jade",
+    "glacier"
+   ],
+   "elements": [
+    "none",
+    "frost",
+    "lightning",
+    "nature"
+   ],
+   "pommels": [
+    "ring",
+    "round",
+    "disc",
+    "chain",
+    "tassel"
+   ],
+   "guards": [
+    "tsuba",
+    "round",
+    "crescent",
+    "straight"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord",
+    "leather",
+    "gold_ribbon"
+   ],
+   "surfaces": [
+    "hamon",
+    "damascus",
+    "polished",
+    "vanilla",
+    "faithful",
+    "suguha",
+    "gunome",
+    "choji",
+    "notare",
+    "inazuma",
+    "kinsuji",
+    "rengoku"
+   ]
+  },
+  {
+   "id": "abyssal",
+   "label": "アビサル",
+   "name": "Duskborn",
+   "description": "重い刀身に、ひとつの鋭いアクセント。",
+   "blades": [
+    "claymore",
+    "flamberge",
+    "glaive",
+    "cleaver",
+    "battleaxe",
+    "mace",
+    "spine",
+    "fractured"
+   ],
+   "palettes": [
+    "void",
+    "blood",
+    "ember",
+    "obsidian",
+    "nightshade"
+   ],
+   "elements": [
+    "void",
+    "shadow",
+    "blood",
+    "flame"
+   ],
+   "pommels": [
+    "fang",
+    "spiked",
+    "skull",
+    "chain"
+   ],
+   "guards": [
+    "jagged",
+    "barbed",
+    "dread",
+    "cross",
+    "hooked",
+    "asymmetric"
+   ],
+   "grips": [
+    "bone",
+    "dragon_scale",
+    "leather",
+    "chain"
+   ],
+   "surfaces": [
+    "obsidian",
+    "damascus",
+    "worn",
+    "banded",
+    "bone",
+    "ender",
+    "ifire",
+    "helix",
+    "nightflame",
+    "dualtone"
+   ]
+  },
+  {
+   "id": "crystal",
+   "label": "クリスタル",
+   "name": "Frostbound",
+   "description": "透き通る寒色と、小さな結晶の装飾。",
+   "blades": [
+    "straight",
+    "claymore",
+    "twinblade",
+    "estoc",
+    "geode"
+   ],
+   "palettes": [
+    "glacier",
+    "amethyst",
+    "astral",
+    "emerald"
+   ],
+   "elements": [
+    "frost",
+    "arcane"
+   ],
+   "pommels": [
+    "gem",
+    "ring",
+    "orb"
+   ],
+   "guards": [
+    "straight",
+    "wings",
+    "cross",
+    "round"
+   ],
+   "grips": [
+    "wire",
+    "smooth",
+    "leather"
+   ],
+   "surfaces": [
+    "crystal",
+    "frost",
+    "amethyst",
+    "starfield",
+    "luminous",
+    "dragonscale",
+    "skyblock"
+   ]
+  },
+  {
+   "id": "nether",
+   "label": "ネザー",
+   "name": "Infernal",
+   "description": "焦げた鋼と、溶岩の割れ目。",
+   "blades": [
+    "cleaver",
+    "claymore",
+    "falchion",
+    "glaive",
+    "fang",
+    "battleaxe"
+   ],
+   "palettes": [
+    "netherite",
+    "ember",
+    "obsidian"
+   ],
+   "elements": [
+    "flame",
+    "blood",
+    "shadow"
+   ],
+   "pommels": [
+    "spiked",
+    "skull",
+    "round"
+   ],
+   "guards": [
+    "jagged",
+    "barbed",
+    "straight",
+    "hooked"
+   ],
+   "grips": [
+    "chain",
+    "studded",
+    "leather",
+    "bone"
+   ],
+   "surfaces": [
+    "magma",
+    "banded",
+    "worn",
+    "bone",
+    "ifire",
+    "nightflame",
+    "dragonscale"
+   ]
+  },
+  {
+   "id": "ocean",
+   "label": "オーシャン",
+   "name": "Tidecaller",
+   "description": "海晶のタイルと、鱗の光沢。",
+   "blades": [
+    "scimitar",
+    "spear",
+    "cutlass",
+    "falchion",
+    "jian",
+    "trident"
+   ],
+   "palettes": [
+    "prismarine",
+    "abyss",
+    "copper"
+   ],
+   "elements": [
+    "ocean",
+    "frost"
+   ],
+   "pommels": [
+    "orb",
+    "round",
+    "crescent",
+    "tassel"
+   ],
+   "guards": [
+    "shell",
+    "crescent",
+    "round",
+    "straight"
+   ],
+   "grips": [
+    "cord",
+    "wire",
+    "leather"
+   ],
+   "surfaces": [
+    "prismarine",
+    "scales",
+    "worn",
+    "bevel",
+    "whorl",
+    "dragonscale"
+   ]
+  },
+  {
+   "id": "verdant",
+   "label": "ヴァーダント",
+   "name": "Wildgrown",
+   "description": "翠玉と木目、生きた曲線。",
+   "blades": [
+    "kris",
+    "gladius",
+    "spear",
+    "scimitar",
+    "lotus",
+    "bow"
+   ],
+   "palettes": [
+    "jade",
+    "emerald",
+    "driftwood",
+    "venom"
+   ],
+   "elements": [
+    "nature",
+    "poison"
+   ],
+   "pommels": [
+    "orb",
+    "round",
+    "wing",
+    "tassel"
+   ],
+   "guards": [
+    "crescent",
+    "wings",
+    "straight",
+    "round"
+   ],
+   "grips": [
+    "cord",
+    "wrapped_parchment",
+    "leather"
+   ],
+   "surfaces": [
+    "wood",
+    "etched",
+    "crystal",
+    "scales",
+    "jade",
+    "whorl",
+    "dragonscale"
+   ]
+  },
+  {
+   "id": "ancient",
+   "label": "エンシェント",
+   "name": "Relic",
+   "description": "青銅と摩耗、遺跡から掘り出した刃。",
+   "blades": [
+    "gladius",
+    "khopesh",
+    "falchion",
+    "macuahuitl",
+    "nine_ring",
+    "jian",
+    "warpick",
+    "pickaxe",
+    "obelisk"
+   ],
+   "palettes": [
+    "bronze",
+    "copper",
+    "iron",
+    "driftwood"
+   ],
+   "elements": [
+    "none",
+    "nature",
+    "holy"
+   ],
+   "pommels": [
+    "disc",
+    "round",
+    "ring",
+    "tassel",
+    "flattened"
+   ],
+   "guards": [
+    "straight",
+    "round",
+    "swept",
+    "jian",
+    "none"
+   ],
+   "grips": [
+    "ribbed",
+    "cord",
+    "leather",
+    "studded"
+   ],
+   "surfaces": [
+    "worn",
+    "hammered",
+    "banded",
+    "etched",
+    "bone",
+    "bevel",
+    "gunome",
+    "kinsuji"
+   ]
+  },
+  {
+   "id": "arcanotech",
+   "label": "アルカノテック",
+   "name": "Resonant",
+   "description": "回路と星鋼、静かに脈打つ光。",
+   "blades": [
+    "straight",
+    "twinblade",
+    "estoc",
+    "claymore",
+    "obelisk",
+    "geode"
+   ],
+   "palettes": [
+    "stormsteel",
+    "astral",
+    "amethyst"
+   ],
+   "elements": [
+    "lightning",
+    "arcane"
+   ],
+   "pommels": [
+    "gem",
+    "orb",
+    "disc",
+    "chain",
+    "flattened"
+   ],
+   "guards": [
+    "cross",
+    "wings",
+    "hooked",
+    "straight",
+    "sigil",
+    "round"
+   ],
+   "grips": [
+    "wire",
+    "ribbed",
+    "smooth"
+   ],
+   "surfaces": [
+    "circuit",
+    "starfield",
+    "polished",
+    "stormforged",
+    "divine",
+    "dualtone",
+    "whorl"
+   ]
+  },
+  {
+   "id": "assassin",
+   "label": "アサシン",
+   "name": "Whisper",
+   "description": "黒と細身、影に溶ける短刀。",
+   "blades": [
+    "dagger",
+    "tanto",
+    "kris",
+    "sabre",
+    "whip",
+    "jian",
+    "fang"
+   ],
+   "palettes": [
+    "nightshade",
+    "iron",
+    "obsidian"
+   ],
+   "elements": [
+    "shadow",
+    "poison",
+    "none"
+   ],
+   "pommels": [
+    "ring",
+    "round",
+    "fang",
+    "chain"
+   ],
+   "guards": [
+    "straight",
+    "swept",
+    "crescent",
+    "tsuba",
+    "none"
+   ],
+   "grips": [
+    "cord",
+    "leather",
+    "wire",
+    "wrapped_parchment"
+   ],
+   "surfaces": [
+    "obsidian",
+    "polished",
+    "worn",
+    "ender",
+    "bevel",
+    "dualtone",
+    "kinsuji",
+    "inazuma"
+   ]
+  },
+  {
+   "id": "celestial",
+   "label": "セレスティアル",
+   "name": "Dawnbringer",
+   "description": "白金と光、星を宿す刃。",
+   "blades": [
+    "straight",
+    "rapier",
+    "claymore",
+    "spear",
+    "jian",
+    "essence",
+    "ribbon"
+   ],
+   "palettes": [
+    "gold",
+    "royal",
+    "rosegold",
+    "astral"
+   ],
+   "elements": [
+    "holy",
+    "arcane"
+   ],
+   "pommels": [
+    "gem",
+    "wing",
+    "orb",
+    "flattened"
+   ],
+   "guards": [
+    "wings",
+    "cross",
+    "shell",
+    "straight",
+    "sigil",
+    "crescent",
+    "none"
+   ],
+   "grips": [
+    "gold_ribbon",
+    "wire",
+    "ribbed",
+    "cord"
+   ],
+   "surfaces": [
+    "gilded",
+    "starfield",
+    "etched",
+    "polished",
+    "faithful",
+    "vanilla",
+    "warmith",
+    "divine",
+    "luminous",
+    "rengoku"
+   ]
+  },
+  {
+   "id": "ultimate_skyblock",
+   "label": "Ultimate SkyBlock",
+   "name": "Relic Atlas",
+   "description": "Every drop gets a readable identity: dark UI, crisp silhouette, rarity accent.",
+   "blades": [
+    "straight",
+    "claymore",
+    "katana",
+    "dagger",
+    "bow",
+    "trident",
+    "mace",
+    "essence"
+   ],
+   "palettes": [
+    "royal",
+    "glacier",
+    "amethyst",
+    "astral",
+    "gold",
+    "netherite"
+   ],
+   "elements": [
+    "none",
+    "void",
+    "arcane",
+    "holy",
+    "lightning"
+   ],
+   "pommels": [
+    "gem",
+    "orb",
+    "ring",
+    "flattened"
+   ],
+   "guards": [
+    "straight",
+    "cross",
+    "wings",
+    "sigil",
+    "round",
+    "none"
+   ],
+   "grips": [
+    "wire",
+    "leather",
+    "gold_ribbon",
+    "wrapped_parchment"
+   ],
+   "surfaces": [
+    "ultimate_skyblock",
+    "skyblock",
+    "faithful",
+    "crystal",
+    "gilded",
+    "luminous"
+   ]
+  },
+  {
+   "id": "furfsky",
+   "label": "FurfSky Essence",
+   "name": "Dungeon Relics",
+   "description": "16x clarity with item-specific identity, gem facets and compact emissive accents.",
+   "blades": [
+    "straight",
+    "claymore",
+    "scimitar",
+    "dagger",
+    "rapier",
+    "katana",
+    "spear",
+    "bow"
+   ],
+   "palettes": [
+    "amethyst",
+    "abyss",
+    "glacier",
+    "jade",
+    "astral",
+    "blood"
+   ],
+   "elements": [
+    "void",
+    "arcane",
+    "frost",
+    "poison",
+    "blood"
+   ],
+   "pommels": [
+    "gem",
+    "fang",
+    "orb",
+    "ring"
+   ],
+   "guards": [
+    "straight",
+    "wings",
+    "crescent",
+    "round",
+    "rapier",
+    "sigil",
+    "none"
+   ],
+   "grips": [
+    "wire",
+    "leather",
+    "cord",
+    "dragon_scale"
+   ],
+   "surfaces": [
+    "furfsky",
+    "ultimate_skyblock",
+    "crystal",
+    "simply_runic",
+    "luminous",
+    "ender"
+   ]
+  },
+  {
+   "id": "hypixel_plus",
+   "label": "Hypixel+",
+   "name": "Vanilla Plus",
+   "description": "Vanilla readability first, cleaner values and a single authored accent per item.",
+   "blades": [
+    "straight",
+    "gladius",
+    "sabre",
+    "claymore",
+    "dagger",
+    "bow",
+    "battleaxe",
+    "pickaxe"
+   ],
+   "palettes": [
+    "silver",
+    "iron",
+    "gold",
+    "diamond",
+    "netherite",
+    "bronze"
+   ],
+   "elements": [
+    "none",
+    "holy",
+    "frost"
+   ],
+   "pommels": [
+    "round",
+    "ring",
+    "gem",
+    "flattened"
+   ],
+   "guards": [
+    "straight",
+    "cross",
+    "round",
+    "wings",
+    "swept",
+    "none"
+   ],
+   "grips": [
+    "leather",
+    "smooth",
+    "cord",
+    "ribbed"
+   ],
+   "surfaces": [
+    "hypixel_plus",
+    "vanilla",
+    "faithful",
+    "bevel",
+    "polished",
+    "spartan_forge"
+   ]
+  },
+  {
+   "id": "spartan_weaponry",
+   "label": "Spartan Weaponry",
+   "name": "Arsenal",
+   "description": "Every weapon type has a role: reach, sweep, thrown, two-handed, or precise.",
+   "blades": [
+    "dagger",
+    "straight",
+    "zweihander",
+    "katana",
+    "sabre",
+    "rapier",
+    "spear",
+    "glaive",
+    "battleaxe",
+    "warpick",
+    "bow",
+    "pickaxe"
+   ],
+   "palettes": [
+    "iron",
+    "bronze",
+    "silver",
+    "royal",
+    "copper",
+    "netherite"
+   ],
+   "elements": [
+    "none",
+    "flame",
+    "lightning",
+    "poison"
+   ],
+   "pommels": [
+    "round",
+    "disc",
+    "ring",
+    "flattened"
+   ],
+   "guards": [
+    "straight",
+    "cross",
+    "swept",
+    "hooked",
+    "jagged",
+    "shell"
+   ],
+   "grips": [
+    "leather",
+    "studded",
+    "cord",
+    "chain",
+    "ribbed"
+   ],
+   "surfaces": [
+    "spartan_forge",
+    "hammered",
+    "worn",
+    "damascus",
+    "bevel",
+    "faithful"
+   ]
+  },
+  {
+   "id": "dragonsteel",
+   "label": "Ice & Fire: Dragonsteel",
+   "name": "Dragonforge",
+   "description": "A forged base material with three elemental bloodlines: fire, ice, and lightning.",
+   "blades": [
+    "straight",
+    "claymore",
+    "zweihander",
+    "glaive",
+    "fang",
+    "spine",
+    "battleaxe",
+    "mace"
+   ],
+   "palettes": [
+    "ember",
+    "glacier",
+    "stormsteel",
+    "netherite",
+    "frostbone"
+   ],
+   "elements": [
+    "flame",
+    "frost",
+    "lightning"
+   ],
+   "pommels": [
+    "fang",
+    "spiked",
+    "gem",
+    "orb"
+   ],
+   "guards": [
+    "straight",
+    "dread",
+    "barbed",
+    "wings",
+    "jagged",
+    "sigil"
+   ],
+   "grips": [
+    "dragon_scale",
+    "bone",
+    "chain",
+    "leather"
+   ],
+   "surfaces": [
+    "dragonsteel",
+    "dragonbone",
+    "dragonscale",
+    "ifire",
+    "magma",
+    "frost",
+    "stormforged"
+   ]
+  },
+  {
+   "id": "simply_swords",
+   "label": "Simply Swords",
+   "name": "Runic Arsenal",
+   "description": "Weapon variants, runic powers, sockets and unique-loot identity without losing Minecraft readability.",
+   "blades": [
+    "straight",
+    "claymore",
+    "cutlass",
+    "glaive",
+    "battleaxe",
+    "mace",
+    "katana",
+    "rapier",
+    "spear",
+    "twinblade",
+    "sabre",
+    "whip"
+   ],
+   "palettes": [
+    "iron",
+    "gold",
+    "diamond",
+    "netherite",
+    "amethyst",
+    "ember",
+    "glacier"
+   ],
+   "elements": [
+    "none",
+    "flame",
+    "frost",
+    "lightning",
+    "nature",
+    "arcane"
+   ],
+   "pommels": [
+    "gem",
+    "orb",
+    "ring",
+    "fang",
+    "tassel"
+   ],
+   "guards": [
+    "straight",
+    "wings",
+    "cross",
+    "rapier",
+    "crescent",
+    "sigil"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "cord",
+    "dragon_scale",
+    "gold_ribbon"
+   ],
+   "surfaces": [
+    "simply_runic",
+    "damascus",
+    "gilded",
+    "circuit",
+    "crystal",
+    "dragonsteel",
+    "luminous"
+   ]
+  }
+ ],
+ "defaults": {
+  "size": 64,
+  "palette": {
+   "blade": "#8dc9d8",
+   "bladeEdge": "#e8ffff",
+   "bladeCore": "#396784",
+   "guard": "#aa8d59",
+   "guardAccent": "#a6eeec",
+   "handle": "#242638",
+   "handleAccent": "#396784",
+   "pommel": "#aa8d59",
+   "outline": "#141522",
+   "spur": "#396784"
+  },
+  "silhouette": "straight",
+  "bladeWidth": 3,
+  "bladeLength": 10,
+  "guardWidth": 4,
+  "handleLength": 3,
+  "guardStyle": "wings",
+  "handleStyle": "leather",
+  "pommelStyle": "gem",
+  "surface": "polished",
+  "fuller": false,
+  "fullerLength": 0.75,
+  "serrated": false,
+  "edgeHighlight": true,
+  "bevelLine": true,
+  "holographic": false,
+  "runeInlay": true,
+  "runeColor": "#a6eeec",
+  "gradientBlade": true,
+  "edgeGradient": false,
+  "ricasso": false,
+  "horimono": false,
+  "tipColor": "#e8ffff",
+  "midGradientColor": "#8dc9d8",
+  "spurs": false,
+  "spurCount": 2,
+  "boneSpurs": false,
+  "crystalShards": false,
+  "shardColor": "#a6eeec",
+  "pommelBand": true,
+  "gem": true,
+  "gemColor": "#a6eeec",
+  "gemShape": "diamond",
+  "gemGlow": true,
+  "filigree": true,
+  "element": "frost",
+  "elementIntensity": 0.28,
+  "effectPreset": "glacial",
+  "sheen": true,
+  "sheenSpeed": 0.6,
+  "sheenPos": 0.4,
+  "sparkle": true,
+  "sparkleDensity": 0.16,
+  "tipGlow": true,
+  "auraBloom": true,
+  "particles": false,
+  "lightning": false,
+  "shatter": false,
+  "runePulse": true,
+  "detailLevel": "rich",
+  "noise": 0.15,
+  "shading": 0.82,
+  "outline": true,
+  "outlineColorMode": "tinted",
+  "antiAlias": false,
+  "seed": 42816,
+  "surfaceSeed": 42816,
+  "effectSeed": 42816
+ },
+ "blade_profiles": {
+  "straight": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 4,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "cross",
+    "wings",
+    "swept"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "cord"
+   ],
+   "theme": "classic"
+  },
+  "claymore": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    10,
+    12
+   ],
+   "guard": 5,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "cross",
+    "wings",
+    "barbed",
+    "jagged",
+    "swept"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "bone",
+    "ribbed"
+   ],
+   "theme": "royal"
+  },
+  "zweihander": {
+   "width": [
+    3,
+    3
+   ],
+   "length": [
+    11,
+    12
+   ],
+   "guard": 5,
+   "handle": 5,
+   "slim": false,
+   "guards": [
+    "cross",
+    "straight",
+    "swept"
+   ],
+   "grips": [
+    "leather",
+    "ribbed",
+    "cord"
+   ],
+   "theme": "royal"
+  },
+  "gladius": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "round"
+   ],
+   "grips": [
+    "ribbed",
+    "leather",
+    "smooth"
+   ],
+   "theme": "ancient"
+  },
+  "dagger": {
+   "width": [
+    2,
+    2
+   ],
+   "length": [
+    5,
+    7
+   ],
+   "guard": 2,
+   "handle": 2,
+   "slim": true,
+   "guards": [
+    "straight",
+    "crescent",
+    "swept"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "smooth",
+    "cord"
+   ],
+   "theme": "assassin"
+  },
+  "estoc": {
+   "width": [
+    1,
+    1
+   ],
+   "length": [
+    11,
+    12
+   ],
+   "guard": 3,
+   "handle": 4,
+   "slim": true,
+   "guards": [
+    "cross",
+    "straight"
+   ],
+   "grips": [
+    "wire",
+    "leather"
+   ],
+   "theme": "classic"
+  },
+  "rapier": {
+   "width": [
+    1,
+    1
+   ],
+   "length": [
+    11,
+    12
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "rapier",
+    "shell",
+    "cross"
+   ],
+   "grips": [
+    "wire",
+    "gold_ribbon",
+    "leather"
+   ],
+   "theme": "royal"
+  },
+  "katana": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    10,
+    12
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": true,
+   "guards": [
+    "tsuba",
+    "round",
+    "straight"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord",
+    "leather"
+   ],
+   "theme": "eastern"
+  },
+  "nodachi": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    12,
+    12
+   ],
+   "guard": 2,
+   "handle": 5,
+   "slim": true,
+   "guards": [
+    "tsuba",
+    "round"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord"
+   ],
+   "theme": "eastern"
+  },
+  "tanto": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    5,
+    6
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "tsuba",
+    "round",
+    "straight"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord",
+    "smooth"
+   ],
+   "theme": "assassin"
+  },
+  "sabre": {
+   "width": [
+    2,
+    2
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "shell",
+    "swept",
+    "rapier"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "cord"
+   ],
+   "theme": "classic"
+  },
+  "scimitar": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "crescent",
+    "wings",
+    "straight"
+   ],
+   "grips": [
+    "leather",
+    "gold_ribbon",
+    "cord"
+   ],
+   "theme": "eastern"
+  },
+  "cutlass": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "shell",
+    "rapier",
+    "crescent"
+   ],
+   "grips": [
+    "leather",
+    "wire",
+    "cord"
+   ],
+   "theme": "classic"
+  },
+  "falchion": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    9
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "swept",
+    "crescent"
+   ],
+   "grips": [
+    "leather",
+    "ribbed",
+    "studded"
+   ],
+   "theme": "ancient"
+  },
+  "khopesh": {
+   "width": [
+    2,
+    2
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "round"
+   ],
+   "grips": [
+    "leather",
+    "gold_ribbon",
+    "smooth"
+   ],
+   "theme": "ancient"
+  },
+  "cleaver": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "hooked",
+    "jagged"
+   ],
+   "grips": [
+    "leather",
+    "studded",
+    "chain",
+    "bone"
+   ],
+   "theme": "abyssal"
+  },
+  "macuahuitl": {
+   "width": [
+    3,
+    3
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 1,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "round"
+   ],
+   "grips": [
+    "cord",
+    "leather",
+    "wrapped_parchment"
+   ],
+   "theme": "ancient"
+  },
+  "flamberge": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 4,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "cross",
+    "wings",
+    "dread",
+    "swept"
+   ],
+   "grips": [
+    "leather",
+    "bone",
+    "dragon_scale"
+   ],
+   "theme": "abyssal"
+  },
+  "kris": {
+   "width": [
+    2,
+    2
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "crescent",
+    "straight",
+    "wings"
+   ],
+   "grips": [
+    "gold_ribbon",
+    "cord",
+    "leather"
+   ],
+   "theme": "assassin"
+  },
+  "twinblade": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 4,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "wings",
+    "cross",
+    "hooked"
+   ],
+   "grips": [
+    "wire",
+    "leather",
+    "chain"
+   ],
+   "theme": "crystal"
+  },
+  "spear": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    5,
+    7
+   ],
+   "guard": 1,
+   "handle": 5,
+   "slim": true,
+   "guards": [
+    "straight",
+    "round"
+   ],
+   "grips": [
+    "smooth",
+    "cord",
+    "leather"
+   ],
+   "theme": "classic"
+  },
+  "glaive": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 2,
+   "handle": 5,
+   "slim": false,
+   "guards": [
+    "straight",
+    "hooked",
+    "barbed"
+   ],
+   "grips": [
+    "leather",
+    "bone",
+    "cord"
+   ],
+   "theme": "abyssal"
+  },
+  "jian": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "jian",
+    "sigil",
+    "round",
+    "straight"
+   ],
+   "grips": [
+    "cord",
+    "smooth",
+    "ribbed",
+    "wrapped_parchment"
+   ],
+   "theme": "classic"
+  },
+  "whip": {
+   "width": [
+    1,
+    1
+   ],
+   "length": [
+    10,
+    12
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "jian",
+    "round",
+    "crescent"
+   ],
+   "grips": [
+    "cord",
+    "smooth"
+   ],
+   "theme": "assassin"
+  },
+  "liuyedao": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "crescent",
+    "round",
+    "jian",
+    "straight"
+   ],
+   "grips": [
+    "cord",
+    "leather",
+    "ribbed"
+   ],
+   "theme": "ancient"
+  },
+  "uchigatana": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    10,
+    12
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": true,
+   "guards": [
+    "tsuba",
+    "round",
+    "straight"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord",
+    "leather"
+   ],
+   "theme": "eastern"
+  },
+  "nine_ring": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "round",
+    "straight",
+    "jian",
+    "crescent"
+   ],
+   "grips": [
+    "cord",
+    "leather",
+    "ribbed"
+   ],
+   "theme": "ancient"
+  },
+  "trident": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    11
+   ],
+   "guard": 3,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "wings",
+    "crescent",
+    "straight"
+   ],
+   "grips": [
+    "cord",
+    "wire",
+    "leather"
+   ],
+   "theme": "ocean"
+  },
+  "battleaxe": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "straight",
+    "hooked",
+    "jagged",
+    "barbed"
+   ],
+   "grips": [
+    "leather",
+    "chain",
+    "studded",
+    "bone"
+   ],
+   "theme": "abyssal"
+  },
+  "warpick": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    6,
+    8
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "straight",
+    "hooked"
+   ],
+   "grips": [
+    "leather",
+    "studded",
+    "ribbed"
+   ],
+   "theme": "ancient"
+  },
+  "mace": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    6,
+    8
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "straight",
+    "round",
+    "jagged"
+   ],
+   "grips": [
+    "leather",
+    "cord",
+    "ribbed"
+   ],
+   "theme": "abyssal"
+  },
+  "bow": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    9,
+    12
+   ],
+   "guard": 1,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "straight",
+    "round",
+    "crescent"
+   ],
+   "grips": [
+    "cord",
+    "leather",
+    "wrapped_parchment"
+   ],
+   "theme": "classic"
+  },
+  "pickaxe": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    6,
+    8
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "straight",
+    "cross",
+    "hooked"
+   ],
+   "grips": [
+    "leather",
+    "cord",
+    "ribbed"
+   ],
+   "theme": "ancient"
+  },
+  "essence": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 1,
+   "handle": 3,
+   "slim": true,
+   "guards": [
+    "sigil",
+    "wings",
+    "none",
+    "round",
+    "crescent"
+   ],
+   "grips": [
+    "wire",
+    "gold_ribbon",
+    "smooth"
+   ],
+   "theme": "celestial"
+  },
+  "lotus": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": false,
+   "guards": [
+    "crescent",
+    "round",
+    "sigil"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "gold_ribbon",
+    "cord"
+   ],
+   "theme": "eastern"
+  },
+  "geode": {
+   "width": [
+    3,
+    4
+   ],
+   "length": [
+    7,
+    9
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "round",
+    "wings",
+    "none",
+    "crescent"
+   ],
+   "grips": [
+    "wire",
+    "dragon_scale",
+    "smooth"
+   ],
+   "theme": "crystal"
+  },
+  "ribbon": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    10,
+    12
+   ],
+   "guard": 1,
+   "handle": 4,
+   "slim": true,
+   "guards": [
+    "sigil",
+    "none",
+    "crescent"
+   ],
+   "grips": [
+    "gold_ribbon",
+    "wrapped_parchment",
+    "cord"
+   ],
+   "theme": "celestial"
+  },
+  "spine": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "barbed",
+    "jagged",
+    "none"
+   ],
+   "grips": [
+    "bone",
+    "dragon_scale",
+    "chain"
+   ],
+   "theme": "abyssal"
+  },
+  "fractured": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "asymmetric",
+    "none"
+   ],
+   "grips": [
+    "chain",
+    "bone",
+    "wire"
+   ],
+   "theme": "abyssal"
+  },
+  "obelisk": {
+   "width": [
+    4,
+    4
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 3,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "straight",
+    "cross",
+    "sigil"
+   ],
+   "grips": [
+    "ribbed",
+    "studded",
+    "smooth"
+   ],
+   "theme": "ancient"
+  },
+  "fang": {
+   "width": [
+    2,
+    3
+   ],
+   "length": [
+    8,
+    10
+   ],
+   "guard": 2,
+   "handle": 3,
+   "slim": false,
+   "guards": [
+    "hooked",
+    "crescent",
+    "barbed"
+   ],
+   "grips": [
+    "leather",
+    "bone",
+    "dragon_scale"
+   ],
+   "theme": "nether"
+  },
+  "sakura": {
+   "width": [
+    1,
+    2
+   ],
+   "length": [
+    9,
+    11
+   ],
+   "guard": 2,
+   "handle": 4,
+   "slim": true,
+   "guards": [
+    "tsuba",
+    "crescent",
+    "none"
+   ],
+   "grips": [
+    "wrapped_parchment",
+    "cord",
+    "gold_ribbon"
+   ],
+   "theme": "eastern"
+  }
+ },
+ "element_accents": {
+  "none": "#b7c1d1",
+  "flame": "#ff9960",
+  "frost": "#85dce9",
+  "void": "#ba98ec",
+  "holy": "#f1d28b",
+  "lightning": "#b4bcff",
+  "poison": "#a6d584",
+  "shadow": "#aa88bd",
+  "blood": "#e28696",
+  "arcane": "#c1a4f1",
+  "nature": "#96cf84",
+  "ocean": "#7cc7cf"
+ }
+}

@@ -78,8 +78,12 @@ def validate(doc: dict | None = None) -> list[str]:
                 errs.append(f"{c['id']}: 未知の効果種 {part}")
         if not (1 <= len(c.get("recipe", [])) <= 9):
             errs.append(f"{c['id']}: recipe の材料数が 1..9 でない")
-    from .equipment import STYLES as ARMOR_STYLES
+    from .equipment import HELMETS, VISORS, STYLES as ARMOR_STYLES
     for st in doc["armor_sets"]:
+        if st.get("helmet") and st["helmet"] not in HELMETS:
+            errs.append(f"防具セット {st['id']}: 未知の兜 {st['helmet']} ({', '.join(HELMETS)})")
+        if st.get("visor") and st["visor"] not in VISORS:
+            errs.append(f"防具セット {st['id']}: 未知の面頬 {st['visor']} ({', '.join(VISORS)})")
         if st.get("style") and st["style"] not in ARMOR_STYLES:
             errs.append(f"防具セット {st['id']}: 未知の地模様 {st['style']} ({', '.join(ARMOR_STYLES)})")
     errs += _matgen_errors(doc)

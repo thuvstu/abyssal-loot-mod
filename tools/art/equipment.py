@@ -226,6 +226,81 @@ def _helmet(d, base, trim, accent, off=0):
         d.line([(face[0], face[1]), (face[2] - 1, face[1])], fill=trim)
 
 
+HELMETS = {"drake": "竜 (後方へ流れる角 / 顎当て)", "sentinel": "番兵 (立ち上がる稜線 / 重い額当て)",
+           "crown": "王冠 (尖塔 / 宝石の額飾り)"}
+VISORS = {"embers": "面頬に熾火の目", "open": "面頬を開ける"}
+
+
+def _helmet_profile(img, profile, visor, base, trim, accent):
+    """兜の意匠 (MCAssetGen の防具ジェネレータの designedPixel を移植)。顔・天面・側面・後頭に描く。"""
+    px = img.load()
+    white = (255, 255, 255, 255)
+    rim = mix(base, accent, 0.68)
+    gilt = mix(rim, white, 0.28)
+    dark = shade(trim, 0.33)
+    inset = shade(trim, 0.64)
+    bright = mix(base, white, 0.42)
+    for shift in (0, 32):
+        def put(box, x, y, c):
+            if c is not None:
+                px[box[0] + shift + x, box[1] + y] = c
+        for y in range(8):
+            for x in range(8):
+                m = min(x, 7 - x)
+                c = None
+                if y == 0:
+                    c = gilt if (profile == "crown" and x in (1, 3, 4, 6)) or x in (3, 4) else trim if x in (0, 7) else bright
+                elif y == 1:
+                    c = bright if profile == "sentinel" and x in (3, 4) else rim if x in (3, 4) else trim if m == 0 else None
+                elif y == 2:
+                    c = gilt if m == 0 or x in (3, 4) else rim
+                elif y in (3, 4):
+                    if m == 0:
+                        c = rim
+                    elif visor == "open" and 2 <= x <= 5:
+                        c = (0, 0, 0, 0) if shift else (20, 16, 26, 255)
+                    elif y == 3 and x in (2, 5) and visor == "embers":
+                        c = mix(accent, white, 0.5)
+                    else:
+                        c = dark
+                elif y == 5:
+                    c = bright if m <= 1 else rim if x in (3, 4) else inset
+                elif y == 6:
+                    c = trim if m == 0 else gilt if x in (3, 4) else None
+                elif y == 7:
+                    c = trim if m <= 1 else rim if x in (3, 4) else inset
+                put(HEAD_FACE, x, y, c)
+                c = None
+                if x in (3, 4):
+                    c = gilt if y % 3 == 0 else rim
+                elif x in (1, 6) and y % 2 == 0:
+                    c = bright
+                elif x in (0, 7) or y in (0, 7):
+                    c = trim
+                if profile == "crown" and y in (0, 7) and x % 2 == 0:
+                    c = gilt
+                put(HEAD_TOP, x, y, c)
+                c = None
+                if y in (0, 2):
+                    c = rim if y == 2 else bright
+                elif y == 3 and 2 <= x <= 5:
+                    c = inset
+                elif y == 4 and 2 <= x <= 5:
+                    c = dark
+                elif y == 5 and x <= 2:
+                    c = gilt
+                elif y == 7:
+                    c = gilt if x % 3 == 0 else trim
+                if profile == "drake" and y in (1, 2) and x >= 5:
+                    c = mix(accent, white, 0.2)
+                put(HEAD_SIDE_R, x, y, c)
+                put(HEAD_SIDE_L, 7 - x, y, c)
+                c = rim if y in (2, 7) else (gilt if y % 3 == 0 else bright) if x in (3, 4) else None
+                if profile == "sentinel" and x in (3, 4):
+                    c = gilt
+                put(HEAD_BACK, x, y, c)
+
+
 def _chest(d, base, trim, accent):
     """胸当て (胴)。"""
     for box in (BODY_FRONT, BODY_BACK, BODY_SIDE_R, BODY_SIDE_L):
@@ -273,8 +348,12 @@ def _legs(d, base, trim, accent):
 
 
 def equipment_tex(base, trim, accent, leggings: bool = False, style: str | None = None,
-                  seed: int = 7) -> Image.Image:
-    """装備テクスチャ (64x32) を生成する。style で地模様 (STYLES) を付ける。"""
+                  seed: int = 7, helmet: str | None = None, visor: str = "embers") -> Image.Image:
+    """装備テクスチャ (64x32) を生成する。style で地模様 (STYLES)、helmet で兜の意匠 (HELMETS) を付ける。"""
+    if helmet and helmet not in HELMETS:
+        raise ValueError(f"未知の兜 '{helmet}'。使えるもの: {', '.join(HELMETS)}")
+    if visor not in VISORS:
+        raise ValueError(f"未知の面頬 '{visor}'。使えるもの: {', '.join(VISORS)}")
     _CTX.clear()
     if style:
         if style not in STYLES:
@@ -286,6 +365,8 @@ def equipment_tex(base, trim, accent, leggings: bool = False, style: str | None 
         _legs(d, base, trim, accent)
     else:
         _helmet(d, base, trim, accent)
+        if helmet:
+            _helmet_profile(img, helmet, visor, base, trim, accent)
         _chest(d, base, trim, accent)
         _arms(d, base, trim, accent)
     # 全体の微細な weathered 感 (不透明な部分だけ)

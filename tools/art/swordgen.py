@@ -22,7 +22,11 @@ CLI: `python tools/abyss.py swordgen list | render | sheet`
 from __future__ import annotations
 
 import colorsys
+import io
+import json
 import math
+import os
+import random
 import zlib
 
 from PIL import Image
@@ -156,53 +160,182 @@ POMMELS = ("round", "gem", "crescent", "skull", "ring", "fang", "spiked", "orb",
            "chain", "flattened")
 
 
-# ---------------------------------------------------------------- 設定
+# ---------------------------------------------------------------- 設定 (元実装の SwordOptions と同じ 59 項目)
 
-DEFAULTS = {
-    "silhouette": "straight", "blade_length": 10.0, "handle_length": 3.0, "blade_width": 3.0, "guard_width": 3.0,
-    "guard": "straight", "handle": "leather", "pommel": "round",
-    "spurs": False, "spur_count": 3, "bone_spurs": False, "serrated": False, "crystal_shards": False,
-    "surface": "polished", "fuller": True, "fuller_length": 0.6, "edge_highlight": True, "rune_inlay": False,
-    "gradient_blade": False, "edge_gradient": False, "ricasso": False, "horimono": False, "filigree": False,
-    "pommel_band": False, "gem": False, "bevel_line": False, "noise": 0.3, "shading": 1.0, "tip_glow": False,
-    # 色: 刃 / 鍔 / 柄 / 差し色 (ルーン・宝石・発光)。残り (刃縁・芯・輪郭…) は導出する
-    "blade_color": 0xc8d2e0, "guard_color": 0xc9a24a, "handle_color": 0x4a3226, "accent": 0x7ce8ff,
-    "seed": "sword",
+with io.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "swordgen_data.json"), encoding="utf-8") as _f:
+    DATA = json.load(_f)
+ELEMENTS: dict = DATA["elements"]            # 属性 12 種: [主色, 光の色]
+EFFECT_PRESETS: dict = DATA["effect_presets"]  # 演出プリセット 14 種
+PRESETS: dict = DATA["presets"]              # 名前付きの剣 65 種
+PALETTE_KITS: list = DATA["palette_kits"]    # 配色キット 26 種
+THEMES: list = DATA["themes"]                # 生成テーマ 18 種
+BLADE_PROFILES: dict = DATA["blade_profiles"]  # 刀身ごとの寸法・相性 (鍔・柄・細身か)
+DEFAULTS: dict = DATA["defaults"]
+GEM_SHAPES = ("diamond", "circle", "teardrop", "hex", "marquise", "star")
+DETAIL_LEVELS = ("minecraft", "rich", "cinematic", "anime")
+OUTLINE_MODES = ("dark", "tinted", "gold", "none")
+FINISHES = ("hd", "original")  # hd = この mod の HD アイコンの仕上げ / original = 元実装の方向別輪郭
+SLIM_FORMS = {"ribbon", "whip", "essence", "sakura", "estoc", "rapier", "bow", "tanto", "spear"}
+
+# この mod 側で使う短い名前 → 元実装の名前
+ALIASES = {
+    "blade_length": "bladeLength", "handle_length": "handleLength", "blade_width": "bladeWidth",
+    "guard_width": "guardWidth", "guard": "guardStyle", "handle": "handleStyle", "pommel": "pommelStyle",
+    "spur_count": "spurCount", "bone_spurs": "boneSpurs", "crystal_shards": "crystalShards",
+    "fuller_length": "fullerLength", "edge_highlight": "edgeHighlight", "rune_inlay": "runeInlay",
+    "gradient_blade": "gradientBlade", "edge_gradient": "edgeGradient", "pommel_band": "pommelBand",
+    "bevel_line": "bevelLine", "tip_glow": "tipGlow", "gem_shape": "gemShape", "gem_glow": "gemGlow",
+    "gem_color": "gemColor", "rune_color": "runeColor", "shard_color": "shardColor", "tip_color": "tipColor",
+    "mid_color": "midGradientColor", "element_intensity": "elementIntensity", "effect_preset": "effectPreset",
+    "sheen_speed": "sheenSpeed", "sheen_pos": "sheenPos", "sparkle_density": "sparkleDensity",
+    "aura_bloom": "auraBloom", "rune_pulse": "runePulse", "detail_level": "detailLevel",
+    "outline_mode": "outlineColorMode", "anti_alias": "antiAlias",
 }
+# 4 色指定 (刃・鍔・柄・差し色) から残りを導出する入口
+COLOR_KEYS = ("blade_color", "guard_color", "handle_color", "accent")
+
+
+def _hex(c) -> str:
+    return "#%02x%02x%02x" % tuple(c[:3])
+
+
+def palette_from(blade, guard=0xc9a24a, handle=0x4a3226, accent=0x7ce8ff) -> dict:
+    """4 色から元実装の 10 色パレットを作る (色相を保って明暗だけ振る)。"""
+    b, g, h, a = (_hx(v) for v in (blade, guard, handle, accent))
+    return {"blade": _hex(b), "bladeEdge": _hex(_hls(b, 0, 0.26, -0.15)), "bladeCore": _hex(_hls(b, 0.01, -0.2, 0.05)),
+            "guard": _hex(g), "guardAccent": _hex(_hls(g, 0, 0.22, 0.1)), "handle": _hex(h),
+            "handleAccent": _hex(_hls(h, 0, 0.16, 0.05)), "pommel": _hex(_hls(g, 0, 0.05, 0.05)),
+            "outline": _hex(_hls(b, 0, -0.45, 0)), "spur": _hex(_hls(b, 0, 0.12, 0)), "_accent": _hex(a)}
+
+
+def _apply_form_rules(o: dict) -> dict:
+    """細身の刀身には重い装飾を載せない (元実装の applyFormRules)。"""
+    slim = o["silhouette"] in SLIM_FORMS or BLADE_PROFILES.get(o["silhouette"], {}).get("slim")
+    if slim:
+        o.update(particles=False, shatter=False, spurs=False, boneSpurs=False, lightning=False)
+        if o["bladeWidth"] <= 1:
+            o.update(fuller=False, horimono=False, runeInlay=False)
+    if o["silhouette"] in ("obelisk", "mace"):
+        o["horimono"] = False
+    if o["silhouette"] == "fractured":
+        o["shatter"] = False
+    return o
 
 
 def options(**kw) -> dict:
-    o = dict(DEFAULTS)
+    """剣の設定。元実装の名前 (bladeWidth…) でもこの mod の短い名前 (blade_width…) でも書ける。
+    4 色 (blade_color / guard_color / handle_color / accent) を渡すと 10 色パレットを導出する。
+    effect_preset を渡すとその演出の既定値を先に敷く (個別の指定が優先)。"""
+    o = json.loads(json.dumps(DEFAULTS))
+    o["finish"] = "hd"
+    cols = {k: kw.pop(k) for k in COLOR_KEYS if k in kw}
+    kw = {ALIASES.get(k, k): v for k, v in kw.items()}
+    fx = kw.get("effectPreset")
+    if fx is not None:
+        if fx not in EFFECT_PRESETS:
+            raise ValueError(f"未知の演出プリセット '{fx}'。使えるもの: {', '.join(EFFECT_PRESETS)}")
+        o.update(EFFECT_PRESETS[fx])
     unknown = set(kw) - set(o)
     if unknown:
         raise ValueError(f"未知の設定 {sorted(unknown)}")
+    if "palette" in kw:
+        o["palette"].update(kw.pop("palette"))
     o.update(kw)
-    for key, table in (("silhouette", PROFILES), ("guard", GUARDS), ("handle", HANDLES), ("pommel", POMMELS),
-                       ("surface", SURFACES)):
+    if cols:
+        pal = palette_from(cols.get("blade_color", o["palette"]["blade"]), cols.get("guard_color", 0xc9a24a),
+                           cols.get("handle_color", 0x4a3226), cols.get("accent", 0x7ce8ff))
+        acc = pal.pop("_accent")
+        o["palette"] = pal
+        for k in ("runeColor", "gemColor", "shardColor", "tipColor"):
+            if k not in kw:
+                o[k] = acc
+        if "midGradientColor" not in kw:
+            o["midGradientColor"] = pal["blade"]
+    for key, table in (("silhouette", PROFILES), ("guardStyle", GUARDS), ("handleStyle", HANDLES),
+                       ("pommelStyle", POMMELS), ("surface", SURFACES), ("gemShape", GEM_SHAPES),
+                       ("element", ELEMENTS), ("detailLevel", DETAIL_LEVELS), ("outlineColorMode", OUTLINE_MODES),
+                       ("finish", FINISHES)):
         if o[key] not in table:
             raise ValueError(f"未知の {key} '{o[key]}'。使えるもの: {', '.join(table)}")
     return o
 
 
+def preset(name: str, **over) -> dict:
+    """名前付きの剣 (PRESETS) を設定にする (元実装の optionsForPreset と同じ手順)。"""
+    if name not in PRESETS:
+        raise ValueError(f"未知のプリセット '{name}'。使えるもの: {', '.join(PRESETS)}")
+    p = PRESETS[name]
+    fx = dict(EFFECT_PRESETS.get(p["effectPreset"], {}))
+    base = dict(runeInlay=False, crystalShards=False, spurs=False, boneSpurs=False, fuller=False, surface="polished",
+                filigree=False, runePulse=False, gemGlow=False)
+    base.update(fx)
+    base.update(palette=p["palette"], element=p["element"], elementIntensity=fx.get("elementIntensity", 0.35),
+                tipColor=p["tipColor"], midGradientColor=p["midGradientColor"], gemColor=p["gemColor"],
+                runeColor=p["runeColor"], shardColor=p["shardColor"], effectPreset=p["effectPreset"])
+    style = p.get("style", {})
+    base.update(style)
+    prof = BLADE_PROFILES[base.get("silhouette", DEFAULTS["silhouette"])]
+    base["bladeWidth"] = style.get("bladeWidth", prof["width"][0])
+    base["bladeLength"] = style.get("bladeLength", prof["length"][0])
+    base["guardWidth"] = style.get("guardWidth", prof["guard"])
+    base["handleLength"] = style.get("handleLength", prof["handle"])
+    base["guardStyle"] = style.get("guardStyle", prof["guards"][0])
+    base["handleStyle"] = style.get("handleStyle", prof["grips"][0])
+    base.update({ALIASES.get(k, k): v for k, v in over.items()})
+    eff = base.pop("effectPreset")
+    o = options(**base)
+    o["effectPreset"] = eff
+    if o["runeInlay"]:
+        o["fuller"] = False
+    if o["boneSpurs"]:
+        o["spurs"] = o["crystalShards"] = False
+    if o["spurs"]:
+        o["crystalShards"] = False
+    o["runePulse"] = o["runeInlay"]
+    edge, core = _hx(o["palette"]["bladeEdge"]), _hx(o["palette"]["bladeCore"])
+    if sum(edge) - sum(core) < 120:
+        o["palette"]["bladeEdge"] = _hex(mix(_hx(o["palette"]["blade"]), (238, 231, 246), 0.68))
+    return _apply_form_rules(o)
+
+
+def generate(theme: str | None = None, seed: int | str = 0) -> dict:
+    """テーマ (THEMES) の語彙から剣を 1 本組む (元実装の generateSword の自動選択部分)。同じ種なら同じ剣。"""
+    rnd = random.Random(zlib.crc32(str(seed).encode()))
+    th = next((t for t in THEMES if t["id"] == theme), None) if theme else rnd.choice(THEMES)
+    if th is None:
+        raise ValueError(f"未知のテーマ '{theme}'。使えるもの: {', '.join(t['id'] for t in THEMES)}")
+    sil = rnd.choice(th["blades"])
+    prof = BLADE_PROFILES[sil]
+    kit = next((k for k in PALETTE_KITS if k["id"] == rnd.choice(th["palettes"])), PALETTE_KITS[0])
+    guards = [g for g in th["guards"] if g in prof["guards"]] or prof["guards"]
+    grips = [g for g in th["grips"] if g in prof["grips"]] or prof["grips"]
+    surfaces = [s for s in th["surfaces"] if s in kit["surfaces"]] or th["surfaces"]
+    element = rnd.choice(th["elements"])
+    fx = next((k for k, v in EFFECT_PRESETS.items() if v.get("element") == element), "calm")
+    o = options(silhouette=sil, palette=kit["palette"], element=element, effectPreset=fx,
+                bladeWidth=rnd.randint(prof["width"][0], prof["width"][1]),
+                bladeLength=rnd.randint(prof["length"][0], prof["length"][1]),
+                guardWidth=prof["guard"], handleLength=prof["handle"], guardStyle=rnd.choice(guards),
+                handleStyle=rnd.choice(grips), pommelStyle=rnd.choice(th["pommels"]), surface=rnd.choice(surfaces),
+                runeColor=kit["accent"], gemColor=kit["accent"], shardColor=kit["accent"], tipColor=kit["accent"],
+                midGradientColor=kit["palette"]["blade"], gemShape=rnd.choice(GEM_SHAPES),
+                spurs=rnd.random() < 0.15, crystalShards=rnd.random() < 0.15, runeInlay=rnd.random() < 0.3,
+                seed=rnd.randrange(1 << 30))
+    o["surfaceSeed"] = o["effectSeed"] = o["seed"]
+    return _apply_form_rules(o)
+
+
 def palette(o: dict) -> dict[str, RGB]:
-    blade = _hx(o["blade_color"])
-    guard = _hx(o["guard_color"])
-    handle = _hx(o["handle_color"])
-    acc = _hx(o["accent"])
-    return {
-        "blade": blade,
-        "bladeEdge": _hls(blade, 0, 0.26, -0.15),
-        "bladeCore": _hls(blade, 0.01, -0.2, 0.05),
-        "guard": guard,
-        "guardAccent": _hls(guard, 0, 0.22, 0.1),
-        "handle": handle,
-        "handleAccent": _hls(handle, 0, 0.16, 0.05),
-        "pommel": _hls(guard, 0, 0.05, 0.05),
-        "outline": _hls(blade, 0, -0.45, 0),
-        "spur": _hls(blade, 0, 0.12, 0),
-        "accent": acc,
-        "glow": _hls(acc, 0, 0.12, 0.1),
-    }
+    p = {k: _hx(v) for k, v in o["palette"].items()}
+    p["accent"] = _hx(o["runeColor"])
+    p["gem"] = _hx(o["gemColor"])
+    p["shard"] = _hx(o["shardColor"])
+    p["tip"] = _hx(o["tipColor"])
+    p["mid"] = _hx(o["midGradientColor"])
+    el = ELEMENTS[o["element"] if o["element"] != "none" else "flame"]
+    p["glow"] = tuple(el[1])
+    p["element"] = tuple(ELEMENTS[o["element"]][0])
+    return p
 
 
 # ---------------------------------------------------------------- 形 (元実装の geometry.ts)
@@ -220,26 +353,26 @@ class Geometry:
     def __init__(self, o: dict):
         self.o = o
         self.prof = PROFILES[o["silhouette"]]
-        unit = 12 / max(14, o["blade_length"] + o["handle_length"] + 1.2)
+        unit = 12 / max(14, o["bladeLength"] + o["handleLength"] + 1.2)
         self.pommel_d = 1.65
         self.handle_start = 2.05
-        self.guard_d = self.handle_start + o["handle_length"] * unit
+        self.guard_d = self.handle_start + o["handleLength"] * unit
         self.blade_start = self.guard_d
-        self.blade_end = self.blade_start + o["blade_length"] * unit
-        self.half_width = (0.38 + o["blade_width"] * 0.4) * self.prof.scale
-        self.grip_width = 0.38 + o["handle_length"] * 0.035
-        self.guard_length = min(0.9 + o["guard_width"] * 0.43, (self.guard_d - 0.7) * SQRT2)
+        self.blade_end = self.blade_start + o["bladeLength"] * unit
+        self.half_width = (0.38 + o["bladeWidth"] * 0.4) * self.prof.scale
+        self.grip_width = 0.38 + o["handleLength"] * 0.035
+        self.guard_length = min(0.9 + o["guardWidth"] * 0.43, (self.guard_d - 0.7) * SQRT2)
         self.bias = self.prof.edge_bias
         self.spikes = []
-        if o["spurs"] or o["bone_spurs"]:
-            n = o["spur_count"]
+        if o["spurs"] or o["boneSpurs"]:
+            n = o["spurCount"]
             for i in range(n):
                 t = 0.2 + (i + 0.5) / n * 0.55
                 d = self.blade_start + (self.blade_end - self.blade_start) * t
-                for side in ((1,) if o["bone_spurs"] else (-1, 1)):
+                for side in ((1,) if o["boneSpurs"] else (-1, 1)):
                     root = self.center(t) + self.width(t) * side * 0.5
-                    reach = (1.3 if o["bone_spurs"] else 0.9) * side
-                    lean = 0.55 if o["bone_spurs"] else 0.2
+                    reach = (1.3 if o["boneSpurs"] else 0.9) * side
+                    lean = 0.55 if o["boneSpurs"] else 0.2
                     self.spikes.append((side, (d - 0.42, root), (d + 0.42, root), (d + lean, root + reach)))
         if o["silhouette"] == "zweihander":
             t = 0.16
@@ -284,7 +417,7 @@ class Geometry:
 
         gd, gl = self.guard_d, self.guard_length
         vn = v / gl
-        gs = o["guard"]
+        gs = o["guardStyle"]
         guard = abs(d - gd) <= 0.3 and abs(v) <= max(self.grip_width + 0.15, self.width(0.02) + 0.1)
         in_bar = abs(vn) <= 1
         if gs == "none":
@@ -337,7 +470,7 @@ class Geometry:
         pd = (d - self.pommel_d) * SQRT2
         radius = 0.66
         dist = math.hypot(pd, v)
-        ps = o["pommel"]
+        ps = o["pommelStyle"]
         pommel = dist < radius
         if ps == "ring":
             pommel = dist < radius * 1.1 and (dist > radius * 0.45 or pd > 0.1)
@@ -387,7 +520,7 @@ class Geometry:
                 return surf("shard", 0.6 if vr > 0 else -0.6) if teeth > 0.3 and abs(vr) < w * (0.6 + 0.55 * teeth) else None
         if o["serrated"] and 0.15 < t < 0.85 and vr < 0:
             w *= 0.84 + max(0, math.sin(t * math.pi * 16)) * 0.16
-        if o["crystal_shards"] and 0.2 < t < 0.72:
+        if o["crystalShards"] and 0.2 < t < 0.72:
             for ct in (0.3, 0.52, 0.68):
                 cd = self.blade_start + (self.blade_end - self.blade_start) * ct
                 cv = self.center(ct) + self.width(ct) * 0.35
@@ -398,7 +531,7 @@ class Geometry:
         if sil == "twinblade" and 0.14 < t < 0.95 and abs(vr) < 0.22 + t * 0.12:
             return None
         across = vr / w
-        part = "edge" if across < -0.78 else "bevel" if across > 0.78 and o["bevel_line"] else "blade"
+        part = "edge" if across < -0.78 else "bevel" if across > 0.78 and o["bevelLine"] else "blade"
         return surf(part, across)
 
 
@@ -813,20 +946,29 @@ _GLYPHS = (0b101010111010101, 0b111101010101111, 0b010111101111010, 0b1011110101
 
 # ---------------------------------------------------------------- 塗り (元実装の shading.ts)
 
-def _color(o, p, ctx, s: _S, x, y, seed: int):
+def _color(o, p, ctx, s: _S, x, y):
     across, t = s.across, _clamp(s.progress)
-    noise = hash_noise(math.floor(x * 5) + seed, math.floor(y * 5)) * o["noise"] * 0.14 if o["noise"] > 0.001 else 0
+    seed = ctx["seed"]
+    noise = 0.0
+    if o["noise"] > 0.001 and o["detailLevel"] != "minecraft":
+        noise = hash_noise(math.floor(x * 5) + seed, math.floor(y * 5)) * o["noise"] * 0.14
     f = 1 + (across + 0.2) * 0.32 * o["shading"] + noise
+    if o["detailLevel"] in ("anime", "minecraft"):  # 陰影を 5 段に量子化
+        f = round(f * 5) / 5
     if s.part in ("blade", "edge", "bevel"):
         col = p["blade"]
-        if o["gradient_blade"]:
-            col = mix(col, p["accent"] if t >= 0.5 else p["bladeCore"], t * 0.3 if t < 0.5 else (t - 0.5) * 0.95)
-        if o["edge_gradient"]:
+        if o["gradientBlade"]:
+            col = mix(col, p["mid"] if t < 0.5 else p["tip"], t * 0.3 if t < 0.5 else (t - 0.5) * 0.95)
+        if o["edgeGradient"]:
             k = (1 - across) / 2
             col = mix(col, p["bladeCore"], (0.5 - k) * 2 * 0.45) if k < 0.5 else mix(col, p["bladeEdge"], (k - 0.5) * 2 * 0.5)
         col = shade(col, f)
-        col = SURFACES[o["surface"]](col, s, ctx)
-        if o["fuller"] and 0.08 < t < o["fuller_length"] and ctx["blade_px"] >= 5:
+        if ctx["blade_px"] < 5 and o["surface"] != "polished":  # 細い刃は模様を載せきれないので色味だけ
+            tint = SURFACES[o["surface"]](col, _S((s.part, 0.0, s.progress, s.d, s.v)), ctx)
+            col = mix(col, tint, 0.5)
+        else:
+            col = SURFACES[o["surface"]](col, s, ctx)
+        if o["fuller"] and 0.08 < t < o["fullerLength"] and ctx["blade_px"] >= 5:
             if abs(across) < 0.18:
                 col = mix(col, p["bladeCore"], 0.68)
             elif -0.27 < across < -0.18:
@@ -834,11 +976,11 @@ def _color(o, p, ctx, s: _S, x, y, seed: int):
         hl = math.exp(-((across + 0.62) / 0.14) ** 2)
         spec = math.exp(-((across + 0.35) / 0.10) ** 2) * 0.5
         sh = math.exp(-((across - 0.55) / 0.18) ** 2)
-        if o["edge_highlight"]:
+        if o["edgeHighlight"]:
             col = mix(col, p["bladeEdge"], hl * 0.75)
             col = mix(col, p["bladeEdge"], spec * o["shading"])
         if s.part == "edge":
-            col = mix(col, p["bladeEdge"], 0.72 if o["edge_highlight"] else 0.3)
+            col = mix(col, p["bladeEdge"], 0.72 if o["edgeHighlight"] else 0.3)
         if s.part == "bevel":
             col = mix(col, p["bladeCore"], 0.58)
         col = mix(col, shade(col, 0.65), sh * 0.55)
@@ -856,7 +998,7 @@ def _color(o, p, ctx, s: _S, x, y, seed: int):
     if s.part == "handle":
         col = p["handle"]
         cross = math.sin(t * 44 + across * 3) * math.sin(t * 44 - across * 3)
-        hs = o["handle"]
+        hs = o["handleStyle"]
         acc = 0.0
         if hs == "leather":
             acc = 0.48 if cross > 0.5 else 0.12
@@ -883,7 +1025,7 @@ def _color(o, p, ctx, s: _S, x, y, seed: int):
         else:
             f *= 0.98
         col = mix(col, p["handleAccent"], acc)
-        if o["pommel_band"] and (t > 0.9 or t < 0.08):
+        if o["pommelBand"] and (t > 0.9 or t < 0.08):
             col = p["guard"]
         return shade(col, f)
     if s.part == "guard":
@@ -899,19 +1041,17 @@ def _color(o, p, ctx, s: _S, x, y, seed: int):
             col = shade(col, 0.78)
         return shade(col, f)
     if s.part == "shard":
-        return shade(p["accent"], 1.22 if across < 0 else 0.68)
+        return shade(p["shard"], 1.22 if across < 0 else 0.68)
     if s.part == "spur":
-        return shade(mix(p["spur"], (232, 222, 200), 0.6) if o["bone_spurs"] else p["spur"], f)
+        return shade(mix(p["spur"], (232, 222, 200), 0.6) if o["boneSpurs"] else p["spur"], f)
     col = p["pommel"]
-    if o["pommel"] in ("orb", "round"):
+    if o["pommelStyle"] in ("orb", "round"):
         col = mix(col, p["guardAccent"], 0.35 if across < -0.5 else 0)
-    if o["pommel"] == "gem":
-        col = mix(p["accent"], (255, 255, 255), 0.35 if across < -0.3 else 0)
     return shade(col, f)
 
 
 def _rune_at(o, ctx, s) -> bool:
-    if not o["rune_inlay"] or s.progress < 0.13 or s.progress > 0.78:
+    if not o["runeInlay"] or s.part not in ("blade", "edge", "bevel") or s.progress < 0.13 or s.progress > 0.78:
         return False
     if ctx["blade_px"] < 7:
         return abs(s.across) < 0.3 and _jsmod(s.progress * 9, 1) < 0.55
@@ -926,38 +1066,265 @@ def _rune_at(o, ctx, s) -> bool:
     return bool(_GLYPHS[math.floor(pos) % len(_GLYPHS)] & (1 << (gy * 3 + gx)))
 
 
-def render(o: dict, size: int = 64, glow: bool = True) -> Image.Image:
-    """剣を size px で描く (仕上げは hd.Canvas と同じ: selout + 外側の濃い縁 + 発光の光暈)。"""
-    o = options(**o)
-    geo = Geometry(o)
-    p = palette(o)
-    seed = zlib.crc32(str(o["seed"]).encode()) % 9973
-    scale = size / 16
-    ctx = {"seed": seed, "fine": (0.38 + o["blade_width"] * 0.4) * 2 * scale >= 12,
-           "blade_px": (0.38 + o["blade_width"] * 0.4) * 2 * scale,
-           "edge": p["bladeEdge"], "core": p["bladeCore"], "accent": p["accent"], "glow": p["glow"],
-           "shading": o["shading"]}
-    c = hd.Canvas(size, size)
-    pid = {"blade": 1, "edge": 1, "bevel": 1, "guard": 2, "handle": 3, "pommel": 4, "spur": 5, "shard": 6}
-    for y in range(size):
-        for x in range(size):
-            lx, ly = (x + 0.5) / scale, (y + 0.5) / scale
-            sm = geo.sample(lx, ly)
-            if sm is None:
+def _gem_distance(shape, x, y):
+    if shape == "diamond":
+        return abs(x) + abs(y)
+    if shape == "hex":
+        return max(abs(x) * 0.866 + abs(y) * 0.5, abs(y))
+    if shape == "marquise":
+        return math.hypot(x, y / 1.3)
+    if shape == "teardrop":
+        return math.hypot(x, y * 0.85) * (1 + max(0, -y) * 0.5)
+    if shape == "star":
+        return math.hypot(x, y) / (0.8 + 0.2 * math.cos(math.atan2(y, x) * 5))
+    return math.hypot(x, y)
+
+
+_BAYER4 = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
+
+
+def _bayer8(x, y):
+    return ((_BAYER4[y % 4][x % 4] * 16) + _BAYER4[(y >> 1) % 4][(x >> 1) % 4]) / 256 - 0.5
+
+
+def _mulberry(a):
+    a &= 0xFFFFFFFF
+
+    def nxt():
+        nonlocal a
+        a = (a + 0x6d2b79f5) & 0xFFFFFFFF
+        t = ((a ^ (a >> 15)) * (1 | a)) & 0xFFFFFFFF
+        t = ((t + (((t ^ (t >> 7)) * (61 | t)) & 0xFFFFFFFF)) ^ t) & 0xFFFFFFFF
+        return ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296
+    return nxt
+
+
+def _hue_shift(c, deg):
+    h, l, s = colorsys.rgb_to_hls(*(v / 255 for v in c))
+    r, g, b = colorsys.hls_to_rgb((h + deg / 360) % 1, l, s)
+    return (int(r * 255 + 0.5), int(g * 255 + 0.5), int(b * 255 + 0.5))
+
+
+class _Prepared:
+    """静止部分 (形・塗り・宝石・ディザ) を一度だけ作り、アニメの各コマで使い回す。"""
+
+    def __init__(self, o, size):
+        self.o = o
+        aa = o["antiAlias"]
+        self.width = w = size * (2 if aa else 1)
+        self.scale = scale = w / 16
+        self.geo = geo = Geometry(o)
+        self.p = p = palette(o)
+        seed = int(o["surfaceSeed"]) % 9973
+        blade_px = (0.38 + o["bladeWidth"] * 0.4) * 2 * scale
+        self.ctx = ctx = {"seed": seed, "fine": blade_px >= 12, "blade_px": blade_px, "edge": p["bladeEdge"],
+                          "core": p["bladeCore"], "accent": p["accent"], "glow": p["glow"], "shading": o["shading"]}
+        self.col: dict[tuple[int, int], RGB] = {}
+        self.flags: dict[tuple[int, int], int] = {}
+        self.part: dict[tuple[int, int], str] = {}
+        coarse = o["detailLevel"] == "minecraft"
+        mode = o["outlineColorMode"]
+        outline = (shade(p["bladeCore"], 0.52) if mode == "tinted" else shade(p["guard"], 0.7) if mode == "gold"
+                   else p["outline"])
+        probe = 0.55 if coarse else max(0.18, min(0.45, 1.2 / scale))
+        original = o["finish"] == "original"
+        for y in range(w):
+            for x in range(w):
+                lx = (math.floor(x / scale) + 0.5) if coarse else (x + 0.5) / scale
+                ly = (math.floor(y / scale) + 0.5) if coarse else (y + 0.5) / scale
+                sm = geo.sample(lx, ly)
+                if sm is None:
+                    continue
+                s = _S(sm)
+                color = _color(o, p, ctx, s, lx, ly)
+                fl = 0
+                if s.part in ("blade", "edge", "bevel"):
+                    fl |= 1
+                if _rune_at(o, ctx, s):
+                    fl |= 2
+                if original and o["outline"] and mode != "none":
+                    blanks = sum(geo.sample(lx + dx, ly + dy) is None
+                                 for dx, dy in ((probe, 0), (-probe, 0), (0, probe), (0, -probe)))
+                    if 0 < blanks < 3:
+                        color = mix(color, outline, 0.32 if fl & 1 and s.across < -0.5 else 0.72)
+                self.col[(x, y)] = color
+                self.flags[(x, y)] = fl
+                self.part[(x, y)] = s.part
+        if o["gem"]:
+            self._gem(geo.guard_d, min(0.72, 0.32 + o["guardWidth"] * 0.07), outline)
+        if o["pommelStyle"] == "gem":
+            self._gem(geo.pommel_d, 0.38, outline)
+        if o["detailLevel"] == "minecraft" or (o["detailLevel"] == "rich" and w <= 32):
+            for (x, y), c in self.col.items():
+                t = _bayer8(x, y) * 0.18 * 14
+                self.col[(x, y)] = tuple(max(0, min(255, int(v + t))) for v in c)
+
+    def _gem(self, d, radius, outline):
+        o, p, scale, w = self.o, self.p, self.scale, self.width
+        cx, cy = (d + 0 / SQRT2) * scale, (16 - d) * scale
+        r = radius * scale
+        for y in range(max(0, int(cy - r * 1.6)), min(w, int(cy + r * 1.6) + 1)):
+            for x in range(max(0, int(cx - r * 1.6)), min(w, int(cx + r * 1.6) + 1)):
+                dx, dy = (x + 0.5 - cx) / r, (y + 0.5 - cy) / r
+                dist = _gem_distance(o["gemShape"], dx, dy)
+                if dist > 1.18:
+                    continue
+                c = outline if dist > 1 else shade(p["gem"], 1.15 if dx + dy < 0 else 0.64)
+                if dist < 0.75 and dx < 0 and dy < 0:
+                    c = mix(c, (235, 248, 255), 0.55)
+                if scale > 4:
+                    fac = hash_noise(math.floor(x / (scale * 0.4)), math.floor(y / (scale * 0.4)) + int(o["effectSeed"]) % 1000) + 0.5
+                    c = mix(c, shade(p["gem"], 1.25), max(0, fac - 0.6))
+                self.col[(x, y)] = c
+                self.flags[(x, y)] = 4 if dist < 1 else 0
+                self.part[(x, y)] = "gem"
+
+
+def _animate(pr: _Prepared, phase: float) -> dict:
+    """元実装の animate: 属性の脈動・ホログラム・光沢・切っ先の光・ルーン/宝石の脈動・粒・雷・砕片。"""
+    o, p, geo, scale, w = pr.o, pr.p, pr.geo, pr.scale, pr.width
+    tau = 2 * math.pi
+    col = dict(pr.col)
+    alpha: dict[tuple[int, int], float] = {}
+    sheen_pos = (phase * max(1, round(o["sheenSpeed"] * 2)) + o["sheenPos"]) % 1
+    tip = geo.blade_start + (geo.blade_end - geo.blade_start) * 0.97
+    tipx, tipy = tip + geo.center(0.97) / SQRT2, 16 - tip + geo.center(0.97) / SQRT2
+    for (x, y), c in pr.col.items():
+        d = (x - y) / scale
+        fl = pr.flags[(x, y)]
+        if fl & 1:
+            if o["element"] != "none":
+                c = mix(c, p["element"], o["elementIntensity"] * (0.1 + math.sin(phase * tau + d) * 0.04))
+            if o["holographic"]:
+                c = _hue_shift(c, math.sin(phase * tau + d * 0.4) * 24)
+            if o["sheen"]:
+                dist = abs((d + 16) / 32 - sheen_pos)
+                if dist < 0.08:
+                    c = mix(c, (235, 243, 250), (1 - dist / 0.08) * 0.35)
+            if o["tipGlow"]:
+                dist = math.hypot(x / scale - tipx, y / scale - tipy)
+                if dist < 2.4:
+                    c = mix(c, p["accent"], (1 - dist / 2.4) * 0.3)
+        if fl & 2 and o["runePulse"]:
+            c = mix(c, (232, 242, 255), (0.5 + 0.5 * math.sin(phase * tau + d)) * 0.3)
+        if fl & 4 and o["gemGlow"]:
+            c = mix(c, (231, 247, 255), (0.5 + 0.5 * math.sin(phase * tau)) * 0.18)
+        col[(x, y)] = c
+
+    def blend(fx, fy, c, a):
+        k = (int(round(fx)), int(round(fy)))
+        if not (0 <= k[0] < w and 0 <= k[1] < w):
+            return
+        a = _clamp(a)
+        if k in col:
+            col[k] = mix(col[k], c, a)
+        else:
+            old = alpha.get(k, 0.0)
+            prev = col.get(k, c)
+            col[k] = mix(prev, c, a if old else 1.0)
+            alpha[k] = a + old * (1 - a)
+
+    def point(t, off=0.0):
+        dd = geo.blade_start + (geo.blade_end - geo.blade_start) * t
+        vv = geo.center(t) + off
+        return dd + vv / SQRT2, 16 - dd + vv / SQRT2
+    if o["sparkle"] or o["particles"]:
+        rnd = _mulberry(int(o["effectSeed"]) + 97)
+        count = round(o["sparkleDensity"] * 15) + (8 if o["particles"] else 0)
+        for i in range(count):
+            t = 0.13 + rnd() * 0.73
+            off = (rnd() - 0.5) * (5 if o["particles"] else geo.width(t))
+            ang = rnd() * tau
+            px_, py_ = point(t, off)
+            fx = px_ * scale + (math.sin(phase * tau + ang) * scale * 0.4 if o["particles"] else 0)
+            fy = py_ * scale + (math.cos(phase * tau + ang) * scale * 0.65 if o["particles"] else 0)
+            inten = max(0.0, math.sin(phase * tau + ang))
+            if inten < 0.3:
                 continue
-            s = _S(sm)
-            col = _color(o, p, ctx, s, lx, ly, seed)
-            c.put(x, y, col + (255,), pid[s.part])
-            if s.part == "shard" or (s.part in ("blade", "edge") and _rune_at(o, ctx, s)):
-                c.add_glow(x, y, 0.7)
-            if o["pommel"] == "gem" and s.part == "pommel":
-                c.add_glow(x, y, 0.5)
-            if o["tip_glow"] and s.part in ("blade", "edge") and s.progress > 0.88:
-                c.add_glow(x, y, 0.8)
-    if o["gem"]:  # 鍔の中央の宝石
-        gx, gy = geo.guard_d, 16 - geo.guard_d
-        c.sphere((gx * scale, gy * scale), max(1.6, 0.5 * scale), hd.ramp(p["accent"] + (255,)), spec=0.9, glow=0.8)
-    return c.render(glow_color=(p["glow"] + (255,)) if glow else None, glow_radius=max(1, size // 32))
+            blend(fx, fy, p["accent"], inten * 0.85)
+            if o["sparkle"] and i % 3 == 0:
+                r = max(1, round(scale * 0.18))
+                for dx, dy in ((-r, 0), (r, 0), (0, -r), (0, r)):
+                    blend(fx + dx, fy + dy, p["accent"], inten * 0.38)
+    if o["lightning"]:
+        rnd = _mulberry(int(o["effectSeed"]) + 701 + math.floor(phase * 12))
+        prev = point(0.05)
+        for i in range(1, 16):
+            pt = point(i / 16, (rnd() - 0.5) * 1.4)
+            steps = max(1, math.ceil(math.hypot(pt[0] - prev[0], pt[1] - prev[1]) * scale))
+            for k in range(steps + 1):
+                blend((prev[0] + (pt[0] - prev[0]) * k / steps) * scale,
+                      (prev[1] + (pt[1] - prev[1]) * k / steps) * scale, p["accent"], 0.85)
+            prev = pt
+    if o["shatter"]:
+        for i in range(5):
+            ang = phase * tau + i / 5 * tau
+            px_, py_ = point(0.5 + math.cos(ang) * 0.28, math.sin(ang) * 3.2)
+            r = max(1, round(scale * 0.23))
+            for yy in range(-r, r + 1):
+                for xx in range(-r, r + 1):
+                    if abs(xx) + abs(yy) <= r:
+                        blend(px_ * scale + xx, py_ * scale + yy, p["accent"], 0.65)
+    return col, alpha
+
+
+def render(o: dict, size: int = 64, frame: int = 0, frames: int = 8, glow: bool = True,
+           _cache: dict = {}) -> Image.Image:  # noqa: B006
+    """剣を size px で 1 コマ描く。frame / frames はアニメの位相 (元実装は 4 秒周期)。
+
+    finish="hd" (既定): この mod の HD アイコンと同じ selout + 外縁 + 光暈 (auraBloom で光暈を強める)。
+    finish="original": 元実装の方向別の輪郭 (outlineColorMode) をそのまま使う。
+    """
+    o = options(**o) if "palette" not in o or "finish" not in o else o
+    key = json.dumps(o, sort_keys=True) + f"|{size}"
+    pr = _cache.get(key)
+    if pr is None:
+        if len(_cache) > 8:
+            _cache.clear()
+        pr = _cache[key] = _Prepared(o, size)
+    col, alpha = _animate(pr, (frame / max(1, frames)) % 1)
+    w = pr.width
+    if o["finish"] == "original":
+        img = Image.new("RGBA", (w, w), (0, 0, 0, 0))
+        px = img.load()
+        for (x, y), c in col.items():
+            px[x, y] = c + (int(255 * alpha[(x, y)]) if (x, y) in alpha else 255,)
+        if o["antiAlias"]:
+            img = img.resize((size, size), Image.BOX)
+        return img
+    c = hd.Canvas(w, w)
+    pid = {"blade": 1, "edge": 1, "bevel": 1, "guard": 2, "handle": 3, "pommel": 4, "spur": 5, "shard": 6, "gem": 7}
+    for (x, y), cc in col.items():
+        if (x, y) in alpha and alpha[(x, y)] < 0.5:
+            continue
+        c.put(x, y, cc + (255,), pid.get(pr.part.get((x, y)), 8))
+        fl = pr.flags.get((x, y), 0)
+        part = pr.part.get((x, y))
+        if part == "shard" or fl & 2 or fl & 4:
+            c.add_glow(x, y, 0.7)
+        if o["auraBloom"] and fl & 1:
+            c.add_glow(x, y, 0.35)
+        if o["tipGlow"] and part in ("blade", "edge"):
+            c.add_glow(x, y, 0.0)
+    img = c.render(outline=o["outline"] and o["outlineColorMode"] != "none",
+                   glow_color=(p_glow(pr) + (255,)) if glow else None, glow_radius=max(1, w // 32))
+    if o["antiAlias"]:
+        img = img.resize((size, size), Image.BOX)
+    return img
+
+
+def p_glow(pr) -> RGB:
+    return pr.p["glow"] if pr.o["element"] != "none" else pr.p["accent"]
+
+
+def frames(o: dict, n: int = 8, size: int = 64) -> list[Image.Image]:
+    return [render(o, size, f, n) for f in range(n)]
+
+
+def is_animated(o: dict) -> bool:
+    o = options(**o) if "finish" not in o else o
+    return any(o[k] for k in ("sheen", "holographic", "sparkle", "particles", "lightning", "shatter", "runePulse",
+                              "gemGlow")) or (o["element"] != "none" and o["elementIntensity"] > 0)
 
 
 def silhouettes() -> list[str]:

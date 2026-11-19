@@ -415,3 +415,187 @@ SAMPLES = {
         *[{"op": "box", "from": [x, 1, 6], "to": [x, 3, 7], "block": "minecraft:cobbled_deepslate"} for x in (4, 8)],
         {"op": "box", "from": [1, 0, 2], "to": [11, 0, 2], "block": "minecraft:lava"}]},
 }
+
+
+# ---------------------------------------------------------------- 元アプリの見本 5 種 (structure.ts の sampleXxx を移植)
+
+def _B(bid, **props):
+    return block({"id": bid, "props": props})
+
+
+def sample_house() -> Structure:
+    s = Structure(13, 9, 11)
+    sx, sy, sz = s.size
+    for x in range(1, sx - 1):
+        for z in range(1, sz - 1):
+            s.set(x, 0, z, _B("minecraft:cobblestone"))
+            s.set(x, 1, z, _B("minecraft:oak_planks"))
+    for y in range(2, 5):
+        for x in range(1, sx - 1):
+            for z in range(1, sz - 1):
+                if not (x in (1, sx - 2) or z in (1, sz - 2)):
+                    continue
+                window = y == 3 and ((z % 3 == 1) if x in (1, sx - 2) else (x % 3 == 1))
+                s.set(x, y, z, _B("minecraft:glass") if window else _B("minecraft:oak_log", axis="y"))
+                if x in (1, sx - 2) and z in (1, sz - 2):
+                    s.set(x, y, z, _B("minecraft:spruce_log", axis="y"))
+    s.set(sx // 2, 2, sz - 2, block(AIR))  # ドア (元実装は null = ボイドで、置くと壁が残った)
+    s.set(sx // 2, 3, sz - 2, block(AIR))
+    s.set(sx // 2, 1, sz - 1, _B("minecraft:stone_slab", type="bottom"))
+    for y in range(5, 8):  # 寄棟屋根: 段ごとに内側へ。向きは外を向くように (元実装は南北交互で崩れていた)
+        i = y - 5
+        x0, x1, z0, z1 = i, sx - 1 - i, i, sz - 1 - i
+        for x in range(x0, x1 + 1):
+            for z in range(z0, z1 + 1):
+                edge_x, edge_z = x in (x0, x1), z in (z0, z1)
+                if not (edge_x or edge_z or y == 7):
+                    continue
+                if y == 7 and not (edge_x or edge_z):
+                    s.set(x, y, z, _B("minecraft:bricks"))
+                    continue
+                facing = "south" if z == z0 else "north" if z == z1 else "east" if x == x0 else "west"
+                s.set(x, y, z, _B("minecraft:brick_stairs", facing=facing, half="bottom", shape="straight"))
+    s.set(2, 2, 2, _B("minecraft:crafting_table"))
+    s.set(3, 2, 2, _B("minecraft:furnace", facing="south", lit="false"))
+    s.set(2, 2, 3, _B("minecraft:chest", facing="east", type="single"))
+    s.set(sx - 3, 2, 2, _B("minecraft:red_bed", facing="south", part="head", occupied="false"))
+    s.set(sx - 3, 2, 3, _B("minecraft:red_bed", facing="south", part="foot", occupied="false"))
+    s.set(sx // 2, 4, sz // 2, _B("minecraft:lantern", hanging="true"))
+    s.set(2, 2, sz - 3, _B("minecraft:bookshelf"))
+    return s
+
+
+def sample_tower() -> Structure:
+    s = Structure(11, 18, 11)
+    cx = cz = 5
+    for y in range(14):
+        for x in range(2, 9):
+            for z in range(2, 9):
+                dx, dz = abs(x - cx), abs(z - cz)
+                if dx == 3 and dz == 3:
+                    continue
+                if max(dx, dz) == 3:
+                    s.set(x, y, z, _B("minecraft:chiseled_stone_bricks" if y % 4 == 0 else "minecraft:stone_bricks"))
+                elif y == 0:
+                    s.set(x, y, z, _B("minecraft:polished_blackstone"))
+        if y >= 3 and y % 3 == 0:
+            for x, z in ((cx, 2), (cx, 8), (2, cz), (8, cz)):
+                s.set(x, y, z, _B("minecraft:glass"))
+        if y in (5, 9):
+            for x in range(3, 8):
+                for z in range(3, 8):
+                    s.set(x, y, z, _B("minecraft:oak_planks"))
+            s.set(cx, y, cz, _B("minecraft:ladder", facing="north"))  # 床の中央は梯子 (元実装は原木で上がれなかった)
+    for y in range(1, 14):
+        s.set(cx, y, cz + 1, _B("minecraft:oak_planks") if y not in (5, 9) else s.cells.get((cx, y, cz + 1)))
+        s.set(cx, y, cz, _B("minecraft:ladder", facing="north"))
+    s.set(cx, 1, 8, block(AIR))
+    s.set(cx, 2, 8, block(AIR))
+    for x in range(1, 10):
+        for z in range(1, 10):
+            dx, dz = abs(x - cx), abs(z - cz)
+            if max(dx, dz) == 4 and not (dx == 4 and dz == 4):
+                s.set(x, 14, z, _B("minecraft:stone_brick_slab", type="bottom"))
+                if (x + z) % 2 == 0:
+                    s.set(x, 15, z, _B("minecraft:stone_bricks"))
+    for x in range(3, 8):
+        for z in range(3, 8):
+            s.set(x, 14, z, _B("minecraft:oak_planks"))
+    for y in (16, 17):
+        r = 17 - y + 1
+        for x in range(cx - r, cx + r + 1):
+            for z in range(cz - r, cz + r + 1):
+                if s.inside(x, y, z) and (abs(x - cx) == r or abs(z - cz) == r or y == 17):
+                    s.set(x, y, z, _B("minecraft:red_nether_bricks"))
+    s.set(cx, 16, cz, _B("minecraft:lantern", hanging="true"))
+    s.set(cx, 1, 3, _B("minecraft:enchanting_table"))
+    s.set(cx - 1, 1, 5, _B("minecraft:bookshelf"))
+    s.set(cx + 1, 1, 5, _B("minecraft:bookshelf"))
+    return s
+
+
+def sample_pixel_art(img=None) -> Structure:
+    """ドット絵の展示 (16x16、背景 + 絵 + ガラスの覆い)。img を渡すとその絵を最寄りのコンクリート色で並べる。"""
+    art = ["................", "...............D", "..............DD", ".............DDD", "............DDD.",
+           ".B.........DDD..", "..B.......DDD...", "...B.....DDD....", "....B...DDD.....", ".....B.DDD......",
+           "......BDB.......", ".....BBB........", "....BBB.........", "...BBB..........", "..HHH...........",
+           ".HHH............"]
+    s = Structure(16, 16, 3)
+    for x in range(16):
+        for y in range(16):
+            s.set(x, y, 0, _B("minecraft:black_concrete"))
+            s.set(x, y, 2, _B("minecraft:glass"))
+    if img is not None:
+        img = img.convert("RGBA").resize((16, 16), Image.NEAREST)
+        px = img.load()
+        for x in range(16):
+            for y in range(16):
+                r, g, b, a = px[x, 15 - y]
+                if a >= 128:
+                    s.set(x, y, 1, _B(_nearest_concrete((r, g, b))))
+        return s
+    for ry, row in enumerate(art):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                s.set(x, 15 - ry, 1, _B({"D": "minecraft:diamond_block", "B": "minecraft:spruce_planks",
+                                         "H": "minecraft:iron_block"}[ch]))
+    return s
+
+
+_CONCRETE = {"white": (207, 213, 214), "orange": (224, 97, 1), "magenta": (169, 48, 159), "light_blue": (36, 137, 199),
+             "yellow": (241, 175, 21), "lime": (94, 169, 25), "pink": (214, 101, 143), "gray": (55, 58, 62),
+             "light_gray": (125, 125, 115), "cyan": (21, 119, 136), "purple": (100, 32, 156), "blue": (45, 47, 143),
+             "brown": (96, 60, 32), "green": (73, 91, 36), "red": (142, 33, 33), "black": (8, 10, 15)}
+
+
+def _nearest_concrete(c):
+    best = min(_CONCRETE.items(), key=lambda kv: sum((kv[1][i] - c[i]) ** 2 for i in range(3)))
+    return f"minecraft:{best[0]}_concrete"
+
+
+def sample_trial_dungeon() -> Structure:
+    s = Structure(21, 7, 21)
+    sx, sy, sz = s.size
+    for x in range(sx):
+        for z in range(sz):
+            s.set(x, 0, z, _B("minecraft:deepslate_tiles"))
+            s.set(x, 6, z, _B("minecraft:deepslate_bricks"))
+            if x in (0, sx - 1) or z in (0, sz - 1):
+                for y in range(1, 6):
+                    s.set(x, y, z, _B("minecraft:deepslate_bricks"))
+    for x0, z0, x1, z1 in ((4, 2, 4, 12), (8, 8, 16, 8), (12, 2, 12, 6), (16, 12, 16, 18), (4, 16, 10, 16)):
+        s.box((x0, 1, z0), (x1, 4, z1), _B("minecraft:cobbled_deepslate"))
+    s.set(2, 1, 2, _B("minecraft:lantern", hanging="false"))
+    s.set(10, 1, 10, _B("minecraft:trial_spawner"))
+    s.set(9, 1, 10, _B("minecraft:torch"))  # 元実装はスポナーの上に松明 (置けず消える) だった
+    s.set(18, 1, 18, _B("minecraft:vault", facing="north"))
+    s.set(18, 1, 2, _B("minecraft:chest", facing="south", type="single"))
+    s.set(2, 1, 18, _B("minecraft:spawner"))
+    s.set(6, 1, 6, _B("minecraft:magma_block"))
+    s.set(14, 1, 14, _B("minecraft:magma_block"))
+    return s
+
+
+def sample_redstone() -> Structure:
+    s = Structure(17, 5, 9)
+    for x in range(17):
+        for z in range(9):
+            s.set(x, 0, z, _B("minecraft:white_concrete"))
+    for pos, b in (((2, 1, 4), _B("minecraft:repeater", facing="east", delay="1", powered="false", locked="false")),
+                   ((4, 1, 4), _B("minecraft:redstone_block")),
+                   ((6, 1, 4), _B("minecraft:sticky_piston", facing="east", extended="false")),
+                   ((8, 1, 4), _B("minecraft:slime_block")), ((10, 1, 4), _B("minecraft:observer", facing="up")),
+                   ((12, 1, 4), _B("minecraft:redstone_lamp", lit="false")), ((14, 1, 4), _B("minecraft:target")),
+                   ((2, 1, 2), _B("minecraft:lever", face="floor", facing="north", powered="false")),
+                   ((2, 1, 6), _B("minecraft:stone_button", face="floor", facing="north", powered="false")),
+                   ((6, 1, 2), _B("minecraft:comparator", facing="east", mode="compare", powered="false")),
+                   ((6, 1, 6), _B("minecraft:daylight_detector")),
+                   ((10, 1, 2), _B("minecraft:copper_bulb", lit="false", powered="false")),
+                   ((10, 1, 6), _B("minecraft:crafter")), ((14, 1, 2), _B("minecraft:note_block")),
+                   ((14, 1, 6), _B("minecraft:tnt", unstable="false"))):
+        s.set(*pos, b)
+    return s
+
+
+SAMPLE_BUILDERS = {"house": sample_house, "watchtower": sample_tower, "pixel_sword": sample_pixel_art,
+                   "trial_dungeon": sample_trial_dungeon, "redstone": sample_redstone}

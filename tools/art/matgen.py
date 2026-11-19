@@ -489,6 +489,8 @@ PRESETS = {
     "brass": ("真鍮", "d6b14a", "9c7d2c", 8, "metal"), "gold": ("金", "f1c232", "f8e7a0", 10, "metal"),
     "iron": ("鉄", "d0d0d0", "8f8f8f", 0, "metal"), "platinum": ("白金", "b9d9e6", "7ea9bb", 6, "metal"),
     "titanium": ("チタン", "9aa3ab", "c5a0d9", -6, "metal"), "cobalt": ("コバルト", "2f55d4", "7ea0ff", -8, "metal"),
+    "nickel": ("ニッケル", "c9bc9c", "8f8468", 4, "metal"), "zinc": ("亜鉛", "c0caa8", "7d8a63", 4, "metal"),
+    "aluminum": ("アルミ", "dfe6ea", "a4b2bb", 2, "metal"), "uranium": ("ウラン", "7fc43f", "e6ff66", 10, "magic"),
     "mithril": ("ミスリル", "7fe3ea", "c8fbff", 8, "magic"), "adamantite": ("アダマンタイト", "b83a3a", "6b1c1c", -6, "metal"),
     "ruby": ("ルビー", "e0304c", "ffb3c0", -8, "gem"), "sapphire": ("サファイア", "2e63d8", "9fc3ff", -10, "gem"),
     "emerald": ("エメラルド", "1fc266", "9bf5c3", 8, "gem"), "amethyst": ("アメジスト", "9b5de5", "dcc2ff", -8, "gem"),

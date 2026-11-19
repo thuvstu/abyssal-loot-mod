@@ -14,7 +14,9 @@
         "lifestealPct": 2.0,
         "damagePct": 8.0
       },
-      "style": "scale"
+      "style": "scale",
+      "helmet": "drake",
+      "visor": "embers"
     },
     {
       "id": "void",
@@ -29,7 +31,9 @@
         "critDmgPct": 12.0,
         "critPct": 6.0
       },
-      "style": "obsidian"
+      "style": "obsidian",
+      "helmet": "crown",
+      "visor": "embers"
     },
     {
       "id": "bone",
@@ -44,7 +48,9 @@
         "maxHpPct": 8.0,
         "armorPct": 6.0
       },
-      "style": "plate"
+      "style": "plate",
+      "helmet": "sentinel",
+      "visor": "open"
     },
     {
       "id": "tide",
@@ -59,7 +65,9 @@
         "moveSpeedPct": 6.0,
         "energyPct": 15.0
       },
-      "style": "frost"
+      "style": "frost",
+      "helmet": "sentinel",
+      "visor": "embers"
     },
     {
       "id": "gold",
@@ -74,7 +82,9 @@
         "critPct": 5.0,
         "damagePct": 10.0
       },
-      "style": "plate"
+      "style": "plate",
+      "helmet": "crown",
+      "visor": "open"
     },
     {
       "id": "wind",
@@ -89,7 +99,9 @@
         "attackSpeedPct": 6.0,
         "moveSpeedPct": 8.0
       },
-      "style": "leather"
+      "style": "leather",
+      "helmet": "drake",
+      "visor": "open"
     },
     {
       "id": "grave",
@@ -104,7 +116,9 @@
         "armorPct": 6.0,
         "lifestealPct": 3.0
       },
-      "style": "chain"
+      "style": "chain",
+      "helmet": "sentinel",
+      "visor": "embers"
     },
     {
       "id": "chrono",
@@ -120,7 +134,9 @@
         "critPct": 5.0,
         "energyPct": 10.0
       },
-      "style": "crystal"
+      "style": "crystal",
+      "helmet": "crown",
+      "visor": "embers"
     }
   ],
   "trophies": [

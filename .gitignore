@@ -42,3 +42,6 @@ repo/
 ### Tools junk ###
 __pycache__/
 tools/_*.log
+
+# 参考用のテクスチャデータセット (第三者素材を含む可能性があるので公開しない)
+tools/lifetex/

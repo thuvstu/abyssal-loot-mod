@@ -9,7 +9,10 @@
 | 特性の粒子 `trait_particles(id)` | 炎・雷・毒・血・闇… 10 種 (64px アニメ) | 武器の特性 (GearData.traitOf) を一目で分かるように重ねる |
 | 属性違い / 素材違い `recolor` | 明度を保ったまま 3 色の階調へ置き換える | CLI で新武器・新素材の色案を出す |
 | 形態変化 `form` | 鋸刃・欠けた刃・二振り | CLI で派生武器の形案を出す |
-| 一時状態 `mode` | 凍結・過熱・祝福・隠密 | CLI で状態異常アイコンの案を出す |
+| 一時状態 `mode` / `enchanted` | 凍結・過熱・祝福・隠密・充填・エンチャント中 | CLI で状態異常アイコンの案を出す |
+| 限界突破 `limit_break` | break (光の亀裂) / awaken (残像の翼) | CLI |
+| 形態 `form2` | 双刃・大剣・短剣 (form の鋸刃・欠け・二振りと合わせて 6 種) | CLI |
+| 攻撃モーション `attack_pose` | 斬撃・振り下ろし・突き・防御・詠唱・待機 (各 8 コマ) | CLI (アニメの縦帯) |
 
 元実装からの改良点
 - 解像度に依存しない (16px でも 64px でも、太さ・半径は 1/16 単位で決める)
@@ -508,3 +511,158 @@ def hsv_tint(c, dh: float = 0.0) -> RGBA:
     h, s, v = colorsys.rgb_to_hsv(c[0] / 255, c[1] / 255, c[2] / 255)
     r, g, b = colorsys.hsv_to_rgb((h + dh) % 1, s, v)
     return (_clamp(r * 255), _clamp(g * 255), _clamp(b * 255), 255)
+
+# ---------------------------------------------------------------- 限界突破・形態の残り・攻撃モーション
+
+def _affine(img, ang_deg=0.0, scale=1.0, pivot=(0.38, 0.72), dx=0.0, dy=0.0):
+    """手元 (pivot) を中心に回転・拡縮・平行移動。最近傍で画素を保つ。"""
+    w, h = img.size
+    px, py = pivot[0] * w, pivot[1] * h
+    a = math.radians(ang_deg)
+    ca, sa = math.cos(a) / scale, math.sin(a) / scale
+    # 出力 (x, y) → 入力: 逆変換
+    coeffs = (ca, sa, px - ca * (px + dx) - sa * (py + dy), -sa, ca, py + sa * (px + dx) - ca * (py + dy))
+    return img.transform(img.size, Image.AFFINE, coeffs, resample=Image.NEAREST)
+
+
+def _silhouette(img, color, alpha):
+    out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    src, px = img.load(), out.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            if src[x, y][3] >= 128:
+                px[x, y] = tuple(color[:3]) + (_clamp(255 * alpha),)
+    return out
+
+
+def limit_break(img, kind: str, accent, seed: str = "", t: float = 0.0) -> Image.Image:
+    """限界突破。break=+4 の上に光の亀裂と脈打つ光暈 / awaken=+5 の残像が翼のように開く。"""
+    accent = tuple(accent[:3])
+    u = _u(img)
+    if kind == "break":
+        out = tier(img, 2, accent, seed, t)
+        rnd = _rng("cracks", seed)
+        pts = _opaque(img)
+        px = out.load()
+        for _ in range(3):
+            x, y = rnd.choice(pts)
+            for _k in range(int(7 * u)):
+                if 0 <= x < img.width and 0 <= y < img.height and px[x, y][3] >= 128:
+                    px[x, y] = _add(px[x, y], (255, 160, 70), 0.9)
+                x += rnd.choice((-1, 0, 1))
+                y += rnd.choice((-1, 0, 1))
+        return _outer_glow(out, (255, 140, 48), 1.6 * u, 0.3 + 0.25 * math.sin(t * 2 * math.pi))
+    if kind == "awaken":
+        body = tier(img, 3, accent, seed, t)
+        k = 0.7 + 0.3 * math.sin(t * 2 * math.pi)
+        out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        for dx, dy, a in ((-2, 1, 0.22), (2, -1, 0.22), (-3, 2, 0.12), (3, -2, 0.12)):
+            ghost = _silhouette(img, accent, a * k * 1.6).transform(img.size, Image.AFFINE, (1, 0, -dx * u, 0, 1, -dy * u))
+            out.alpha_composite(ghost)
+        out.alpha_composite(body)
+        return out
+    raise ValueError(f"未知の限界突破 '{kind}' (break / awaken)")
+
+
+def form2(img, kind: str, accent=(255, 255, 255), seed: str = "") -> Image.Image:
+    """形態変化の残り: dual=柄で折り返した両刃 / great=刃を太く長く / dagger=手元を中心に縮めた短剣。"""
+    u = _u(img)
+    if kind == "dual":  # 柄を中心に、同じ刃を反対向きにも伸ばした両刃
+        x0, y0, x1, y1 = _bbox(img)
+        hx, hy = x0 + (x1 - x0) * 0.18, y1 - (y1 - y0) * 0.18  # 柄 (左下寄り)
+        w, h = img.size
+        out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        for src in (img, img.transpose(Image.ROTATE_180)):
+            sx, sy = (hx, hy) if src is img else (w - hx, h - hy)
+            k = 0.62
+            # 出力 (x, y) → 入力: 柄を画像の中央へ寄せて k 倍
+            moved = src.transform(img.size, Image.AFFINE, (1 / k, 0, sx - (w / 2) / k, 0, 1 / k, sy - (h / 2) / k),
+                                  resample=Image.NEAREST)
+            out.alpha_composite(moved)
+        return out
+    if kind == "great":
+        big = _affine(img, 0, 1.18, (0.3, 0.75))
+        thick = big.copy()
+        src = big.load()
+        px = thick.load()
+        for y in range(big.height):
+            for x in range(big.width - 1):
+                if src[x, y][3] < 128 and src[x + 1, y][3] >= 128 and y < big.height * 0.7:
+                    px[x, y] = src[x + 1, y]
+        return _outer_glow(thick, (16, 16, 18), 0.6 * u, 0.0)
+    if kind == "dagger":
+        return _affine(img, 0, 0.72, (0.3, 0.75))
+    raise ValueError(f"未知の形態 '{kind}' (dual / great / dagger)")
+
+
+def enchanted(img, t: float = 0.0) -> Image.Image:
+    """エンチャント中 (バニラのグリントに近い紫の帯が斜めに流れる)。"""
+    out = img.copy()
+    px = out.load()
+    w, h = img.size
+    for x, y in _opaque(img):  # 全体を薄く紫に寄せ、2 本の帯を斜めに流す
+        c = px[x, y]
+        p = (x / w + (h - y) / h) / 2
+        k = 0.18 + 0.5 * max(0.0, math.cos((p - t) * 2 * math.pi * 2)) ** 6
+        px[x, y] = tuple(_clamp(c[i] + ((176, 112, 255)[i] - c[i]) * k) for i in range(3)) + (c[3],)
+    return out
+
+
+POSES = {  # 攻撃モーション 6 種: 各コマの (角度, 拡縮, 中心, 平行移動)
+    "slash": [(-38, .78), (-28, .78), (-8, .78), (18, .78), (36, .78), (22, .78), (8, .78), (0, .78)],
+    "smash": [(-42, .78), (-48, .78), (-20, .78), (10, .78), (38, .78), (34, .78), (16, .78), (0, .78)],
+    "thrust": [(0, .78)] * 8,
+    "guard": [(14, .8), (28, .8), (41, .8), (55, .8), (55, .8), (55, .8), (55, .8), (55, .8)],
+    "cast": [(-50, .72)] * 8,
+    "idle": [(0, 1.0)] * 8,
+}
+
+
+def attack_pose(img, kind: str, accent, seed: str = "") -> list[Image.Image]:
+    """攻撃モーションのキーポーズ 8 コマ (振りかぶり → 到達 → 余韻)。前のコマの残像を副色で薄く重ねる。"""
+    if kind not in POSES:
+        raise ValueError(f"未知のモーション '{kind}' ({', '.join(POSES)})")
+    u = _u(img)
+    accent = tuple(accent[:3])
+    seq = POSES[kind]
+    thrust = (0, -0.35, -0.5, 0.15, 0.85, 1, 0.4, 0)
+    out = []
+    for i, (ang, sc) in enumerate(seq):
+        dx = dy = 0.0
+        if kind == "thrust":
+            dx, dy = thrust[i] * 3 * u, -thrust[i] * 3 * u
+        if kind == "cast":
+            dy = -math.sin(i / 8 * 2 * math.pi) * u
+        if kind == "idle":
+            dy = -round(math.sin(i / 8 * 2 * math.pi)) * u
+        f = _affine(img, ang, sc, (0.42, 0.62) if kind in ("guard", "cast") else (0.38, 0.72), dx, dy)
+        if i > 0 and kind in ("slash", "smash", "thrust"):
+            pa, ps = seq[i - 1]
+            pdx = thrust[i - 1] * 3 * u if kind == "thrust" else 0
+            prev = _affine(img, pa, ps, (0.38, 0.72), pdx, -pdx)
+            base = _silhouette(prev, accent, 0.28)
+            base.alpha_composite(f)
+            f = base
+        if kind == "slash" and 2 <= i <= 4:
+            cx, cy = img.width * 0.38, img.height * 0.72
+            for k in range(24):
+                a = -math.pi * 0.9 + k / 23 * math.pi * 0.75
+                x, y = cx + math.cos(a) * img.width * 0.5, cy + math.sin(a) * img.height * 0.5
+                _sparkle(f, x, y, 0, accent, 0.55)
+        if kind == "smash" and i in (4, 5):
+            rnd = _rng("smash", seed, i)
+            for _ in range(6):
+                _sparkle(f, img.width * 0.5 + rnd.uniform(-8, 8) * u / 4, img.height * 0.35 + rnd.uniform(-6, 6) * u / 4,
+                         1.2 * u, (230, 220, 200), 0.8)
+        if kind == "cast":
+            t = i / 8
+            ring = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            cx, cy, r = img.width * 0.5, img.height * 0.4, img.width * 0.36
+            for k in range(40):
+                a = t * 2 * math.pi + k / 40 * math.pi * 1.2
+                _sparkle(ring, cx + math.cos(a) * r, cy + math.sin(a) * r, 0, accent, 0.5)
+            ring.alpha_composite(f)
+            f = ring
+        out.append(f)
+    return out
+

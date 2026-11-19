@@ -56,33 +56,6 @@ def _mat(mid: str):
     return _c(m["color"]), bool(m.get("metal")), bool(m.get("glow"))
 
 
-def config(staff_type: str = "wizard", element: str | None = None, **over) -> dict:
-    """型の既定値 + 型の特徴 (浮遊物など) + 属性の色。over で個別に上書き。"""
-    if staff_type not in STAFF_TYPES:
-        raise ValueError(f"未知の杖の型 '{staff_type}'。使えるもの: {', '.join(STAFF_TYPES)}")
-    cfg = {"type": staff_type, "length": 1.0, "thickness": 2, "taper": True, "shape": "straight",
-           "shaftMaterial": "oak", "pattern": "plain", "grip": False, "gripStyle": "wrap", "bands": 1,
-           "trimMaterial": "gold", "pommel": "cap", "mount": "none", "core": "orb", "coreSize": 1.0,
-           "floatingCore": False, "floater": "none", "floaterPath": "orbit", "floaterCount": 3,
-           "ornament": "none", "element": element or "arcane", "seed": staff_type, "particles": True}
-    cfg.update(STAFF_TYPES[staff_type]["preset"])
-    sig = SIGNATURES.get(staff_type, {})
-    for k in ("floater", "floaterPath", "floaterCount", "ornament", "gemCut"):
-        if k in sig:
-            cfg[k] = sig[k]
-    if element:
-        cfg["element"] = element
-    cfg.update(over)
-    if cfg["element"] not in ELEMENTS:
-        raise ValueError(f"未知の属性 '{cfg['element']}'。使えるもの: {', '.join(ELEMENTS)}")
-    el = ELEMENTS[cfg["element"]]
-    cfg.setdefault("coreColor", el["core"])
-    cfg.setdefault("energyColor", el["energy"])
-    if cfg["floater"] == "none" and over.get("floater") is None and not sig:
-        cfg["floater"] = el["floater"]
-    return cfg
-
-
 # ---------------------------------------------------------------- 柄 (管)
 
 class Tube:
@@ -368,8 +341,12 @@ def _draw_mount(c, mount, head, u, v, trim, energy, ph):
             c.poly([P(-R + 1, b * 0.5), P(1, b * 1.25 - 1.6), P(4, b * 1.1), P(1, b * 1.25 + 1.6)],
                    ramp(hexc(0xf0a8c8) if mount == "lotus" else hexc(0xe77868)))
         return
-    # 未対応の台座は小さな襟で代用
-    c.capsule(P(-R + 1, -4), P(-R + 1, 4), 1.2, ramp(trim), spec=0.7)
+    if mount == "book":  # 開いた本を台座に
+        for side in (-1, 1):
+            c.poly([P(-R + 1, 0), P(-R + 3, side * 7), P(-R + 7, side * 7), P(-R + 5, 0)], ramp(hexc(0xf0e8d0), spread=0.3))
+        c.capsule(P(-R + 1, 0), P(-R + 5, 0), 0.6, ramp(hexc(0x6a2a3a)), spec=0.3)
+        return
+    raise ValueError(f"未知の台座 '{mount}'")
 
 
 def _draw_core(c, core, center, size, core_col, energy, ph, u, v):
@@ -459,6 +436,35 @@ def _draw_core(c, core, center, size, core_col, energy, ph, u, v):
         c.poly([P(ln, 0), P(-1, r * 0.6), P(-1, -r * 0.6)], ramp(col, spread=0.8), spec=0.7)
         c.line([P(-1, 0), P(ln * 0.85, 0)], mix(col, WHITE, 0.6), glow=0.5)
         return
+    if core == "book":
+        c.poly([P(r, -r), P(r, r), P(-r, r), P(-r, -r)], ramp(hexc(0x6a2a3a), spread=0.5))
+        c.poly([P(r * 0.8, -r * 0.7), P(r * 0.8, r * 0.7), P(-r * 0.8, r * 0.7), P(-r * 0.8, -r * 0.7)], ramp(hexc(0xf0e8d0), spread=0.3))
+        c.star(P(0, 0), r * 0.55, r * 0.22, energy, WHITE, points=4, glow=0.9)
+        return
+    if core in ("shell", "conch"):
+        pts = [P(r * 1.2, 0), P(0, r), P(-r, r * 0.6), P(-r * 0.8, -r * 0.6), P(0, -r)] if core == "conch" else             [P(-r, -r), P(r * 0.9, 0), P(-r, r), P(-r * 0.4, 0)]
+        c.poly(pts, ramp(hexc(0xf0b8a0), spread=0.6), spec=0.5)
+        c.dot(*P(0, 0), mix(energy, WHITE, 0.4), glow=0.9)
+        return
+    if core == "battery":
+        c.capsule(P(-r, 0), P(r, 0), r * 0.6, ramp(hexc(0x6a7080), spread=0.6), spec=0.7)
+        c.capsule(P(-r * 0.6, 0), P(r * 0.6, 0), r * 0.38, ramp(energy, spread=0.8), spec=0.9)
+        for y in range(c.h):
+            for x in range(c.w):
+                if c.part[y][x] == c._pid:
+                    c.add_glow(x, y, 0.9)
+        return
+    if core == "compass":
+        c.sphere(P(0, 0), r, ramp(hexc(0xc69745), spread=0.6), spec=0.7)
+        c.sphere(P(0, 0), r * 0.72, ramp(hexc(0xf0ece0), spread=0.3), spec=0.3)
+        c.line([P(math.cos(ph) * r * 0.6, math.sin(ph) * r * 0.6), P(-math.cos(ph) * r * 0.3, -math.sin(ph) * r * 0.3)], hexc(0xd03030))
+        return
+    if core == "coralHeart":
+        c.sphere(P(0, 0), r * 0.85, ramp(hexc(0xe77868), spread=0.7), spec=0.6, glow=0.5)
+        for k in range(5):
+            a = k * 1.25
+            c.capsule(P(0, 0), P(math.cos(a) * r * 1.4, math.sin(a) * r * 1.4), 0.6, ramp(hexc(0xff9a8a)), spec=0.3, r1=0.2)
+        return
     c.sphere(P(0, 0), r, ramp(core_col, spread=0.85), spec=0.9, glow=0.8)
 
 
@@ -488,18 +494,37 @@ def _draw_pommel(c, pommel, p, u, v, trim, core_col, energy):
         c.capsule(P(0, 0), P(-4, 0), 0.6, ramp(trim), spec=0.5)
         c.sphere(P(-5, 0), 1.8, ramp(energy, spread=0.85), spec=0.7, glow=0.8)
         return
+    if pommel in ("cog", "gear"):
+        _gear(c, P(0, 0), 2.8, 6 if pommel == "cog" else 8, trim)
+        return
+    if pommel == "shell":
+        c.poly([P(1, -2.4), P(1, 2.4), P(-3, 0)], ramp(hexc(0xf0b8a0), spread=0.6), spec=0.5)
+        return
+    if pommel == "anchor":
+        c.capsule(P(0, 0), P(-4, 0), 0.7, ramp(trim), spec=0.6)
+        c.crescent(P(-4, 0), 3.2, (u[0] * 2.5, u[1] * 2.5), 2.6, ramp(trim, spread=0.7))
+        return
+    if pommel == "compass":
+        c.sphere(P(-0.5, 0), 2.4, ramp(hexc(0xc69745), spread=0.6), spec=0.7)
+        c.dot(*P(-0.5, 0), hexc(0xd03030))
+        return
     c.sphere(P(0, 0), 2.2, ramp(trim, spread=0.7), spec=0.7)
 
 
 _FLOATER_SHAPES = {
     "stars": "star", "sparkCross": "star", "glints": "glint", "motes": "dot", "dust": "dot", "wisps": "wisp",
-    "orbs": "orb", "bubbles": "orb", "pearls": "orb", "eyes": "eye", "runes": "rune", "sigils": "rune",
-    "petals": "petal", "leaves": "leaf", "butterflies": "petal", "moons": "moon", "shards": "shard",
-    "cubes": "cube", "daggers": "shard", "bells": "orb", "candles": "candle", "coins": "orb", "keys": "shard",
+    "orbs": "orb", "bubbles": "bubble", "pearls": "pearl", "eyes": "eye", "runes": "rune", "sigils": "sigil",
+    "petals": "petal", "leaves": "leaf", "butterflies": "butterfly", "moons": "moon", "shards": "shard",
+    "cubes": "cube", "daggers": "dagger", "bells": "bell", "candles": "candle", "coins": "coin", "keys": "key",
+    "halo": "halo", "chains": "chain", "books": "book", "gears": "gear", "cogs": "gear", "lanterns": "lantern",
+    "compasses": "compass", "fish": "fish", "tadpoles": "tadpole", "bolts": "bolt", "shells": "shell",
+    "seeds": "seed", "paperCrane": "crane",
 }
+FLOATERS = sorted(_FLOATER_SHAPES)
 
 
 def _floater_positions(path: str, n: int, ph: float, head, R: float):
+    """浮遊物の軌道 8 種 (orbit / crown / spiral / helix / figure8 / pendulum / rain / constellation)。"""
     hx, hy = head
     out = []
     for i in range(n):
@@ -516,21 +541,39 @@ def _floater_positions(path: str, n: int, ph: float, head, R: float):
         elif path == "rain":
             k = (i / n + ph / (2 * math.pi)) % 1
             out.append((hx - R + i * 2 * R / max(1, n - 1), hy - 10 + k * 22))
-        else:  # constellation
+        elif path == "constellation":
             out.append((hx + math.cos(i * 2.4) * R * 0.9, hy + math.sin(i * 2.4) * R * 0.7 + math.sin(ph + i) * 0.8))
+        else:
+            raise ValueError(f"未知の軌道 '{path}'")
     return out
+
+
+def _gear(c, center, r, teeth, col, hole=True):
+    cx, cy = center
+    pid = c._new_part()
+    rmp = ramp(col, spread=0.7)
+    for y in range(int(cy - r - 2), int(cy + r + 3)):
+        for x in range(int(cx - r - 2), int(cx + r + 3)):
+            dx, dy = x + 0.5 - cx, y + 0.5 - cy
+            d = math.hypot(dx, dy)
+            k = max(0.0, min(1.0, math.cos(teeth * math.atan2(dy, dx)) * 2 + 0.6))
+            if d <= r * 0.72 + r * 0.28 * k and not (hole and d < r * 0.3):
+                c.shade_put(x, y, (dx / (r + 1), dy / (r + 1), 0.8), rmp, pid, spec=0.6)
 
 
 def _draw_floaters(c, kind, path, n, ph, head, energy, core_col):
     if kind in ("none", None) or n <= 0:
         return
     shape = _FLOATER_SHAPES.get(kind, "dot")
+    if shape == "halo":  # 頭上の光輪 (1 つ)
+        _ring(c, (head[0] - 2, head[1] - 9), 5.5, 0.7, mix(energy, WHITE, 0.4), spec=0.8)
+        return
     pts = _floater_positions(path, n, ph, head, 13)
     if path == "constellation":
         for p, q in zip(pts, pts[1:]):
             c.line([p, q], mix(energy, (0, 0, 0, 255), 0.35)[:3] + (160,))
     for i, (x, y) in enumerate(pts):
-        if not (1 <= x < c.w - 1 and 1 <= y < c.h - 1):
+        if not (2 <= x < c.w - 2 and 2 <= y < c.h - 2):
             continue
         tw = 0.5 + 0.5 * math.sin(ph * 2 + i * 1.7)
         if shape == "star":
@@ -538,24 +581,63 @@ def _draw_floaters(c, kind, path, n, ph, head, energy, core_col):
         elif shape == "glint":
             if tw > 0.35:
                 c.sparkle(x, y, mix(energy, WHITE, 0.5), size=1 if tw < 0.8 else 2)
-        elif shape == "orb":
-            c.sphere((x, y), 1.6, ramp(core_col, spread=0.85), spec=0.9, glow=0.6)
+        elif shape in ("orb", "pearl", "coin", "bell"):
+            col = {"pearl": hexc(0xf4ece4), "coin": hexc(0xf2c23c), "bell": hexc(0xe0b850)}.get(shape, core_col)
+            c.sphere((x, y), 1.7, ramp(col, spread=0.85), spec=0.9, glow=0.6 if shape == "orb" else 0.1)
+            if shape == "bell":
+                c.dot(x, y + 1.6, hexc(0x5a4020))
+        elif shape == "bubble":
+            _ring(c, (x, y), 1.6, 0.35, mix(energy, WHITE, 0.5), spec=0.9, n=12)
         elif shape == "eye":
             c.sphere((x, y), 1.8, ramp(hexc(0xf0ece8), spread=0.5), spec=0.4)
             c.dot(x, y, core_col, glow=0.8)
-        elif shape == "rune":
+        elif shape in ("rune", "sigil"):
             for dx, dy in ((0, -1), (0, 0), (0, 1), (-1, 0), (1, 1)):
                 c.dot(x + dx, y + dy, energy, glow=0.9)
-        elif shape in ("petal", "leaf"):
-            col = hexc(0xf4a8c8) if shape == "petal" else hexc(0x6fc84a)
-            c.poly([(x - 1.8, y), (x, y - 1.2), (x + 1.8, y), (x, y + 1.2)], ramp(col, spread=0.6))
+            if shape == "sigil":
+                _ring(c, (x, y), 2.4, 0.3, energy, n=12)
+        elif shape in ("petal", "leaf", "butterfly", "seed"):
+            col = {"petal": hexc(0xf4a8c8), "leaf": hexc(0x6fc84a), "butterfly": mix(energy, WHITE, 0.3),
+                   "seed": hexc(0xa07040)}[shape]
+            flap = 1.0 if shape != "butterfly" else 0.5 + 0.5 * abs(math.sin(ph * 3 + i))
+            c.poly([(x - 1.8 * flap, y), (x, y - 1.2), (x + 1.8 * flap, y), (x, y + 1.2)], ramp(col, spread=0.6))
         elif shape == "moon":
             c.crescent((x, y), 2.2, (1.0, -0.6), 1.9, ramp(mix(energy, WHITE, 0.4)))
-        elif shape in ("shard", "cube"):
-            c.poly([(x, y - 2.2), (x + 1.4, y), (x, y + 2.2), (x - 1.4, y)], ramp(core_col, spread=0.85), spec=0.7)
+        elif shape in ("shard", "cube", "dagger", "key"):
+            if shape == "dagger":
+                c.poly([(x, y - 3), (x + 0.9, y + 1), (x - 0.9, y + 1)], ramp(hexc(0xd0d8e8)), spec=0.7)
+                c.dot(x, y + 2, hexc(0x8a6a3a))
+            elif shape == "key":
+                _ring(c, (x - 1, y - 1), 1.1, 0.4, hexc(0xe0b850), n=10)
+                c.line([(x, y), (x + 2, y + 2), (x + 2, y + 1)], hexc(0xe0b850))
+            else:
+                c.poly([(x, y - 2.2), (x + 1.4, y), (x, y + 2.2), (x - 1.4, y)], ramp(core_col, spread=0.85), spec=0.7)
         elif shape == "candle":
             c.capsule((x, y + 1), (x, y + 3), 0.9, ramp(hexc(0xf0e8d8)))
             c.dot(x, y - 0.5, mix(energy, WHITE, 0.4), glow=1.0)
+        elif shape == "lantern":
+            c.capsule((x, y - 1), (x, y + 1.5), 1.2, ramp(hexc(0x8a6a3a)), spec=0.4)
+            c.dot(x, y, mix(energy, WHITE, 0.4), glow=1.0)
+        elif shape == "chain":
+            _ring(c, (x, y), 1.3, 0.45, hexc(0xa0a6b0), n=10)
+        elif shape == "book":
+            c.poly([(x - 2, y - 1.4), (x + 2, y - 1.4), (x + 2, y + 1.4), (x - 2, y + 1.4)], ramp(hexc(0x7a2a3a), spread=0.5))
+            c.line([(x - 1.6, y - 1), (x - 1.6, y + 1)], hexc(0xf0e8d0))
+        elif shape == "gear":
+            _gear(c, (x, y), 2.2, 6, hexc(0xc69745))
+        elif shape == "compass":
+            c.sphere((x, y), 1.9, ramp(hexc(0xc69745), spread=0.6), spec=0.6)
+            c.dot(x + math.cos(ph) * 0.8, y + math.sin(ph) * 0.8, hexc(0xd03030))
+        elif shape in ("fish", "tadpole"):
+            col = hexc(0xff9a4a) if shape == "fish" else hexc(0x3a3a4a)
+            c.sphere((x, y), 1.3 if shape == "fish" else 1.0, ramp(col, spread=0.7), spec=0.6)
+            c.poly([(x + 1, y), (x + 2.8, y - 1.1), (x + 2.8, y + 1.1)], ramp(col))
+        elif shape == "shell":
+            c.poly([(x - 1.8, y + 1.2), (x, y - 1.8), (x + 1.8, y + 1.2)], ramp(hexc(0xf0b8a0), spread=0.6))
+        elif shape == "crane":
+            c.poly([(x - 2.4, y), (x, y - 1.6), (x + 2.4, y - 0.4), (x, y + 1)], ramp(hexc(0xf4f0ec), spread=0.4))
+        elif shape == "bolt":
+            c.line([(x - 1, y - 2), (x + 0.5, y - 0.3), (x - 0.5, y + 0.3), (x + 1, y + 2)], mix(energy, WHITE, 0.4), glow=0.9)
         elif shape == "wisp":
             c.dot(x, y, mix(energy, WHITE, 0.3), glow=1.0)
             c.dot(x, y + 1, energy, glow=0.6)
@@ -563,19 +645,372 @@ def _draw_floaters(c, kind, path, n, ph, head, energy, core_col):
             c.dot(x, y, mix(energy, WHITE, 0.4), glow=0.8)
 
 
-def _particles(c, rnd_seed, ph, head, energy):
+# ---------------------------------------------------------------- 粒子 26 種 (アニメ)
+
+PARTICLES = ("embers", "snow", "sparks", "leaves", "bubbles", "twinkle", "smoke", "endbits", "glyphs", "drips",
+             "pebbles", "streaks", "stardust", "feathers", "hearts", "fireflies", "ashes", "coins", "notes", "bolts",
+             "sand", "crystalshards", "mote", "glimmer", "dustPuff", "scatterSpark")
+
+
+def _particles(c, kind, count, rnd_seed, ph, head, energy, core_col):
+    if not kind or count <= 0:
+        return
     rnd = random.Random(rnd_seed)
     hx, hy = head
-    for i in range(6):
-        sx, sy = hx + rnd.uniform(-14, 14), hy + rnd.uniform(-6, 14)
+    fall = kind in ("snow", "drips", "pebbles", "sand", "ashes", "coins", "feathers", "leaves")
+    for i in range(count):
+        sx, sy = hx + rnd.uniform(-15, 15), hy + rnd.uniform(-8, 14)
         k = (ph / (2 * math.pi) + rnd.random()) % 1
-        y = sy - k * 14
-        if 0 <= y < c.h and 0 <= sx < c.w:
-            col = mix(energy, WHITE, 0.3 + 0.4 * (1 - k))
-            c.dot(sx + math.sin(k * 6 + i) * 1.2, y, col, glow=0.8 * (1 - k))
+        y = sy + (k * 14 if fall else -k * 14)
+        x = sx + math.sin(k * 6 + i) * (1.6 if kind in ("leaves", "feathers", "snow") else 0.8)
+        if not (1 <= x < c.w - 1 and 1 <= y < c.h - 1):
+            continue
+        a = 1 - k
+        if kind == "embers":
+            c.dot(x, y, mix(hexc(0xffd27a), hexc(0xff5a1f), k), glow=0.9 * a)
+        elif kind == "snow":
+            c.dot(x, y, WHITE, glow=0.3)
+        elif kind in ("sparks", "scatterSpark", "twinkle", "glimmer", "stardust"):
+            if math.sin(ph * 3 + i * 2.3) > -0.2:
+                if kind in ("twinkle", "glimmer") and a > 0.5:
+                    c.sparkle(x, y, mix(energy, WHITE, 0.5), size=1)
+                else:
+                    c.dot(x, y, mix(energy, WHITE, 0.5 if kind != "stardust" else 0.2), glow=0.8 * a)
+        elif kind == "leaves":
+            c.dot(x, y, hexc(0x6fc84a))
+            c.dot(x + 1, y, hexc(0x4a9a3a))
+        elif kind == "bubbles":
+            _ring(c, (x, y), 1.1, 0.3, mix(energy, WHITE, 0.5), spec=0.9, n=10)
+        elif kind in ("smoke", "dustPuff", "ashes"):
+            col = {"smoke": hexc(0x6a6a7a), "dustPuff": hexc(0xb0a080), "ashes": hexc(0x4a4448)}[kind]
+            c.dot(x, y, col)
+            if kind != "ashes" and a > 0.4:
+                c.dot(x + 1, y, col)
+        elif kind == "endbits":
+            c.dot(x, y, hexc(0xc89aff), glow=0.6)
+        elif kind == "glyphs":
+            c.dot(x, y, energy, glow=0.9)
+            c.dot(x, y - 1, energy, glow=0.5)
+        elif kind == "drips":
+            c.dot(x, y, core_col, glow=0.3)
+            c.dot(x, y - 1, mix(core_col, WHITE, 0.3))
+        elif kind in ("pebbles", "sand"):
+            c.dot(x, y, hexc(0x9a7a5a) if kind == "pebbles" else hexc(0xe0c890))
+        elif kind == "streaks":
+            c.line([(x, y), (x + 2, y - 2)], mix(energy, WHITE, 0.4), glow=0.5)
+        elif kind == "feathers":
+            c.line([(x, y), (x + 1, y - 1), (x + 2, y - 1)], hexc(0xf0ece8))
+        elif kind == "hearts":
+            c.dot(x - 0.5, y, hexc(0xff5a8a), glow=0.5)
+            c.dot(x + 0.5, y, hexc(0xff5a8a), glow=0.5)
+            c.dot(x, y + 1, hexc(0xff5a8a), glow=0.5)
+        elif kind == "fireflies":
+            if math.sin(ph * 4 + i * 1.9) > 0.1:
+                c.dot(x, y, hexc(0xe8ff7a), glow=1.0)
+        elif kind == "coins":
+            c.dot(x, y, hexc(0xf2c23c))
+        elif kind == "notes":
+            c.dot(x, y, energy, glow=0.6)
+            c.line([(x + 1, y), (x + 1, y - 2)], energy)
+        elif kind == "bolts":
+            c.line([(x, y), (x + 1, y + 1), (x, y + 2)], mix(energy, WHITE, 0.5), glow=0.9)
+        elif kind == "crystalshards":
+            c.poly([(x, y - 1.6), (x + 0.9, y), (x, y + 1.6), (x - 0.9, y)], ramp(core_col, spread=0.8), spec=0.7)
+        else:  # mote
+            c.dot(x, y, mix(energy, WHITE, 0.3), glow=0.6 * a)
 
 
-# ---------------------------------------------------------------- 本体
+# ---------------------------------------------------------------- 宝石のカット (結晶系の核に掛ける)
+
+GEM_CUTS = ("raw", "brilliant", "emerald", "rose", "teardrop", "rune", "starcut", "cracked", "caged", "soul")
+
+
+def _gem_cut(c, cut, pid, center, r, core_col, energy, ph):
+    """核の画素 (pid) に、カットごとの面の明暗・刻み・内部の光を描き足す。"""
+    cx, cy = center
+    cells = [(x, y) for y in range(c.h) for x in range(c.w) if c.part[y][x] == pid]
+    if not cells or cut in (None, "none"):
+        return
+    light, dark = mix(core_col, WHITE, 0.45), hd._hsv_shift(core_col, -0.3, 0.7, 0.05, 0.05)
+    for x, y in cells:
+        dx, dy = x + 0.5 - cx, y + 0.5 - cy
+        a = math.atan2(dy, dx)
+        d = math.hypot(dx, dy) / max(1.0, r)
+        col = None
+        if cut == "brilliant":
+            col = light if int((a + math.pi) / (math.pi / 4)) % 2 == 0 and d > 0.35 else None
+        elif cut == "emerald":
+            col = light if abs(abs(dx) - abs(dy)) < 0.9 and d > 0.3 else dark if d < 0.3 else None
+        elif cut == "rose":
+            col = light if int((a + math.pi) / (math.pi / 3)) % 2 == 0 and d < 0.6 else None
+        elif cut == "teardrop":
+            col = light if dy < -r * 0.2 and dx < 0 else None
+        elif cut == "starcut":
+            col = WHITE if abs(math.sin(a * 2.5)) < 0.18 and d < 0.8 else None
+        elif cut == "raw":
+            col = dark if (x * 7 + y * 3) % 5 == 0 else None
+        elif cut == "cracked":
+            col = hexc(0x14101c) if abs(dy - dx * 0.6 - math.sin(dx) * 0.8) < 0.5 else None
+        elif cut == "rune":
+            col = energy if d < 0.5 and (x + y) % 2 == 0 else None
+        elif cut == "soul":
+            col = mix(energy, WHITE, 0.4) if abs(((a + ph) % (2 * math.pi)) - d * 4) < 0.6 and d < 0.8 else None
+        elif cut == "caged":
+            col = hexc(0xc69745) if (x + y) % 4 == 0 or (x - y) % 4 == 0 else None
+        if col is not None:
+            c.col[y][x] = col
+            if cut in ("rune", "soul", "starcut"):
+                c.add_glow(x, y, 0.9)
+
+
+# ---------------------------------------------------------------- 装飾 21 種 (頭の周り)
+
+ORNAMENTS = ("none", "runeRing", "crownJewels", "vineCrest", "hangingCharms", "chainTassel", "sunDisk", "lunarPhase",
+             "thornHalo", "floatingPages", "soulCage", "clockwork", "featherCrest", "serpentCoil", "alchemicalRing",
+             "beadRosary", "crystalLattice", "silkRibbons", "lotusPetals", "celestialAstrolabe", "arabesque")
+
+
+def _draw_ornament(c, kind, head, u, v, trim, energy, core_col, ph, scale=1.0):
+    if kind in (None, "none"):
+        return
+    hx, hy = head
+    R = 10 * scale
+
+    def P(a, b):
+        return (hx + u[0] * a + v[0] * b, hy + u[1] * a + v[1] * b)
+    if kind in ("runeRing", "alchemicalRing", "celestialAstrolabe"):
+        _ring(c, (hx, hy), R, 0.6, trim if kind != "runeRing" else mix(energy, trim, 0.4), spec=0.7)
+        n = 8 if kind != "alchemicalRing" else 6
+        for i in range(n):
+            a = ph * 0.3 + i * 2 * math.pi / n
+            c.dot(hx + math.cos(a) * R, hy + math.sin(a) * R, energy, glow=0.9)
+        if kind == "celestialAstrolabe":
+            pts = [(hx + math.cos(t) * R * 0.55, hy + math.sin(t) * R) for t in [i * math.pi / 16 for i in range(33)]]
+            for p, q in zip(pts, pts[1:]):
+                c.capsule(p, q, 0.5, ramp(trim), spec=0.6)
+        return
+    if kind in ("sunDisk", "thornHalo"):
+        for i in range(12):
+            a = i * math.pi / 6 + ph * 0.1
+            p0 = (hx + math.cos(a) * R * 0.75, hy + math.sin(a) * R * 0.75)
+            p1 = (hx + math.cos(a) * R * 1.15, hy + math.sin(a) * R * 1.15)
+            if kind == "sunDisk":
+                c.line([p0, p1], mix(energy, hexc(0xffe08a), 0.5), glow=0.8)
+            else:
+                c.capsule(p0, p1, 0.6, ramp(hexc(0x4a3a3a)), spec=0.2, r1=0.2)
+        return
+    if kind == "lunarPhase":
+        for i in range(5):
+            a = -math.pi * 0.9 + i * math.pi * 0.45
+            x, y = hx + math.cos(a) * R, hy + math.sin(a) * R
+            c.crescent((x, y), 1.8, (math.cos(a + i) * 1.2, math.sin(a + i) * 1.2), 1.6, ramp(mix(energy, WHITE, 0.5)))
+        return
+    if kind in ("crownJewels", "crystalLattice"):
+        for i in range(5):
+            b = (i - 2) * 3.2
+            q = P(6.5 - abs(i - 2) * 1.2, b)
+            col = (hexc(0xe0314f), hexc(0x2f6fe4), core_col, hexc(0x3ad46a), hexc(0xf2c23c))[i] if kind == "crownJewels" else core_col
+            c.sphere(q, 1.4, ramp(col, spread=0.85), spec=0.9, glow=0.4)
+            if kind == "crystalLattice" and i < 4:
+                c.line([q, P(6.5 - abs(i - 1) * 1.2, b + 3.2)], mix(energy, WHITE, 0.3), glow=0.5)
+        return
+    if kind in ("vineCrest", "serpentCoil", "arabesque"):
+        col = {"vineCrest": hexc(0x4f9a3a), "serpentCoil": hexc(0x3fae5a), "arabesque": trim}[kind]
+        pts = [P(-9 + i * 0.9, math.sin(i * 0.9 + ph * 0.2) * 6.5) for i in range(20)]
+        for p, q in zip(pts, pts[1:]):
+            c.capsule(p, q, 0.6, ramp(col), spec=0.3)
+        return
+    if kind in ("hangingCharms", "chainTassel", "beadRosary", "silkRibbons"):
+        for side in (-1, 1):
+            top = P(-6, side * 5.5)
+            sw = math.sin(ph + side) * 1.2
+            bottom = (top[0] + v[0] * side * 2 + sw, top[1] + 9)
+            col = {"hangingCharms": hexc(0xa0a6b0), "chainTassel": hexc(0xa0a6b0), "beadRosary": hexc(0x7a4a2a),
+                   "silkRibbons": energy}[kind]
+            if kind == "beadRosary":
+                for k in range(5):
+                    t = k / 4
+                    c.sphere((top[0] + (bottom[0] - top[0]) * t, top[1] + (bottom[1] - top[1]) * t), 0.9, ramp(col), spec=0.6)
+            else:
+                c.line([top, bottom], col, glow=0.3 if kind == "silkRibbons" else 0.0)
+                if kind == "hangingCharms":
+                    c.sphere(bottom, 1.3, ramp(core_col, spread=0.8), spec=0.8, glow=0.4)
+                elif kind == "chainTassel":
+                    c.line([bottom, (bottom[0] - 1, bottom[1] + 2)], hexc(0xc83a3a))
+                    c.line([bottom, (bottom[0] + 1, bottom[1] + 2)], hexc(0xc83a3a))
+        return
+    if kind == "floatingPages":
+        for i in range(3):
+            a = ph * 0.5 + i * 2.1
+            x, y = hx + math.cos(a) * R, hy + math.sin(a) * R * 0.5
+            c.poly([(x - 1.6, y - 1.2), (x + 1.6, y - 1.2), (x + 1.6, y + 1.2), (x - 1.6, y + 1.2)], ramp(hexc(0xf0e8d0), spread=0.3))
+            c.line([(x - 1, y), (x + 1, y)], hexc(0x8a7a6a))
+        return
+    if kind == "soulCage":
+        for i in range(5):
+            a = -math.pi / 2 + (i - 2) * 0.55
+            c.capsule((hx + math.cos(a) * 3, hy + math.sin(a) * 3 + 6), (hx + math.cos(a) * R * 0.8, hy + math.sin(a) * R * 0.8),
+                      0.5, ramp(hexc(0x5a5468)), spec=0.4)
+        return
+    if kind == "clockwork":
+        _gear(c, P(-3, -8), 3.2, 8, trim)
+        _gear(c, P(-6, 7), 2.4, 6, trim)
+        return
+    if kind == "featherCrest":
+        for k in range(5):
+            b = (k - 2) * 2.2
+            c.capsule(P(-1, b * 0.6), P(9 - abs(k - 2), b * 1.6), 0.9, ramp(hexc(0xf4f0e8)), spec=0.3, r1=0.3)
+        return
+    if kind == "lotusPetals":
+        for k in range(6):
+            a = k * math.pi / 3 + ph * 0.1
+            x, y = hx + math.cos(a) * 7, hy + math.sin(a) * 7
+            c.poly([(x - 1.2, y), (x, y - 2), (x + 1.2, y), (x, y + 1.2)], ramp(hexc(0xf0a8c8), spread=0.6))
+
+
+# ---------------------------------------------------------------- 仕上げ 6 種・演出
+
+FINISHES = ("vanilla", "forged", "weathered", "engraved", "gilded", "runic")
+OUTLINES = ("selout", "color", "black", "none")
+FORMS = ("classic", "asymmetric", "bifurcated", "levitating", "constellation", "shrine", "totemic", "bouquet")
+RARITIES: dict = DATA["rarities"]
+PALETTES: dict = DATA["palettes"]
+DESIGN_MOTIFS: dict = DATA["design_motifs"]
+EFFECT_PRESETS: dict = DATA["effect_presets"]
+
+
+def _finish(c, finish, pids, energy, seed):
+    if finish in (None, "vanilla"):
+        return
+    rnd = random.Random(seed)
+    for y in range(c.h):
+        for x in range(c.w):
+            if c.part[y][x] not in pids or c.col[y][x] is None:
+                continue
+            col = c.col[y][x]
+            if finish == "forged":
+                col = hd._hsv_shift(col, 0.06 if (x + y) % 3 == 0 else -0.04, 0.1, 0.0, 0.05)
+            elif finish == "weathered":
+                col = hd._hsv_shift(col, -0.06 if rnd.random() < 0.3 else 0.0, 0.1, 0.0, -0.18)
+            elif finish == "engraved":
+                if (x * 3 + y) % 7 == 0:
+                    col = hd._hsv_shift(col, -0.22, 0.7, 0.0, 0.0)
+            elif finish == "gilded":
+                if (x + y) % 9 == 0:
+                    col = mix(col, hexc(0xf2c23c), 0.6)
+            elif finish == "runic":
+                if (x * 5 + y * 3) % 23 == 0:
+                    col = mix(col, energy, 0.8)
+                    c.add_glow(x, y, 0.7)
+            c.col[y][x] = col
+
+
+def _effects(c, cfg, head, energy, ph, rarity_col):
+    hx, hy = head
+    if cfg.get("magicCircle"):  # 頭の下の魔法陣 (楕円)
+        for i in range(48):
+            a = i * 2 * math.pi / 48 + ph * 0.2
+            x, y = hx + math.cos(a) * 12, hy + 12 + math.sin(a) * 4
+            if i % 2 == 0 and 0 <= x < c.w and 0 <= y < c.h and c.col[int(y)][int(x)] is None:
+                c.dot(x, y, mix(energy, WHITE, 0.2)[:3] + (190,), glow=0.5)
+    if cfg.get("rays"):  # 核から伸びる光の筋
+        for i in range(6):
+            a = i * math.pi / 3 + ph * 0.15
+            for k in range(6, 14):
+                x, y = hx + math.cos(a) * k, hy + math.sin(a) * k
+                if 0 <= x < c.w and 0 <= y < c.h and c.col[int(y)][int(x)] is None and k % 2 == 0:
+                    c.add_glow(int(x), int(y), 0.55 * (1 - (k - 6) / 8))
+    if cfg.get("trail"):  # 振った残像の弧
+        for i in range(20):
+            a = math.pi * 1.1 + i * 0.05
+            x, y = hx - 6 + math.cos(a) * 16, hy + 10 + math.sin(a) * 16
+            if 0 <= x < c.w and 0 <= y < c.h and c.col[int(y)][int(x)] is None:
+                c.dot(x, y, energy[:3] + (110,), glow=0.3)
+    if cfg.get("glint"):  # 柄を流れる光沢
+        k = (ph / (2 * math.pi)) % 1
+        for y in range(c.h):
+            for x in range(c.w):
+                col = c.col[y][x]
+                if col is not None and abs(((x + (64 - y)) / 128) - k) < 0.025:
+                    c.col[y][x] = mix(col, WHITE, 0.45)
+    if cfg.get("rimLight") or rarity_col is not None:  # 左上の縁に明るい縁取り (希少度の色)
+        rim = mix(rarity_col or energy, WHITE, 0.35)
+        src = [row[:] for row in c.col]
+        for y in range(1, c.h):
+            for x in range(1, c.w):
+                if src[y][x] is not None and (src[y - 1][x] is None or src[y][x - 1] is None):
+                    c.col[y][x] = mix(src[y][x], rim, 0.45 if cfg.get("rimLight") else 0.25)
+
+
+def config(staff_type: str = "wizard", element: str | None = None, motif: str | None = None,
+           effect: str | None = None, palette: str | None = None, rarity: str | None = None, **over) -> dict:
+    """型の既定値 → 型の特徴 → 意匠 (motif) → 演出 (effect) → 配色 (palette) → 個別指定 の順に重ねる。"""
+    if staff_type not in STAFF_TYPES:
+        raise ValueError(f"未知の杖の型 '{staff_type}'。使えるもの: {', '.join(STAFF_TYPES)}")
+    cfg = {"type": staff_type, "length": 1.0, "thickness": 2, "taper": True, "shape": "straight",
+           "shaftMaterial": "oak", "pattern": "plain", "grip": False, "gripStyle": "wrap", "bands": 1,
+           "trimMaterial": "gold", "pommel": "cap", "mount": "none", "core": "orb", "coreSize": 1.0,
+           "floatingCore": False, "floater": "none", "floaterPath": "orbit", "floaterCount": 3, "gemCut": "brilliant",
+           "ornament": "none", "ornamentScale": 1.0, "form": "classic", "finish": "vanilla", "outline": "selout",
+           "glow": 40, "glowRadius": 2, "aura": False, "rimLight": False, "rays": False, "magicCircle": False,
+           "trail": False, "glint": False, "pulse": True, "dither": False, "particles": 25, "particle": None,
+           "element": element or "arcane", "rarity": rarity or "rare", "seed": staff_type}
+    cfg.update(STAFF_TYPES[staff_type]["preset"])
+    sig = SIGNATURES.get(staff_type, {})
+    for k in ("floater", "floaterPath", "floaterCount", "ornament", "ornamentScale", "gemCut", "accentGems"):
+        if k in sig:
+            cfg[k] = sig[k]
+    for name, table, label in ((motif, DESIGN_MOTIFS, "意匠"), (effect, EFFECT_PRESETS, "演出")):
+        if name is None:
+            continue
+        if name not in table:
+            raise ValueError(f"未知の{label} '{name}'。使えるもの: {', '.join(table)}")
+        cfg.update(table[name].get("recipe") or table[name].get("preset") or {})
+    if element:
+        cfg["element"] = element
+    if cfg["element"] not in ELEMENTS:
+        raise ValueError(f"未知の属性 '{cfg['element']}'。使えるもの: {', '.join(ELEMENTS)}")
+    el = ELEMENTS[cfg["element"]]
+    cfg.setdefault("coreColor", el["core"])
+    cfg.setdefault("energyColor", el["energy"])
+    if palette:
+        if palette not in PALETTES:
+            raise ValueError(f"未知の配色 '{palette}'。使えるもの: {', '.join(PALETTES)}")
+        cfg["coreColor"], cfg["energyColor"] = PALETTES[palette]["core"], PALETTES[palette]["energy"]
+    if cfg.get("particle") is None:
+        cfg["particle"] = el["particle"]
+    if cfg["floater"] in ("none", None) and not sig:
+        cfg["floater"] = el["floater"]
+    cfg.update(over)
+    if cfg.get("effectPreset"):
+        cfg.pop("effectPreset")
+    for key, table in (("rarity", RARITIES), ("form", FORMS), ("finish", FINISHES), ("outline", OUTLINES),
+                       ("gemCut", GEM_CUTS), ("ornament", ORNAMENTS), ("particle", PARTICLES), ("floater", FLOATERS + ["none"])):
+        if cfg.get(key) not in table:
+            raise ValueError(f"未知の {key} '{cfg.get(key)}'。使えるもの: {', '.join(table)}")
+    return cfg
+
+
+def _cores_at(form, head, u, v, ph):
+    """形態ごとの核の位置と大きさの倍率。"""
+    hx, hy = head
+
+    def P(a, b):
+        return (hx + u[0] * a + v[0] * b, hy + u[1] * a + v[1] * b)
+    if form == "bifurcated":
+        return [(P(1, -5), 0.7), (P(1, 5), 0.7)]
+    if form == "levitating":
+        return [(P(6 + math.sin(ph) * 1.5, 0), 1.0)]
+    if form == "constellation":
+        return [(P(2, 0), 0.6), (P(-2, -7), 0.45), (P(7, 6), 0.45)]
+    if form == "totemic":
+        return [(P(-4, 0), 0.55), (P(1.5, 0), 0.6), (P(7, 0), 0.65)]
+    if form == "bouquet":
+        return [(P(2, 0), 0.6)] + [(P(-1 + abs(k) * -0.5, k * 3.8), 0.4) for k in (-2, -1, 1, 2)]
+    if form == "asymmetric":
+        return [(P(2, -3.5), 0.95)]
+    return [(head, 1.0)]
+
 
 def render(cfg: dict, frame: int = 0, size: int = 64) -> Image.Image:
     """1 コマ描く (64px。size を変えると縮小・拡大)。"""
@@ -586,56 +1021,103 @@ def render(cfg: dict, frame: int = 0, size: int = 64) -> Image.Image:
     trim, _tm, _tg = _mat(cfg["trimMaterial"])
     core_col = _c(cfg["coreColor"])
     energy = _c(cfg["energyColor"])
+    pulse = 1.0 + (0.15 * math.sin(ph) if cfg.get("pulse") else 0.0)
     c = hd.Canvas(64, 64)
 
     pts = _shaft_points(cfg["shape"], 0.92 * float(cfg["length"]), rnd)
     thick = {1: 1.1, 2: 1.5, 3: 1.9, 4: 2.3}.get(int(cfg["thickness"]), 1.5)
     tube = Tube(pts, thick, thick * (0.7 if cfg["taper"] else 1.0))
-    head_t = 0.97 if cfg["shape"] != "hooked" else 0.7
-    (tx, ty), (ux, uy) = tube.at(1.0 if cfg["shape"] != "hooked" else head_t)
+    (tx, ty), _ = tube.at(1.0)
     u = (0.7071, -0.7071)
     v = (0.7071, 0.7071)
     head = (tx + u[0] * 7.5, ty + u[1] * 7.5)
     if cfg["shape"] == "hooked":
         head = (pts[-1][0] + 1.5, pts[-1][1] + 7)
+    if cfg["form"] == "levitating":
+        head = (head[0] + u[0] * 3, head[1] + u[1] * 3)
 
-    # 奥の台座 → 柄 → 帯・握り → 柄頭 → 核 → 手前の飾り → 浮遊物・粒子
-    if cfg["mount"] in ("wings", "antler", "crescent", "ring", "astrolabe", "lyre", "arch", "curl", "scythe"):
+    back_mounts = ("wings", "antler", "crescent", "ring", "astrolabe", "lyre", "arch", "curl", "scythe")
+    if cfg["form"] == "shrine":  # 祭壇: 核を囲う拱門
+        _ring(c, head, 9.5, 1.0, trim, a0=math.pi * 0.75, a1=math.pi * 2.25)
+    if cfg["mount"] in back_mounts:
         _draw_mount(c, cfg["mount"], head, u, v, trim, energy, ph)
-    _draw_shaft(c, tube, base, metal, glow_mat, cfg["pattern"], trim, energy, seed)
+    shaft_pid = _draw_shaft(c, tube, base, metal, glow_mat, cfg["pattern"], trim, energy, seed)
+    deco_pids = {shaft_pid}
     for i in range(int(cfg.get("bands", 0))):
         t = 0.35 + 0.5 * (i + 0.5) / max(1, int(cfg["bands"]))
         (bx, by), _ = tube.at(t)
         nx, ny = tube.normal(t)
         r = thick + 0.7
-        c.capsule((bx - nx * r, by - ny * r), (bx + nx * r, by + ny * r), 0.9, ramp(trim), spec=0.7)
+        deco_pids.add(c.capsule((bx - nx * r, by - ny * r), (bx + nx * r, by + ny * r), 0.9, ramp(trim), spec=0.7))
     if cfg.get("grip"):
         gcol = {"wrap": hexc(0x7a2a2a), "leather": hexc(0x5a3a22), "chain": hexc(0x9aa0aa), "studded": hexc(0x4a3626),
                 "cord": hexc(0xc8b080), "woven": hexc(0x2a6a6a)}.get(cfg.get("gripStyle"), hexc(0x5a3a22))
+        if cfg.get("gripColor"):
+            gcol = _c(cfg["gripColor"])
         for i in range(6):
             t = 0.08 + i * 0.035
             (gx, gy), _ = tube.at(t)
             nx, ny = tube.normal(t)
             r = thick + 0.5
-            c.capsule((gx - nx * r, gy - ny * r), (gx + nx * r, gy + ny * r), 0.95, ramp(gcol, spread=0.6),
-                      spec=0.6 if cfg.get("gripStyle") == "chain" else 0.1)
+            deco_pids.add(c.capsule((gx - nx * r, gy - ny * r), (gx + nx * r, gy + ny * r), 0.95, ramp(gcol, spread=0.6),
+                                    spec=0.6 if cfg.get("gripStyle") == "chain" else 0.1))
     (px0, py0), _ = tube.at(0.0)
     _draw_pommel(c, cfg["pommel"], (px0 - u[0] * 1.5, py0 - u[1] * 1.5), u, v, trim, core_col, energy)
-    core_center = head
-    if cfg.get("floatingCore"):
-        core_center = (head[0] + u[0] * (1.2 + math.sin(ph)), head[1] + u[1] * (1.2 + math.sin(ph)))
-    if cfg["mount"] in ("cage", "lantern", "hourglass"):
-        _draw_core(c, cfg["core"], core_center, float(cfg["coreSize"]), core_col, energy, ph, u, v)
+    if cfg["mount"] not in back_mounts and cfg["mount"] not in ("cage", "lantern", "hourglass"):
         _draw_mount(c, cfg["mount"], head, u, v, trim, energy, ph)
-    else:
-        if cfg["mount"] not in ("wings", "antler", "crescent", "ring", "astrolabe", "lyre", "arch", "curl", "scythe"):
-            _draw_mount(c, cfg["mount"], head, u, v, trim, energy, ph)
-        _draw_core(c, cfg["core"], core_center, float(cfg["coreSize"]), core_col, energy, ph, u, v)
-    _draw_floaters(c, cfg.get("floater"), cfg.get("floaterPath", "orbit"), min(6, int(cfg.get("floaterCount", 3))),
+    cores = _cores_at(cfg["form"], head, u, v, ph)
+    if cfg["form"] == "constellation":
+        for (p, _s), (q, _t) in zip(cores, cores[1:] + cores[:1]):
+            c.line([p, q], mix(energy, WHITE, 0.3), glow=0.6)
+    for center, k in cores:
+        if cfg.get("floatingCore"):
+            center = (center[0] + u[0] * (1.2 + math.sin(ph)), center[1] + u[1] * (1.2 + math.sin(ph)))
+        before = c._pid
+        _draw_core(c, cfg["core"], center, float(cfg["coreSize"]) * k, core_col, energy, ph, u, v)
+        for pid in range(before + 1, c._pid + 1):
+            _gem_cut(c, cfg.get("gemCut"), pid, center, 5.5 * float(cfg["coreSize"]) * k, core_col, energy, ph)
+    if cfg["mount"] in ("cage", "lantern", "hourglass"):
+        _draw_mount(c, cfg["mount"], head, u, v, trim, energy, ph)
+    for i in range(int(cfg.get("accentGems", 0) or 0)):  # 柄に埋めた小さな宝石
+        t = 0.55 + 0.35 * i / max(1, int(cfg["accentGems"]))
+        (gx, gy), _ = tube.at(t)
+        c.sphere((gx, gy), 0.9, ramp(core_col, spread=0.85), spec=0.9, glow=0.4)
+    _draw_ornament(c, cfg.get("ornament"), head, u, v, trim, energy, core_col, ph, float(cfg.get("ornamentScale", 1.0)))
+    _draw_floaters(c, cfg.get("floater"), cfg.get("floaterPath", "orbit"), min(7, int(cfg.get("floaterCount", 3))),
                    ph, head, energy, core_col)
-    if cfg.get("particles"):
-        _particles(c, seed, ph, head, energy)
-    img = c.render(glow_color=energy, glow_radius=2)
+    n_part = int(round(float(cfg.get("particles", 25) or 0) / 8)) if not isinstance(cfg.get("particles"), bool) else (6 if cfg["particles"] else 0)
+    _particles(c, cfg.get("particle"), n_part, seed, ph, head, energy, core_col)
+    _finish(c, cfg.get("finish"), deco_pids, energy, seed)
+    rar = RARITIES.get(cfg.get("rarity"), {})
+    _effects(c, cfg, head, energy, ph, _c(rar["color"]) if rar.get("tier", 0) >= 4 else None)
+    # 発光の強さ (glow 0..100) と脈動
+    gk = max(0.0, min(1.5, float(cfg.get("glow", 40)) / 40)) * pulse * (1 + 0.1 * rar.get("tier", 2))
+    for y in range(c.h):
+        for x in range(c.w):
+            if c.glow[y][x]:
+                c.glow[y][x] = min(1.0, c.glow[y][x] * gk)
+    if cfg.get("aura"):
+        for y in range(c.h):
+            for x in range(c.w):
+                if c.col[y][x] is not None:
+                    c.add_glow(x, y, 0.25)
+    radius = max(1, min(4, int(cfg.get("glowRadius", 2))))
+    img = c.render(outline=cfg.get("outline") != "none", glow_color=energy, glow_radius=radius)
+    if cfg.get("outline") in ("black", "color"):  # 外縁を黒 / 魔力色に
+        px = img.load()
+        oc = (12, 10, 18, 235) if cfg["outline"] == "black" else energy[:3] + (235,)
+        for y in range(64):
+            for x in range(64):
+                a = px[x, y][3]
+                if 200 <= a <= 240 and px[x, y][:3] != oc[:3] and c.col[y][x] is None:
+                    px[x, y] = oc
+    if cfg.get("dither"):
+        px = img.load()
+        for y in range(64):
+            for x in range(64):
+                r, g, b, a = px[x, y]
+                if 0 < a < 200 and (x + y) % 2:
+                    px[x, y] = (r, g, b, 0)
     if size != 64:
         img = img.resize((size, size), Image.NEAREST if size > 64 else Image.LANCZOS)
     return img

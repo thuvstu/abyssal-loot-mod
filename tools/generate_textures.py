@@ -169,6 +169,7 @@ ARMOR_SETS = {
     "ember": (0xff6a2b, 0xffd0a0),
 }
 EQUIPMENT_STYLES: dict[str, str] = {}
+EQUIPMENT_HELMETS: dict[str, tuple[str, str]] = {}
 for _s in CONTENT["armor_sets"]:
     ARMOR_SETS[_s["id"]] = (content.color(_s, "body"), content.color(_s, "trim"))
     # 着用テクスチャ: 本体は暗めに落とし、装飾に本体色を使う (既存セットと同じ作り)
@@ -176,6 +177,8 @@ for _s in CONTENT["armor_sets"]:
                                 content.color(_s, "body"))
     if _s.get("style"):  # 素材の地模様 (equipment.STYLES。MCAssetGen の防具ジェネレータ由来)
         EQUIPMENT_STYLES[_s["id"]] = _s["style"]
+    if _s.get("helmet"):  # 兜の意匠 (equipment.HELMETS) と面頬 (VISORS)
+        EQUIPMENT_HELMETS[_s["id"]] = (_s["helmet"], _s.get("visor", "embers"))
 del _s
 
 ARMOR_MODELS = {
@@ -843,8 +846,10 @@ def generate(kinds: set[str], want) -> dict[str, int]:
             if not want(set_id):
                 continue
             base_c, trim_c = hexcolor(base), hexcolor(trim)
-            _png(os.path.join(EQP_DIR, f"{set_id}.png"), equipment.equipment_tex(base_c, trim_c, trim_c,
-                                                                                  style=EQUIPMENT_STYLES.get(set_id)))
+            _png(os.path.join(EQP_DIR, f"{set_id}.png"), equipment.equipment_tex(
+                base_c, trim_c, trim_c, style=EQUIPMENT_STYLES.get(set_id),
+                helmet=EQUIPMENT_HELMETS.get(set_id, (None, "embers"))[0],
+                visor=EQUIPMENT_HELMETS.get(set_id, (None, "embers"))[1]))
             _png(os.path.join(EQP_LEGS_DIR, f"{set_id}_leggings.png"),
                  equipment.equipment_tex(base_c, trim_c, trim_c, leggings=True,
                                          style=EQUIPMENT_STYLES.get(set_id)))
