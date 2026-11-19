@@ -168,8 +168,10 @@ class Model:
 
     # ------------------------------------------------------------ 確認用
     def preview(self, palette: dict[str, Material], hidden: set[str] = frozenset(), size: int = 256,
-                yaw: float = 25.0, pitch: float = 15.0, tilt: float = -45.0) -> Image.Image:
-        """簡易な正投影プレビュー (面の平均色で塗る)。手持ちの傾き tilt を z 回転で再現。"""
+                yaw: float = 25.0, pitch: float = 15.0, tilt: float = -45.0, center_y: float = 0.0,
+                span: float = 40.0) -> Image.Image:
+        """簡易な正投影プレビュー (面の平均色で塗る)。手持ちの傾き tilt を z 回転で再現。
+        center_y / span で見る範囲 (高さ方向の中心と幅) を変えられる (着用防具なら center_y=18, span=48)。"""
         img = Image.new("RGBA", (size, size), (24, 22, 34, 255))
         d = ImageDraw.Draw(img)
         polys = []
@@ -193,9 +195,10 @@ class Model:
                     depth = sum(p[2] for p in q) / 4
                     polys.append((depth, q, fc, palette[c.mat].emissive))
         polys.sort(key=lambda t: t[0])
-        k = size / 40.0
+        k = size / span
+        cy = _view((0.0, center_y, 0.0), yaw, pitch, tilt)[1]
         for _, q, fc, em in polys:
-            pts = [(size / 2 + p[0] * k, size * 0.55 - p[1] * k) for p in q]
+            pts = [(size / 2 + p[0] * k, size * 0.55 - (p[1] - cy) * k) for p in q]
             d.polygon(pts, fill=fc, outline=(10, 8, 16, 255) if not em else None)
         return img
 

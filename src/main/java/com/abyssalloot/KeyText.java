@@ -12,7 +12,7 @@ public final class KeyText {
 
     /** id = art / skill / dash / hub / next / sub / quick */
     public static MutableComponent key(String id) {
-        return Component.literal("[").append(Component.keybind("key.abyssalloot." + id)).append("]");
+        return Component.literal("[").append(Component.keybind("key." + AbyssalLootMod.MODID + "." + id)).append("]");
     }
 
     /** "§f前置き" + [キー] + "§f後ろ" */

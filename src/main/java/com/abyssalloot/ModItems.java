@@ -136,16 +136,49 @@ public final class ModItems {
     }
 
     /** 防具 (lore 表示つき。右クリック装備は EQUIPPABLE コンポーネントが処理) */
-    public static class AbyssArmorItem extends Item {
+    public static class AbyssArmorItem extends Item implements GeoItem {
+        private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.armor.idle");
         private final EquipmentSlot slot;
+        /** 着用の見た目 (equipment asset = セット id)。GeckoLib のモデル・テクスチャ名にも使う */
+        private final String asset;
+        private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-        public AbyssArmorItem(Properties props, EquipmentSlot slot) {
+        public AbyssArmorItem(Properties props, EquipmentSlot slot, String asset) {
             super(props);
             this.slot = slot;
+            this.asset = asset;
         }
 
         public EquipmentSlot abyssSlot() {
             return slot;
+        }
+
+        public String asset() {
+            return asset;
+        }
+
+        @Override
+        public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+            controllers.add(new AnimationController<AbyssArmorItem>("idle", 0, test -> test.setAndContinue(IDLE)));
+        }
+
+        @Override
+        public AnimatableInstanceCache getAnimatableInstanceCache() {
+            return geoCache;
+        }
+
+        @Override
+        public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+            consumer.accept(new GeoRenderProvider() {
+                private software.bernie.geckolib.renderer.GeoArmorRenderer<?, ?> renderer;
+
+                @Override
+                public software.bernie.geckolib.renderer.GeoArmorRenderer<?, ?> getGeoArmorRenderer(
+                        ItemStack itemStack, EquipmentSlot equipmentSlot) {
+                    if (renderer == null) renderer = new AbyssArmorRenderer<>(asset);
+                    return renderer;
+                }
+            });
         }
     }
 
@@ -166,7 +199,7 @@ public final class ModItems {
                                         .setAsset(key).build())
                         .component(net.minecraft.core.component.DataComponents.ENCHANTABLE,
                                 new net.minecraft.world.item.enchantment.Enchantable(15)),
-                        slot));
+                        slot, asset));
     }
 
     public static final DeferredItem<Item> ABYSS_SWORD = weapon("abyss_sword", Rarity.COMMON);

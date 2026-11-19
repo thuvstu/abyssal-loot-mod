@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, geo_armor, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -37,7 +37,7 @@ from art.project import TEX_EQUIPMENT as EQP_DIR  # noqa: E402
 from art.project import TEX_EQUIPMENT_LEGS as EQP_LEGS_DIR  # noqa: E402
 from art.project import TEX_ITEM as TEX_DIR  # noqa: E402
 
-KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment", "content",
+KINDS = ("weapons", "armor", "materials", "consumables", "shards", "arts", "entities", "equipment", "armor3d", "content",
          "endgame")
 
 # 追加コンテンツ (abyssalloot_content.json)。防具セットは下の表へ連結される
@@ -169,6 +169,11 @@ ARMOR_SETS = {
     "ember": (0xff6a2b, 0xffd0a0),
 }
 EQUIPMENT_STYLES: dict[str, str] = {}
+# 基本セット (Java の GameData.BASE_ARMOR_SETS) の兜の型と地模様 (GeckoLib の着用防具用)
+BASE_HELMETS = {"abyssal": "crown", "blood": "drake", "shadow": "crown", "rock": "sentinel", "star": "crown",
+                "frost": "sentinel", "storm": "drake", "moon": "crown", "ember": "drake"}
+BASE_STYLES = {"abyssal": "obsidian", "blood": "scale", "shadow": "obsidian", "rock": "plate", "star": "crystal",
+               "frost": "frost", "storm": "chain", "moon": "crystal", "ember": "ember"}
 EQUIPMENT_HELMETS: dict[str, tuple[str, str]] = {}
 for _s in CONTENT["armor_sets"]:
     ARMOR_SETS[_s["id"]] = (content.color(_s, "body"), content.color(_s, "trim"))
@@ -840,6 +845,22 @@ def generate(kinds: set[str], want) -> dict[str, int]:
 
     if "endgame" in kinds:  # エンドコンテンツ武器 (元絵 tools/art/src + CUSTOM_MODEL_DATA で段階切替)
         counts["endgame"] += gen_endgame(want)
+
+    if "armor3d" in kinds:  # GeckoLib の着用防具 (セットごとの 3D モデル・アニメ・テクスチャ + 発光マスク)
+        for set_id in EQUIPMENT_SETS:
+            if not want(set_id):
+                continue
+            helmet, _visor = EQUIPMENT_HELMETS.get(set_id, (BASE_HELMETS.get(set_id, "sentinel"), "embers"))
+            style = EQUIPMENT_STYLES.get(set_id, BASE_STYLES.get(set_id))
+            body, trim = ARMOR_SETS.get(set_id, (0xb28ce0, 0xd8b0ff))
+            model = geo_armor.armor_model(set_id, helmet, style)
+            W.write_json(os.path.join(GEO_DIR, "models", "armor", f"{set_id}.geo.json"), model.geo_json())
+            W.write_json(os.path.join(GEO_DIR, "animations", "armor", f"{set_id}.animation.json"),
+                         geo_armor.armor_anim(set_id, helmet, style))
+            tex, glow = model.paint(geo_armor.armor_palette(body, trim))
+            _png(os.path.join(ASSETS, "textures", "armor", f"{set_id}.png"), tex)
+            _png(os.path.join(ASSETS, "textures", "armor", f"{set_id}_glowmask.png"), glow)
+            counts["armor3d"] += 1
 
     if "equipment" in kinds:  # 装備 (プレイヤーの防具の着用テクスチャ)
         for set_id, (base, trim) in EQUIPMENT_SETS.items():
