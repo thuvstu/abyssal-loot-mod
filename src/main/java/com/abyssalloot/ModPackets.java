@@ -77,6 +77,7 @@ public final class ModPackets {
         reg.playToClient(HudSync.TYPE, HudSync.CODEC, HudSync::handle);
         reg.playToServer(ForgePacket.TYPE, ForgePacket.CODEC, ModPackets::handleForge);
         reg.playToServer(ShopPacket.TYPE, ShopPacket.CODEC, ModPackets::handleShop);
+        reg.playToServer(VaultPacket.TYPE, VaultPacket.CODEC, ModPackets::handleVault);
         reg.playToServer(ComparePacket.TYPE, ComparePacket.CODEC, ModPackets::handleCompare);
         reg.playToClient(CompareSync.TYPE, CompareSync.CODEC, CompareSync::handle);
         reg.playToClient(StatusSync.TYPE, StatusSync.CODEC, StatusSync::handle);
@@ -96,6 +97,23 @@ public final class ModPackets {
         public static final StreamCodec<RegistryFriendlyByteBuf, ShopPacket> CODEC = StreamCodec.of(
                 (buf, p) -> buf.writeVarInt(p.index()),
                 buf -> new ShopPacket(buf.readVarInt()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 保管庫の操作 (Vault.Menu#act: 0=区分 1=ページ送り 2=一括収納 3=整列 4=消耗品も一括収納) */
+    public record VaultPacket(int action, int arg) implements CustomPacketPayload {
+        public static final Type<VaultPacket> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "vault"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, VaultPacket> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeVarInt(p.action());
+                    buf.writeVarInt(p.arg());
+                },
+                buf -> new VaultPacket(buf.readVarInt(), buf.readVarInt()));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -364,6 +382,7 @@ public final class ModPackets {
                     case "next" -> RunManager.tryNextFloor(sp);
                     case "sub" -> SkillHandler.trySubSkill(sp);
                     case "quick" -> Consumables.quickUse(sp);
+                    case "vault" -> Vault.open(sp, 0);
                     case "noct_swing" -> Nocturne.onAirSwing(sp);
                     default -> {
                         // 数列入力の数字キー: noct_d0 .. noct_d9
@@ -436,6 +455,14 @@ public final class ModPackets {
                 if (!before && sp.getData(ModAttachments.EVENT_DONE.get()) != 0) {
                     sm.markSold(payload.index());
                 }
+            }
+        });
+    }
+
+    private static void handleVault(VaultPacket payload, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof Vault.Menu vm) {
+                vm.act(sp, payload.action(), payload.arg());
             }
         });
     }

@@ -52,7 +52,8 @@ public final class AbyssGameTests {
             new Spec("nocturne_sequence_casts_all_skills", AbyssGameTests::nocturneSequence, 120),
             new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20),
             new Spec("weapon_look_follows_forge_and_trait", AbyssGameTests::weaponLookSync, 20),
-            new Spec("arena_restores_terrain_without_drops", AbyssGameTests::arenaRestoresTerrain, 60));
+            new Spec("arena_restores_terrain_without_drops", AbyssGameTests::arenaRestoresTerrain, 60),
+            new Spec("vault_overflow_and_stash", AbyssGameTests::vaultOverflowAndStash, 20));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -177,8 +178,9 @@ public final class AbyssGameTests {
         check(h, !level.getBlockState(chestPos).is(net.minecraft.world.level.block.Blocks.CHEST), "整地でチェストが消えていない");
         h.runAfterDelay(5, () -> {
             var box = new net.minecraft.world.phys.AABB(base).inflate(ArenaManager.ARENA_R + 2, 12, ArenaManager.ARENA_R + 2);
-            int drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box).size();
-            check(h, drops == 0, "アリーナ設置でアイテムが %s 個落ちた", drops);
+            var dropped = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box);
+            check(h, dropped.isEmpty(), "アリーナ設置でアイテムが落ちた: %s",
+                    dropped.stream().map(e -> e.getItem().toString() + "@" + e.blockPosition().subtract(base)).toList());
             RunManager.retire(p);
             check(h, level.getBlockState(chestPos).is(net.minecraft.world.level.block.Blocks.CHEST), "リタイア後にチェストが戻っていない");
             var be = level.getBlockEntity(chestPos);
@@ -192,6 +194,28 @@ public final class AbyssGameTests {
                 h.succeed();
             });
         });
+    }
+
+    /** 手持ちが満杯でも mod のアイテムは保管庫へ入る。一括収納は区分ごとに振り分け、同じ物をまとめる */
+    private static void vaultOverflowAndStash(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        p.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);  // クリエイティブだと add が常に成功する
+        var inv = p.getInventory();
+        for (int i = 0; i < 36; i++) inv.setItem(i, new ItemStack(net.minecraft.world.item.Items.DIRT, 64));
+        LootHandler.giveOrDrop(p, new ItemStack(ModItems.ANCIENT_STONE.get(), 3));
+        var box = p.getBoundingBox().inflate(4);
+        int drops = h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box).size();
+        check(h, drops == 0, "満杯時に mod のアイテムが地面に落ちた (%s 個)", drops);
+        var mats = Vault.list(p, 2);
+        check(h, mats.get(0).is(ModItems.ANCIENT_STONE.get()) && mats.get(0).getCount() == 3, "保管庫の素材に入っていない: %s", mats.get(0));
+        inv.setItem(20, new ItemStack(ModItems.ANCIENT_STONE.get(), 2));
+        inv.setItem(21, new ItemStack(ModItems.itemOf(GameData.WeaponStyle.SWORD)));
+        int moved = Vault.stashAll(p, false);
+        check(h, moved == 3, "一括収納の個数が違う: %s", moved);
+        check(h, inv.getItem(20).isEmpty() && inv.getItem(21).isEmpty(), "一括収納の後も手持ちに残っている");
+        check(h, Vault.list(p, 2).get(0).getCount() == 5, "同じ素材がまとまっていない: %s", Vault.list(p, 2).get(0));
+        check(h, !Vault.list(p, 0).get(0).isEmpty(), "武器が武器の区分に入っていない");
+        h.succeed();
     }
 
     /** ウェーブを全滅させると (撃破イベントを経由しない消滅でも) 転移門が開く */

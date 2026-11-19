@@ -86,6 +86,13 @@ public final class ModAttachments {
             ATTACHMENTS.register("heirloom", () -> AttachmentType.builder(
                     () -> net.minecraft.world.item.ItemStack.EMPTY.copy())
                     .serialize(net.minecraft.world.item.ItemStack.OPTIONAL_CODEC.fieldOf("value")).build());
+    /** 深淵の保管庫 (区分 → アイテム列。Vault.java) */
+    public static final Supplier<AttachmentType<java.util.Map<String, java.util.List<net.minecraft.world.item.ItemStack>>>> VAULT =
+            ATTACHMENTS.register("vault", () -> AttachmentType.<java.util.Map<String, java.util.List<net.minecraft.world.item.ItemStack>>>builder(
+                    () -> java.util.Map.of())
+                    .serialize(Codec.unboundedMap(Codec.STRING, net.minecraft.world.item.ItemStack.OPTIONAL_CODEC.listOf())
+                            .fieldOf("value"))
+                    .copyOnDeath().build());
     /** 層間イベント使用済み (0/1) */
     public static final Supplier<AttachmentType<Integer>> EVENT_DONE =
             reg("event_done", 0, Codec.INT);

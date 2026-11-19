@@ -41,6 +41,7 @@ public final class ClientGui {
             event.register(ModMenus.FORGE.get(), ForgeScreen::new);
             event.register(ModMenus.SHOP.get(), ShopScreen::new);
             event.register(ModMenus.COMPARE.get(), CompareScreen::new);
+            event.register(ModMenus.VAULT.get(), VaultScreen::new);
         });
     }
 

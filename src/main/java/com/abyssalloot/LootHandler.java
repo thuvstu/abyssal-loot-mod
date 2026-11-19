@@ -47,7 +47,18 @@ public final class LootHandler {
 
     /** インベントリに入らなければ足元に落とす (配布の共通処理) */
     static void giveOrDrop(ServerPlayer player, ItemStack stack) {
-        if (!player.getInventory().add(stack)) {
+        if (!player.getInventory().add(stack) && !stack.isEmpty()) {
+            // 手持ちが満杯なら、mod のアイテムは地面に落とさず保管庫へ送る
+            if (AbyssalLootMod.MODID.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM
+                    .getKey(stack.getItem()).getNamespace())) {
+                ItemStack rest = Vault.store(player, stack);
+                if (rest.getCount() != stack.getCount()) {
+                    player.displayClientMessage(Component.literal("§e手持ちが満杯 → 保管庫へ送った: §f"
+                            + stack.getHoverName().getString()), true);
+                }
+                stack = rest;
+                if (stack.isEmpty()) return;
+            }
             var level = (ServerLevel) player.level();
             var e = new net.minecraft.world.entity.item.ItemEntity(
                     level, player.getX(), player.getY() + 1, player.getZ(), stack);

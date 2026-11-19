@@ -201,7 +201,7 @@ public final class GearData {
         var style = ModItems.styleOf(stack.getItem());
         if (isWeapon && style != null) {
             out.add(Component.literal("§d奥義「" + style.artName + "」: " + style.artDesc));
-            out.add(Component.literal("§7Rキーで発動 (魂ゲージ100で可)"));
+            out.add(KeyText.line("§7", "art", "§7 で発動 (魂ゲージ100で可)"));
             var light = GameData.WEAPON_LIGHTS.get(style.id);
             if (light != null) {
                 out.add(Component.literal("§b小技「" + light.name() + "」: " + light.desc() + " §7(右クリック)"));

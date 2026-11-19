@@ -26,6 +26,7 @@ public class HubScreen extends Screen {
             new Entry("鍛造", "abyss forge", UiKit.CYAN),
             new Entry("商店", "abyss shop", UiKit.CYAN),
             new Entry("装備比較", "abyss compare", UiKit.CYAN),
+            new Entry("保管庫", "abyss vault", UiKit.GOLD),
             new Entry("特殊スキル", "abyss sub", UiKit.GREEN),
             new Entry("ステータス", "abyss statusgui", UiKit.GREEN),
             new Entry("設定メニュー", "abyss menu", UiKit.SUB),

@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 特殊スキル (Cキー / ActPacket "sub"): 囮・影分身・引力地雷など汎用の切り札8種。
+ * 特殊スキル (小技キー 既定 C / ActPacket "sub"): 囮・影分身・引力地雷など汎用の切り札8種。
  * 装備は {@link ModAttachments#SUB_SKILL} に1つだけ保持し、CTは SUB_CD で管理する
  * (切り替えはハブ / /abyss sub の選択画面)。地雷と重力井戸は設置型のため
  * {@link #tickWorld(ServerPlayer)} で進行させる。

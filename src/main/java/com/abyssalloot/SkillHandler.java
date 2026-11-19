@@ -140,7 +140,7 @@ public final class SkillHandler {
         return false;
     }
 
-    /** 特殊スキルの発動 (Cキー・コマンド共通)。CT管理は SUB_CD */
+    /** 特殊スキルの発動 (小技キー 既定 C・コマンド共通)。CT管理は SUB_CD */
     public static boolean trySubSkill(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel)) return false;
         float cd = player.getData(ModAttachments.SUB_CD.get());

@@ -27,6 +27,7 @@ public final class ClientKeys {
     private static KeyMapping nextKey;
     private static KeyMapping subKey;
     private static KeyMapping quickKey;
+    private static KeyMapping vaultKey;
 
     public static void init(IEventBus modBus) {
         registerKeyMappings(modBus);
@@ -124,7 +125,9 @@ public final class ClientKeys {
             subKey = new KeyMapping("key.abyssalloot.sub", KeyConflictContext.IN_GAME,
                     InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, category);
             quickKey = new KeyMapping("key.abyssalloot.quick", KeyConflictContext.IN_GAME,
-                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F, category);
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, category);  // F は持ち手の入れ替えと重なるので Z
+            vaultKey = new KeyMapping("key.abyssalloot.vault", KeyConflictContext.IN_GAME,
+                    InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, category);
             event.register(artKey);
             event.register(skillKey);
             event.register(dashKey);
@@ -132,6 +135,7 @@ public final class ClientKeys {
             event.register(nextKey);
             event.register(subKey);
             event.register(quickKey);
+            event.register(vaultKey);
         });
     }
 
@@ -161,6 +165,9 @@ public final class ClientKeys {
             }
             if (quickKey != null && quickKey.consumeClick()) {
                 conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("quick")));
+            }
+            if (vaultKey != null && vaultKey.consumeClick()) {
+                conn.send(new ServerboundCustomPayloadPacket(new ModPackets.ActPacket("vault")));
             }
         });
     }

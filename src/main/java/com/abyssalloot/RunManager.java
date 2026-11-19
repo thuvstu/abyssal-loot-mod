@@ -150,7 +150,7 @@ public final class RunManager {
         float next = (float) Math.min(100.0, cur + raw * rate);
         player.setData(ModAttachments.SOUL.get(), next);
         if (cur < 100f && next >= 100f) {
-            player.displayClientMessage(Component.literal("§d◆ 魂ゲージMAX！Rキーで武器奥義！"), true);
+            player.displayClientMessage(KeyText.line("§d◆ 魂ゲージMAX！", "art", "§d で武器奥義！"), true);
             // 恩寵「絶対領域」: ゲージ100%で3秒の無敵バリア
             if (boonLv(player, "absolute_domain") > 0) {
                 player.setData(ModAttachments.IFRAME.get(), 3.0f);
@@ -436,11 +436,13 @@ public final class RunManager {
         player.setData(ModAttachments.TUTOR.get(), 1);
         player.sendSystemMessage(Component.literal("§6━━━ 初潜行ガイド ━━━"));
         player.sendSystemMessage(Component.literal("§f1. 左クリックで攻撃。敵を倒して魂ゲージを溜めよう"));
-        player.sendSystemMessage(Component.literal("§f2. ゲージMAXで §bR §f(武器奥義) が撃てる。§dV §fは職業の必殺技"));
-        player.sendSystemMessage(Component.literal("§f3. §aX §fは回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
-        player.sendSystemMessage(Component.literal("§f4. 敵を全滅させると転移門が開く → 門をくぐって次層 (§bG§fで操作ハブ)"));
+        player.sendSystemMessage(KeyText.line("§f2. ゲージMAXで §b", "art", "§f (武器奥義) が撃てる。")
+                .append(KeyText.key("skill")).append(Component.literal("§f は職業の必殺技、"))
+                .append(KeyText.key("sub")).append(Component.literal("§f は小技")));
+        player.sendSystemMessage(KeyText.line("§f3. §a", "dash", "§f は回避ダッシュ。敵の攻撃に合わせると「見切り」で魂+14"));
+        player.sendSystemMessage(KeyText.line("§f4. 敵を全滅させると転移門が開く → 門をくぐって次層 (§b", "hub", "§f で操作ハブ)"));
         player.sendSystemMessage(Component.literal("§f5. レベルアップで祝福3択の画面が開く (選ぶまで保存)。属性1点・5層ごとに層主"));
-        player.sendSystemMessage(Component.literal("§f6. §eF§fキーで回復・魂の消耗品を1個即使用 (HP・魂・浄化の順)"));
+        player.sendSystemMessage(KeyText.line("§f6. §e", "quick", "§f で回復・魂の消耗品を1個即使用 (HP・魂・浄化の順)"));
         player.sendSystemMessage(Component.literal("§7詳しくは /abyss help ／設定は /abyss menu"));
     }
 

@@ -41,8 +41,8 @@ import java.util.function.Supplier;
  * 操作:
  *  - 武器で右クリック: 武器小技 (CT1~3秒で連発)
  *  - スニーク+右クリック: 必殺技 (魂不要, CT25秒)
- *  - Rキー / /abyss art: 武器奥義 (魂ゲージ100で発動)
- *  - Xキー / /abyss dash: 回避ダッシュ (0.5秒無敵, 見切り延長あり)
+ *  - 奥義キー (既定 R) / /abyss art: 武器奥義 (魂ゲージ100で発動)
+ *  - 回避キー (既定 X) / /abyss dash: 回避ダッシュ (0.5秒無敵, 見切り延長あり)
  */
 public final class CombatHandler {
     private CombatHandler() {}

@@ -24,4 +24,7 @@ public final class ModMenus {
 
     public static final Supplier<MenuType<CompareMenu>> COMPARE =
             MENUS.register("compare", () -> IMenuTypeExtension.create(CompareMenu::new));
+
+    public static final Supplier<MenuType<Vault.Menu>> VAULT =
+            MENUS.register("vault", () -> IMenuTypeExtension.create(Vault.Menu::new));
 }

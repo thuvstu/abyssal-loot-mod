@@ -565,7 +565,7 @@ public final class Consumables {
     }
 
     /**
-     * 快捷使用 (Fキー): 状況に応じて最も効く消耗品を1個使う.
+     * 快捷使用 (既定 Z キー): 状況に応じて最も効く消耗品を1個使う.
      * 判定順は「回復 → 魂ゲージ → 浄化」. 該当品が無ければ何もしない.
      */
     public static boolean quickUse(ServerPlayer player) {
