@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, geo_armor, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -534,6 +534,9 @@ def gen_weapon_looks(item_id: str, color: int) -> None:
                      for tid, (_n, col, kind) in variants.TRAITS.items()],
            "fallback": tiers}
     held = model(item_id)
+    if item_id in geo_transform.MODELS:  # 変形する武器: 手持ちは GeckoLib の 3D モデル
+        held = {"type": "minecraft:special", "base": f"abyssalloot:item/{item_id}_3d",
+                "model": {"type": "geckolib:geckolib"}}
     write_item_def(item_id, {"type": "minecraft:select", "property": "minecraft:display_context",
                              "cases": [{"when": GUI_CONTEXTS, "model": gui}, {"when": HELD_CONTEXTS, "model": held}],
                              "fallback": held})
@@ -764,6 +767,14 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 gen_hd_icon(item_id, color)
             elif icon_fn is not None:
                 gen_2d_icon(item_id, icon_fn, color)
+            if item_id in geo_transform.MODELS:  # 変形する武器の GeckoLib モデル・アニメ・テクスチャ
+                gm, gpal, ganim = geo_transform.MODELS[item_id]()
+                gen_geo_weapon(item_id, gm, [gpal], ganim, "_", 0.62, 0.5)
+                write_model(f"{item_id}_3d", {  # 基底モデルの絵 (破片の粒子用) は 2D アイコン
+                    "parent": "minecraft:item/handheld",
+                    "textures": {"layer0": f"abyssalloot:item/{item_id}_icon"},
+                    "display": geo_weapons.display(0.62, 0.5),
+                })
             if item_id in hd_weapons.ICONS or icon_fn is not None:
                 gen_weapon_looks(item_id, color)  # 鍛造レベル・特性で変わるインベントリ表示
             counts["weapons"] += 1

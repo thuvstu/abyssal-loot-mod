@@ -1437,6 +1437,7 @@ public final class WeaponArts {
     /** 奥義発動の告知+効果音+武器種色の粉パーティクル */
     private static void burst(ServerPlayer player, String text, GameData.WeaponStyle style) {
         announce(player, text);
+        TransformWeaponItem.playTransform(player);  // 変形する武器なら手元のモデルが変形する
         slevel(player).playSound(null, player.blockPosition(),
                 SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 0.8f);
         if (style != null) {

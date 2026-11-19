@@ -130,6 +130,12 @@ public final class ModItems {
         }
     }
 
+    /** 変形する武器 (GeckoLib の手持ちモデル + 奥義で変形アニメ) */
+    private static DeferredItem<Item> transformWeapon(String id, Rarity rarity) {
+        return ITEMS.registerItem(id, props -> new TransformWeaponItem(
+                props.stacksTo(1).durability(1561).rarity(rarity).fireResistant(), id));
+    }
+
     private static DeferredItem<Item> endgameWeapon(String id) {
         return ITEMS.registerItem(id, props -> new EndgameWeaponItem(
                 props.stacksTo(1).durability(1561).rarity(Rarity.EPIC).fireResistant(), id));
@@ -243,12 +249,12 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_METEOR_LANCE = weapon("abyss_meteor_lance", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_ECHO_KATANA = weapon("abyss_echo_katana", Rarity.RARE);
     public static final DeferredItem<Item> ABYSS_HOWLING_CLAW = weapon("abyss_howling_claw", Rarity.COMMON);
-    public static final DeferredItem<Item> ABYSS_CRYSTAL_SWORD = weapon("abyss_crystal_sword", Rarity.RARE);
-    public static final DeferredItem<Item> ABYSS_SAKURA_BLADE = weapon("abyss_sakura_blade", Rarity.RARE);
-    public static final DeferredItem<Item> ABYSS_DRAGON_CLEAVER = weapon("abyss_dragon_cleaver", Rarity.RARE);
-    public static final DeferredItem<Item> ABYSS_LUNAR_STAFF = weapon("abyss_lunar_staff", Rarity.RARE);
-    public static final DeferredItem<Item> ABYSS_CHRONO_STAFF = weapon("abyss_chrono_staff", Rarity.RARE);
-    public static final DeferredItem<Item> ABYSS_SOUL_LANTERN = weapon("abyss_soul_lantern", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_CRYSTAL_SWORD = transformWeapon("abyss_crystal_sword", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SAKURA_BLADE = transformWeapon("abyss_sakura_blade", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_DRAGON_CLEAVER = transformWeapon("abyss_dragon_cleaver", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_LUNAR_STAFF = transformWeapon("abyss_lunar_staff", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_CHRONO_STAFF = transformWeapon("abyss_chrono_staff", Rarity.RARE);
+    public static final DeferredItem<Item> ABYSS_SOUL_LANTERN = transformWeapon("abyss_soul_lantern", Rarity.RARE);
     // ---- エンドコンテンツ (最上位クラフト専用)
     public static final DeferredItem<Item> ABYSS_NOCTURNE = endgameWeapon("abyss_nocturne");
     public static final DeferredItem<Item> ABYSS_AIBOU = endgameWeapon("abyss_aibou");
