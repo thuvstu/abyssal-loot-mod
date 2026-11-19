@@ -51,6 +51,11 @@ def mix(a, b, t: float) -> RGBA:
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3)) + (255,)
 
 
+# 仕上げの作風 (外部の参考資料の武器アイコンに寄せたもの): 光の当たる縁に照りの筋・内側の彩度と明暗差を上げる・
+# 外縁を不透明で濃く締める。False で従来の仕上げ (縁はすべて沈める selout・外縁は半透明)
+POLISH = True
+
+
 class Canvas:
     def __init__(self, w: int = 64, h: int = 64):
         self.w, self.h = w, h
@@ -224,7 +229,18 @@ class Canvas:
                                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
                     if edge:
                         tl = (y == 0 or src[y - 1][x] is None) or (x == 0 or src[y][x - 1] is None)
-                        px[x, y] = _hsv_shift(c, -0.42 if tl else -0.55, 0.72, 0.06, 0.12)
+                        br = (y == self.h - 1 or src[y + 1][x] is None) or (x == self.w - 1 or src[y][x + 1] is None)
+                        if POLISH and tl and not br:
+                            # 光の当たる縁は照りの筋 (明るく・暖色へ・少し脱色)。白飛び手前で止める
+                            px[x, y] = _hsv_shift(c, 0.2, 0.14, 0.04, -0.14)
+                        elif POLISH and tl and br:
+                            px[x, y] = _hsv_shift(c, 0.06, 0.14, 0.02, -0.04)  # 1px の細い線は僅かに明るく
+                        else:
+                            px[x, y] = _hsv_shift(c, -0.42 if tl else -0.55, 0.72, 0.06, 0.12)
+                    elif POLISH:
+                        # 内側は彩度と明暗差を少し上げる (中間色をはっきりさせる)
+                        v = max(c[:3]) / 255
+                        px[x, y] = _hsv_shift(c, (v - 0.5) * 0.14, 0.7, 0.0, 0.08)
             # 外側に 1px の濃い縁 (背景から浮かせる)
             out = img.copy()
             op = out.load()
@@ -235,7 +251,8 @@ class Canvas:
                             nx, ny = x + dx, y + dy
                             if 0 <= nx < self.w and 0 <= ny < self.h and px[nx, ny][3] > 0:
                                 c = px[nx, ny]
-                                op[x, y] = _hsv_shift(c, -0.75, 0.72, 0.1, 0.1)[:3] + (235,)
+                                op[x, y] = (_hsv_shift(c, -0.82, 0.72, 0.1, 0.1)[:3] + (255,) if POLISH
+                                            else _hsv_shift(c, -0.75, 0.72, 0.1, 0.1)[:3] + (235,))
                                 break
             img = out
             px = img.load()
