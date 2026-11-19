@@ -13,6 +13,7 @@
     python tools/abyss.py mobgen <list|build|sheet>                     MOB の骨組み (12 系統) → 箱UVテクスチャ・Java・見本
     python tools/abyss.py structgen <list|sample|build|info>            構造物 (レシピ JSON → .nbt / mcfunction)
     python tools/abyss.py extrude <png> [--style blade]                 2D アイコンを箱モデルに押し出す
+    python tools/abyss.py studio [--port 8765]                          生成器をブラウザで操作する GUI
     python tools/abyss.py gametest                                      実サーバーで結合テスト (GameTest。1 分弱)
     python tools/abyss.py check                                         生成物の乖離 + 全検証 (コミット前に)
     python tools/abyss.py all                                           生成 + データ + 検証
@@ -102,6 +103,9 @@ def main(argv: list[str]) -> int:
     if cmd == "matgen":
         import matgen_cli
         return matgen_cli.main(rest)
+    if cmd == "studio":
+        import studio
+        return studio.main(rest)
     if cmd in ("structgen", "extrude"):
         import assetgen_cli
         return (assetgen_cli.struct_main if cmd == "structgen" else assetgen_cli.extrude_main)(rest)

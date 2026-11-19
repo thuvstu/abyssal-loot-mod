@@ -18,6 +18,7 @@ Python 3.10+ と Pillow (`pip install pillow`) が必要。どのディレクト
 | `python tools/abyss.py mobgen <list\|build\|sheet>` | MOB の骨組み 12 系統 → 箱 UV テクスチャ・`createBodyLayer()`・見本 (`art/mobgen.py`) |
 | `python tools/abyss.py structgen <list\|sample\|build\|info>` | 構造物: レシピ JSON → `.nbt` / mcfunction、`.nbt` の中身と見本 (`art/structgen.py`) |
 | `python tools/abyss.py extrude <png> --style blade` | 2D アイコンを箱モデル (elements) に押し出す。voxel/relief/dome/blade/terraced (`art/extrude.py`) |
+| `python tools/abyss.py studio` | **ブラウザで操作する GUI** (素材・剣・杖・バリエーション・MOB・構造物・押し出し)。見本がすぐ描き直され、PNG を build/studio/ に保存 |
 | `python tools/abyss.py check` | **コミット前に**: 生成物が生成スクリプトと一致しているか + 全検証 |
 | `python tools/abyss.py all` | 生成 + データ + 検証 |
 
@@ -134,3 +135,11 @@ python tools/abyss.py verify recipes lang           # 指定チェックだけ
 
 新しい武器を足すときは `art/new_weapons.py` の `SWORDS` / `STAFFS` に 1 件、`generate_textures.py` の
 `WEAPON_MODELS` に 1 件、Java (GameData.WeaponStyle と各表 / ModItems / WeaponArts) を足す。
+
+## GeckoLib のモデル
+
+| 対象 | 生成 | 描画 (Java) |
+|---|---|---|
+| 着用防具 (全 17 セット) | `art/geo_armor.py` (`gen --kind armor3d`)。兜の型 (竜・番兵・王冠) と地模様で飾りが変わる | `AbyssArmorRenderer` |
+| 変形する武器 (追加 6 種) | `art/geo_transform.py`。待機アニメ + 奥義で再生する変形アニメ | `TransformWeaponItem` |
+| エンドコンテンツ武器 | `art/geo_weapons.py` | `EndgameGeoRenderer` |
