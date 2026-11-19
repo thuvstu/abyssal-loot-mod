@@ -507,6 +507,15 @@ public final class ModItems {
     public static final DeferredItem<Item> ABYSS_HOE = ITEMS.registerItem("abyss_hoe",
             props -> new net.minecraft.world.item.HoeItem(ABYSS_TIER, -3.0F, -1.0F,
                     props.rarity(Rarity.UNCOMMON).fireResistant()));
+    /** 範囲の生活道具 (能力は ToolAbilities): 3×3 の掘削槌 / まとめて伐る伐採斧 / 5×5 の収穫鎌 */
+    public static final DeferredItem<Item> ABYSS_EXCAVATOR = ITEMS.registerItem("abyss_excavator",
+            props -> new Item(props.pickaxe(ABYSS_TIER, 2.0F, -3.0F).durability(4096).rarity(Rarity.RARE).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_LUMBER_AXE = ITEMS.registerItem("abyss_lumber_axe",
+            props -> new net.minecraft.world.item.AxeItem(ABYSS_TIER, 7.0F, -3.1F,
+                    props.durability(4096).rarity(Rarity.RARE).fireResistant()));
+    public static final DeferredItem<Item> ABYSS_SICKLE = ITEMS.registerItem("abyss_sickle",
+            props -> new net.minecraft.world.item.HoeItem(ABYSS_TIER, -2.0F, -1.0F,
+                    props.durability(2048).rarity(Rarity.RARE).fireResistant()));
     /** 深淵の釣竿・鋏 (生活用。耐久高め) */
     public static final DeferredItem<Item> ABYSS_FISHING_ROD = ITEMS.registerItem("abyss_fishing_rod",
             props -> new net.minecraft.world.item.FishingRodItem(
@@ -601,6 +610,9 @@ public final class ModItems {
                         output.accept(ABYSS_HOE.get());
                         output.accept(ABYSS_FISHING_ROD.get());
                         output.accept(ABYSS_SHEARS.get());
+                        output.accept(ABYSS_EXCAVATOR.get());
+                        output.accept(ABYSS_LUMBER_AXE.get());
+                        output.accept(ABYSS_SICKLE.get());
                         output.accept(ABYSS_HELM.get());
                         output.accept(ABYSS_CHEST.get());
                         output.accept(ABYSS_LEGS.get());
@@ -737,7 +749,8 @@ public final class ModItems {
         /** 生活ツール判定 (採掘属性の疾走効果用) */
     public static boolean isTool(Item item) {
         return item == ABYSS_PICKAXE.get() || item == ABYSS_TOOL_AXE.get()
-                || item == ABYSS_SHOVEL.get() || item == ABYSS_HOE.get();
+                || item == ABYSS_SHOVEL.get() || item == ABYSS_HOE.get() || item == ABYSS_EXCAVATOR.get()
+                || item == ABYSS_LUMBER_AXE.get() || item == ABYSS_SICKLE.get();
     }
 
     /** 手持ちItem -> 武器種の逆引き表 (登録後に1度だけ構築) */

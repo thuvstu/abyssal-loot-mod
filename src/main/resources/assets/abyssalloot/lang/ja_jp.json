@@ -390,5 +390,8 @@
   "item.abyssalloot.art_shard_chrono_staff": "奥義の断片・刻杖",
   "item.abyssalloot.abyss_soul_lantern": "深淵の魂灯杖",
   "item.abyssalloot.art_shard_soul_lantern": "奥義の断片・魂灯杖",
-  "key.abyssalloot.vault": "保管庫を開く"
+  "key.abyssalloot.vault": "保管庫を開く",
+  "item.abyssalloot.abyss_excavator": "深淵の掘削槌",
+  "item.abyssalloot.abyss_lumber_axe": "深淵の伐採斧",
+  "item.abyssalloot.abyss_sickle": "深淵の収穫鎌"
 }

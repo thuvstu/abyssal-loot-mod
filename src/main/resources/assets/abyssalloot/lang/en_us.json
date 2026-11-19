@@ -390,5 +390,8 @@
   "item.abyssalloot.art_shard_chrono_staff": "Art Shard: Chrono Staff",
   "item.abyssalloot.abyss_soul_lantern": "Abyss Soul Lantern",
   "item.abyssalloot.art_shard_soul_lantern": "Art Shard: Soul Lantern",
-  "key.abyssalloot.vault": "Open Abyss Vault"
+  "key.abyssalloot.vault": "Open Abyss Vault",
+  "item.abyssalloot.abyss_excavator": "Abyss Excavator",
+  "item.abyssalloot.abyss_lumber_axe": "Abyss Lumber Axe",
+  "item.abyssalloot.abyss_sickle": "Abyss Harvest Sickle"
 }

@@ -155,6 +155,9 @@ WEAPON_MODELS = {
     "abyss_war_horn": (shapes.horn, 0xffd092, "bone", "weapon"),
     "abyss_depth_gun": (shapes.depth_gun, 0xff4d6d, "steel", "weapon"),
     "abyss_shears": (shapes.shears, 0xb28ce0, "steel", "weapon"),
+    "abyss_excavator": (_hammer(), 0x9fd8ff, "steel", "weapon"),
+    "abyss_lumber_axe": (_axe(), 0x7cffb2, "steel", "weapon"),
+    "abyss_sickle": (shapes.scythe, 0xf2c23c, "steel", "weapon"),
 }
 
 # 防具セット: (本体色, 装飾色) — GameData.ArmorSet の color / accent に対応
@@ -334,7 +337,7 @@ VERTICAL_ITEMS = {
     "abyss_rod", "abyss_fishing_rod", "abyss_pickaxe", "abyss_tool_axe",
     "abyss_shovel", "abyss_hoe", "abyss_ember_flail", "abyss_scythe", "abyss_soul_scythe",
     "abyss_tome", "abyss_chaos_tome", "abyss_flame_grimoire", "abyss_war_horn",
-    "abyss_depth_gun", "abyss_gauntlet", "abyss_titan_gauntlet", "abyss_howling_claw",
+    "abyss_depth_gun", "abyss_gauntlet", "abyss_titan_gauntlet", "abyss_howling_claw", "abyss_sickle",
     "abyss_lunar_staff", "abyss_chrono_staff", "abyss_soul_lantern",
 }
 

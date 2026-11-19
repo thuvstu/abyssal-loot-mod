@@ -894,6 +894,22 @@ ICONS = {
 }
 
 
+def excavator(accent, ph=0.0, anim=False):
+    """深淵の掘削槌: 重い槌頭の両端につるはしの爪。"""
+    return hammer(accent, ph, anim, size=1.15, head=hexc(0x3a3f52), cracks=True)
+
+
+def lumber_axe(accent, ph=0.0, anim=False):
+    return tool_axe(accent, ph, anim)
+
+
+def sickle(accent, ph=0.0, anim=False):
+    return scythe(accent, ph, anim)
+
+
+ICONS.update({"abyss_excavator": excavator, "abyss_lumber_axe": lumber_axe, "abyss_sickle": sickle})
+
+
 def _register_generated() -> None:
     """MCAssetGen 由来のジェネレータで描く追加武器 (art/new_weapons.py) を表に載せる。"""
     from . import new_weapons

@@ -55,7 +55,8 @@ public final class AbyssGameTests {
             new Spec("arena_restores_terrain_without_drops", AbyssGameTests::arenaRestoresTerrain, 60),
             new Spec("vault_overflow_and_stash", AbyssGameTests::vaultOverflowAndStash, 20),
             new Spec("gacha_pull_and_pity", AbyssGameTests::gachaPullAndPity, 20),
-            new Spec("workshop_exact_stats", AbyssGameTests::workshopExactStats, 20));
+            new Spec("workshop_exact_stats", AbyssGameTests::workshopExactStats, 20),
+            new Spec("excavator_and_lumber_axe", AbyssGameTests::excavatorAndLumberAxe, 20));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -269,6 +270,39 @@ public final class AbyssGameTests {
                 java.util.Map.of("maxHpPct", 12.0), "");
         check(h, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(armor.getItem()).getPath().equals("abyss_void_helm"),
                 "セット防具の部位になっていない: %s", armor.getItem());
+        h.succeed();
+    }
+
+    /** 掘削槌は 3×3 を掘り、伐採斧はつながった原木をまとめて伐る */
+    private static void excavatorAndLumberAxe(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        p.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        var level = h.getLevel();
+        var base = p.blockPosition().offset(0, 0, 3);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 2; y++) {
+                level.setBlock(base.offset(x, y, 0), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+            }
+        }
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, new ItemStack(ModItems.ABYSS_EXCAVATOR.get()));
+        p.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES, net.minecraft.world.phys.Vec3.atCenterOf(base.above()));
+        p.gameMode.destroyBlock(base.above());
+        int left = 0;
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 2; y++) {
+                if (!level.getBlockState(base.offset(x, y, 0)).isAir()) left++;
+            }
+        }
+        check(h, left == 0, "掘削槌で 3×3 が掘れていない (残り %s)", left);
+        var tree = p.blockPosition().offset(4, 0, 0);
+        for (int y = 0; y < 6; y++) {
+            level.setBlock(tree.above(y), net.minecraft.world.level.block.Blocks.OAK_LOG.defaultBlockState(), 3);
+        }
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, new ItemStack(ModItems.ABYSS_LUMBER_AXE.get()));
+        p.gameMode.destroyBlock(tree);
+        int logs = 0;
+        for (int y = 0; y < 6; y++) if (level.getBlockState(tree.above(y)).is(net.minecraft.world.level.block.Blocks.OAK_LOG)) logs++;
+        check(h, logs == 0, "伐採斧で原木が %s 本残った", logs);
         h.succeed();
     }
 

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "abyssal_loot",
+  "pattern": [
+    "XX ",
+    "XA ",
+    " S "
+  ],
+  "key": {
+    "X": "abyssalloot:ancient_stone",
+    "A": "abyssalloot:abyss_tool_axe",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "abyssalloot:abyss_lumber_axe",
+    "count": 1
+  }
+}
