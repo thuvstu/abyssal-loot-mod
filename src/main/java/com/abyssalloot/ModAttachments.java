@@ -93,6 +93,9 @@ public final class ModAttachments {
                     .serialize(Codec.unboundedMap(Codec.STRING, net.minecraft.world.item.ItemStack.OPTIONAL_CODEC.listOf())
                             .fieldOf("value"))
                     .copyOnDeath().build());
+    /** ガチャ: 最後に神話が出てから引いた回数 (天井) / 累計の回数 */
+    public static final Supplier<AttachmentType<Integer>> GACHA_PITY = reg("gacha_pity", 0, Codec.INT);
+    public static final Supplier<AttachmentType<Integer>> GACHA_TOTAL = reg("gacha_total", 0, Codec.INT);
     /** 層間イベント使用済み (0/1) */
     public static final Supplier<AttachmentType<Integer>> EVENT_DONE =
             reg("event_done", 0, Codec.INT);

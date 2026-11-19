@@ -194,6 +194,12 @@ public final class GearData {
             java.util.Map.entry("reach", "射程"), java.util.Map.entry("sweep", "横斬り"),
             java.util.Map.entry("strikes", "連撃"));
 
+    /** 接辞の表示名 (割合の接辞は「%」付き)。装備工房などの UI 用 */
+    public static String affixLabel(String key) {
+        String l = AFFIX_LABEL.getOrDefault(key, key);
+        return key.endsWith("Pct") ? l + "%" : key.endsWith("Flat") ? l + "+" : l;
+    }
+
     /** 武器・防具のツールチップ行 (接辞・特性・奥義・使い方)。LOREコンポーネント用 */
     public static java.util.List<Component> loreLines(ItemStack stack,
                                                       boolean isWeapon) {

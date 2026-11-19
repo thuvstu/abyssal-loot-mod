@@ -186,16 +186,16 @@ public final class TransferGate {
                 boolean frame = x == 0 || x == WIDTH - 1 || y == HEIGHT - 1;
                 BlockPos p = base.offset(x, y, 0);
                 if (frame) {
-                    level.setBlock(p, Blocks.OBSIDIAN.defaultBlockState(), 3);
+                    level.setBlock(p, Blocks.OBSIDIAN.defaultBlockState(), ArenaGuard.FLAGS);
                 } else {
                     // 開口部は必ず空ける (障害物に塞がれないように)
-                    level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(p, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
                 }
             }
         }
         // 上の灯り (遠くからでも門が分かるように)
-        level.setBlock(base.offset(1, HEIGHT, 0), Blocks.SOUL_LANTERN.defaultBlockState(), 3);
-        level.setBlock(base.offset(2, HEIGHT, 0), Blocks.SOUL_LANTERN.defaultBlockState(), 3);
+        level.setBlock(base.offset(1, HEIGHT, 0), Blocks.SOUL_LANTERN.defaultBlockState(), ArenaGuard.FLAGS);
+        level.setBlock(base.offset(2, HEIGHT, 0), Blocks.SOUL_LANTERN.defaultBlockState(), ArenaGuard.FLAGS);
     }
 
     /** 門の構造を撤去する (置いたブロックだけ消す) */
@@ -206,7 +206,7 @@ public final class TransferGate {
                 BlockPos p = base.offset(x, y, 0);
                 var state = level.getBlockState(p);
                 if (state.is(Blocks.OBSIDIAN) || state.is(Blocks.SOUL_LANTERN)) {
-                    level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(p, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
                 }
             }
         }

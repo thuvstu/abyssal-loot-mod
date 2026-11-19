@@ -78,6 +78,10 @@ public final class ModPackets {
         reg.playToServer(ForgePacket.TYPE, ForgePacket.CODEC, ModPackets::handleForge);
         reg.playToServer(ShopPacket.TYPE, ShopPacket.CODEC, ModPackets::handleShop);
         reg.playToServer(VaultPacket.TYPE, VaultPacket.CODEC, ModPackets::handleVault);
+        reg.playToServer(GachaPacket.TYPE, GachaPacket.CODEC, ModPackets::handleGacha);
+        reg.playToClient(GachaResult.TYPE, GachaResult.CODEC, GachaResult::handle);
+        reg.playToServer(WorkshopPacket.TYPE, WorkshopPacket.CODEC, ModPackets::handleWorkshop);
+        reg.playToClient(OpenScreen.TYPE, OpenScreen.CODEC, OpenScreen::handle);
         reg.playToServer(ComparePacket.TYPE, ComparePacket.CODEC, ModPackets::handleCompare);
         reg.playToClient(CompareSync.TYPE, CompareSync.CODEC, CompareSync::handle);
         reg.playToClient(StatusSync.TYPE, StatusSync.CODEC, StatusSync::handle);
@@ -118,6 +122,102 @@ public final class ModPackets {
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+    }
+
+
+    /** ガチャを引く (n = 1 / 10) */
+    public record GachaPacket(int n) implements CustomPacketPayload {
+        public static final Type<GachaPacket> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "gacha"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, GachaPacket> CODEC = StreamCodec.of(
+                (buf, p) -> buf.writeVarInt(p.n()), buf -> new GachaPacket(buf.readVarInt()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** ガチャの結果 (空なら画面を開くだけ)。pityLeft = 神話確定まで / shards = 残りの欠片 */
+    public record GachaResult(java.util.List<net.minecraft.world.item.ItemStack> items, int pityLeft, int shards,
+                              boolean free) implements CustomPacketPayload {
+        public static final Type<GachaResult> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "gacha_result"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, GachaResult> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    net.minecraft.world.item.ItemStack.OPTIONAL_LIST_STREAM_CODEC.encode(buf, p.items());
+                    buf.writeVarInt(p.pityLeft());
+                    buf.writeVarInt(p.shards());
+                    buf.writeBoolean(p.free());
+                },
+                buf -> new GachaResult(net.minecraft.world.item.ItemStack.OPTIONAL_LIST_STREAM_CODEC.decode(buf),
+                        buf.readVarInt(), buf.readVarInt(), buf.readBoolean()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(GachaResult payload, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> ClientGui.openGacha(payload));
+        }
+    }
+
+    /** 装備工房 (クリエイティブ) で作る装備の仕様 */
+    public record WorkshopPacket(boolean weapon, String style, String piece, String set, String rarity, String trait,
+                                 String skill, int forge, java.util.List<String> keys, java.util.List<Double> values,
+                                 String name) implements CustomPacketPayload {
+        public static final Type<WorkshopPacket> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "workshop"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, WorkshopPacket> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeBoolean(p.weapon());
+                    for (String s : new String[]{p.style(), p.piece(), p.set(), p.rarity(), p.trait(), p.skill(), p.name()}) {
+                        buf.writeUtf(s == null ? "" : s, 64);
+                    }
+                    buf.writeVarInt(p.forge());
+                    buf.writeVarInt(p.keys().size());
+                    for (int i = 0; i < p.keys().size(); i++) {
+                        buf.writeUtf(p.keys().get(i), 32);
+                        buf.writeDouble(p.values().get(i));
+                    }
+                },
+                buf -> {
+                    boolean w = buf.readBoolean();
+                    String[] s = new String[7];
+                    for (int i = 0; i < 7; i++) s[i] = buf.readUtf(64);
+                    int forge = buf.readVarInt();
+                    int n = Math.min(8, buf.readVarInt());
+                    var keys = new java.util.ArrayList<String>();
+                    var vals = new java.util.ArrayList<Double>();
+                    for (int i = 0; i < n; i++) {
+                        keys.add(buf.readUtf(32));
+                        vals.add(buf.readDouble());
+                    }
+                    return new WorkshopPacket(w, s[0], s[1], s[2], s[3], s[4], s[5], forge, keys, vals, s[6]);
+                });
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** サーバーからクライアントの画面を開かせる (id = workshop) */
+    public record OpenScreen(String id) implements CustomPacketPayload {
+        public static final Type<OpenScreen> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(AbyssalLootMod.MODID, "open_screen"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenScreen> CODEC = StreamCodec.of(
+                (buf, p) -> buf.writeUtf(p.id(), 32), buf -> new OpenScreen(buf.readUtf(32)));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(OpenScreen payload, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> ClientGui.openScreen(payload.id()));
         }
     }
 
@@ -456,6 +556,44 @@ public final class ModPackets {
                     sm.markSold(payload.index());
                 }
             }
+        });
+    }
+
+    private static void handleGacha(GachaPacket payload, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer sp) Gacha.pull(sp, payload.n());
+        });
+    }
+
+    /** 装備工房: クリエイティブ (または OP) のみ。仕様どおりの装備を手持ち (満杯なら保管庫) へ */
+    private static void handleWorkshop(WorkshopPacket p, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (!(ctx.player() instanceof ServerPlayer sp)) return;
+            if (!sp.isCreative() && !sp.permissions().hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER)) {
+                sp.displayClientMessage(net.minecraft.network.chat.Component.literal("§c装備工房はクリエイティブ専用"), true);
+                return;
+            }
+            var affixes = new java.util.LinkedHashMap<String, Double>();
+            for (int i = 0; i < p.keys().size(); i++) affixes.put(p.keys().get(i), p.values().get(i));
+            GameData.WeaponStyle style = null;
+            net.minecraft.world.item.Item piece = null;
+            if (p.weapon()) {
+                for (var w : GameData.WeaponStyle.VALUES) if (w.id.equals(p.style())) style = w;
+                if (style == null) return;
+            } else {
+                piece = switch (p.piece()) {
+                    case "helm" -> ModItems.ABYSS_HELM.get();
+                    case "legs" -> ModItems.ABYSS_LEGS.get();
+                    case "boots" -> ModItems.ABYSS_BOOTS.get();
+                    default -> ModItems.ABYSS_CHEST.get();
+                };
+            }
+            var stack = GearFactory.makeCustom(style, piece, p.set().isEmpty() ? null : p.set(), p.rarity(),
+                    p.trait().isEmpty() ? null : p.trait(), p.skill().isEmpty() ? null : p.skill(), p.forge(), affixes,
+                    p.name());
+            if (style != null) GearData.syncLook(stack);
+            LootHandler.giveOrDrop(sp, stack);
+            sp.displayClientMessage(net.minecraft.network.chat.Component.literal("§a作成: ").append(stack.getHoverName()), true);
         });
     }
 

@@ -147,6 +147,105 @@ public final class GearFactory {
         return stack;
     }
 
+    /* ---------------- 希少度を指定した生成 (ガチャ) ---------------- */
+
+    /** 希少度を固定して呪い・接辞を抽選する */
+    private static Roll rollFixed(RandomSource rand, String rarity, List<GameData.AffixKey> pool) {
+        String curseKey = null;
+        double curseVal = 0;
+        if (GameData.rollCursed(rand::nextDouble, rarity)) {
+            var mod = GameData.rollCursedMod(rand::nextDouble);
+            curseKey = mod.key();
+            curseVal = GameData.rollCursedValue(rand::nextDouble, mod);
+        }
+        int[] range = GameData.affixCountRange(rarity);
+        int n = range[0] + rand.nextInt(range[1] - range[0] + 1);
+        return new Roll(rarity, curseKey, curseVal, GameData.rollAffixes(rand::nextDouble, rarity, n, pool));
+    }
+
+    public static ItemStack makeWeaponOfRarity(GameData.WeaponStyle style, String rarity, RandomSource rand) {
+        return buildWeapon(style, rollFixed(rand, rarity, GameData.WEAPON_AFFIXES), rand);
+    }
+
+    /** 希少度固定の防具。setId が null なら基本防具 (piece が null なら部位もランダム) */
+    public static ItemStack makeArmorOfRarity(String setId, Item piece, String rarity, RandomSource rand) {
+        ItemStack stack = setId != null ? makeSetArmor(setId, piece, rand, 0, 1, 0) : makeArmor(piece, rand, 0, 1, 0);
+        var roll = rollFixed(rand, rarity, GameData.ARMOR_AFFIXES);
+        var tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        var fresh = baseTag(roll);
+        tag.remove("abyss_curse");
+        tag.remove("abyss_curse_val");
+        tag.remove("abyss_affixes");
+        tag.merge(fresh);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        String base = armorBaseName(stack.getItem());
+        String title = armorTitle(base, roll, rand);
+        if (setId != null) {
+            var set = GameData.armorSetById(setId);
+            if (set != null) title = "§b【" + set.name() + "】" + title;
+        }
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(title));
+        GearData.refreshLore(stack);
+        return stack;
+    }
+
+    /* ---------------- 完全指定の生成 (クリエイティブの装備工房) ---------------- */
+
+    /**
+     * 性能をすべて指定して装備を作る。affixes は (キー → 値)。値は接辞ごとの上限の 3 倍までに丸める。
+     * style が非 null なら武器、piece が非 null なら防具 (setId でセット防具)。
+     */
+    public static ItemStack makeCustom(GameData.WeaponStyle style, Item piece, String setId, String rarity,
+                                       String trait, String skill, int forgeLv, java.util.Map<String, Double> affixes,
+                                       String customName) {
+        var pool = style != null ? GameData.WEAPON_AFFIXES : GameData.ARMOR_AFFIXES;
+        var rolled = new java.util.ArrayList<GameData.RolledAffix>();
+        for (var e : affixes.entrySet()) {
+            var def = pool.stream().filter(a -> a.key().equals(e.getKey())).findFirst().orElse(null);
+            if (def == null) continue;
+            double v = Math.max(-def.max() * 3, Math.min(def.max() * 3, e.getValue()));
+            rolled.add(new GameData.RolledAffix(def.key(), Math.round(v * 10) / 10.0));
+        }
+        var roll = new Roll(GameData.rarityRank(rarity) > 0 || "normal".equals(rarity) ? rarity : "normal", null, 0, rolled);
+        var tag = baseTag(roll);
+        ItemStack stack;
+        String base;
+        if (style != null) {
+            if (trait != null && GearData.traitName(trait) != null) tag.putString("abyss_trait", trait);
+            if (skill != null && GameData.WEAPON_SKILLS.stream().anyMatch(s -> s.id().equals(skill))) {
+                tag.putString("abyss_skill", skill);
+            }
+            stack = new ItemStack(ModItems.itemOf(style));
+            base = style.weaponName;
+        } else {
+            Item item = piece != null ? piece : ModItems.ABYSS_CHEST.get();
+            if (setId != null && GameData.armorSetById(setId) != null) {
+                String slot = switch (ModItems.slotOf(item)) {
+                    case HEAD -> "helm";
+                    case LEGS -> "legs";
+                    case FEET -> "boots";
+                    default -> "chest";
+                };
+                var setPiece = ModItems.SET_PIECES.get(setId + "_" + slot);
+                if (setPiece != null) item = setPiece.get();
+                tag.putString("abyss_set", setId);
+            }
+            if (skill != null && GameData.ARMOR_SKILLS.stream().anyMatch(s -> s.id().equals(skill))) {
+                tag.putString("abyss_skill", skill);
+            }
+            stack = new ItemStack(item);
+            base = armorBaseName(item);
+        }
+        tag.putInt("abyss_forge", Math.max(0, Math.min(5, forgeLv)));
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        String title = customName != null && !customName.isBlank() ? GearData.rarityColor(roll.rarity()) + customName
+                : GearData.rarityColor(roll.rarity()) + base
+                + (trait != null && style != null && GearData.traitName(trait) != null ? "〔" + GearData.traitName(trait) + "〕" : "");
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(title));
+        GearData.refreshLore(stack);
+        return stack;
+    }
+
     /** 深淵防具の部位名 (セット品はスロットから判定) */
     public static String armorBaseName(Item item) {
         var slot = ModItems.slotOf(item);

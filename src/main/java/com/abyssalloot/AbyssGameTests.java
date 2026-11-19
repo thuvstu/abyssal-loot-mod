@@ -53,7 +53,9 @@ public final class AbyssGameTests {
             new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20),
             new Spec("weapon_look_follows_forge_and_trait", AbyssGameTests::weaponLookSync, 20),
             new Spec("arena_restores_terrain_without_drops", AbyssGameTests::arenaRestoresTerrain, 60),
-            new Spec("vault_overflow_and_stash", AbyssGameTests::vaultOverflowAndStash, 20));
+            new Spec("vault_overflow_and_stash", AbyssGameTests::vaultOverflowAndStash, 20),
+            new Spec("gacha_pull_and_pity", AbyssGameTests::gachaPullAndPity, 20),
+            new Spec("workshop_exact_stats", AbyssGameTests::workshopExactStats, 20));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -215,6 +217,58 @@ public final class AbyssGameTests {
         check(h, inv.getItem(20).isEmpty() && inv.getItem(21).isEmpty(), "一括収納の後も手持ちに残っている");
         check(h, Vault.list(p, 2).get(0).getCount() == 5, "同じ素材がまとまっていない: %s", Vault.list(p, 2).get(0));
         check(h, !Vault.list(p, 0).get(0).isEmpty(), "武器が武器の区分に入っていない");
+        h.succeed();
+    }
+
+    /** ガチャ: 10 連で欠片 270 を払い 10 個受け取る。レア以上が 1 つ以上。天井 (60 回) で神話が出る */
+    private static void gachaPullAndPity(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        p.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        var inv = p.getInventory();
+        inv.clearContent();
+        inv.setItem(0, new ItemStack(ModItems.SOUL_SHARD.get(), 64));
+        inv.setItem(1, new ItemStack(ModItems.SOUL_SHARD.get(), 64));
+        inv.setItem(2, new ItemStack(ModItems.SOUL_SHARD.get(), 64));
+        inv.setItem(3, new ItemStack(ModItems.SOUL_SHARD.get(), 64));
+        inv.setItem(4, new ItemStack(ModItems.SOUL_SHARD.get(), 64));
+        Gacha.pull(p, 10, false);
+        check(h, Gacha.countShards(p) == 320 - 270, "欠片の残りが違う: %s", Gacha.countShards(p));
+        int gear = 0, best = 0;
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            var st = inv.getItem(i);
+            if (ModItems.styleOf(st.getItem()) != null || ModItems.slotOf(st.getItem()) != null) {
+                gear++;
+                best = Math.max(best, GameData.rarityRank(GearData.rarityOf(st)));
+            }
+        }
+        check(h, gear == 10, "10 連で受け取った装備が %s 個", gear);
+        check(h, best >= 2, "10 連でレア以上が出ていない");
+        Gacha.pull(p, 10, false);  // 欠片不足 (残り 50) なので何も起きない
+        check(h, Gacha.countShards(p) == 50, "欠片不足なのに引けた: 残り %s", Gacha.countShards(p));
+        p.setData(ModAttachments.GACHA_PITY.get(), Gacha.PITY - 1);
+        inv.clearContent();
+        Gacha.pull(p, 1, true);
+        check(h, GameData.rarityRank(GearData.rarityOf(inv.getItem(0))) == 4, "天井で神話が出ない: %s", inv.getItem(0));
+        check(h, p.getData(ModAttachments.GACHA_PITY.get()) == 0, "神話の後に天井の回数が戻っていない");
+        h.succeed();
+    }
+
+    /** 装備工房: 指定した希少度・特性・鍛造・接辞の値がそのまま付く */
+    private static void workshopExactStats(GameTestHelper h) {
+        var affixes = new java.util.LinkedHashMap<String, Double>();
+        affixes.put("critPct", 9.0);
+        affixes.put("damagePct", 27.0);
+        affixes.put("nonexistent", 5.0);
+        var st = GearFactory.makeCustom(GameData.WeaponStyle.KATANA, null, null, "mythic", "infernus", null, 4, affixes, "試し斬り");
+        check(h, "mythic".equals(GearData.rarityOf(st)), "希少度が違う: %s", GearData.rarityOf(st));
+        check(h, "infernus".equals(GearData.traitOf(st)), "特性が違う: %s", GearData.traitOf(st));
+        check(h, GearData.forgeLv(st) == 4, "鍛造が違う: %s", GearData.forgeLv(st));
+        check(h, GearData.affixOf(st, "critPct") == 9.0 && GearData.affixOf(st, "damagePct") == 27.0, "接辞の値が違う");
+        check(h, GearData.affixOf(st, "nonexistent") == 0, "存在しない接辞が付いた");
+        var armor = GearFactory.makeCustom(null, ModItems.ABYSS_HELM.get(), "void", "legendary", null, null, 0,
+                java.util.Map.of("maxHpPct", 12.0), "");
+        check(h, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(armor.getItem()).getPath().equals("abyss_void_helm"),
+                "セット防具の部位になっていない: %s", armor.getItem());
         h.succeed();
     }
 

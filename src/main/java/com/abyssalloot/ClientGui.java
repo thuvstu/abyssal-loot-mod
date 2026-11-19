@@ -36,6 +36,19 @@ public final class ClientGui {
     }
 
     /** コンテナ画面 (鍛造・商店・比較) の登録 */
+    /** ガチャの画面を開く / 結果を表示中の画面へ渡す */
+    public static void openGacha(ModPackets.GachaResult result) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.screen instanceof GachaScreen gs) gs.accept(result);
+        else mc.setScreen(new GachaScreen(result));
+    }
+
+    /** サーバーの指示で開くクライアント専用画面 */
+    public static void openScreen(String id) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if ("workshop".equals(id)) mc.setScreen(new WorkshopScreen());
+    }
+
     private static void registerScreens(IEventBus modBus) {
         modBus.addListener((RegisterMenuScreensEvent event) -> {
             event.register(ModMenus.FORGE.get(), ForgeScreen::new);

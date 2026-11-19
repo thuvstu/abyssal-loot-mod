@@ -489,6 +489,19 @@ public final class ModCommands {
                             Component.literal("商店")));
                     return 1;
                 }))
+                .then(Commands.literal("gacha").executes(ctx -> {
+                    Gacha.open(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
+                .then(Commands.literal("workshop").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    if (!p.isCreative()) {
+                        p.sendSystemMessage(Component.literal("§c装備工房はクリエイティブ専用 (/gamemode creative)"));
+                        return 0;
+                    }
+                    ModPackets.send(p, new ModPackets.OpenScreen("workshop"));
+                    return 1;
+                }))
                 .then(Commands.literal("vault").executes(ctx -> {
                     Vault.open(ctx.getSource().getPlayerOrException(), 0);
                     return 1;
