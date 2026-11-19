@@ -727,7 +727,8 @@
       "color": "3a3448",
       "accent": "e2c24c",
       "rarity": "epic",
-      "style": "ancient"
+      "style": "ancient",
+      "fx": "pearl:strength=0.35|sparkle:count=2,color=fff4c0"
     },
     {
       "id": "abyss_last_wisp",
@@ -738,7 +739,8 @@
       "color": "7fe3ea",
       "accent": "c8fbff",
       "rarity": "epic",
-      "style": "magic"
+      "style": "magic",
+      "fx": "iridescent:strength=0.3|glow:color=c8fbff,radius=1.2,strength=0.45"
     },
     {
       "id": "abyss_oblivion_crown",
@@ -749,7 +751,8 @@
       "color": "8a80a0",
       "accent": "ffd23c",
       "rarity": "epic",
-      "style": "ancient"
+      "style": "ancient",
+      "fx": "nebula:strength=0.35|sparkle:count=2"
     },
     {
       "id": "abyss_abyssal_compass",
@@ -760,7 +763,8 @@
       "color": "2ad0c0",
       "accent": "ffd23c",
       "rarity": "epic",
-      "style": "ancient"
+      "style": "ancient",
+      "fx": "pearl:strength=0.3|edgewear:amount=0.25"
     },
     {
       "id": "abyss_chalice_of_end",
@@ -771,7 +775,8 @@
       "color": "d9a441",
       "accent": "2ad0c0",
       "rarity": "epic",
-      "style": "ancient"
+      "style": "ancient",
+      "fx": "iridescent:strength=0.28|sparkle:count=2,color=c8fffa"
     },
     {
       "id": "abyss_deep_eye",
@@ -782,7 +787,8 @@
       "color": "6a4a9a",
       "accent": "ff4d6d",
       "rarity": "epic",
-      "style": "magic"
+      "style": "magic",
+      "fx": "veins:color=ff4d6d,amount=0.7|glow:color=ff4d6d,radius=1,strength=0.4"
     }
   ],
   "zone_existing_drops": {
@@ -1409,7 +1415,8 @@
         "abyssalloot:soul_shard"
       ],
       "accent": "c8fbff",
-      "style": "magic"
+      "style": "magic",
+      "fx": "glow:color=7fe3ea,radius=1,strength=0.4"
     },
     {
       "id": "abyss_null_seal",
@@ -1452,7 +1459,8 @@
         "abyssalloot:soul_shard_pouch"
       ],
       "accent": "d9a441",
-      "style": "ancient"
+      "style": "ancient",
+      "fx": "iridescent:strength=0.25|glow:color=7ffff0,radius=1,strength=0.35"
     }
   ],
   "extra_recipes": [

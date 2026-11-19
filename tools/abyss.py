@@ -14,6 +14,7 @@
     python tools/abyss.py structgen <list|sample|build|info>            構造物 (レシピ JSON → .nbt / mcfunction)
     python tools/abyss.py extrude <png> [--style blade]                 2D アイコンを箱モデルに押し出す
     python tools/abyss.py studio [--port 8765]                          生成器をブラウザで操作する GUI
+    python tools/abyss.py texfx <png> --fx "pearl|sparkle" [--out x.png] 加工エフェクトの重ねがけ
     python tools/abyss.py gametest                                      実サーバーで結合テスト (GameTest。1 分弱)
     python tools/abyss.py check                                         生成物の乖離 + 全検証 (コミット前に)
     python tools/abyss.py all                                           生成 + データ + 検証
@@ -103,6 +104,21 @@ def main(argv: list[str]) -> int:
     if cmd == "matgen":
         import matgen_cli
         return matgen_cli.main(rest)
+    if cmd == "texfx":
+        import argparse
+        from PIL import Image
+        from art import texfx
+        from art.project import ROOT
+        ap = argparse.ArgumentParser(prog="abyss.py texfx")
+        ap.add_argument("png")
+        ap.add_argument("--fx", required=True, help=" | 区切り。使えるもの: " + ", ".join(texfx.EFFECTS))
+        ap.add_argument("--out")
+        a = ap.parse_args(rest)
+        out = a.out or os.path.join(ROOT, "build", "texfx", os.path.basename(a.png))
+        os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+        texfx.apply(Image.open(a.png), a.fx).save(out)
+        print(f"書き出し: {out}")
+        return 0
     if cmd == "studio":
         import studio
         return studio.main(rest)

@@ -105,4 +105,10 @@ def _matgen_errors(doc: dict) -> list[str]:
                 errs.append(f"{e['id']}: 未知の質感 {e['style']} ({', '.join(matgen.STYLES)})")
             if e.get("accent") and len(e["accent"]) != 6:
                 errs.append(f"{e['id']}: accent は rrggbb の 6 桁")
+            if e.get("fx"):
+                from . import texfx
+                try:
+                    texfx.parse(e["fx"])
+                except ValueError as ex:
+                    errs.append(f"{e['id']}: fx {ex}")
     return errs

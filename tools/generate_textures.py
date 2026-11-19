@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, finish, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, texfx, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -544,7 +544,10 @@ def gen_weapon_looks(item_id: str, color: int) -> None:
 
 def gen_matgen_icon(e: dict, key: str) -> None:
     """素材ジェネレータ (art/matgen.py) の形で 2D アイコンを作る。陰影・輪郭込みで描かれるので finish は掛けない。"""
-    _png(os.path.join(TEX_DIR, f"{e['id']}.png"), matgen.entry_icon(e, key))
+    img = matgen.entry_icon(e, key)
+    if e.get("fx"):  # 加工エフェクトの重ねがけ (art/texfx.py。例 "pearl|sparkle:count=2")
+        img = texfx.apply(img, e["fx"])
+    _png(os.path.join(TEX_DIR, f"{e['id']}.png"), img)
     write_flat_model(e["id"])
     write_item_def(e["id"])
 

@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image  # noqa: E402
 
-from art import extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, variants  # noqa: E402
+from art import extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, texfx, variants  # noqa: E402
 from art.project import ROOT, rel, setup_console  # noqa: E402
 
 OUT = os.path.join(ROOT, "build", "studio")
@@ -93,6 +93,12 @@ def schema() -> dict:
         "struct": {"title": "構造物", "fields": [
             _sel("sample", "見本", list(structgen.SAMPLES) + list(structgen.SAMPLE_BUILDERS), "abyss_room"),
             _num("scale", "拡大", 4, 16, 1, 8)]},
+        "texfx": {"title": "エフェクト", "fields": [
+            _sel("source", "元の絵", ["(素材の形)"] + _weapon_icons(), "abyss_katana"),
+            _sel("shape", "素材の形 (元の絵が素材のとき)", sorted(matgen.shapes()), "orb"),
+            _sel("add", "足すエフェクト", ["(選んで追加)"] + list(texfx.EFFECTS)),
+            {"name": "fx", "label": "重ねがけ (| 区切り)", "type": "text", "default": "iridescent:strength=0.4|sparkle:count=3"},
+            _num("scale", "拡大", 1, 16, 1, 4)]},
         "extrude": {"title": "押し出し", "fields": [
             _sel("weapon", "アイコン", _weapon_icons(), "abyss_crystal_sword"),
             _sel("style", "厚みの付け方", extrude.STYLES, "blade"), _num("thickness", "厚み", 1, 6, 1, 3),
@@ -199,6 +205,14 @@ def render(tool: str, q: dict) -> Image.Image:
         name = q["sample"]
         s = structgen.SAMPLE_BUILDERS[name]() if name in structgen.SAMPLE_BUILDERS else structgen.from_recipe(structgen.SAMPLES[name])
         return structgen.preview(s, _int(q, "scale", 8))
+    if tool == "texfx":
+        if q.get("source", "(").startswith("("):
+            base = matgen.render(q.get("shape", "orb"), preset="mithril", seed=1)
+        else:
+            base = hd_weapons.icon(q["source"], 0x7ce8ff)
+        img = texfx.apply(base, q.get("fx", ""))
+        s = _int(q, "scale", 4)
+        return img.resize((img.width * s, img.height * s), Image.NEAREST)
     if tool == "extrude":
         icon = hd_weapons.icon(q["weapon"], 0x7ce8ff)
         n = _int(q, "size", 16)
@@ -220,7 +234,7 @@ header h1{font-size:16px;margin:0 16px 0 0;color:var(--gold)}
 main{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px;padding:16px}
 form{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:12px;display:grid;gap:8px;align-content:start}
 label{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;color:var(--sub);font-size:13px}
-select,input[type=number]{width:100%;background:#120f1f;color:var(--text);border:1px solid var(--edge);border-radius:5px;padding:4px}
+select,input[type=number],input[type=text]{width:100%;background:#120f1f;color:var(--text);border:1px solid var(--edge);border-radius:5px;padding:4px}
 input[type=color]{width:100%;height:28px;background:none;border:1px solid var(--edge);border-radius:5px}
 .view{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:12px;display:grid;gap:10px;align-content:start;justify-items:center}
 .view img{image-rendering:pixelated;max-width:100%;background:repeating-conic-gradient(#221e36 0 25%,#1a172a 0 50%) 0 0/16px 16px;border-radius:6px}
@@ -245,6 +259,7 @@ function build(name){tab=name;form.innerHTML='';for(const b of document.querySel
  for(const f of S[name].fields){const l=document.createElement('label');l.textContent=f.label;let el;
   if(f.type==='select'){el=document.createElement('select');for(const o of f.options){const op=document.createElement('option');op.value=op.textContent=o;el.appendChild(op)}}
   else{el=document.createElement('input');el.type=f.type==='check'?'checkbox':f.type;if(f.type==='number'){el.min=f.min;el.max=f.max;el.step=f.step}}
+  if(f.name==='add')el.addEventListener('change',()=>{const fx=form.elements['fx'];if(!el.value.startsWith('(')){fx.value=(fx.value?fx.value+'|':'')+el.value;el.value=el.options[0].value;fx.dispatchEvent(new Event('input'))}});
   el.name=f.name;const v=saved[f.name]??f.default;if(f.type==='check')el.checked=!!v&&v!=='0';else el.value=v;
   el.addEventListener('input',()=>{const s={};for(const e of form.elements)if(e.name)s[e.name]=e.type==='checkbox'?e.checked:e.value;
    try{localStorage.setItem('studio:'+name,JSON.stringify(s))}catch(e){}refresh()});l.appendChild(el);form.appendChild(l)}
