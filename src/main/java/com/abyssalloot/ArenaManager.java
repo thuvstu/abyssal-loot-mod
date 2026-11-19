@@ -75,6 +75,8 @@ public final class ArenaManager {
         BlockPos center = player.blockPosition();
         int r = ARENA_R;
         if (old != null && !old.equals(center)) clearBarriers(level, old);
+        // 設置前の地形を保存 (リタイア・敗北・勝利で元に戻す。前回の保存が残っていれば先に戻す)
+        ArenaGuard.capture(player, level, center);
         player.setData(ModAttachments.ARENA.get(),
                 center.getX() + "," + center.getY() + "," + center.getZ());
         int floor = Math.max(1, player.getData(ModAttachments.FLOOR.get()));
@@ -94,7 +96,7 @@ public final class ArenaManager {
         for (int x = -r; x <= r; x++) {
             for (int z = -r; z <= r; z++) {
                 if (x * x + z * z > r * r) continue;
-                level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), 3);
+                level.setBlock(center.offset(x, -1, z), floorBlock.defaultBlockState(), ArenaGuard.FLAGS);
             }
         }
     }
@@ -108,7 +110,7 @@ public final class ArenaManager {
                     BlockPos p = center.offset(x, y, z);
                     var st = level.getBlockState(p);
                     if (!st.isAir() && !st.is(Blocks.BEDROCK)) {
-                        level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(p, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
                     }
                 }
             }
@@ -130,24 +132,24 @@ public final class ArenaManager {
                 int h = 2 + rand.nextInt(3);
                 for (int y = 0; y < h; y++) {
                     level.setBlock(new BlockPos(fx, center.getY() + y, fz),
-                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), 3);
+                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), ArenaGuard.FLAGS);
                 }
             } else if (kind == 1) {
                 for (int dx = 0; dx < 2; dx++) {
                     for (int dz = 0; dz < 2; dz++) {
                         level.setBlock(new BlockPos(fx + dx, center.getY(), fz + dz),
-                                Blocks.COBBLESTONE.defaultBlockState(), 3);
+                                Blocks.COBBLESTONE.defaultBlockState(), ArenaGuard.FLAGS);
                         if (rand.nextBoolean()) {
                             level.setBlock(new BlockPos(fx + dx, center.getY() + 1, fz + dz),
-                                    trim.defaultBlockState(), 3);
+                                    trim.defaultBlockState(), ArenaGuard.FLAGS);
                         }
                     }
                 }
             } else {
                 level.setBlock(new BlockPos(fx, center.getY(), fz),
-                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), ArenaGuard.FLAGS);
                 level.setBlock(new BlockPos(fx, center.getY() + 1, fz),
-                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), ArenaGuard.FLAGS);
             }
             placed++;
         }
@@ -160,7 +162,7 @@ public final class ArenaManager {
                 if (x * x + z * z <= (r - 2) * (r - 2)) continue;
                 if (x * x + z * z > r * r) continue;
                 for (int y = 0; y < WALL_H; y++) {
-                    level.setBlock(center.offset(x, y, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                    level.setBlock(center.offset(x, y, z), Blocks.STONE_BRICK_WALL.defaultBlockState(), ArenaGuard.FLAGS);
                 }
             }
         }
@@ -175,14 +177,19 @@ public final class ArenaManager {
                 if (d2 > r * r) continue;
                 if (d2 > (r - 2) * (r - 2)) {
                     for (int y = WALL_H; y <= WALL_H + 5; y++) {
-                        level.setBlock(center.offset(x, y, z), Blocks.BARRIER.defaultBlockState(), 3);
+                        level.setBlock(center.offset(x, y, z), Blocks.BARRIER.defaultBlockState(), ArenaGuard.FLAGS);
                     }
                 } else {
                     // 天井: バリアはスカイライトを通すため、内側は遮光性の色付きガラスで全面を塞ぐ。
                     // 7ブロック間隔の格子だけシーランタンにして、真っ暗にならないよう明かりを残す。
                     Block ceiling = ((x * x + z * z) % 7 == 0)
                             ? Blocks.SEA_LANTERN : Blocks.TINTED_GLASS;
-                    level.setBlock(center.offset(x, WALL_H + 5, z), ceiling.defaultBlockState(), 3);
+                    level.setBlock(center.offset(x, WALL_H + 5, z), ceiling.defaultBlockState(), ArenaGuard.FLAGS);
+                    // 暗くなりすぎないよう、天井の下に見えない光源 (明るさ 15) を 5 マス格子で置く
+                    if (Math.floorMod(x, 5) == 0 && Math.floorMod(z, 5) == 0) {
+                        level.setBlock(center.offset(x, WALL_H + 4, z), Blocks.LIGHT.defaultBlockState()
+                                .setValue(net.minecraft.world.level.block.LightBlock.LEVEL, 15), ArenaGuard.FLAGS);
+                    }
                 }
             }
         }
@@ -232,21 +239,21 @@ public final class ArenaManager {
                 int h = 2 + rand.nextInt(2);
                 for (int y = 0; y < h; y++) {
                     level.setBlock(new BlockPos(fx, center.getY() + y, fz),
-                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), 3);
+                            (y == h - 1 ? trim : Blocks.COBBLESTONE).defaultBlockState(), ArenaGuard.FLAGS);
                 }
             } else if (kind == 1) {
                 for (int dx = 0; dx < 2; dx++) {
                     for (int dz = 0; dz < 2; dz++) {
                         BlockPos q = new BlockPos(fx + dx, center.getY(), fz + dz);
                         if (!level.getBlockState(q).isAir()) continue;
-                        level.setBlock(q, Blocks.COBBLESTONE.defaultBlockState(), 3);
+                        level.setBlock(q, Blocks.COBBLESTONE.defaultBlockState(), ArenaGuard.FLAGS);
                     }
                 }
             } else {
                 level.setBlock(new BlockPos(fx, center.getY(), fz),
-                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), ArenaGuard.FLAGS);
                 level.setBlock(new BlockPos(fx, center.getY() + 1, fz),
-                        Blocks.STONE_BRICK_WALL.defaultBlockState(), 3);
+                        Blocks.STONE_BRICK_WALL.defaultBlockState(), ArenaGuard.FLAGS);
             }
             placed++;
         }
@@ -263,14 +270,18 @@ public final class ArenaManager {
                     for (int y = WALL_H; y <= WALL_H + 5; y++) {
                         BlockPos p = center.offset(x, y, z);
                         if (level.getBlockState(p).is(Blocks.BARRIER)) {
-                            level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                            level.setBlock(p, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
                         }
                     }
                 } else {
                     BlockPos p = center.offset(x, WALL_H + 5, z);
                     var st = level.getBlockState(p);
                     if (st.is(Blocks.BARRIER) || st.is(Blocks.TINTED_GLASS) || st.is(Blocks.SEA_LANTERN)) {
-                        level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(p, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
+                    }
+                    BlockPos light = center.offset(x, WALL_H + 4, z);
+                    if (level.getBlockState(light).is(Blocks.LIGHT)) {
+                        level.setBlock(light, Blocks.AIR.defaultBlockState(), ArenaGuard.FLAGS);
                     }
                 }
             }
@@ -283,6 +294,15 @@ public final class ArenaManager {
         if (center != null && player.level() instanceof ServerLevel level) {
             clearBarriers(level, center);
         }
+    }
+
+    /** アリーナを畳む: 設置前の地形に戻す (保存が無い古いアリーナはバリアだけ外す)。evict で中の人を元の位置へ */
+    public static void clearArenaBarriers(ServerPlayer player, boolean evict) {
+        BlockPos center = arenaCenterOf(player);
+        if (center != null && player.level() instanceof ServerLevel level) {
+            clearBarriers(level, center);
+        }
+        ArenaGuard.restore(player, evict);
     }
 
     /** 安全な湧きY: 上から走査し、固体の上の3マス空気を探す (埋没防止)。
@@ -353,7 +373,7 @@ public final class ArenaManager {
                     case "blue" -> Blocks.BLUE_STAINED_GLASS.defaultBlockState();
                     default -> Blocks.ENCHANTING_TABLE.defaultBlockState();
                 };
-                level.setBlock(p, state, 3);
+                level.setBlock(p, state, ArenaGuard.FLAGS);
                 if (!sb.isEmpty()) sb.append(";");
                 sb.append(kind).append(",").append(p.getX()).append(",").append(p.getY()).append(",").append(p.getZ());
             }

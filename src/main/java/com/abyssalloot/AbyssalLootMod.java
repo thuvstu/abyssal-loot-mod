@@ -33,6 +33,7 @@ public class AbyssalLootMod {
 
         NeoForge.EVENT_BUS.register(ModCommands.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);
+        NeoForge.EVENT_BUS.register(ArenaGuard.class);
         // 撃破処理 (KillHandler) は CombatHandler から分離された際に登録が漏れていた。
         // 未登録だと討伐数・戦利品・層クリア判定が一切動かないため必ず登録する。
         NeoForge.EVENT_BUS.register(KillHandler.class);

@@ -74,8 +74,9 @@ public final class CombatHandler {
         event.setCanceled(true);
         player.setHealth(player.getMaxHealth() * 0.5f);
         player.removeAllEffects();
-        RunManager.retire(player);
-        player.sendSystemMessage(Component.literal("§c敗北…深淵の加護で生還した (装備・欠片は保持)"));
+        player.clearFire();
+        RunManager.retire(player);  // アリーナを畳み、出撃前の位置へ戻す (追い出し + 5 秒の保護)
+        player.sendSystemMessage(Component.literal("§c敗北…深淵の加護で生還し、アリーナから追い出された (装備・欠片は保持)"));
     }
 
     /** ログアウトでHUD間引き・撃破時刻・防具署名のキャッシュを掃除 (UUID再利用の誤爆防止) */
@@ -116,6 +117,17 @@ public final class CombatHandler {
             } catch (NumberFormatException ignored) {}
         }
         if (hit) player.setData(ModAttachments.DESTRUCT.get(), String.join(";", keep));
+    }
+
+    /** pos がこのプレイヤーの破壊対象 (罠・宝箱の岩など) か。アリーナ保護の例外に使う */
+    public static boolean isDestructTarget(ServerPlayer player, BlockPos pos) {
+        String raw = player.getData(ModAttachments.DESTRUCT.get());
+        if (raw == null || raw.isBlank()) return false;
+        String key = "," + pos.getX() + "," + pos.getY() + "," + pos.getZ();
+        for (String d : raw.split(";")) {
+            if (d.endsWith(key)) return true;
+        }
+        return false;
     }
 
     /** 生活ツール能力。手持ちの深淵ツールに応じた採集ボーナス */

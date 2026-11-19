@@ -51,7 +51,8 @@ public final class AbyssGameTests {
             new Spec("endgame_craft_only", AbyssGameTests::endgameCraftOnly, 20),
             new Spec("nocturne_sequence_casts_all_skills", AbyssGameTests::nocturneSequence, 120),
             new Spec("aibou_growth_and_limit_break", AbyssGameTests::aibouGrowth, 20),
-            new Spec("weapon_look_follows_forge_and_trait", AbyssGameTests::weaponLookSync, 20));
+            new Spec("weapon_look_follows_forge_and_trait", AbyssGameTests::weaponLookSync, 20),
+            new Spec("arena_restores_terrain_without_drops", AbyssGameTests::arenaRestoresTerrain, 60));
 
     public static void register(IEventBus modBus) {
         for (Spec s : SPECS) {
@@ -154,6 +155,40 @@ public final class AbyssGameTests {
             h.runAfterDelay(5, () -> {
                 int left = abyssMobsNear(h, p).size();
                 check(h, left == 0, "リタイア後に深淵MOBが %s 体残っている", left);
+                h.succeed();
+            });
+        });
+    }
+
+    /** アリーナは設置前の地形を保存し、リタイアで中身ごと戻す。整地でアイテムが散らばらない */
+    private static void arenaRestoresTerrain(GameTestHelper h) {
+        ServerPlayer p = player(h);
+        var level = h.getLevel();
+        net.minecraft.core.BlockPos base = p.blockPosition();
+        net.minecraft.core.BlockPos chestPos = base.offset(3, 0, 3);
+        net.minecraft.core.BlockPos stonePos = base.offset(-3, 0, 2);
+        level.setBlock(chestPos, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
+        if (level.getBlockEntity(chestPos) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
+            chest.setItem(0, new ItemStack(net.minecraft.world.item.Items.DIAMOND, 5));
+        }
+        level.setBlock(stonePos, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(stonePos.above(), net.minecraft.world.level.block.Blocks.TORCH.defaultBlockState(), 3);
+        RunManager.startRun(p);
+        check(h, !level.getBlockState(chestPos).is(net.minecraft.world.level.block.Blocks.CHEST), "整地でチェストが消えていない");
+        h.runAfterDelay(5, () -> {
+            var box = new net.minecraft.world.phys.AABB(base).inflate(ArenaManager.ARENA_R + 2, 12, ArenaManager.ARENA_R + 2);
+            int drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box).size();
+            check(h, drops == 0, "アリーナ設置でアイテムが %s 個落ちた", drops);
+            RunManager.retire(p);
+            check(h, level.getBlockState(chestPos).is(net.minecraft.world.level.block.Blocks.CHEST), "リタイア後にチェストが戻っていない");
+            var be = level.getBlockEntity(chestPos);
+            boolean kept = be instanceof net.minecraft.world.level.block.entity.ChestBlockEntity c2
+                    && c2.getItem(0).is(net.minecraft.world.item.Items.DIAMOND) && c2.getItem(0).getCount() == 5;
+            check(h, kept, "チェストの中身が戻っていない");
+            check(h, level.getBlockState(stonePos.above()).is(net.minecraft.world.level.block.Blocks.TORCH), "松明が戻っていない");
+            h.runAfterDelay(3, () -> {
+                int after = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box).size();
+                check(h, after == 0, "地形の復元でアイテムが %s 個落ちた", after);
                 h.succeed();
             });
         });

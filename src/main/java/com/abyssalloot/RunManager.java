@@ -555,6 +555,7 @@ public final class RunManager {
         int relicCount = relicsOf(player).size();
         int passiveCount = passivesOf(player).size();
         clearRunField(player);
+        ArenaManager.clearArenaBarriers(player, true);  // 地形を戻して元の位置へ
         player.setData(ModAttachments.WAVE_TOTAL.get(), 0);
         player.setData(ModAttachments.FLOOR_KILLS.get(), 0);
         player.setData(ModAttachments.PORTAL_OPEN.get(), 0);
@@ -683,7 +684,7 @@ public final class RunManager {
         StatCalc.applyClass(player, clsE, player.getData(ModAttachments.LEVEL.get()), true);
         player.level().playSound(null, player.blockPosition(),
                 net.minecraft.sounds.SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.9f, 1f);
-        ArenaManager.clearArenaBarriers(player);
+        ArenaManager.clearArenaBarriers(player, true);
         player.closeContainer();
         CombatHandler.sendHud(player);
     }
