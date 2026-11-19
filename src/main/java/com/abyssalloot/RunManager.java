@@ -374,6 +374,11 @@ public final class RunManager {
 
     /** 出撃: 現在地の近くに試練アリーナを整地し第1ウェーブを出す */
     public static void startRun(ServerPlayer player) {
+        String why = ArenaGuard.whyNotHere(player);
+        if (why != null) {  // 出撃できない場所 (水中・他人のアリーナの近く・高さの端)
+            player.sendSystemMessage(Component.literal("§c" + why));
+            return;
+        }
         // 開いていたGUI (商店・鍛造など) を閉じてから出撃する
         player.closeContainer();
         clearRunField(player);

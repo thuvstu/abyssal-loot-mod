@@ -119,6 +119,30 @@ public final class ArenaGuard {
         }
     }
 
+    /**
+     * ここにアリーナを建ててよいか。だめなら理由 (プレイヤーに見せる文) を返す。
+     * 水・溶岩の中 / 他のプレイヤーのアリーナと重なる / 高さの上限・下限に近すぎる、を断る。
+     */
+    public static String whyNotHere(ServerPlayer player) {
+        var level = player.level();
+        BlockPos c = player.blockPosition();
+        if (player.isInLava() || player.isInWater()) {
+            return "水や溶岩の中ではアリーナを開けない。陸に上がってから出撃しよう";
+        }
+        if (c.getY() + Y_MIN < level.getMinY() + 1 || c.getY() + Y_MAX > level.getMaxY() - 1) {
+            return "高さの上限・下限に近すぎる。もう少し地上の真ん中あたりで出撃しよう";
+        }
+        int r2 = (ArenaManager.ARENA_R * 2 + 2) * (ArenaManager.ARENA_R * 2 + 2);
+        for (var e : SNAPSHOTS.entrySet()) {
+            if (e.getKey().equals(player.getUUID())) continue;
+            Snapshot s = e.getValue();
+            if (s.dim() == level.dimension() && s.center().distSqr(c) < r2) {
+                return "近くで別のプレイヤーが潜行中。" + (ArenaManager.ARENA_R * 2 + 2) + " ブロック以上離れて出撃しよう";
+            }
+        }
+        return null;
+    }
+
     /** pos が誰かの出撃中のアリーナの中か */
     public static boolean inActiveArena(Level level, BlockPos pos) {
         for (Snapshot s : SNAPSHOTS.values()) {
