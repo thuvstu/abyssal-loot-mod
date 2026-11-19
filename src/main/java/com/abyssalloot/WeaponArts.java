@@ -1443,6 +1443,9 @@ public final class WeaponArts {
         if (style != null) {
             slevel(player).sendParticles(new DustParticleOptions(style.color, 1.2f),
                     player.getX(), player.getY() + 1.2, player.getZ(), 24, 1.2, 1.0, 1.2, 0.08);
+            var held = player.getMainHandItem();
+            boolean grand = "mythic".equals(GearData.rarityOf(held)) || GearData.forgeLv(held) >= 5;
+            Fx.artBurst(player, style.color, grand);
         }
     }
 

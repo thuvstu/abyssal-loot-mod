@@ -181,7 +181,9 @@ public final class AbyssGameTests {
         check(h, !level.getBlockState(chestPos).is(net.minecraft.world.level.block.Blocks.CHEST), "整地でチェストが消えていない");
         h.runAfterDelay(5, () -> {
             var box = new net.minecraft.world.phys.AABB(base).inflate(ArenaManager.ARENA_R + 2, 12, ArenaManager.ARENA_R + 2);
-            var dropped = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box);
+            // 設置 (5 tick 前) より後に湧いたアイテムだけを数える (別のテストの残りを数えない)
+            var dropped = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box,
+                    e -> e.getAge() <= 6);
             check(h, dropped.isEmpty(), "アリーナ設置でアイテムが落ちた: %s",
                     dropped.stream().map(e -> e.getItem().toString() + "@" + e.blockPosition().subtract(base)).toList());
             RunManager.retire(p);
@@ -303,6 +305,9 @@ public final class AbyssGameTests {
         int logs = 0;
         for (int y = 0; y < 6; y++) if (level.getBlockState(tree.above(y)).is(net.minecraft.world.level.block.Blocks.OAK_LOG)) logs++;
         check(h, logs == 0, "伐採斧で原木が %s 本残った", logs);
+        // 伐った原木・掘った石のドロップを片付ける (近くの別のテストの数え間違いを防ぐ)
+        for (var it : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                p.getBoundingBox().inflate(12))) it.discard();
         h.succeed();
     }
 
