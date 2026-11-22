@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw
 
 from .hd import _hsv_shift, hexc, mix, ramp
 
-TEX_SCALE = 2  # 1 単位あたりのテクセル数
+TEX_SCALE = 4  # 1 単位あたりのテクセル数 (4 = 縁取り・模様・照りを細かく描ける)
 FACES = ("north", "south", "east", "west", "up", "down")
 WHITE = (255, 255, 255, 255)
 
@@ -95,6 +95,8 @@ class Model:
                     w = max(1, math.ceil(dims[f][0] * TEX_SCALE - 1e-6))
                     h = max(1, math.ceil(dims[f][1] * TEX_SCALE - 1e-6))
                     rects.append((cube, f, w, h))
+        width = max(width * TEX_SCALE // 2, max((r[2] for r in rects), default=1))  # 解像度に合わせて広げる
+        rects.sort(key=lambda r: -r[3])  # 高い面から詰める (隙間を減らす)
         x = y = row_h = 0
         for cube, f, w, h in rects:
             if x + w > width:
@@ -243,6 +245,18 @@ def anim_json(name: str, length: float, bones: dict) -> dict:
     }
 
 
+def ease(length: float, keys: list, steps: int = 6) -> dict:
+    """[(時刻の割合 0..1, [x, y, z]), …] を滑らかにつなぐ (区間ごとにイーズイン・アウトで細かく刻む)。"""
+    out = {}
+    for (t0, v0), (t1, v1) in zip(keys, keys[1:]):
+        for s in range(steps):
+            u = s / steps
+            e = u * u * (3 - 2 * u)
+            out[round(length * (t0 + (t1 - t0) * u), 4)] = [v0[k] + (v1[k] - v0[k]) * e for k in range(3)]
+    out[round(length * keys[-1][0], 4)] = list(keys[-1][1])
+    return out
+
+
 def spin(length: float, axis: int = 1, turns: float = 1.0, steps: int = 4) -> dict:
     """一定速度の回転キーフレーム (線形補間なので細かめに刻む)。"""
     keys = {}
@@ -278,42 +292,89 @@ def _brot(r):
     return _r([-r[0], -r[1], r[2]])
 
 
+def _hash(*k) -> float:
+    h = 2166136261
+    for v in k:
+        h = ((h ^ (int(v) & 0xffffffff)) * 16777619) & 0xffffffff
+    h ^= h >> 13
+    h = (h * 1274126177) & 0xffffffff
+    return ((h ^ (h >> 16)) & 0xffff) / 65535
+
+
 def _shade(m: Material, face: str, i: int, j: int, w: int, h: int):
-    """1 テクセルの色。面の向きで明暗、上から下へのグラデーション、縁取り、材質の模様。"""
+    """1 テクセルの色。面の向きで明暗・上から下へのグラデーション・左上が光る面取り・材質ごとの模様・微細な揺らぎ。
+
+    材質 (kind): metal (斜めの照り返し) / edge (研いだ刃: 刃先側が白く光る) / gem (中心の明るい宝石と点の光) /
+    crystal (斜めに割れた面) / glow / cloth (織り目) / leather (縫い目) / wood (木目) / bone (細かな孔) /
+    gold (菱の透かし彫り) / rune (光る刻印) / dark。
+    """
     base = hexc(m.color)
-    if m.kind == "glow":
-        r = ramp(base, 5, spread=0.35)
-    elif m.kind == "dark":
-        r = ramp(base, 5, spread=0.5)
-    else:
-        r = ramp(base, 5, spread=0.75)
-    level = {"up": 3.4, "north": 2.6, "south": 2.6, "east": 1.8, "west": 1.8, "down": 0.6}[face]
+    spread = {"glow": 0.35, "dark": 0.5, "gold": 0.85, "edge": 0.6}.get(m.kind, 0.75)
+    r = ramp(base, 5, spread=spread)
+    level = {"up": 3.3, "north": 2.6, "south": 2.6, "east": 1.9, "west": 1.9, "down": 0.7}[face]
     if face not in ("up", "down") and h > 1:
-        level += 0.7 * (0.5 - j / (h - 1))  # 上ほど明るい
-    edge = (i == 0 or j == 0 or i == w - 1 or j == h - 1) and w >= 3 and h >= 3
-    if edge and m.kind not in ("glow",):
-        level -= 0.9
-    if m.kind == "metal" and face in ("north", "south") and w >= 3:
-        # 斜めの照り返し
-        if abs((i - j * 0.6) - w * 0.35) < 0.9:
-            level += 1.1
-    elif m.kind == "gem":
+        level += 0.6 * (0.5 - j / (h - 1))  # 上ほど明るい
+    # 面取り: 左上の縁は光り、右下の縁は沈む (2 テクセル幅で段階をつける)
+    if m.kind != "glow" and w >= 4 and h >= 4:
+        if i == 0 or j == 0:
+            level += 0.55
+        elif i == w - 1 or j == h - 1:
+            level -= 0.95
+        elif i == 1 or j == 1:
+            level += 0.2
+        elif i == w - 2 or j == h - 2:
+            level -= 0.3
+    elif m.kind != "glow" and (i == w - 1 or j == h - 1) and w >= 2 and h >= 2:
+        level -= 0.5
+    seed = m.color & 0xffff
+    level += (_hash(seed, face == "up", i, j) - 0.5) * 0.28  # 微細な揺らぎ (のっぺりさせない)
+    k = m.kind
+    if k == "metal" and w >= 3:
+        if abs((i - j * 0.6) - w * 0.35) < 0.9 or abs((i - j * 0.6) - w * 0.35 - 2.5) < 0.5:
+            level += 1.0
+    elif k == "edge":
+        level += 0.9 * (i / max(1, w - 1))  # 刃先 (+x 側) ほど明るい
+        if i == w - 1:
+            return mix(r[4], WHITE, 0.55)
+    elif k == "gem":
         cx, cy = (w - 1) / 2, (h - 1) / 2
         dd = math.hypot((i - cx) / max(1, w / 2), (j - cy) / max(1, h / 2))
-        level += 1.2 * max(0.0, 1 - dd) - 0.3
-        if i == int(cx * 0.6) and j == int(cy * 0.6):
-            return mix(r[4], WHITE, 0.7)
-    elif m.kind == "cloth" and j % 3 == 2:
-        level -= 1.0
-    elif m.kind == "rune" and m.accent is not None and face in ("north", "south"):
-        # 樋に刻まれたルーン (3 テクセルごとに光る印)
+        level += 1.4 * max(0.0, 1 - dd) - 0.4
+        if (i, j) in ((int(cx * 0.55), int(cy * 0.55)), (int(cx * 0.55) + 1, int(cy * 0.55))):
+            return mix(r[4], WHITE, 0.75)
+    elif k == "crystal":
+        level += 0.9 if i * h > j * w else -0.2  # 対角で割れた二つの面
+        if abs(i * h - j * w) < max(w, h) * 0.6:
+            level += 0.8
+    elif k == "cloth":
+        if (i + j) % 4 == 0:
+            level -= 0.8
+        elif (i - j) % 4 == 0:
+            level += 0.3
+    elif k == "leather":
+        level -= 0.2 + 0.3 * _hash(seed, i // 2, j // 2)
+        if j % 6 == 3 and i % 2 == 0 and 0 < i < w - 1:
+            return mix(r[3], hexc(m.accent or 0xd8c8a0), 0.6)
+    elif k == "wood":
+        g = math.sin((i * 0.35 + j * 0.05 + _hash(seed, i // 3) * 3) * 2.2)
+        level += 0.45 * g - 0.15
+    elif k == "bone":
+        if _hash(seed, i, j, 7) > 0.9:
+            level -= 1.1
+    elif k == "gold":
+        if (i + j) % 4 == 0 or (i - j) % 4 == 0:
+            level += 0.9
+        else:
+            level -= 0.25
+    elif k == "rune" and m.accent is not None and face in ("north", "south"):
         if 1 <= i < w - 1 and j % 4 in (1, 2) and (j // 4 + i) % 2 == 0:
             return mix(hexc(m.accent), WHITE, 0.35 if j % 4 == 1 else 0.0)
+    elif k == "glow":
+        level += 0.6 * math.sin((i + j) * 0.9)
     lv = max(0.0, min(4.0, level))
     lo = int(lv)
     hi = min(4, lo + 1)
-    col = mix(r[lo], r[hi], lv - lo)
-    return col
+    return mix(r[lo], r[hi], lv - lo)
 
 
 def _avg_color(m: Material):

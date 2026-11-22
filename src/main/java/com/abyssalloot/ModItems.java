@@ -47,7 +47,7 @@ public final class ModItems {
 
     private static DeferredItem<Item> weapon(String id, Rarity rarity) {
         return ITEMS.registerItem(id,
-                props -> new Item(props.stacksTo(1).durability(1561).rarity(rarity).fireResistant()));
+                props -> new TransformWeaponItem(props.stacksTo(1).durability(1561).rarity(rarity).fireResistant(), id));
     }
 
     /**

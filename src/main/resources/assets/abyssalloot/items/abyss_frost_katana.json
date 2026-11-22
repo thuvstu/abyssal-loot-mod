@@ -599,14 +599,20 @@
           "on_shelf"
         ],
         "model": {
-          "type": "minecraft:model",
-          "model": "abyssalloot:item/abyss_frost_katana"
+          "type": "minecraft:special",
+          "base": "abyssalloot:item/abyss_frost_katana_3d",
+          "model": {
+            "type": "geckolib:geckolib"
+          }
         }
       }
     ],
     "fallback": {
-      "type": "minecraft:model",
-      "model": "abyssalloot:item/abyss_frost_katana"
+      "type": "minecraft:special",
+      "base": "abyssalloot:item/abyss_frost_katana_3d",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
     }
   }
 }

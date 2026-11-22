@@ -1,0 +1,1278 @@
+{
+ "wood": {
+  "ja": "木",
+  "primary": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "secondary": [
+   "120c02",
+   "110b03",
+   "211408",
+   "4a2a16",
+   "6d3b25",
+   "8e4b37",
+   "a9584a"
+  ],
+  "grip": [
+   "100b04",
+   "1a1108",
+   "3c2617",
+   "5a3a2a",
+   "744b3d",
+   "8c5c52",
+   "9e6e69"
+  ],
+  "gem": [
+   "18480c",
+   "34771b",
+   "57a02e",
+   "7fbf4d",
+   "a4c97b",
+   "c3d6a6",
+   "dce4cb"
+  ],
+  "glow": "c9a86a",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "stone": {
+  "ja": "石",
+  "primary": [
+   "392323",
+   "594141",
+   "746363",
+   "8a8a8a",
+   "a6a6a6",
+   "c2c2c2",
+   "dcdcdc"
+  ],
+  "secondary": [
+   "0d0908",
+   "271e1c",
+   "463c3b",
+   "5f5f5f",
+   "7b7b7b",
+   "979797",
+   "b1b1b1"
+  ],
+  "grip": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "gem": [
+   "2b437b",
+   "44669f",
+   "6c8db4",
+   "9bb0c2",
+   "c0cdd5",
+   "e3e8ea",
+   "f7f8f8"
+  ],
+  "glow": "cfcfcf",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "iron": {
+  "ja": "鉄",
+  "primary": [
+   "2f3d5b",
+   "4c5d7b",
+   "6f7e96",
+   "9aa0a8",
+   "bbbdbf",
+   "d9d9d9",
+   "f3f3f3"
+  ],
+  "secondary": [
+   "06070e",
+   "11141f",
+   "2c3142",
+   "4b5160",
+   "696f7a",
+   "8b8d90",
+   "a7a7a7"
+  ],
+  "grip": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "gem": [
+   "08277c",
+   "1349ad",
+   "2372da",
+   "5f9fdc",
+   "91c1e3",
+   "bfddec",
+   "e7f3f7"
+  ],
+  "glow": "e8eef5",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "gold": {
+  "ja": "金",
+  "primary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "secondary": [
+   "141200",
+   "443704",
+   "78590c",
+   "a8741a",
+   "d28628",
+   "d99659",
+   "dfa986"
+  ],
+  "grip": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "gem": [
+   "661d06",
+   "992610",
+   "c72c1f",
+   "d94a4a",
+   "df7c84",
+   "e7acb6",
+   "f1d5dc"
+  ],
+  "glow": "ffe680",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "diamond": {
+  "ja": "ダイヤモンド",
+  "primary": [
+   "05586e",
+   "0f91a1",
+   "1ecdd0",
+   "4fdcd0",
+   "82e1d0",
+   "b2eada",
+   "dbf3ea"
+  ],
+  "secondary": [
+   "020e13",
+   "0a3b45",
+   "186c75",
+   "2a9ea0",
+   "3ec4bc",
+   "6eccbf",
+   "97d6c8"
+  ],
+  "grip": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "gem": [
+   "0095e6",
+   "25c3ff",
+   "62e0ff",
+   "9ff4ff",
+   "d8fdfe",
+   "f0fefe",
+   "f1fefc"
+  ],
+  "glow": "b8fff8",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "netherite": {
+  "ja": "ネザライト",
+  "primary": [
+   "0d0709",
+   "110a0d",
+   "302228",
+   "4a3f44",
+   "615b5e",
+   "777777",
+   "8e8e8e"
+  ],
+  "secondary": [
+   "0e0707",
+   "2e1c1d",
+   "4f393c",
+   "6b5a5e",
+   "837a7d",
+   "9b9b9b",
+   "b4b4b4"
+  ],
+  "grip": [
+   "120c02",
+   "110b03",
+   "211408",
+   "4a2a16",
+   "6d3b25",
+   "8e4b37",
+   "a9584a"
+  ],
+  "gem": [
+   "562a04",
+   "8b3c0d",
+   "ba4a1b",
+   "d85c3a",
+   "dd7c6d",
+   "e4a29e",
+   "eec8c9"
+  ],
+  "glow": "ff8a5c",
+  "rainbow": false,
+  "tags": [
+   "vanilla"
+  ]
+ },
+ "ruby": {
+  "ja": "ルビー",
+  "primary": [
+   "510c00",
+   "8b0a04",
+   "bf0d17",
+   "e52442",
+   "e65b7e",
+   "ea8faf",
+   "f0bcd4"
+  ],
+  "secondary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "grip": [
+   "120c02",
+   "110b03",
+   "211408",
+   "4a2a16",
+   "6d3b25",
+   "8e4b37",
+   "a9584a"
+  ],
+  "gem": [
+   "b21300",
+   "f00600",
+   "ff2e39",
+   "ff6b7f",
+   "fda5b8",
+   "fddde6",
+   "fef1f6"
+  ],
+  "glow": "ff5a78",
+  "rainbow": false,
+  "tags": [
+   "gem"
+  ]
+ },
+ "sapphire": {
+  "ja": "サファイア",
+  "primary": [
+   "000050",
+   "03128a",
+   "0d31be",
+   "235ee5",
+   "5a93e6",
+   "8ebdea",
+   "bbdbf0"
+  ],
+  "secondary": [
+   "3d548f",
+   "5d77ac",
+   "8d9dba",
+   "b8c0cc",
+   "dadee2",
+   "f7f7f8",
+   "f7f7f7"
+  ],
+  "grip": [
+   "06070e",
+   "11141f",
+   "2c3142",
+   "4b5160",
+   "696f7a",
+   "8b8d90",
+   "a7a7a7"
+  ],
+  "gem": [
+   "001cc6",
+   "053cff",
+   "427bff",
+   "7fb0ff",
+   "b9d9fd",
+   "f0f8fe",
+   "f1f9fe"
+  ],
+  "glow": "78a8ff",
+  "rainbow": false,
+  "tags": [
+   "gem"
+  ]
+ },
+ "emerald": {
+  "ja": "エメラルド",
+  "primary": [
+   "014528",
+   "077c3e",
+   "12ae4c",
+   "22dc54",
+   "57df6e",
+   "8ae490",
+   "b7ecb6"
+  ],
+  "secondary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "grip": [
+   "100b04",
+   "1a1108",
+   "3c2617",
+   "5a3a2a",
+   "744b3d",
+   "8c5c52",
+   "9e6e69"
+  ],
+  "gem": [
+   "00d474",
+   "13ff81",
+   "50ff94",
+   "8dffb0",
+   "c7fed3",
+   "f0fef2",
+   "f1fef2"
+  ],
+  "glow": "7cff9f",
+  "rainbow": false,
+  "tags": [
+   "gem"
+  ]
+ },
+ "amethyst": {
+  "ja": "アメジスト",
+  "primary": [
+   "670388",
+   "7f0cbc",
+   "8e1ee7",
+   "9b5de5",
+   "b091e9",
+   "cec1f1",
+   "eeebfa"
+  ],
+  "secondary": [
+   "3d548f",
+   "5d77ac",
+   "8d9dba",
+   "b8c0cc",
+   "dadee2",
+   "f7f7f8",
+   "f7f7f7"
+  ],
+  "grip": [
+   "0c0410",
+   "0b050f",
+   "140c1e",
+   "2a1e3d",
+   "3c3058",
+   "4f4570",
+   "605a84"
+  ],
+  "gem": [
+   "c100ec",
+   "c72bff",
+   "cb68ff",
+   "d9a5ff",
+   "eedefe",
+   "f6f0fe",
+   "f5f1fe"
+  ],
+  "glow": "d59bff",
+  "rainbow": false,
+  "tags": [
+   "gem"
+  ]
+ },
+ "topaz": {
+  "ja": "トパーズ",
+  "primary": [
+   "685c00",
+   "a68200",
+   "dd9906",
+   "f0a030",
+   "f0aa68",
+   "f2be9e",
+   "f7d8cd"
+  ],
+  "secondary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "grip": [
+   "100b04",
+   "1a1108",
+   "3c2617",
+   "5a3a2a",
+   "744b3d",
+   "8c5c52",
+   "9e6e69"
+  ],
+  "gem": [
+   "c6b000",
+   "ffcf05",
+   "ffcc42",
+   "ffd27f",
+   "fde0b9",
+   "fef7f0",
+   "fef6f1"
+  ],
+  "glow": "ffcc66",
+  "rainbow": false,
+  "tags": [
+   "gem"
+  ]
+ },
+ "dragon": {
+  "ja": "ドラゴン",
+  "primary": [
+   "0f0212",
+   "250931",
+   "431760",
+   "5a2a8a",
+   "6b3daf",
+   "7f63c1",
+   "988ccc"
+  ],
+  "secondary": [
+   "7f0083",
+   "aa00c1",
+   "cc00fe",
+   "c93cff",
+   "cc78fc",
+   "dab0fb",
+   "efe2fd"
+  ],
+  "grip": [
+   "0c0410",
+   "0b050f",
+   "140c1e",
+   "2a1e3d",
+   "3c3058",
+   "4f4570",
+   "605a84"
+  ],
+  "gem": [
+   "91004f",
+   "cf0081",
+   "ff0db7",
+   "ff4ad8",
+   "fc85ec",
+   "fcbef8",
+   "fdeffe"
+  ],
+  "glow": "e05cff",
+  "rainbow": false,
+  "tags": [
+   "special"
+  ]
+ },
+ "wither": {
+  "ja": "ウィザー",
+  "primary": [
+   "0c060e",
+   "0b070d",
+   "0b080c",
+   "1e1a22",
+   "343039",
+   "4a484d",
+   "5f5f5f"
+  ],
+  "secondary": [
+   "c0c43a",
+   "c7c268",
+   "cec692",
+   "d9d2b8",
+   "e7e2d7",
+   "f7f6f3",
+   "f9f7f6"
+  ],
+  "grip": [
+   "0c070e",
+   "0b080d",
+   "0e0b0f",
+   "2c2730",
+   "47444b",
+   "646364",
+   "7d7d7d"
+  ],
+  "gem": [
+   "009689",
+   "01d2af",
+   "1df4bf",
+   "5ef0c0",
+   "94f2cc",
+   "c8f6e0",
+   "f2fdf7"
+  ],
+  "glow": "2c2c2c",
+  "rainbow": false,
+  "tags": [
+   "special"
+  ]
+ },
+ "holy": {
+  "ja": "聖",
+  "primary": [
+   "e5e74d",
+   "e7e281",
+   "ebe5b0",
+   "f4f0dc",
+   "fbf9f4",
+   "fbf9f4",
+   "faf8f5"
+  ],
+  "secondary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "grip": [
+   "4751ff",
+   "7285ff",
+   "9db2ff",
+   "c8d8ff",
+   "f0f5ff",
+   "f0f7fe",
+   "f1f8fe"
+  ],
+  "gem": [
+   "0065c6",
+   "0598ff",
+   "42c1ff",
+   "7fdfff",
+   "b9f2fd",
+   "f0fdfe",
+   "f1fefe"
+  ],
+  "glow": "fff6b0",
+  "rainbow": false,
+  "tags": [
+   "special"
+  ]
+ },
+ "blood": {
+  "ja": "血",
+  "primary": [
+   "140100",
+   "140001",
+   "4b0007",
+   "840417",
+   "b60a2e",
+   "e5134c",
+   "e94279"
+  ],
+  "secondary": [
+   "0f0805",
+   "0e0706",
+   "0e0707",
+   "2b1a1a",
+   "4b3234",
+   "684d52",
+   "7f696e"
+  ],
+  "grip": [
+   "120602",
+   "110503",
+   "100504",
+   "3a1212",
+   "622328",
+   "863643",
+   "a54b60"
+  ],
+  "gem": [
+   "711300",
+   "af0f00",
+   "ec0100",
+   "ff2a3a",
+   "fb667d",
+   "fa9fb5",
+   "fbd1de"
+  ],
+  "glow": "ff1e3c",
+  "rainbow": false,
+  "tags": [
+   "evil"
+  ]
+ },
+ "void": {
+  "ja": "虚無",
+  "primary": [
+   "0a0411",
+   "090410",
+   "08050f",
+   "1b1430",
+   "2d2651",
+   "3f3a6f",
+   "504f88"
+  ],
+  "secondary": [
+   "0b0312",
+   "1f0b38",
+   "361b66",
+   "4a2f8f",
+   "5a43b3",
+   "776dc1",
+   "9795cc"
+  ],
+  "grip": [
+   "0a0410",
+   "090510",
+   "08060f",
+   "0e0b18",
+   "231f3c",
+   "38365e",
+   "4d4e79"
+  ],
+  "gem": [
+   "8200b2",
+   "9b00f0",
+   "a42eff",
+   "b36bff",
+   "c9a5fd",
+   "e8ddfd",
+   "f4f1fe"
+  ],
+  "glow": "7a3cff",
+  "rainbow": false,
+  "tags": [
+   "evil"
+  ]
+ },
+ "cursed": {
+  "ja": "呪",
+  "primary": [
+   "060f07",
+   "070e07",
+   "111a0f",
+   "2e3d2a",
+   "4b5a45",
+   "6a7563",
+   "858981"
+  ],
+  "secondary": [
+   "081104",
+   "223a10",
+   "456422",
+   "6a8a3a",
+   "8eab51",
+   "aab97b",
+   "c1c7a0"
+  ],
+  "grip": [
+   "090f06",
+   "0a0e07",
+   "0b0d07",
+   "1f2318",
+   "3d4132",
+   "5a5d4e",
+   "72736b"
+  ],
+  "gem": [
+   "2b8100",
+   "4ebf00",
+   "7bfc00",
+   "aaff3a",
+   "ccfb76",
+   "e6fbae",
+   "f7fce0"
+  ],
+  "glow": "9cff2e",
+  "rainbow": false,
+  "tags": [
+   "evil"
+  ]
+ },
+ "infernal": {
+  "ja": "獄炎",
+  "primary": [
+   "120a03",
+   "110804",
+   "100704",
+   "3a1a14",
+   "602926",
+   "843a3d",
+   "a1505b"
+  ],
+  "secondary": [
+   "615100",
+   "9f6a00",
+   "dc7000",
+   "ff6a1a",
+   "fb7656",
+   "f99390",
+   "fac2c9"
+  ],
+  "grip": [
+   "110a03",
+   "110904",
+   "100805",
+   "1c0e0a",
+   "43211b",
+   "67332f",
+   "854445"
+  ],
+  "gem": [
+   "808100",
+   "bfb200",
+   "fcd600",
+   "ffd23a",
+   "fbd276",
+   "fbddae",
+   "fcefe0"
+  ],
+  "glow": "ff7a2a",
+  "rainbow": false,
+  "tags": [
+   "evil"
+  ]
+ },
+ "frost": {
+  "ja": "氷結",
+  "primary": [
+   "1c8cff",
+   "50b4ff",
+   "84d4ff",
+   "b8ecff",
+   "e8fafe",
+   "f0fdfe",
+   "f1fdfe"
+  ],
+  "secondary": [
+   "092d72",
+   "1451a3",
+   "257cd0",
+   "5aa4d8",
+   "8bc3df",
+   "b9dde9",
+   "e1f1f4"
+  ],
+  "grip": [
+   "040711",
+   "070c17",
+   "182943",
+   "2e4a6a",
+   "446b8c",
+   "608da8",
+   "86a7b5"
+  ],
+  "gem": [
+   "28b0ff",
+   "66d3ff",
+   "a3ecff",
+   "e0fbff",
+   "f0feff",
+   "f0fefe",
+   "f1fefc"
+  ],
+  "glow": "c8f4ff",
+  "rainbow": false,
+  "tags": [
+   "magic"
+  ]
+ },
+ "arcane": {
+  "ja": "秘術",
+  "primary": [
+   "090510",
+   "120c22",
+   "29214a",
+   "3f3a6e",
+   "53538d",
+   "7479a4",
+   "979db4"
+  ],
+  "secondary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "grip": [
+   "0a0510",
+   "09060f",
+   "110c1a",
+   "2a2440",
+   "413c60",
+   "59577d",
+   "747494"
+  ],
+  "gem": [
+   "005ea3",
+   "0093e1",
+   "1fc4ff",
+   "5ce1ff",
+   "97f2fc",
+   "cffbfc",
+   "f1fefd"
+  ],
+  "glow": "66d9ff",
+  "rainbow": false,
+  "tags": [
+   "magic"
+  ]
+ },
+ "nature": {
+  "ja": "自然",
+  "primary": [
+   "031203",
+   "0f340b",
+   "2b611a",
+   "4f8a2f",
+   "76ae43",
+   "9cbe6b",
+   "baca92"
+  ],
+  "secondary": [
+   "120d02",
+   "281b06",
+   "533512",
+   "7a4a22",
+   "9c5a32",
+   "bb6846",
+   "c27f6d"
+  ],
+  "grip": [
+   "061103",
+   "071004",
+   "1b3110",
+   "3a5a24",
+   "5a7e39",
+   "7c9e50",
+   "9aaf72"
+  ],
+  "gem": [
+   "a8b100",
+   "efe800",
+   "ffe82d",
+   "ffe36a",
+   "fde5a4",
+   "fdf2dc",
+   "fef8f1"
+  ],
+  "glow": "b8ff6a",
+  "rainbow": false,
+  "tags": [
+   "magic"
+  ]
+ },
+ "rainbow": {
+  "ja": "虹",
+  "primary": [
+   "8166d7",
+   "9e92dc",
+   "bebbe4",
+   "e0e0f0",
+   "f5f5fa",
+   "f5f6f9",
+   "f6f7f9"
+  ],
+  "secondary": [
+   "3d548f",
+   "5d77ac",
+   "8d9dba",
+   "b8c0cc",
+   "dadee2",
+   "f7f7f8",
+   "f7f7f7"
+  ],
+  "grip": [
+   "08070e",
+   "08070d",
+   "1d1c2b",
+   "3a3a4a",
+   "575865",
+   "78787d",
+   "949494"
+  ],
+  "gem": [
+   "b9988d",
+   "ccbbb8",
+   "e3dede",
+   "f7f7f7",
+   "f7f7f7",
+   "f7f7f7",
+   "f7f7f7"
+  ],
+  "glow": "ffffff",
+  "rainbow": true,
+  "tags": [
+   "special"
+  ]
+ },
+ "steel": {
+  "ja": "機械鋼",
+  "primary": [
+   "06070e",
+   "11141f",
+   "2c3142",
+   "4b5160",
+   "696f7a",
+   "8b8d90",
+   "a7a7a7"
+  ],
+  "secondary": [
+   "615a00",
+   "9f7f00",
+   "dc9500",
+   "ff9a1a",
+   "fb9f56",
+   "f9b290",
+   "facdc2"
+  ],
+  "grip": [
+   "06070e",
+   "07080d",
+   "08090c",
+   "23262e",
+   "3f434a",
+   "5d6064",
+   "7a7a7a"
+  ],
+  "gem": [
+   "004680",
+   "0076be",
+   "00b0fb",
+   "39d4ff",
+   "75e9fb",
+   "adf6fb",
+   "dffcfc"
+  ],
+  "glow": "39d4ff",
+  "rainbow": false,
+  "tags": [
+   "tech"
+  ]
+ },
+ "plasma": {
+  "ja": "プラズマ",
+  "primary": [
+   "7483d3",
+   "9fadd9",
+   "c5cfe4",
+   "e8ecf2",
+   "f6f7f9",
+   "f6f8f9",
+   "f6f8f8"
+  ],
+  "secondary": [
+   "050710",
+   "05080f",
+   "080c13",
+   "1e2a3a",
+   "35485b",
+   "4e687a",
+   "688593"
+  ],
+  "grip": [
+   "05070f",
+   "06080e",
+   "141b27",
+   "2e3a4a",
+   "485868",
+   "657784",
+   "849197"
+  ],
+  "gem": [
+   "00567d",
+   "008fbb",
+   "00d1f8",
+   "36f0ff",
+   "72fbfb",
+   "abfbf4",
+   "dcfcf7"
+  ],
+  "glow": "3cf5ff",
+  "rainbow": false,
+  "tags": [
+   "tech"
+  ]
+ },
+ "bronze": {
+  "ja": "青銅",
+  "primary": [
+   "1a1703",
+   "4d3f0d",
+   "7b5b1b",
+   "a56f2f",
+   "c37d49",
+   "cd9178",
+   "d7aaa0"
+  ],
+  "secondary": [
+   "113732",
+   "246054",
+   "3d8571",
+   "5aa58a",
+   "83b49e",
+   "aac5b7",
+   "cad8d0"
+  ],
+  "grip": [
+   "100b04",
+   "1a1108",
+   "3c2617",
+   "5a3a2a",
+   "744b3d",
+   "8c5c52",
+   "9e6e69"
+  ],
+  "gem": [
+   "057a81",
+   "0fb4af",
+   "1ee2cd",
+   "5ce1c8",
+   "8fe6cf",
+   "bfeede",
+   "e8f8f1"
+  ],
+  "glow": "ffd27f",
+  "rainbow": false,
+  "tags": [
+   "relic"
+  ]
+ },
+ "bone": {
+  "ja": "骨",
+  "primary": [
+   "c0c43a",
+   "c7c268",
+   "cec692",
+   "d9d2b8",
+   "e7e2d7",
+   "f7f6f3",
+   "f9f7f6"
+  ],
+  "secondary": [
+   "0e0c06",
+   "272013",
+   "4b3e2c",
+   "6a5a4a",
+   "857467",
+   "9b8f8a",
+   "aeaaa9"
+  ],
+  "grip": [
+   "100b04",
+   "1a1108",
+   "3c2617",
+   "5a3a2a",
+   "744b3d",
+   "8c5c52",
+   "9e6e69"
+  ],
+  "gem": [
+   "813400",
+   "bf3d00",
+   "fc3d00",
+   "ff5a3a",
+   "fb8176",
+   "fbafae",
+   "fce0e2"
+  ],
+  "glow": "cfd0b0",
+  "rainbow": false,
+  "tags": [
+   "evil"
+  ]
+ },
+ "midas": {
+  "ja": "ミダス",
+  "primary": [
+   "404700",
+   "858303",
+   "bba40c",
+   "e6b422",
+   "e7b35c",
+   "ecbf92",
+   "f2d4c2"
+  ],
+  "secondary": [
+   "140501",
+   "260903",
+   "5b120c",
+   "8a1a1a",
+   "b42834",
+   "ce465c",
+   "d4738a"
+  ],
+  "grip": [
+   "140d00",
+   "140b00",
+   "241302",
+   "5a2a0a",
+   "893914",
+   "b44320",
+   "d44d33"
+  ],
+  "gem": [
+   "811f00",
+   "bf1e00",
+   "fc1400",
+   "ff3a3a",
+   "fb7680",
+   "fbaebb",
+   "fce0e7"
+  ],
+  "glow": "fff0a0",
+  "rainbow": false,
+  "tags": [
+   "skyblock"
+  ]
+ },
+ "aspect": {
+  "ja": "エンド",
+  "primary": [
+   "02d2a1",
+   "1ff3b0",
+   "60efb6",
+   "9cf0c8",
+   "cef6e0",
+   "f2fcf6",
+   "f3fcf5"
+  ],
+  "secondary": [
+   "0c0410",
+   "0b050f",
+   "0e0915",
+   "2a1e3d",
+   "41345f",
+   "584d7e",
+   "6e6797"
+  ],
+  "grip": [
+   "0c0410",
+   "0b050f",
+   "0a060f",
+   "1a1226",
+   "322749",
+   "493e6a",
+   "5e5784"
+  ],
+  "gem": [
+   "d000fb",
+   "cd3aff",
+   "d277ff",
+   "e0b4ff",
+   "f6edff",
+   "f6f0fe",
+   "f5f1fe"
+  ],
+  "glow": "c08cff",
+  "rainbow": false,
+  "tags": [
+   "skyblock"
+  ]
+ },
+ "livid": {
+  "ja": "影",
+  "primary": [
+   "0a060f",
+   "09060e",
+   "201a2e",
+   "3a3550",
+   "53506d",
+   "6e6e87",
+   "8e909a"
+  ],
+  "secondary": [
+   "3d2366",
+   "533a8c",
+   "6a58ab",
+   "8f88b8",
+   "b0aeca",
+   "d2d2de",
+   "f0f0f3"
+  ],
+  "grip": [
+   "0a050f",
+   "09060e",
+   "09070d",
+   "1e1a2a",
+   "36334a",
+   "504e66",
+   "6a6a7d"
+  ],
+  "gem": [
+   "0fa3ff",
+   "4dc9ff",
+   "8ae5ff",
+   "c7f7ff",
+   "f0feff",
+   "f0fefe",
+   "f1fefd"
+  ],
+  "glow": "a49cff",
+  "rainbow": false,
+  "tags": [
+   "skyblock"
+  ]
+ }
+}

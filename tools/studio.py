@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image  # noqa: E402
 
-from art import extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, texfx, variants  # noqa: E402
+from art import decorate, palettes, extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, texfx, variants  # noqa: E402
 from art.project import ROOT, rel, setup_console  # noqa: E402
 
 OUT = os.path.join(ROOT, "build", "studio")
@@ -99,6 +99,13 @@ def schema() -> dict:
             _sel("add", "足すエフェクト", ["(選んで追加)"] + list(texfx.EFFECTS)),
             {"name": "fx", "label": "重ねがけ (| 区切り)", "type": "text", "default": "iridescent:strength=0.4|sparkle:count=3"},
             _num("scale", "拡大", 1, 16, 1, 4)]},
+        "decorate": {"title": "装飾・配色", "fields": [
+            _sel("weapon", "アイコン", _weapon_icons(), "abyss_katana"),
+            _sel("add", "足す装飾", ["(選んで追加)"] + list(decorate.BACK + decorate.FRONT)),
+            {"name": "fx", "label": "装飾 (| 区切り)", "type": "text", "default": "halo|thorns:count=3"},
+            _color("color", "装飾の色", "#7ce8ff"),
+            _sel("material", "素材パレットで塗り替え", ["(使わない)"] + list(palettes.MATERIALS)),
+            _num("seed", "種", 0, 99, 1, 1), _num("scale", "拡大", 1, 8, 1, 4)]},
         "extrude": {"title": "押し出し", "fields": [
             _sel("weapon", "アイコン", _weapon_icons(), "abyss_crystal_sword"),
             _sel("style", "厚みの付け方", extrude.STYLES, "blade"), _num("thickness", "厚み", 1, 6, 1, 3),
@@ -211,6 +218,21 @@ def render(tool: str, q: dict) -> Image.Image:
         else:
             base = hd_weapons.icon(q["source"], 0x7ce8ff)
         img = texfx.apply(base, q.get("fx", ""))
+        s = _int(q, "scale", 4)
+        return img.resize((img.width * s, img.height * s), Image.NEAREST)
+    if tool == "decorate":
+        base = hd_weapons.icon(q["weapon"], _hex(q.get("color", "#7ce8ff")))
+        mat = q.get("material", "(")
+        if not mat.startswith("("):  # advanced の素材の 7 段色階へ明度で写す
+            r = palettes.material(mat)["primary"]
+            px = base.load()
+            for y in range(base.height):
+                for x in range(base.width):
+                    c = px[x, y]
+                    if c[3]:
+                        v = r[min(6, int((0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 256 * 7))]
+                        px[x, y] = ((v >> 16) & 255, (v >> 8) & 255, v & 255, c[3])
+        img = decorate.decorate(base, q.get("fx", ""), _hex(q.get("color", "#7ce8ff")), _int(q, "seed", 1))
         s = _int(q, "scale", 4)
         return img.resize((img.width * s, img.height * s), Image.NEAREST)
     if tool == "extrude":

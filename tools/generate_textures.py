@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, finish, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, texfx, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, decorate, finish, geo_arsenal, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, texfx, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -534,7 +534,7 @@ def gen_weapon_looks(item_id: str, color: int) -> None:
                      for tid, (_n, col, kind) in variants.TRAITS.items()],
            "fallback": tiers}
     held = model(item_id)
-    if item_id in geo_transform.MODELS:  # 変形する武器: 手持ちは GeckoLib の 3D モデル
+    if item_id in geo_transform.MODELS or item_id in geo_arsenal.SPEC:  # 手持ちは GeckoLib の 3D モデル
         held = {"type": "minecraft:special", "base": f"abyssalloot:item/{item_id}_3d",
                 "model": {"type": "geckolib:geckolib"}}
     write_item_def(item_id, {"type": "minecraft:select", "property": "minecraft:display_context",
@@ -561,6 +561,21 @@ def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
     write_select_def(item_id, icon_id)
 
 
+# 武器アイコンに重ねる形沿いの装飾 (後ろ: halo/orbit/wings/runering/crown/chain、前: thorns/crystal/flame/lightning/roots/eyes/shard)
+ICON_DECOR = {
+    "abyss_rift_blade": "thorns:count=4",
+    "abyss_storm_spear": "lightning",
+    "abyss_flame_grimoire": "orbit:count=5,color=ffb040",
+    "abyss_moon_bow": "orbit:count=5",
+    "abyss_soul_scythe": "orbit:count=4",
+    "abyss_frost_katana": "crystal:count=3",
+    "abyss_astral_lance": "halo",
+    "abyss_void_staff": "orbit:count=6",
+    "abyss_venom_whip": "roots:count=2",
+    "abyss_chaos_tome": "runering",
+}
+
+
 def gen_hd_icon(item_id: str, color) -> None:
     """武器のインベントリ用 64x64 アイコン (hd_weapons)。叙事級はアニメーション。"""
     icon_id = f"{item_id}_icon"
@@ -569,7 +584,10 @@ def gen_hd_icon(item_id: str, color) -> None:
         _png(path, hd_weapons.icon_strip(item_id, color))
         W.write_json(path + ".mcmeta", {"animation": {"frametime": 2}})
     else:
-        _png(path, hd_weapons.icon(item_id, color))
+        img = hd_weapons.icon(item_id, color)
+        if item_id in ICON_DECOR:  # 形に沿う装飾 (art/decorate.py)
+            img = decorate.decorate(img, ICON_DECOR[item_id], color)
+        _png(path, img)
         W.remove(path + ".mcmeta")
     write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
@@ -772,11 +790,15 @@ def generate(kinds: set[str], want) -> dict[str, int]:
                 gen_2d_icon(item_id, icon_fn, color)
             if item_id in geo_transform.MODELS:  # 変形する武器の GeckoLib モデル・アニメ・テクスチャ
                 gm, gpal, ganim = geo_transform.MODELS[item_id]()
-                gen_geo_weapon(item_id, gm, [gpal], ganim, "_", 0.62, 0.5)
+                stp, sfp = 0.62, 0.5
+            elif item_id in geo_arsenal.SPEC:  # 全武器の 3D モデル (型ごとの組み立て + 待機/変形アニメ)
+                gm, gpal, ganim, (stp, sfp) = geo_arsenal.build(item_id, color, WEAPON_MODELS[item_id][2])
+            if item_id in geo_transform.MODELS or item_id in geo_arsenal.SPEC:
+                gen_geo_weapon(item_id, gm, [gpal], ganim, "_", stp, sfp)
                 write_model(f"{item_id}_3d", {  # 基底モデルの絵 (破片の粒子用) は 2D アイコン
                     "parent": "minecraft:item/handheld",
                     "textures": {"layer0": f"abyssalloot:item/{item_id}_icon"},
-                    "display": geo_weapons.display(0.62, 0.5),
+                    "display": geo_weapons.display(stp, sfp),
                 })
             if item_id in hd_weapons.ICONS or icon_fn is not None:
                 gen_weapon_looks(item_id, color)  # 鍛造レベル・特性で変わるインベントリ表示

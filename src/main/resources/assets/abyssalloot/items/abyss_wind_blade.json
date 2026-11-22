@@ -599,14 +599,20 @@
           "on_shelf"
         ],
         "model": {
-          "type": "minecraft:model",
-          "model": "abyssalloot:item/abyss_wind_blade"
+          "type": "minecraft:special",
+          "base": "abyssalloot:item/abyss_wind_blade_3d",
+          "model": {
+            "type": "geckolib:geckolib"
+          }
         }
       }
     ],
     "fallback": {
-      "type": "minecraft:model",
-      "model": "abyssalloot:item/abyss_wind_blade"
+      "type": "minecraft:special",
+      "base": "abyssalloot:item/abyss_wind_blade_3d",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
     }
   }
 }
