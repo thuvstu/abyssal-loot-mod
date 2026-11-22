@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from art import content, core, endgame, entities, equipment, decorate, finish, geo_arsenal, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, texfx, variants  # noqa: E402
+from art import content, core, endgame, entities, equipment, anim2d, decorate, finish, geo_arsenal, geo_armor, geo_transform, hd_weapons, icons, items, matgen, new_weapons, potions, shapes, texfx, variants  # noqa: E402
 from art import geo_weapons  # noqa: E402
 from art import boxmodel  # noqa: E402
 from art.core import hexcolor  # noqa: E402
@@ -534,7 +534,7 @@ def gen_weapon_looks(item_id: str, color: int) -> None:
                      for tid, (_n, col, kind) in variants.TRAITS.items()],
            "fallback": tiers}
     held = model(item_id)
-    if item_id in geo_transform.MODELS or item_id in geo_arsenal.SPEC:  # 手持ちは GeckoLib の 3D モデル
+    if item_id in geo_transform.MODELS or item_id in geo_arsenal.USE_3D:  # 手持ちは GeckoLib の 3D モデル
         held = {"type": "minecraft:special", "base": f"abyssalloot:item/{item_id}_3d",
                 "model": {"type": "geckolib:geckolib"}}
     write_item_def(item_id, {"type": "minecraft:select", "property": "minecraft:display_context",
@@ -576,6 +576,27 @@ ICON_DECOR = {
 }
 
 
+# 2D アイコンのアニメ: (書式, コマ数, 1 コマの tick)。書式は art/anim2d.py (speed は整数にするとループが継ぎ目なし)
+ANIM2D = {
+    "abyss_sword": ("sheen:width=3|gem:strength=0.5", 16, 2),
+    "abyss_greatsword": ("sheen:width=4,strength=0.6|gem|sparkle:phase=0.5", 16, 2),
+    "abyss_rune_blade": ("rune:count=6|gem|aura:strength=0.35", 12, 2),
+    "abyss_wind_blade": ("sway:strength=0.5|sheen:width=2", 12, 3),
+    "abyss_dagger": ("sheen:width=2|sparkle:strength=0.6", 12, 2),
+    "abyss_fang_dagger": ("drip:count=2,color=a8ff60|gem:strength=0.5", 12, 3),
+    "abyss_axe": ("sheen:width=3,part=all|gem", 16, 2),
+    "abyss_blood_axe": ("drip:count=2,color=c01838|aura:strength=0.35", 12, 3),
+    "abyss_hammer": ("gem:strength=0.8|sheen:width=4,part=all,strength=0.5", 16, 2),
+    "abyss_quake_hammer": ("bob:strength=0.4|ember:count=4,color=ffd060|gem", 12, 3),
+    "abyss_spear": ("sheen:width=2|sparkle", 12, 2),
+    "abyss_meteor_lance": ("ember:count=6|sparkle|aura:strength=0.3", 12, 2),
+    "abyss_tide_trident": ("drip:count=2|orbit:count=3,strength=0.5", 12, 3),
+    "abyss_wand": ("gem|orbit:count=3,radius=0.3", 12, 2),
+    "abyss_rod": ("gem|sparkle:phase=0.3", 12, 3),
+    "abyss_scythe": ("sheen:width=3,part=all|frost:count=2,color=c8ffb0", 12, 3),
+}
+
+
 def gen_hd_icon(item_id: str, color) -> None:
     """武器のインベントリ用 64x64 アイコン (hd_weapons)。叙事級はアニメーション。"""
     icon_id = f"{item_id}_icon"
@@ -587,8 +608,13 @@ def gen_hd_icon(item_id: str, color) -> None:
         img = hd_weapons.icon(item_id, color)
         if item_id in ICON_DECOR:  # 形に沿う装飾 (art/decorate.py)
             img = decorate.decorate(img, ICON_DECOR[item_id], color)
-        _png(path, img)
-        W.remove(path + ".mcmeta")
+        if item_id in ANIM2D:  # 部位別・レイヤー式の 2D アニメ (art/anim2d.py)
+            spec, n, ft = ANIM2D[item_id]
+            _png(path, anim2d.strip(img, spec, color, n))
+            W.write_json(path + ".mcmeta", {"animation": {"frametime": ft, "interpolate": False}})
+        else:
+            _png(path, img)
+            W.remove(path + ".mcmeta")
     write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
 
@@ -791,9 +817,9 @@ def generate(kinds: set[str], want) -> dict[str, int]:
             if item_id in geo_transform.MODELS:  # 変形する武器の GeckoLib モデル・アニメ・テクスチャ
                 gm, gpal, ganim = geo_transform.MODELS[item_id]()
                 stp, sfp = 0.62, 0.5
-            elif item_id in geo_arsenal.SPEC:  # 全武器の 3D モデル (型ごとの組み立て + 待機/変形アニメ)
+            elif item_id in geo_arsenal.USE_3D:  # 全武器の 3D モデル (型ごとの組み立て + 待機/変形アニメ)
                 gm, gpal, ganim, (stp, sfp) = geo_arsenal.build(item_id, color, WEAPON_MODELS[item_id][2])
-            if item_id in geo_transform.MODELS or item_id in geo_arsenal.SPEC:
+            if item_id in geo_transform.MODELS or item_id in geo_arsenal.USE_3D:
                 gen_geo_weapon(item_id, gm, [gpal], ganim, "_", stp, sfp)
                 write_model(f"{item_id}_3d", {  # 基底モデルの絵 (破片の粒子用) は 2D アイコン
                     "parent": "minecraft:item/handheld",

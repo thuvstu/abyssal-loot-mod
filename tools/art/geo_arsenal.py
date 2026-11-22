@@ -701,6 +701,14 @@ SPEC = {
     "abyss_depth_gun": (gun, {}),
 }
 
+# 3D にする武器 (仕掛け・浮遊物・可動部があるもの)。元の 2D が良い素直な武器 (剣・短剣・斧・槌・素槍…) は
+# 3D にせず、2D アイコンのアニメ (art/anim2d.py、generate_textures.ANIM2D) で見せる
+USE_3D = {"abyss_rift_blade", "abyss_echo_katana", "abyss_frost_katana", "abyss_twin_dagger", "abyss_moon_mace",
+          "abyss_ember_flail", "abyss_storm_spear", "abyss_astral_lance", "abyss_staff", "abyss_void_staff",
+          "abyss_bow", "abyss_moon_bow", "abyss_soul_scythe", "abyss_venom_whip", "abyss_chakram",
+          "abyss_eclipse_chakram", "abyss_tome", "abyss_chaos_tome", "abyss_flame_grimoire", "abyss_gauntlet",
+          "abyss_titan_gauntlet", "abyss_howling_claw", "abyss_war_horn", "abyss_depth_gun"}
+
 # 手持ちの大きさ (三人称, 一人称)。長物は小さめ
 SCALES = {sword: (0.62, 0.5), katana: (0.6, 0.48), dagger: (0.7, 0.6), axe: (0.6, 0.5), hammer: (0.6, 0.5),
           mace: (0.62, 0.5), flail: (0.62, 0.5), spear: (0.52, 0.42), staff: (0.55, 0.45), bow: (0.6, 0.5),

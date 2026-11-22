@@ -599,20 +599,14 @@
           "on_shelf"
         ],
         "model": {
-          "type": "minecraft:special",
-          "base": "abyssalloot:item/abyss_spear_3d",
-          "model": {
-            "type": "geckolib:geckolib"
-          }
+          "type": "minecraft:model",
+          "model": "abyssalloot:item/abyss_spear"
         }
       }
     ],
     "fallback": {
-      "type": "minecraft:special",
-      "base": "abyssalloot:item/abyss_spear_3d",
-      "model": {
-        "type": "geckolib:geckolib"
-      }
+      "type": "minecraft:model",
+      "model": "abyssalloot:item/abyss_spear"
     }
   }
 }

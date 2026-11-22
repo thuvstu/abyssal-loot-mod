@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image  # noqa: E402
 
-from art import decorate, palettes, extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, texfx, variants  # noqa: E402
+from art import anim2d, decorate, palettes, extrude, hd_weapons, matgen, mobgen, staffgen, structgen, swordgen, texfx, variants  # noqa: E402
 from art.project import ROOT, rel, setup_console  # noqa: E402
 
 OUT = os.path.join(ROOT, "build", "studio")
@@ -106,6 +106,11 @@ def schema() -> dict:
             _color("color", "装飾の色", "#7ce8ff"),
             _sel("material", "素材パレットで塗り替え", ["(使わない)"] + list(palettes.MATERIALS)),
             _num("seed", "種", 0, 99, 1, 1), _num("scale", "拡大", 1, 8, 1, 4)]},
+        "anim2d": {"title": "2D アニメ", "fields": [
+            _sel("weapon", "アイコン", _weapon_icons(), "abyss_sword"),
+            _sel("add", "足すレイヤー", ["(選んで追加)"] + list(anim2d.LAYERS)),
+            {"name": "fx", "label": "レイヤー (| 区切り)", "type": "text", "default": "sheen:width=3|gem|sparkle:phase=0.5"},
+            _color("color", "色", "#7ce8ff"), _num("frame", "コマ (0..7)", 0, 7, 1, 0), _num("scale", "拡大", 1, 8, 1, 4)]},
         "extrude": {"title": "押し出し", "fields": [
             _sel("weapon", "アイコン", _weapon_icons(), "abyss_crystal_sword"),
             _sel("style", "厚みの付け方", extrude.STYLES, "blade"), _num("thickness", "厚み", 1, 6, 1, 3),
@@ -233,6 +238,12 @@ def render(tool: str, q: dict) -> Image.Image:
                         v = r[min(6, int((0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 256 * 7))]
                         px[x, y] = ((v >> 16) & 255, (v >> 8) & 255, v & 255, c[3])
         img = decorate.decorate(base, q.get("fx", ""), _hex(q.get("color", "#7ce8ff")), _int(q, "seed", 1))
+        s = _int(q, "scale", 4)
+        return img.resize((img.width * s, img.height * s), Image.NEAREST)
+    if tool == "anim2d":
+        col = _hex(q.get("color", "#7ce8ff"))
+        fs = anim2d.frames(hd_weapons.icon(q["weapon"], col), q.get("fx", ""), col, 8)
+        img = fs[_int(q, "frame", 0) % 8]
         s = _int(q, "scale", 4)
         return img.resize((img.width * s, img.height * s), Image.NEAREST)
     if tool == "extrude":
