@@ -80,7 +80,8 @@ def _fx(name, kw, P: Parts, layer, u, color, rnd):
     light = tuple(min(255, v + (255 - v) * 0.6) for v in col)
     if name == "sheen":  # 刃を柄から切っ先へ走る斜めの照り
         width = float(kw.get("width", 3)) * w / 64
-        pos = -0.2 + 1.4 * u
+        pause = float(kw.get("pause", 0))  # 周期のうち照りが走らない割合 (時々きらりと光らせる)
+        pos = -0.2 + 1.4 * min(1.0, u / max(0.05, 1 - pause))
         for (x, y) in P.of(kw.get("part", "blade")):
             d = abs(P.t[(x, y)] - pos) * b.length
             if d < width:

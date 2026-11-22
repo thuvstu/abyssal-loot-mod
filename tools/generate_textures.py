@@ -552,11 +552,21 @@ def gen_matgen_icon(e: dict, key: str) -> None:
     write_item_def(e["id"])
 
 
-def gen_2d_icon(item_id: str, fn, color, trim=None) -> None:
-    """3D アイテム用の 2D ドット絵 (インベントリ表示)。"""
+ARMOR_ICON_ANIM = ("sheen:width=2,part=all,strength=0.6,pause=0.5|gem:strength=0.5", 24, 2)
+
+
+def gen_2d_icon(item_id: str, fn, color, trim=None, anim=None) -> None:
+    """3D アイテム用の 2D ドット絵 (インベントリ表示)。anim = (anim2d の書式, コマ数, tick) で動かす。"""
     icon_id = f"{item_id}_icon"
     img = fn(hexcolor(color)) if trim is None else fn(hexcolor(color), hexcolor(trim))
-    _png(os.path.join(TEX_DIR, f"{icon_id}.png"), finish.finish(img))
+    img = finish.finish(img)
+    path = os.path.join(TEX_DIR, f"{icon_id}.png")
+    if anim:
+        _png(path, anim2d.strip(img, anim[0], trim if trim is not None else color, anim[1]))
+        W.write_json(path + ".mcmeta", {"animation": {"frametime": anim[2]}})
+    else:
+        _png(path, img)
+        W.remove(path + ".mcmeta")
     write_flat_model(icon_id)
     write_select_def(item_id, icon_id)
 
@@ -839,7 +849,7 @@ def generate(kinds: set[str], want) -> dict[str, int]:
             gen_model(item_id, fn, armor_palette(base, trim), "armor")
             icon_fn = ARMOR_ICONS.get(item_id)
             if icon_fn is not None:
-                gen_2d_icon(item_id, icon_fn, trim, base)
+                gen_2d_icon(item_id, icon_fn, trim, base, ARMOR_ICON_ANIM)
             counts["armor"] += 1
 
     if "materials" in kinds:  # 立体 + 2D ドット絵

@@ -20,6 +20,10 @@ from .geo import Material, Model
 MAGIC_STYLES = {"crystal", "obsidian", "frost", "ember"}
 
 
+def _mix(a: int, b: int, t: float) -> int:
+    return sum(int(((a >> sh) & 255) + (((b >> sh) & 255) - ((a >> sh) & 255)) * t) << sh for sh in (16, 8, 0))
+
+
 def _shift(c: int, k: float) -> int:
     r, g, b = (c >> 16) & 255, (c >> 8) & 255, c & 255
     f = (lambda v: max(0, min(255, int(v * k)))) if k < 1 else (lambda v: max(0, min(255, int(v + (255 - v) * (k - 1)))))
@@ -97,7 +101,16 @@ def armor_model(asset: str, helmet: str = "sentinel", style: str | None = None) 
     b.box("armorBody", (0, 16.4, -2.8), (0.8, 4.0, 0.6), "glow")                   # 核石から下へ走る光
     b.pair("armorBody", "armorBody", (-3.0, 22.6, -2.9), (2.0, 1.0, 0.6), "glow", rot=(0, 0, 30))
     b.bone("cape", (0, 23.6, 2.8), parent="armorBody")
-    b.box("cape", (0, 15.2, 3.1), (8.2, 16.6, 0.5), "cloth")
+    b.box("cape", (0, 23.4, 2.9), (9.4, 1.4, 1.2), "filigree")  # 留め具の帯
+    b.pair("cape", "cape", (-3.6, 23.4, 2.4), (1.6, 1.6, 0.6), "gem", rot=(0, 0, 45))
+    b.box("cape", (0, 19.8, 3.1), (8.2, 6.0, 0.5), "cloth")
+    b.bone("cape1", (0, 16.8, 3.1), parent="cape")
+    b.box("cape1", (0, 13.8, 3.1), (8.6, 6.0, 0.45), "cloth")
+    b.bone("cape2", (0, 10.8, 3.1), parent="cape1")
+    b.box("cape2", (0, 8.6, 3.1), (9.0, 4.6, 0.4), "cloth")
+    b.box("cape2", (0, 6.1, 3.1), (9.0, 0.6, 0.45), "filigree")  # 裾の金糸
+    for k in range(3):  # 裾の三角の房
+        b.box("cape2", (-3 + k * 3, 5.4, 3.1), (1.2, 1.2, 0.4), "filigree", rot=(0, 0, 45))
     if helmet == "crown" or style in MAGIC_STYLES:  # 背びれ (翼の骨)
         b.bone("fins", (0, 22, 3), parent="armorBody")
         for k in range(3):
@@ -128,8 +141,67 @@ def armor_model(asset: str, helmet: str = "sentinel", style: str | None = None) 
     b.pair("armorRightBoot", "armorLeftBoot", (-1.9, 0.9, -3.0), (4.6, 1.8, 1.6), "trim")
     if helmet == "drake":
         b.pair("armorRightBoot", "armorLeftBoot", (-4.6, 4.0, 1.0), (0.8, 2.4, 0.8), "bone", rot=(0, 0, -30))
+    _details(b, helmet, style)
     m.layout(128)
     return m
+
+
+def _details(b, helmet: str, style: str | None):
+    """繊細さを足す細部: 金の縁取り・重ね板 (札)・鋲・宝石の象嵌・喉当て・帯の留め金・膝当て・具足の段。"""
+    import math
+    # 兜: 縁の金線・頬当ての鋲・額の宝石・後頭部の重ね板
+    b.box("armorHead", (0, 32.6, 0), (9.4, 0.5, 9.4), "filigree")
+    b.box("armorHead", (0, 30.3, -5.15), (1.2, 1.2, 0.5), "gem", rot=(0, 0, 45))
+    for k in range(3):
+        b.box("armorHead", (0, 30.0 - k * 1.8, 4.6 + k * 0.2), (8.6 - k * 0.6, 1.6, 0.6), "plate")
+        b.box("armorHead", (0, 29.3 - k * 1.8, 4.95 + k * 0.2), (8.6 - k * 0.6, 0.3, 0.3), "filigree")
+    for y in (27.0, 25.4):
+        b.pair("armorHead", "armorHead", (-5.05, y, -3.6), (0.4, 0.6, 0.6), "edge")
+    # 胴: 喉当て・胸の縁取り・肋の重ね板・帯の留め金・腰の鋲
+    b.box("armorBody", (0, 24.3, -0.2), (7.0, 1.4, 5.6), "plate")
+    b.box("armorBody", (0, 24.9, -0.2), (7.2, 0.4, 5.8), "filigree")
+    b.box("armorBody", (0, 23.5, -3.2), (7.4, 0.5, 0.3), "filigree")
+    b.box("armorBody", (0, 17.3, -3.2), (7.4, 0.5, 0.3), "filigree")
+    b.pair("armorBody", "armorBody", (-3.6, 20.4, -3.2), (0.5, 6.0, 0.3), "filigree")
+    for k in range(3):
+        b.box("armorBody", (0, 16.2 - k * 1.2, -2.75), (8.0 - k * 0.4, 1.0, 0.5), "plate", rot=(4, 0, 0))
+        b.box("armorBody", (0, 15.75 - k * 1.2, -3.0), (8.0 - k * 0.4, 0.2, 0.3), "edge")
+    b.box("armorBody", (0, 12.8, -3.3), (2.6, 2.4, 0.5), "filigree")
+    b.box("armorBody", (0, 12.8, -3.6), (1.2, 1.2, 0.4), "gem", rot=(0, 0, 45))
+    for x in (-4.0, -2.0, 2.0, 4.0):
+        b.box("armorBody", (x, 12.8, -2.95), (0.5, 0.5, 0.4), "edge")
+    # 背中の紋 (マントの上端に隠れない位置)
+    for k in range(6):
+        a = math.radians(k * 60)
+        b.box("armorBody", (math.cos(a) * 1.4, 21.0 + math.sin(a) * 1.4, 2.65), (0.7, 0.7, 0.3), "filigree", rot=(0, 0, k * 60))
+    # 腕: 肩当てを 3 枚の札に・肘当て・手甲の金線
+    for k in range(3):
+        b.pair("armorRightArm", "armorLeftArm", (-7.0 - k * 0.3, 22.2 - k * 1.5, 0), (5.0 - k * 0.4, 1.4, 5.8 - k * 0.4),
+               "plate", rot=(0, 0, 18 + k * 6))
+        b.pair("armorRightArm", "armorLeftArm", (-7.0 - k * 0.3, 21.6 - k * 1.5, 0), (5.0 - k * 0.4, 0.3, 5.9 - k * 0.4),
+               "filigree", rot=(0, 0, 18 + k * 6))
+    b.pair("armorRightArm", "armorLeftArm", (-8.6, 17.4, 0), (0.8, 2.2, 2.2), "trim", rot=(45, 0, 0))
+    b.pair("armorRightArm", "armorLeftArm", (-6.0, 14.2, -2.65), (3.4, 0.3, 0.3), "filigree")
+    b.pair("armorRightArm", "armorLeftArm", (-6.0, 16.6, -2.65), (3.4, 0.3, 0.3), "filigree")
+    # 脚: 膝当ての菱・すねの稜線・腿の札
+    b.pair("armorRightLeg", "armorLeftLeg", (-1.9, 6.4, -3.15), (1.4, 1.4, 0.5), "gem", rot=(0, 0, 45))
+    b.pair("armorRightLeg", "armorLeftLeg", (-1.9, 8.8, -2.75), (0.5, 3.0, 0.5), "edge")
+    for k in range(2):
+        b.pair("armorRightLeg", "armorLeftLeg", (-2.0, 10.6 - k * 1.3, 2.65), (4.4, 1.1, 0.5), "plate", rot=(-6, 0, 0))
+    # 靴: 甲の重ね板・踵の拍車
+    for k in range(3):
+        b.pair("armorRightBoot", "armorLeftBoot", (-1.9, 1.6 + k * 0.9, -3.0 + k * 0.25), (4.4, 0.8, 1.2), "plate", rot=(-10, 0, 0))
+        b.pair("armorRightBoot", "armorLeftBoot", (-1.9, 1.25 + k * 0.9, -3.5 + k * 0.25), (4.4, 0.2, 0.3), "filigree")
+    b.pair("armorRightBoot", "armorLeftBoot", (-1.9, 4.6, -0.2), (5.2, 0.6, 5.4), "filigree")
+    b.pair("armorRightBoot", "armorLeftBoot", (-1.9, 1.4, 3.1), (0.6, 0.6, 1.4), "edge")
+    if style in MAGIC_STYLES or helmet == "crown":
+        # 浮遊する肩の宝珠 (腕の骨の子にして、腕と一緒に動く)
+        b.bone("motesR", (-8.0, 26.0, 0), parent="armorRightArm")
+        b.bone("motesL", (8.0, 26.0, 0), parent="armorLeftArm")
+        for k in range(3):
+            a = math.radians(k * 120)
+            for bn, sx in (("motesR", -1), ("motesL", 1)):
+                b.box(bn, (sx * 8.0 + math.cos(a) * 2.2, 27.4, math.sin(a) * 2.2), (0.8, 0.8, 0.8), "glow", rot=(45, 45, 0))
 
 
 def armor_palette(body: int, trim: int) -> dict[str, Material]:
@@ -141,12 +213,19 @@ def armor_palette(body: int, trim: int) -> dict[str, Material]:
         "cloth": Material(_shift(body, 0.6), "cloth", accent=trim),
         "bone": Material(0xe8e0cc, "metal"),
         "gem": Material(_shift(trim, 1.25), "gem", emissive=True),
+        "filigree": Material(_mix(trim, 0xd9b04c, 0.45), "gold"),
+        "edge": Material(_shift(trim, 1.4), "edge"),
         "glow": Material(_shift(trim, 1.35), "glow", emissive=True),
     }
 
 
 def armor_anim(asset: str, helmet: str, style: str | None) -> dict:
-    bones = {"cape": {"rotation": geo.wave(3.0, (8.0, 0.0, 0.0), steps=8, base=(10.0, 0.0, 0.0))}}
+    bones = {"cape": {"rotation": geo.wave(3.0, (5.0, 0.0, 1.5), steps=12, base=(8.0, 0.0, 0.0))},
+             "cape1": {"rotation": geo.wave(3.0, (7.0, 0.0, 2.0), steps=12, phase=0.8, base=(4.0, 0.0, 0.0))},
+             "cape2": {"rotation": geo.wave(3.0, (9.0, 0.0, 3.0), steps=12, phase=1.6, base=(3.0, 0.0, 0.0))}}
+    if style in MAGIC_STYLES or helmet == "crown":
+        bones["motesR"] = {"rotation": geo.spin(3.0, axis=1, turns=1.0, steps=8)}
+        bones["motesL"] = {"rotation": geo.spin(3.0, axis=1, turns=-1.0, steps=8)}
     if helmet == "crown":
         bones["halo"] = {"rotation": geo.spin(3.0, axis=1, turns=1.0)}
     if style in MAGIC_STYLES:

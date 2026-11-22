@@ -329,7 +329,20 @@ def _shade(m: Material, face: str, i: int, j: int, w: int, h: int):
     seed = m.color & 0xffff
     level += (_hash(seed, face == "up", i, j) - 0.5) * 0.28  # 微細な揺らぎ (のっぺりさせない)
     k = m.kind
-    if k == "metal" and w >= 3:
+    if k == "metal" and w >= 14 and h >= 14:
+        # 大きな板: 2 テクセル内側の彫り線 (上左は影・下右は照り)・四隅の鋲・槌目のむら・控えめな照りの筋
+        if (i == 3 or j == 3) and 3 <= i <= w - 4 and 3 <= j <= h - 4:
+            level -= 0.8
+        elif (i == w - 4 or j == h - 4) and 3 <= i <= w - 4 and 3 <= j <= h - 4:
+            level += 0.5
+        for cx, cy in ((1.5, 1.5), (w - 2.5, 1.5), (1.5, h - 2.5), (w - 2.5, h - 2.5)):
+            d = math.hypot(i - cx, j - cy)
+            if d < 1.0:
+                return mix(r[4], WHITE, 0.35) if i <= cx and j <= cy else r[1]
+        level += (_hash(seed, i // 3, j // 3, 3) - 0.5) * 0.35
+        if abs((i - j * 0.6) - w * 0.3) < 0.7:
+            level += 0.6
+    elif k == "metal" and w >= 3:
         if abs((i - j * 0.6) - w * 0.35) < 0.9 or abs((i - j * 0.6) - w * 0.35 - 2.5) < 0.5:
             level += 1.0
     elif k == "edge":
